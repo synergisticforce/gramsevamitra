@@ -7,6 +7,7 @@ import AstroPWA from '@vite-pwa/astro';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sharedRoot = path.resolve(__dirname, '../../packages/shared/src');
+const UTILITIES_ORIGIN = 'https://utilities.gramsevamitra.com';
 
 export default defineConfig({
   site: 'https://gramsevamitra.com',
@@ -19,15 +20,15 @@ export default defineConfig({
       injectRegister: null,
       includeAssets: ['favicon.svg', 'robots.txt', 'pwa-192.png', 'pwa-512.png'],
       manifest: {
-        name: 'GramSeva Mitra',
-        short_name: 'GramSeva',
+        name: 'GramSeva Mitra Utilities',
+        short_name: 'Utilities',
         description: 'Digital empowerment suite for Indian aspirants — offline calculators, trackers, and career tools.',
         theme_color: '#020617',
         background_color: '#020617',
         display: 'standalone',
         orientation: 'portrait-primary',
-        scope: '/',
-        start_url: '/tools/',
+        scope: `${UTILITIES_ORIGIN}/`,
+        start_url: `${UTILITIES_ORIGIN}/tools/`,
         icons: [
           {
             src: '/pwa-192.png',
@@ -49,9 +50,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webmanifest,txt,mjs,map,json}'],
-        navigateFallback: '/tools/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallback: '/404.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/404\.html$/],
         cleanupOutdatedCaches: true,
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -84,6 +86,12 @@ export default defineConfig({
   vite: {
     resolve: {
       alias: { '@shared': sharedRoot },
+    },
+    optimizeDeps: {
+      include: ['browser-image-compression', '@huggingface/transformers'],
+    },
+    worker: {
+      format: 'es',
     },
   },
 });

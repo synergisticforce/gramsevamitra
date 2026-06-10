@@ -340,7 +340,12 @@ const toolDescription =
   }
 
   async function extractTextFromPdf(arrayBuffer: ArrayBuffer): Promise<string> {
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    configurePdfJsWorker();
+    const loadingTask = pdfjsLib.getDocument({
+      data: arrayBuffer,
+      useWorkerFetch: false,
+      isEvalSupported: false,
+    });
     const pdf = await loadingTask.promise;
     const pages: string[] = [];
 
@@ -413,7 +418,12 @@ const toolDescription =
       resultsPlaceholder.classList.add('hidden');
       resultsPanel.classList.remove('hidden');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Scan failed. Please try again.';
+      const message =
+        err instanceof Error && /worker|fetch|loading/i.test(err.message)
+          ? 'PDF engine failed to load. Refresh the page and try again, or use a text-based PDF (not a scanned image).'
+          : err instanceof Error
+            ? err.message
+            : 'Scan failed. Please try again.';
       showError(message);
     } finally {
       setLoading(false);

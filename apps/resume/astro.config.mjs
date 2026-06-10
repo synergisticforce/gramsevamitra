@@ -24,7 +24,7 @@ export default defineConfig({
         name: 'ATS Resume Scanner — GramSeva Mitra',
         shortName: 'Resume Scanner',
         description: 'ATS match score and keyword analysis for job applications',
-        navigateFallback: '/index.html',
+        navigateFallback: '/404.html',
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       }),
     ],

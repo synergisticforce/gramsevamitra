@@ -1,6 +1,7 @@
 ---
 import ToolsLayout from '../../../layouts/ToolsLayout.astro';
 import { formatSeoTitle } from '@shared/config/seo';
+import { utilitiesHref } from '@shared/config/sites';
 
 const toolName = 'EMI Calculator';
 const toolDescription =
@@ -14,7 +15,7 @@ const toolDescription =
 >
   <div class="emi-calculator">
     <header class="mb-6">
-      <a href="/tools/money" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+      <a href={utilitiesHref('/tools/money')} class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
         ← Money &amp; Gig Ledger
       </a>
       <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
@@ -203,6 +204,30 @@ const toolDescription =
             </ul>
           </div>
 
+          <!-- Charts -->
+          <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4">
+            <p class="mb-3 text-xs font-medium uppercase tracking-wider text-slate-500">Visual breakdown</p>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <p class="mb-2 text-center text-[10px] font-medium text-slate-500">Principal vs interest</p>
+                <div class="relative mx-auto h-[180px] w-full max-w-[200px]">
+                  <canvas id="chart-doughnut" aria-label="Principal versus interest doughnut chart"></canvas>
+                </div>
+              </div>
+              <div>
+                <p class="mb-2 text-center text-[10px] font-medium text-slate-500">First 12 months (₹)</p>
+                <div class="relative h-[180px] w-full">
+                  <canvas id="chart-bar" aria-label="Monthly principal and interest bar chart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button type="button" id="export-copy" class="export-btn flex-1">Copy summary</button>
+            <button type="button" id="export-csv" class="export-btn flex-1">Download CSV</button>
+          </div>
+
           <p id="result-note" class="text-center text-xs text-slate-500">
             Adjust loan details to see your EMI instantly.
           </p>
@@ -211,7 +236,23 @@ const toolDescription =
     </div>
   </div>
 
+  <style>
+    .export-btn {
+      @apply rounded-lg border border-emerald-700/60 bg-emerald-950/40 px-3 py-2 text-xs font-semibold text-emerald-400 transition hover:border-emerald-500 hover:bg-emerald-900/40 hover:text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 disabled:cursor-not-allowed disabled:opacity-40;
+    }
+  </style>
+
   <script>
+    import type { Chart } from 'chart.js';
+    import {
+      GSM_CHART_COLORS,
+      destroyChart,
+      gsmLegendOptions,
+      gsmScaleOptions,
+      gsmTooltipOptions,
+      renderChart,
+    } from '../../../lib/charts/chartHelper';
+    import { bindExportButtons } from '../../../lib/export/toolExport';
     const STORAGE_KEY = 'gsm-tools:emi-calculator';
 
     const DEFAULTS = {
@@ -237,6 +278,13 @@ const toolDescription =
       interestPct: number;
     }
 
+    interface AmortRow {
+      month: number;
+      principal: number;
+      interest: number;
+      balance: number;
+    }
+
     const loanAmountInput = document.getElementById('loan-amount') as HTMLInputElement;
     const loanAmountSlider = document.getElementById('loan-amount-slider') as HTMLInputElement;
     const interestRateInput = document.getElementById('interest-rate') as HTMLInputElement;
@@ -257,6 +305,16 @@ const toolDescription =
     const barInterest = document.getElementById('bar-interest') as HTMLDivElement;
     const legendPrincipal = document.getElementById('legend-principal')!;
     const legendInterest = document.getElementById('legend-interest')!;
+    const doughnutCanvas = document.getElementById('chart-doughnut') as HTMLCanvasElement;
+    const barCanvas = document.getElementById('chart-bar') as HTMLCanvasElement;
+    const exportCopyBtn = document.getElementById('export-copy') as HTMLButtonElement;
+    const exportCsvBtn = document.getElementById('export-csv') as HTMLButtonElement;
+
+    let doughnutChart: Chart | null = null;
+    let barChart: Chart | null = null;
+    let lastResult: EmiResult | null = null;
+    let lastSchedule: AmortRow[] = [];
+    let lastMonths = 0;
 
     function formatInr(value: number): string {
       if (!Number.isFinite(value)) return '₹0';
@@ -329,6 +387,100 @@ const toolDescription =
       };
     }
 
+    function buildAmortization(principal: number, annualRatePct: number, months: number, emi: number): AmortRow[] {
+      const rows: AmortRow[] = [];
+      let balance = principal;
+      const monthlyRate = annualRatePct / 12 / 100;
+
+      for (let month = 1; month <= months && balance > 0.01; month++) {
+        const interest = annualRatePct === 0 ? 0 : balance * monthlyRate;
+        let principalPart = emi - interest;
+        if (principalPart > balance) principalPart = balance;
+        balance = Math.max(0, balance - principalPart);
+        rows.push({ month, principal: principalPart, interest, balance });
+      }
+
+      return rows;
+    }
+
+    function formatInrShort(value: number): string {
+      if (value >= 10_000_000) return `₹${(value / 10_000_000).toFixed(1)}Cr`;
+      if (value >= 100_000) return `₹${(value / 100_000).toFixed(1)}L`;
+      if (value >= 1_000) return `₹${(value / 1_000).toFixed(0)}K`;
+      return `₹${Math.round(value)}`;
+    }
+
+    async function updateCharts(result: EmiResult | null, schedule: AmortRow[]): Promise<void> {
+      if (!result) {
+        doughnutChart = destroyChart(doughnutChart);
+        barChart = destroyChart(barChart);
+        exportCopyBtn.disabled = true;
+        exportCsvBtn.disabled = true;
+        return;
+      }
+
+      exportCopyBtn.disabled = false;
+      exportCsvBtn.disabled = false;
+
+      doughnutChart = await renderChart(doughnutCanvas, doughnutChart, {
+        type: 'doughnut',
+        data: {
+          labels: ['Principal', 'Interest'],
+          datasets: [{
+            data: [Math.round(result.principal), Math.round(result.totalInterest)],
+            backgroundColor: [GSM_CHART_COLORS.primary, GSM_CHART_COLORS.secondary],
+            borderWidth: 0,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '62%',
+          plugins: {
+            legend: { ...gsmLegendOptions(), position: 'bottom' },
+            tooltip: gsmTooltipOptions((v) => formatInr(v)),
+          },
+        },
+      });
+
+      const slice = schedule.slice(0, 12);
+      const labels = slice.map((r) => `M${r.month}`);
+
+      barChart = await renderChart(barCanvas, barChart, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Principal',
+              data: slice.map((r) => Math.round(r.principal)),
+              backgroundColor: GSM_CHART_COLORS.primary,
+              borderRadius: 3,
+            },
+            {
+              label: 'Interest',
+              data: slice.map((r) => Math.round(r.interest)),
+              backgroundColor: GSM_CHART_COLORS.secondary,
+              borderRadius: 3,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            ...gsmScaleOptions(formatInrShort),
+            x: { ...gsmScaleOptions().x, stacked: true },
+            y: { ...gsmScaleOptions(formatInrShort).y, stacked: true },
+          },
+          plugins: {
+            legend: { ...gsmLegendOptions(), position: 'bottom' },
+            tooltip: gsmTooltipOptions((v) => formatInr(v)),
+          },
+        },
+      });
+    }
+
     function readState(): SavedState {
       return {
         loanAmount: clamp(Number(loanAmountInput.value) || 0, 1000, 100_000_000),
@@ -384,7 +536,11 @@ const toolDescription =
       }
     }
 
-    function renderResults(result: EmiResult | null, months: number): void {
+    function renderResults(result: EmiResult | null, months: number, schedule: AmortRow[]): void {
+      lastResult = result;
+      lastSchedule = schedule;
+      lastMonths = months;
+
       if (!result) {
         resultEmi.textContent = '₹0';
         resultInterest.textContent = '₹0';
@@ -395,6 +551,7 @@ const toolDescription =
         barPrincipal.style.width = '50%';
         barInterest.style.width = '50%';
         resultNote.textContent = 'Enter valid loan details to calculate EMI.';
+        void updateCharts(null, []);
         return;
       }
 
@@ -411,15 +568,53 @@ const toolDescription =
       const tenureDisplay = tenureUnitSelect.value === 'years' ? months / 12 : months;
       const tenureWord = tenureDisplay === 1 ? unit : `${unit}s`;
       resultNote.textContent = `Over ${tenureDisplay} ${tenureWord} (${months} months) at ${interestRateInput.value}% p.a.`;
+      void updateCharts(result, schedule);
     }
 
     function recalculate(): void {
       const state = readState();
       const months = tenureToMonths(state.tenureValue, state.tenureUnit);
       const result = calculateEmi(state.loanAmount, state.interestRate, months);
-      renderResults(result, months);
+      const schedule = result
+        ? buildAmortization(state.loanAmount, state.interestRate, months, result.emi)
+        : [];
+      renderResults(result, months, schedule);
       saveState(state);
     }
+
+    bindExportButtons({
+      copyBtn: exportCopyBtn,
+      csvBtn: exportCsvBtn,
+      getSummary: () => {
+        if (!lastResult) return null;
+        const state = readState();
+        return [
+          'EMI Calculator Summary',
+          `Loan amount: ${formatInr(state.loanAmount)}`,
+          `Interest rate: ${state.interestRate}% p.a.`,
+          `Tenure: ${lastMonths} months`,
+          `Monthly EMI: ${formatInr(Math.round(lastResult.emi))}`,
+          `Total interest: ${formatInr(Math.round(lastResult.totalInterest))}`,
+          `Total payment: ${formatInr(Math.round(lastResult.totalPayment))}`,
+        ].join('\n');
+      },
+      getCsv: () => {
+        if (!lastResult || lastSchedule.length === 0) return null;
+        return {
+          filename: 'emi-amortization',
+          headers: ['Month', 'Principal (₹)', 'Interest (₹)', 'Balance (₹)'],
+          rows: lastSchedule.map((r) => [
+            r.month,
+            Math.round(r.principal),
+            Math.round(r.interest),
+            Math.round(r.balance),
+          ]),
+        };
+      },
+    });
+
+    exportCopyBtn.disabled = true;
+    exportCsvBtn.disabled = true;
 
     function bindDualControl(
       input: HTMLInputElement,

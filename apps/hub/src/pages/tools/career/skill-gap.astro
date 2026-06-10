@@ -1,6 +1,8 @@
 ---
 import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import DraftSavedBadge from '../../../components/tools/DraftSavedBadge.astro';
 import { formatSeoTitle } from '@shared/config/seo';
+import { utilitiesHref } from '@shared/config/sites';
 
 const toolName = 'Skill Gap Analyzer';
 const toolDescription =
@@ -14,7 +16,7 @@ const toolDescription =
 >
   <div class="skill-gap-tool">
     <header class="mb-6">
-      <a href="/tools/career" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+      <a href={utilitiesHref('/tools/career')} class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
         ← Career Prep Room
       </a>
       <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
@@ -53,6 +55,7 @@ const toolDescription =
         </label>
 
         <button type="button" id="sg-analyze" class="btn-primary mt-4 w-full text-sm">Analyze gap</button>
+        <DraftSavedBadge />
       </section>
 
       <section aria-labelledby="sg-results-heading" class="space-y-4">
@@ -101,6 +104,8 @@ const toolDescription =
   </style>
 
   <script>
+    import { showDraftSaved } from '../../../lib/storage/draftSaved';
+
     const STORAGE_KEY = 'gsm-tools:skill-gap';
 
     const STOP_WORDS = new Set([
@@ -186,6 +191,7 @@ const toolDescription =
 
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ skills: skillsEl.value, jd: jdEl.value }));
+        showDraftSaved();
       } catch { /* ignore */ }
     }
 
@@ -198,6 +204,7 @@ const toolDescription =
         const data = JSON.parse(saved) as { skills: string; jd: string };
         skillsEl.value = data.skills ?? '';
         jdEl.value = data.jd ?? '';
+        showDraftSaved();
       }
     } catch { /* ignore */ }
 

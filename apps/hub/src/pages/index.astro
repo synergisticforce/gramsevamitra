@@ -3,7 +3,7 @@ import '@shared/styles/global.css';
 import BaseLayout from '@shared/layouts/BaseLayout.astro';
 import Header from '@shared/components/Header.astro';
 import Footer from '@shared/components/Footer.astro';
-import { SITES } from '@shared/config/sites';
+import { SITES, utilitiesHref } from '@shared/config/sites';
 import { SITE_HOME_SEO } from '@shared/config/seo';
 ---
 
@@ -32,7 +32,7 @@ import { SITE_HOME_SEO } from '@shared/config/seo';
 
       <div class="mt-12">
         <a
-          href="/tools"
+          href={utilitiesHref('/tools')}
           class="group flex flex-col items-center rounded-2xl border border-emerald-700/40 bg-gradient-to-r from-emerald-950/60 to-slate-900/60 px-6 py-5 text-center transition hover:border-emerald-500/60 sm:flex-row sm:justify-between sm:text-left"
         >
           <div>

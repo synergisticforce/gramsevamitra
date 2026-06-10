@@ -1,12 +1,23 @@
 # 🏛️ PROJECT VISION & ARCHITECTURE: GramSeva Mitra Utilities Hub
 
 ## 1. Project Overview
-Act as a Principal Frontend Engineer and UX Architect. We are building the `gramsevamitra.com/tools` sub-directory. It is a "Super-App" style utility hub designed for rural Indian students, job seekers, and gig workers. 
+Act as a Principal Frontend Engineer and UX Architect. We are building the **GramSeva Mitra multi-tenant suite** — a privacy-first toolkit for rural Indian students, job seekers, and gig workers.
+
+### Production Domains (Subdomain Architecture)
+| Property | URL | App workspace |
+|----------|-----|---------------|
+| **Main Hub** | `https://gramsevamitra.com` | `apps/hub` (landing + cross-promo) |
+| **Utilities Super-App** | `https://utilities.gramsevamitra.com` | `apps/hub` (all `/tools/*` routes) |
+| **PDF Tools** | `https://pdf.gramsevamitra.com` | `apps/pdf` |
+| **Resume Scanner** | `https://resume.gramsevamitra.com` | `apps/resume` |
+| **Doc Optimizer** | `https://optimizer.gramsevamitra.com` | `apps/optimizer` |
+
+Cross-app navigation MUST use absolute URLs via `SITES` and `utilitiesHref()` from `packages/shared/src/config/sites.ts` — never hardcode relative paths for tenant boundaries.
 
 ## 2. Core Rules (NON-NEGOTIABLE)
-1. **Zero-Cost, Client-Side ONLY:** You are strictly forbidden from writing code that requires a backend server, external paid APIs, or database. Everything must run in the browser using DOM APIs, Canvas, `localStorage`, and free NPM packages.
-2. **Hybrid App Shell (SEO + Speed):** Do not hide tools inside generic modals on the index page. Every tool MUST have its own dedicated Astro route (e.g., `/tools/money/emi-calculator`) for SEO ranking. 
-3. **App-Like Feel:** Use Astro `<ViewTransitions />` in the global layout so navigating between these distinct routes feels like an instant native app transition without white-screen flashes.
+1. **Zero-Cost, Client-Side ONLY:** You are strictly forbidden from writing code that requires a backend server, external paid APIs, or database. Everything must run in the browser using DOM APIs, Canvas, `localStorage`, and free NPM packages. (Exception: optional free public APIs with offline fallback, e.g. Frankfurter for FX rates.)
+2. **Hybrid App Shell (SEO + Speed):** Do not hide tools inside generic modals on the index page. Every tool MUST have its own dedicated Astro route (e.g. `https://utilities.gramsevamitra.com/tools/money/emi-calculator`) for SEO ranking.
+3. **App-Like Feel:** Use Astro `<ViewTransitions />` in `ToolsLayout.astro` so navigating between distinct routes feels like an instant native app transition without white-screen flashes.
 4. **Anti-Overwhelm UI:** The UI must be highly consolidated. Tools are grouped into 5 specific Workspaces.
 5. **Data Persistence:** Use `localStorage` extensively so user data (habits, ledgers, text drafts) survives page refreshes.
 
@@ -14,14 +25,15 @@ Act as a Principal Frontend Engineer and UX Architect. We are building the `gram
 - **Framework:** Astro.js (SSG mode)
 - **Styling:** Tailwind CSS
 - **Interactivity:** Vanilla JS/TS (inside Astro `<script>` tags) or lightweight client-side frameworks if explicitly requested.
-- **Deployment:** Cloudflare Pages
+- **Deployment:** Cloudflare Pages (multi-project monorepo via npm workspaces)
+- **PWA:** `@vite-pwa/astro` on hub; utilities PWA `start_url` → `https://utilities.gramsevamitra.com/tools/`
 
 ## 4. UI/UX Layout Structure
-Every page within `/tools/*` must use a unified `ToolsLayout.astro` wrapper containing:
-- **Global Header:** `[GramSeva Mitra Logo] | [Back to PDF Hub ➔]` (Link back to main domain).
-- **Sticky Smart Search:** An auto-suggest search bar that links directly to specific tool routes.
+Every page within `utilities.gramsevamitra.com/tools/*` must use a unified `ToolsLayout.astro` wrapper containing:
+- **Global Header:** `[GramSeva Mitra Logo → utilities home]` | `[Main Hub]` | `[PDF Tools ➔]` (absolute subdomain links).
+- **Sticky Smart Search:** An auto-suggest search bar that links directly to specific tool routes (absolute `utilitiesHref()` URLs).
 - **Main Content Area:** `<slot />` where the workspace or tool renders.
-- **Bottom Navigation (Mobile):** Icons for [🏠 Home] [💰 Money] [✍️ Write] [🚀 Career] [🧰 Quick].
+- **Bottom Navigation (Mobile):** Icons for [🏠 Home] [💰 Money] [✍️ Write] [🚀 Career] [🧘 Life] [🧰 Quick] [🔍 Search].
 
 ## 5. The 5 Master Workspaces & Complete Tool Roster
 You must account for EVERY tool listed below. Do not skip any.
@@ -32,7 +44,7 @@ You must account for EVERY tool listed below. Do not skip any.
 - `emi-calculator.astro`
 - `loan-repayment.astro`
 - `tip-calculator.astro`
-- `multi-currency.astro` (Static offline rates)
+- `multi-currency.astro` (Live Frankfurter API rates + offline fallback)
 - `invoice-builder.astro` (Outputs PDF via client-side library)
 - `pay-stub-generator.astro`
 - `meeting-cost.astro`
@@ -91,3 +103,9 @@ Do NOT build everything at once. We will execute in strict phases:
 - **Phase 1:** Scaffold the `ToolsLayout.astro` (with ViewTransitions), the Global Header, the Smart Search component, and the `tools/index.astro` homepage.
 - **Phase 2:** Scaffold the empty directory structure and base routes for all 5 Workspaces.
 - **Phase 3+:** I will explicitly command you to build tools one workspace at a time (e.g., "Let's build the `emi-calculator.astro` today").
+
+## 7. Edge & Routing Conventions
+- `gramsevamitra.com/tools/*` → **301** → `utilities.gramsevamitra.com/tools/*`
+- Each app ships `404.html` via `src/pages/404.astro` — **no** `/* /index.html 200` SPA catch-all in `_redirects`
+- Offline PWA navigation uses Workbox `navigateFallback: '/404.html'`
+- Registry parity enforced via `npm run validate:tools` and `npm run prod-check`

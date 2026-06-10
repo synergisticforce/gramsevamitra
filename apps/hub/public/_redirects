@@ -1,2 +1,5 @@
-# PWA / SPA fallback — pre-rendered static files take precedence on Cloudflare Pages
-/*    /index.html   200
+# Canonical utilities subdomain — tools live at utilities.gramsevamitra.com
+/tools              https://utilities.gramsevamitra.com/tools              301
+/tools/*            https://utilities.gramsevamitra.com/tools/:splat       301
+
+# Unknown paths fall through to static 404.html (no SPA catch-all)

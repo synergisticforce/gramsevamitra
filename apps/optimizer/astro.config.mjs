@@ -24,7 +24,7 @@ export default defineConfig({
         name: 'Exam Document Optimizer — GramSeva Mitra',
         shortName: 'Doc Optimizer',
         description: 'Resize exam photos and signatures for SSC, UPSC, RRB, IBPS',
-        navigateFallback: '/index.html',
+        navigateFallback: '/404.html',
       }),
     ],
     optimizeDeps: {

@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SITES } from '../config/sites';
+import { SITES, utilitiesHref } from '../config/sites';
 
-type SiteKey = 'hub' | 'optimizer' | 'resume' | 'pdf';
+type SiteKey = 'hub' | 'utilities' | 'optimizer' | 'resume' | 'pdf';
 
 const NAV_LINKS: { key: SiteKey; label: string; href: string }[] = [
   { key: 'hub', label: 'Home', href: SITES.hub.url },
+  { key: 'utilities', label: 'Utilities', href: utilitiesHref('/tools') },
   { key: 'optimizer', label: 'Doc Optimizer', href: SITES.optimizer.url },
   { key: 'resume', label: 'Resume Scanner', href: SITES.resume.url },
   { key: 'pdf', label: 'PDF Tools', href: SITES.pdf.url },

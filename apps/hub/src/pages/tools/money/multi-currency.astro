@@ -1,11 +1,11 @@
 ---
 import ToolsLayout from '../../../layouts/ToolsLayout.astro';
 import { formatSeoTitle } from '@shared/config/seo';
+import { utilitiesHref } from '@shared/config/sites';
 
 const toolName = 'Multi-Currency Converter';
 const toolDescription =
-  'Convert between INR, USD, EUR, GBP, AED, and SGD using static offline rates — free and instant in your browser.';
-const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
+  'Convert between 30+ global currencies using live exchange rates from Frankfurter — with offline fallback if the network is unavailable.';
 ---
 
 <ToolsLayout
@@ -15,13 +15,14 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
 >
   <div class="multi-currency">
     <header class="mb-6">
-      <a href="/tools/money" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+      <a href={utilitiesHref('/tools/money')} class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
         ← Money &amp; Gig Ledger
       </a>
       <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
       <p class="mt-1 text-sm text-slate-400">
-        Static reference rates for quick estimates — no live feed, works fully offline.
+        Live mid-market rates via Frankfurter API — cached locally for 6 hours with offline fallback.
       </p>
+      <p id="rate-status" class="mt-2 text-xs font-medium text-emerald-400/90" role="status">Loading live rates…</p>
     </header>
 
     <div class="grid gap-6 lg:grid-cols-2">
@@ -50,20 +51,14 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
           <div class="grid grid-cols-2 gap-3">
             <label class="min-w-0">
               <span class="mb-2 block text-sm font-medium text-slate-300">From</span>
-              <select id="fx-from" class="select-field w-full py-2.5 text-sm">
-                {CURRENCIES.map((code) => (
-                  <option value={code}>{code}</option>
-                ))}
+              <select id="fx-from" class="select-field w-full py-2.5 text-sm" aria-busy="true">
+                <option value="INR">INR</option>
               </select>
             </label>
             <label class="min-w-0">
               <span class="mb-2 block text-sm font-medium text-slate-300">To</span>
-              <select id="fx-to" class="select-field w-full py-2.5 text-sm">
-                {CURRENCIES.map((code) => (
-                  <option value={code} selected={code === 'USD'}>
-                    {code}
-                  </option>
-                ))}
+              <select id="fx-to" class="select-field w-full py-2.5 text-sm" aria-busy="true">
+                <option value="USD">USD</option>
               </select>
             </label>
           </div>
@@ -78,7 +73,7 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
         </button>
 
         <p class="mt-4 text-[10px] leading-relaxed text-slate-500">
-          Rates are illustrative only (base INR). Not for trading or tax purposes.
+          Rates are indicative mid-market values — not for trading, invoicing, or tax filing.
         </p>
       </section>
 
@@ -108,14 +103,11 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
           </div>
 
           <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4">
-            <p class="mb-2 text-[10px] font-medium uppercase tracking-wider text-slate-500">Quick reference (1 unit → INR)</p>
+            <p class="mb-2 text-[10px] font-medium uppercase tracking-wider text-slate-500">Popular rates (1 unit → INR)</p>
             <ul id="rate-table" class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-              {CURRENCIES.map((code) => (
-                <li class="flex justify-between tabular-nums text-slate-400">
-                  <span>{code}</span>
-                  <span id={`ref-${code}`} class="font-medium text-slate-300">—</span>
-                </li>
-              ))}
+              <li class="flex justify-between tabular-nums text-slate-400">
+                <span>Loading…</span>
+              </li>
             </ul>
           </div>
 
@@ -129,45 +121,69 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
 
   <script>
     const STORAGE_KEY = 'gsm-tools:multi-currency';
+    const RATES_CACHE_KEY = 'gsm-tools:fx-rates-cache';
+    const FRANKFURTER_LATEST = 'https://api.frankfurter.app/latest';
+    const FRANKFURTER_CURRENCIES = 'https://api.frankfurter.app/currencies';
+    const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
-    /** 1 unit of currency = X INR (static offline reference rates) */
-    const TO_INR: Record<string, number> = {
-      INR: 1,
-      USD: 84.25,
-      EUR: 91.5,
-      GBP: 106.8,
-      AED: 22.95,
-      SGD: 62.6,
+    /** Offline fallback — 1 unit = X EUR (Frankfurter base) */
+    const FALLBACK_EUR_RATES: Record<string, number> = {
+      EUR: 1,
+      USD: 1.08,
+      GBP: 0.84,
+      INR: 90.5,
+      JPY: 163,
+      AUD: 1.65,
+      CAD: 1.47,
+      CHF: 0.94,
+      CNY: 7.82,
+      AED: 3.97,
+      SGD: 1.45,
+      HKD: 8.45,
+      KRW: 1475,
+      MXN: 18.5,
+      BRL: 5.35,
+      ZAR: 19.8,
+      THB: 38.5,
+      MYR: 4.72,
+      IDR: 17200,
+      PHP: 61.5,
+      NZD: 1.78,
+      SEK: 11.2,
+      NOK: 11.5,
+      DKK: 7.46,
+      PLN: 4.28,
+      TRY: 35.2,
+      SAR: 4.05,
+      QAR: 3.93,
+      KWD: 0.33,
+      BDT: 118,
+      PKR: 300,
+      LKR: 325,
+      NPR: 144,
     };
+
+    const POPULAR_INR_REFS = ['USD', 'EUR', 'GBP', 'AED', 'SGD', 'JPY', 'AUD', 'CAD'];
 
     const CURRENCY_SYMBOLS: Record<string, string> = {
-      INR: '₹',
-      USD: '$',
-      EUR: '€',
-      GBP: '£',
-      AED: 'AED ',
-      SGD: 'S$',
+      INR: '₹', USD: '$', EUR: '€', GBP: '£', JPY: '¥', AUD: 'A$', CAD: 'C$',
+      CHF: 'CHF ', CNY: '¥', AED: 'AED ', SGD: 'S$', HKD: 'HK$', KRW: '₩',
+      MXN: 'MX$', BRL: 'R$', ZAR: 'R', THB: '฿', MYR: 'RM ', IDR: 'Rp ',
+      PHP: '₱', NZD: 'NZ$', SEK: 'kr ', NOK: 'kr ', DKK: 'kr ', PLN: 'zł ',
+      TRY: '₺', SAR: 'SAR ', QAR: 'QAR ', KWD: 'KWD ', BDT: '৳', PKR: 'Rs ',
+      LKR: 'Rs ', NPR: 'Rs ',
     };
 
-    const DEFAULTS = {
-      amount: 10000,
-      from: 'INR',
-      to: 'USD',
-    };
+    const DEFAULTS = { amount: 10000, from: 'INR', to: 'USD' };
 
-    interface SavedState {
-      amount: number;
-      from: string;
-      to: string;
-    }
-
+    interface SavedState { amount: number; from: string; to: string; }
     interface FxResult {
-      converted: number;
-      rate: number;
-      inverseRate: number;
-      from: string;
-      to: string;
-      sourceAmount: number;
+      converted: number; rate: number; inverseRate: number;
+      from: string; to: string; sourceAmount: number;
+    }
+    interface RatesCache {
+      fetchedAt: number; base: string;
+      rates: Record<string, number>; live: boolean;
     }
 
     const amountInput = document.getElementById('fx-amount') as HTMLInputElement;
@@ -175,51 +191,123 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
     const toSelect = document.getElementById('fx-to') as HTMLSelectElement;
     const swapBtn = document.getElementById('fx-swap') as HTMLButtonElement;
     const resetBtn = document.getElementById('reset-fx') as HTMLButtonElement;
-
+    const rateStatus = document.getElementById('rate-status')!;
     const resultLabel = document.getElementById('result-label')!;
     const resultAmount = document.getElementById('result-amount')!;
     const resultRate = document.getElementById('result-rate')!;
     const resultInverse = document.getElementById('result-inverse')!;
     const fxNote = document.getElementById('fx-note')!;
+    const rateTable = document.getElementById('rate-table')!;
+
+    let eurRates: Record<string, number> = { ...FALLBACK_EUR_RATES };
+    let ratesAreLive = false;
+    let ratesUpdatedAt = '';
 
     function formatAmount(value: number, currency: string): string {
       if (!Number.isFinite(value)) return '—';
-      const decimals = currency === 'INR' || currency === 'AED' ? 2 : 4;
+      const zeroDec = ['JPY', 'KRW', 'IDR', 'VND'].includes(currency);
       const formatted = new Intl.NumberFormat('en-IN', {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals,
+        minimumFractionDigits: zeroDec ? 0 : 2,
+        maximumFractionDigits: zeroDec ? 0 : 4,
       }).format(value);
-      const sym = CURRENCY_SYMBOLS[currency] ?? `${currency} `;
-      return `${sym}${formatted}`;
+      return `${CURRENCY_SYMBOLS[currency] ?? `${currency} `}${formatted}`;
     }
 
     function formatRate(value: number): string {
       if (!Number.isFinite(value)) return '—';
-      return new Intl.NumberFormat('en-IN', {
-        minimumFractionDigits: 4,
-        maximumFractionDigits: 6,
-      }).format(value);
+      return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 4, maximumFractionDigits: 6 }).format(value);
     }
 
+    /** Convert using EUR pivot: 1 EUR = eurRates[code] units */
     function convert(amount: number, from: string, to: string): FxResult | null {
-      if (amount < 0 || !TO_INR[from] || !TO_INR[to]) return null;
-      const inInr = amount * TO_INR[from];
-      const converted = inInr / TO_INR[to];
-      const rate = TO_INR[from] / TO_INR[to];
-      const inverseRate = TO_INR[to] / TO_INR[from];
+      if (amount < 0) return null;
+      const fromRate = eurRates[from];
+      const toRate = eurRates[to];
+      if (!fromRate || !toRate) return null;
+      const inEur = amount / fromRate;
+      const converted = inEur * toRate;
+      const rate = toRate / fromRate;
+      const inverseRate = fromRate / toRate;
       return { converted, rate, inverseRate, from, to, sourceAmount: amount };
     }
 
+    function readCache(): RatesCache | null {
+      try {
+        const raw = localStorage.getItem(RATES_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw) as RatesCache;
+        if (Date.now() - parsed.fetchedAt > CACHE_TTL_MS) return null;
+        return parsed;
+      } catch { return null; }
+    }
+
+    function writeCache(rates: Record<string, number>, live: boolean): void {
+      try {
+        localStorage.setItem(RATES_CACHE_KEY, JSON.stringify({
+          fetchedAt: Date.now(), base: 'EUR', rates, live,
+        } satisfies RatesCache));
+      } catch { /* ignore */ }
+    }
+
+    async function fetchLiveRates(): Promise<{ rates: Record<string, number>; live: boolean }> {
+      const cached = readCache();
+      if (cached) {
+        ratesUpdatedAt = new Date(cached.fetchedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+        return { rates: cached.rates, live: cached.live };
+      }
+
+      try {
+        const res = await fetch(FRANKFURTER_LATEST, { signal: AbortSignal.timeout(8000) });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = (await res.json()) as { base: string; rates: Record<string, number> };
+        const rates = { [data.base]: 1, ...data.rates };
+        writeCache(rates, true);
+        ratesUpdatedAt = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+        return { rates, live: true };
+      } catch {
+        writeCache(FALLBACK_EUR_RATES, false);
+        ratesUpdatedAt = 'offline fallback';
+        return { rates: { ...FALLBACK_EUR_RATES }, live: false };
+      }
+    }
+
+    async function fetchCurrencyList(): Promise<string[]> {
+      try {
+        const res = await fetch(FRANKFURTER_CURRENCIES, { signal: AbortSignal.timeout(8000) });
+        if (!res.ok) throw new Error('currencies unavailable');
+        const data = (await res.json()) as Record<string, string>;
+        return Object.keys(data).sort();
+      } catch {
+        return Object.keys(FALLBACK_EUR_RATES).sort();
+      }
+    }
+
+    function populateSelects(codes: string[], from: string, to: string): void {
+      const buildOptions = (selected: string) =>
+        codes.map((code) => `<option value="${code}"${code === selected ? ' selected' : ''}>${code}</option>`).join('');
+      fromSelect.innerHTML = buildOptions(from);
+      toSelect.innerHTML = buildOptions(to);
+      fromSelect.removeAttribute('aria-busy');
+      toSelect.removeAttribute('aria-busy');
+    }
+
     function renderReferenceRates(): void {
-      Object.keys(TO_INR).forEach((code) => {
-        const el = document.getElementById(`ref-${code}`);
-        if (el) {
-          el.textContent =
-            code === 'INR'
-              ? '₹1.00'
-              : `₹${new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(TO_INR[code])}`;
-        }
-      });
+      const inrRate = eurRates.INR;
+      if (!inrRate) { rateTable.innerHTML = ''; return; }
+      rateTable.innerHTML = POPULAR_INR_REFS.filter((code) => eurRates[code])
+        .map((code) => {
+          const inInr = eurRates.INR / eurRates[code];
+          const formatted = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(inInr);
+          return `<li class="flex justify-between tabular-nums text-slate-400"><span>${code}</span><span class="font-medium text-slate-300">₹${formatted}</span></li>`;
+        }).join('');
+    }
+
+    function updateRateStatus(): void {
+      rateStatus.textContent = ratesAreLive
+        ? `Live rates · updated ${ratesUpdatedAt} · ${Object.keys(eurRates).length} currencies`
+        : `Offline fallback rates · ${ratesUpdatedAt} · reconnect for live data`;
+      rateStatus.classList.toggle('text-amber-400', !ratesAreLive);
+      rateStatus.classList.toggle('text-emerald-400/90', ratesAreLive);
     }
 
     function readState(): SavedState {
@@ -237,11 +325,7 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
     }
 
     function saveState(state: SavedState): void {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      } catch {
-        /* ignore */
-      }
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ }
     }
 
     function loadState(): SavedState {
@@ -251,12 +335,10 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
         const parsed = JSON.parse(raw) as Partial<SavedState>;
         return {
           amount: typeof parsed.amount === 'number' && parsed.amount >= 0 ? parsed.amount : DEFAULTS.amount,
-          from: parsed.from && TO_INR[parsed.from] ? parsed.from : DEFAULTS.from,
-          to: parsed.to && TO_INR[parsed.to] ? parsed.to : DEFAULTS.to,
+          from: parsed.from ?? DEFAULTS.from,
+          to: parsed.to ?? DEFAULTS.to,
         };
-      } catch {
-        return { ...DEFAULTS };
-      }
+      } catch { return { ...DEFAULTS }; }
     }
 
     function renderResults(result: FxResult | null): void {
@@ -268,12 +350,13 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
         fxNote.textContent = 'Enter an amount to convert instantly.';
         return;
       }
-
       resultLabel.textContent = `${result.sourceAmount} ${result.from} equals`;
       resultAmount.textContent = formatAmount(result.converted, result.to);
       resultRate.textContent = `1 ${result.from} = ${formatRate(result.rate)} ${result.to}`;
       resultInverse.textContent = `1 ${result.to} = ${formatRate(result.inverseRate)} ${result.from}`;
-      fxNote.textContent = `Cross-rate via INR base: ${result.from} → INR → ${result.to}.`;
+      fxNote.textContent = ratesAreLive
+        ? `Live mid-market rate via Frankfurter (EUR pivot).`
+        : `Offline fallback rate — connect to refresh live data.`;
     }
 
     function recalculate(): void {
@@ -286,26 +369,31 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
     amountInput.addEventListener('input', recalculate);
     fromSelect.addEventListener('change', recalculate);
     toSelect.addEventListener('change', recalculate);
-
     swapBtn.addEventListener('click', () => {
       const from = fromSelect.value;
       fromSelect.value = toSelect.value;
       toSelect.value = from;
       recalculate();
     });
-
     resetBtn.addEventListener('click', () => {
       applyState({ ...DEFAULTS });
       recalculate();
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch {
-        /* ignore */
-      }
+      try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
     });
 
-    renderReferenceRates();
-    applyState(loadState());
-    recalculate();
+    async function init(): Promise<void> {
+      const saved = loadState();
+      const [{ rates, live }, codes] = await Promise.all([fetchLiveRates(), fetchCurrencyList()]);
+      eurRates = rates;
+      ratesAreLive = live;
+      const allCodes = [...new Set([...codes, ...Object.keys(rates)])].sort();
+      populateSelects(allCodes, saved.from, saved.to);
+      updateRateStatus();
+      renderReferenceRates();
+      applyState(saved);
+      recalculate();
+    }
+
+    void init();
   </script>
 </ToolsLayout>

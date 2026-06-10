@@ -3,9 +3,11 @@ import ToolsLayout from '../../../layouts/ToolsLayout.astro';
 import ToolGridCard from '../../../components/tools/ToolGridCard.astro';
 import { getWorkspaceMeta, getWorkspaceTools } from '../../../config/toolsRegistry';
 import { formatSeoTitle } from '@shared/config/seo';
+import { SITES, utilitiesHref } from '@shared/config/sites';
 
 const workspace = getWorkspaceMeta('career');
 const careerTools = getWorkspaceTools('career');
+const resumeScannerUrl = SITES.resume.url;
 ---
 
 <ToolsLayout
@@ -15,7 +17,7 @@ const careerTools = getWorkspaceTools('career');
 >
   <div class="career-dashboard">
     <header class="mb-5">
-      <a href="/tools" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+      <a href={utilitiesHref('/tools')} class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
         ← All utilities
       </a>
       <div class="mt-3 flex items-start gap-3">
@@ -26,6 +28,35 @@ const careerTools = getWorkspaceTools('career');
         </div>
       </div>
     </header>
+
+    <!-- ATS Resume Scanner — cross-link to dedicated subdomain app -->
+    <a
+      href={resumeScannerUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="group mb-6 block overflow-hidden rounded-2xl border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-950/70 via-emerald-900/30 to-slate-900/80 p-5 shadow-xl transition hover:border-emerald-400/70 hover:shadow-emerald-900/30 sm:p-6"
+    >
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="min-w-0 flex-1">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Free · Separate app</p>
+          <h2 class="mt-1 text-xl font-extrabold text-white sm:text-2xl">ATS Resume Scanner</h2>
+          <p class="mt-2 max-w-xl text-sm leading-relaxed text-slate-300">
+            Paste a job description, upload your resume, and get an instant match score with missing keywords —
+            before you send your next application.
+          </p>
+          <p class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-emerald-400 group-hover:text-emerald-300">
+            Open resume.gramsevamitra.com
+            <span aria-hidden="true">↗</span>
+          </p>
+        </div>
+        <div
+          class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-emerald-600/40 bg-emerald-950/60 text-3xl sm:h-20 sm:w-20"
+          aria-hidden="true"
+        >
+          📄
+        </div>
+      </div>
+    </a>
 
     <!-- Job Hunt Overview widget -->
     <section
@@ -38,7 +69,7 @@ const careerTools = getWorkspaceTools('career');
           <h2 id="job-hunt-heading" class="widget-title">Job hunt overview</h2>
           <p class="mt-1 text-xs text-slate-500">Synced from your offline job tracker</p>
         </div>
-        <a href="/tools/career/job-tracker" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        <a href={utilitiesHref('/tools/career/job-tracker')} class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
           Open tracker →
         </a>
       </div>

@@ -89,10 +89,13 @@ async function loadImageFromFile(file: File): Promise<HTMLImageElement> {
   });
 }
 
-function centerCrop(
+/** panX/panY are 0–1 (0.5 = centered) along the axis that has crop slack. */
+export function cropImageToCanvas(
   source: HTMLImageElement,
   targetWidth: number,
-  targetHeight: number
+  targetHeight: number,
+  panX = 0.5,
+  panY = 0.5,
 ): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = targetWidth;
@@ -110,14 +113,22 @@ function centerCrop(
 
   if (sourceRatio > targetRatio) {
     sw = source.height * targetRatio;
-    sx = (source.width - sw) / 2;
+    sx = (source.width - sw) * panX;
   } else {
     sh = source.width / targetRatio;
-    sy = (source.height - sh) / 2;
+    sy = (source.height - sh) * panY;
   }
 
   ctx.drawImage(source, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
   return canvas;
+}
+
+function centerCrop(
+  source: HTMLImageElement,
+  targetWidth: number,
+  targetHeight: number,
+): HTMLCanvasElement {
+  return cropImageToCanvas(source, targetWidth, targetHeight, 0.5, 0.5);
 }
 
 async function canvasToBlob(canvas: HTMLCanvasElement, quality: number, mimeType: string): Promise<Blob> {
@@ -210,33 +221,51 @@ async function compressToTargetSize(
   return { blob: bestBlob, quality: bestQuality };
 }
 
-export async function processImageDocument(
-  file: File,
+export async function processImageCanvas(
+  canvas: HTMLCanvasElement,
   spec: DimensionSpec,
   dpi: number,
-  type: 'photo' | 'signature'
+  type: 'photo' | 'signature',
+  baseName: string,
+  mimeType: 'image/jpeg' | 'image/png' = 'image/jpeg',
 ): Promise<ProcessResult> {
-  if (!file.type.startsWith('image/')) {
-    throw new Error('Please upload a JPG or PNG image.');
+  const { width, height, minBytes, maxBytes } = dimensionToPixels(spec, dpi);
+  if (canvas.width !== width || canvas.height !== height) {
+    throw new Error(`Canvas must be ${width}×${height}px for this preset.`);
   }
 
-  const { width, height, minBytes, maxBytes } = dimensionToPixels(spec, dpi);
-  const image = await loadImageFromFile(file);
-  const canvas = centerCrop(image, width, height);
-  const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
   const { blob, quality } = await compressToTargetSize(canvas, minBytes, maxBytes, mimeType);
-
   const ext = mimeType === 'image/png' ? 'png' : 'jpg';
-  const baseName = file.name.replace(/\.[^.]+$/, '');
+  const safeBase = baseName.replace(/\.[^.]+$/, '') || 'exam-image';
 
   return {
     blob,
-    fileName: `${baseName}-${type}-${spec.widthCm}x${spec.heightCm}cm.${ext}`,
+    fileName: `${safeBase}-${type}-${spec.widthCm}x${spec.heightCm}cm.${ext}`,
     width,
     height,
     sizeBytes: blob.size,
     quality,
   };
+}
+
+export async function processImageDocument(
+  file: File,
+  spec: DimensionSpec,
+  dpi: number,
+  type: 'photo' | 'signature',
+  panX = 0.5,
+  panY = 0.5,
+): Promise<ProcessResult> {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Please upload a JPG or PNG image.');
+  }
+
+  const { width, height } = dimensionToPixels(spec, dpi);
+  const image = await loadImageFromFile(file);
+  const canvas = cropImageToCanvas(image, width, height, panX, panY);
+  const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+  const baseName = file.name.replace(/\.[^.]+$/, '');
+  return processImageCanvas(canvas, spec, dpi, type, baseName, mimeType);
 }
 
 export async function processPdfDocument(file: File, maxKb: number): Promise<ProcessResult> {

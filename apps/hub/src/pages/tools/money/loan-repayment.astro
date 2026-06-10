@@ -1,6 +1,7 @@
 ---
 import ToolsLayout from '../../../layouts/ToolsLayout.astro';
 import { formatSeoTitle } from '@shared/config/seo';
+import { utilitiesHref } from '@shared/config/sites';
 
 const toolName = 'Loan Repayment Planner';
 const toolDescription =
@@ -14,7 +15,7 @@ const toolDescription =
 >
   <div class="loan-repayment">
     <header class="mb-6">
-      <a href="/tools/money" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+      <a href={utilitiesHref('/tools/money')} class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
         ← Money &amp; Gig Ledger
       </a>
       <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
@@ -142,6 +143,30 @@ const toolDescription =
           <p id="loan-note" class="text-center text-xs text-slate-500">
             Adjust loan details to see EMI and prepayment impact.
           </p>
+
+          <!-- Charts -->
+          <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4">
+            <p class="mb-3 text-xs font-medium uppercase tracking-wider text-slate-500">Visual breakdown</p>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <p class="mb-2 text-center text-[10px] font-medium text-slate-500">Principal vs interest</p>
+                <div class="relative mx-auto h-[180px] w-full max-w-[200px]">
+                  <canvas id="chart-doughnut" aria-label="Principal versus interest doughnut chart"></canvas>
+                </div>
+              </div>
+              <div>
+                <p class="mb-2 text-center text-[10px] font-medium text-slate-500">First 12 months (₹)</p>
+                <div class="relative h-[180px] w-full">
+                  <canvas id="chart-bar" aria-label="Monthly principal and interest bar chart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button type="button" id="export-copy" class="export-btn flex-1">Copy summary</button>
+            <button type="button" id="export-csv" class="export-btn flex-1">Download CSV</button>
+          </div>
         </div>
       </section>
     </div>
@@ -190,9 +215,22 @@ const toolDescription =
     .schedule-totals td {
       @apply border-t-2 border-emerald-800/40 bg-emerald-950/20 px-4 py-3 font-semibold tabular-nums;
     }
+    .export-btn {
+      @apply rounded-lg border border-emerald-700/60 bg-emerald-950/40 px-3 py-2 text-xs font-semibold text-emerald-400 transition hover:border-emerald-500 hover:bg-emerald-900/40 hover:text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 disabled:cursor-not-allowed disabled:opacity-40;
+    }
   </style>
 
   <script>
+    import type { Chart } from 'chart.js';
+    import {
+      GSM_CHART_COLORS,
+      destroyChart,
+      gsmLegendOptions,
+      gsmScaleOptions,
+      gsmTooltipOptions,
+      renderChart,
+    } from '../../../lib/charts/chartHelper';
+    import { bindExportButtons } from '../../../lib/export/toolExport';
     const STORAGE_KEY = 'gsm-tools:loan-repayment';
 
     const DEFAULTS = {
@@ -245,6 +283,15 @@ const toolDescription =
     const resultTotal = document.getElementById('result-total')!;
     const loanNote = document.getElementById('loan-note')!;
     const scheduleBody = document.getElementById('schedule-body')!;
+    const doughnutCanvas = document.getElementById('chart-doughnut') as HTMLCanvasElement;
+    const barCanvas = document.getElementById('chart-bar') as HTMLCanvasElement;
+    const exportCopyBtn = document.getElementById('export-copy') as HTMLButtonElement;
+    const exportCsvBtn = document.getElementById('export-csv') as HTMLButtonElement;
+
+    let doughnutChart: Chart | null = null;
+    let barChart: Chart | null = null;
+    let lastSummary: LoanSummary | null = null;
+    let lastState: SavedState | null = null;
 
     function formatInr(value: number): string {
       if (!Number.isFinite(value)) return '₹0';
@@ -344,6 +391,84 @@ const toolDescription =
         interestWithoutPrepay: withoutPrepay.totalInterest,
         interestSaved,
       };
+    }
+
+    function formatInrShort(value: number): string {
+      if (value >= 10_000_000) return `₹${(value / 10_000_000).toFixed(1)}Cr`;
+      if (value >= 100_000) return `₹${(value / 100_000).toFixed(1)}L`;
+      if (value >= 1_000) return `₹${(value / 1_000).toFixed(0)}K`;
+      return `₹${Math.round(value)}`;
+    }
+
+    async function updateCharts(summary: LoanSummary | null, principal: number): Promise<void> {
+      if (!summary) {
+        doughnutChart = destroyChart(doughnutChart);
+        barChart = destroyChart(barChart);
+        exportCopyBtn.disabled = true;
+        exportCsvBtn.disabled = true;
+        return;
+      }
+
+      exportCopyBtn.disabled = false;
+      exportCsvBtn.disabled = false;
+
+      const totalPrincipal = summary.schedule.reduce((s, r) => s + r.principal, 0);
+
+      doughnutChart = await renderChart(doughnutCanvas, doughnutChart, {
+        type: 'doughnut',
+        data: {
+          labels: ['Principal repaid', 'Interest paid'],
+          datasets: [{
+            data: [Math.round(totalPrincipal), Math.round(summary.totalInterest)],
+            backgroundColor: [GSM_CHART_COLORS.primary, GSM_CHART_COLORS.secondary],
+            borderWidth: 0,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '62%',
+          plugins: {
+            legend: { ...gsmLegendOptions(), position: 'bottom' },
+            tooltip: gsmTooltipOptions((v) => formatInr(v)),
+          },
+        },
+      });
+
+      const slice = summary.schedule.slice(0, 12);
+      barChart = await renderChart(barCanvas, barChart, {
+        type: 'bar',
+        data: {
+          labels: slice.map((r) => `M${r.month}`),
+          datasets: [
+            {
+              label: 'Principal',
+              data: slice.map((r) => Math.round(r.principal)),
+              backgroundColor: GSM_CHART_COLORS.primary,
+              borderRadius: 3,
+            },
+            {
+              label: 'Interest',
+              data: slice.map((r) => Math.round(r.interest)),
+              backgroundColor: GSM_CHART_COLORS.secondary,
+              borderRadius: 3,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            ...gsmScaleOptions(formatInrShort),
+            x: { ...gsmScaleOptions().x, stacked: true },
+            y: { ...gsmScaleOptions(formatInrShort).y, stacked: true },
+          },
+          plugins: {
+            legend: { ...gsmLegendOptions(), position: 'bottom' },
+            tooltip: gsmTooltipOptions((v) => formatInr(v)),
+          },
+        },
+      });
     }
 
     function readState(): SavedState {
@@ -456,6 +581,9 @@ const toolDescription =
     }
 
     function renderResults(summary: LoanSummary | null, state: SavedState, months: number): void {
+      lastSummary = summary;
+      lastState = state;
+
       if (!summary) {
         resultEmi.textContent = '₹0';
         resultInterest.textContent = '₹0';
@@ -470,6 +598,7 @@ const toolDescription =
             </td>
           </tr>
         `;
+        void updateCharts(null, 0);
         return;
       }
 
@@ -486,7 +615,47 @@ const toolDescription =
       }
 
       renderSchedule(summary);
+      void updateCharts(summary, state.loanAmount);
     }
+
+    bindExportButtons({
+      copyBtn: exportCopyBtn,
+      csvBtn: exportCsvBtn,
+      getSummary: () => {
+        if (!lastSummary || !lastState) return null;
+        const lines = [
+          'Loan Repayment Summary',
+          `Loan amount: ${formatInr(lastState.loanAmount)}`,
+          `Interest rate: ${lastState.interestRate}% p.a.`,
+          `Prepayment: ${lastState.prepayment > 0 ? formatInr(lastState.prepayment) : 'None'}`,
+          `Monthly EMI: ${formatInr(Math.round(lastSummary.emi))}`,
+          `Months to close: ${lastSummary.months}`,
+          `Total interest: ${formatInr(Math.round(lastSummary.totalInterest))}`,
+          `Interest saved: ${formatInr(Math.round(lastSummary.interestSaved))}`,
+          `Total paid: ${formatInr(Math.round(lastSummary.totalPaid))}`,
+        ];
+        return lines.join('\n');
+      },
+      getCsv: () => {
+        if (!lastSummary) return null;
+        return {
+          filename: 'loan-amortization',
+          headers: ['Month', 'Opening (₹)', 'EMI (₹)', 'Principal (₹)', 'Interest (₹)', 'Prepay (₹)', 'Closing (₹)'],
+          rows: lastSummary.schedule.map((r) => [
+            r.month,
+            Math.round(r.opening),
+            Math.round(r.emi),
+            Math.round(r.principal),
+            Math.round(r.interest),
+            Math.round(r.prepay),
+            Math.round(r.closing),
+          ]),
+        };
+      },
+    });
+
+    exportCopyBtn.disabled = true;
+    exportCsvBtn.disabled = true;
 
     function recalculate(): void {
       const state = readState();

@@ -23,6 +23,7 @@ const REQUIRED_FILES = [
   { rel: 'manifest.webmanifest', label: 'PWA manifest' },
   { rel: '_headers', label: 'Edge _headers' },
   { rel: '_redirects', label: 'Edge _redirects' },
+  { rel: '404.html', label: '404 page' },
   { rel: 'sw.js', label: 'Service worker' },
 ];
 
@@ -83,10 +84,10 @@ for (const app of APPS) {
   const redirectsPath = path.join(distDir, '_redirects');
   if (existsSync(redirectsPath)) {
     const redirects = readFileSync(redirectsPath, 'utf8');
-    if (!redirects.includes('/index.html')) {
-      fail(`${app.name}: _redirects missing SPA/PWA fallback to index.html`);
+    if (redirects.includes('/*') && redirects.includes('/index.html') && redirects.includes('200')) {
+      fail(`${app.name}: _redirects still uses SPA catch-all (/* /index.html 200) — use static 404.html instead`);
     } else {
-      pass(`${app.name}: PWA fallback redirect rule`);
+      pass(`${app.name}: no SPA catch-all in _redirects`);
     }
   }
 }

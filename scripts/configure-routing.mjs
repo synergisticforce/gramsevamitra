@@ -16,9 +16,9 @@ const ZONE_NAME = 'gramsevamitra.com';
 const PROJECTS = [
   {
     project: 'gramsevamitra-hub',
-    domains: ['gramsevamitra.com', 'www.gramsevamitra.com'],
+    domains: ['gramsevamitra.com', 'www.gramsevamitra.com', 'utilities.gramsevamitra.com'],
     cnameTarget: 'gramsevamitra-hub.pages.dev',
-    dnsHosts: ['@', 'www'],
+    dnsHosts: ['@', 'www', 'utilities'],
   },
   {
     project: 'gramsevamitra-optimizer',
@@ -43,6 +43,8 @@ const PROJECTS = [
 const LIVE_URLS = [
   'https://gramsevamitra.com',
   'https://www.gramsevamitra.com',
+  'https://utilities.gramsevamitra.com',
+  'https://utilities.gramsevamitra.com/tools',
   'https://optimizer.gramsevamitra.com',
   'https://resume.gramsevamitra.com',
   'https://pdf.gramsevamitra.com',
@@ -159,7 +161,7 @@ async function detachLegacyWorkerDomains(oauthToken) {
 async function configureDns(token, zoneId) {
   console.log('\n=== 2. DNS zone record overrides ===');
 
-  const allHosts = ['@', 'www', 'optimizer', 'resume', 'pdf'];
+  const allHosts = ['@', 'www', 'utilities', 'optimizer', 'resume', 'pdf'];
   let page = 1;
   const records = [];
   while (true) {
@@ -198,6 +200,7 @@ async function configureDns(token, zoneId) {
   const cnames = [
     { name: ZONE_NAME, content: 'gramsevamitra-hub.pages.dev', host: '@' },
     { name: `www.${ZONE_NAME}`, content: 'gramsevamitra-hub.pages.dev', host: 'www' },
+    { name: `utilities.${ZONE_NAME}`, content: 'gramsevamitra-hub.pages.dev', host: 'utilities' },
     { name: `optimizer.${ZONE_NAME}`, content: 'gramsevamitra-optimizer.pages.dev', host: 'optimizer' },
     { name: `resume.${ZONE_NAME}`, content: 'gramsevamitra-resume.pages.dev', host: 'resume' },
     { name: `pdf.${ZONE_NAME}`, content: 'gramsevamitra-pdf.pages.dev', host: 'pdf' },

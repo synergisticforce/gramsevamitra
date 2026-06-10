@@ -46,6 +46,7 @@ const TARGETS = [
     appDir: 'apps/hub',
     buildScript: 'build:hub',
     domain: 'gramsevamitra.com',
+    extraDomains: ['utilities.gramsevamitra.com'],
   },
   {
     project: 'gramsevamitra-optimizer',
@@ -106,7 +107,7 @@ function attachDomain(project, domain) {
   }
 }
 
-function deployProject({ project, appDir, buildScript, domain }) {
+function deployProject({ project, appDir, buildScript, domain, extraDomains = [] }) {
   const dist = path.join(ROOT, appDir, 'dist');
   if (!existsSync(dist)) {
     throw new Error(`Missing ${dist}. Build failed for ${project}.`);
@@ -117,12 +118,14 @@ function deployProject({ project, appDir, buildScript, domain }) {
   if (DRY_RUN) {
     console.log(`[dry-run] would run: ${deployCmd}`);
     console.log(`[dry-run] would attach domain: ${domain}`);
+    for (const extra of extraDomains) console.log(`[dry-run] would attach domain: ${extra}`);
     return;
   }
 
   ensureProject(project);
   run(deployCmd, { env: pagesOAuthEnv() });
   attachDomain(project, domain);
+  for (const extra of extraDomains) attachDomain(project, extra);
   console.log(`✓ Deployed ${project} → https://${domain}`);
 }
 

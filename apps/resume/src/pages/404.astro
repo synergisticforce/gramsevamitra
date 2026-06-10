@@ -1,0 +1,25 @@
+---
+import '@shared/styles/global.css';
+import BaseLayout from '@shared/layouts/BaseLayout.astro';
+import Header from '@shared/components/Header.astro';
+import Footer from '@shared/components/Footer.astro';
+import NotFoundContent from '@shared/components/NotFoundContent.astro';
+import { SITES } from '@shared/config/sites';
+---
+
+<BaseLayout
+  title="Page Not Found | Resume Scanner — GramSeva Mitra"
+  description="The page you requested could not be found."
+  site="resume"
+>
+  <Header slot="header" active="resume" />
+  <NotFoundContent
+    homeHref="/"
+    homeLabel="Resume Scanner Home"
+    extraLinks={[
+      { href: SITES.hub.url, label: 'Main Hub' },
+      { href: SITES.pdf.url, label: 'PDF Tools' },
+    ]}
+  />
+  <Footer slot="footer" />
+</BaseLayout>

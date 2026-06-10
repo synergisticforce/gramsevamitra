@@ -4,6 +4,12 @@ export const SITES = {
     url: 'https://gramsevamitra.com',
     domain: 'gramsevamitra.com',
   },
+  utilities: {
+    name: 'GramSeva Mitra Utilities',
+    url: 'https://utilities.gramsevamitra.com',
+    domain: 'utilities.gramsevamitra.com',
+    shortName: 'Utilities',
+  },
   optimizer: {
     name: 'Government Exam Document Optimizer',
     url: 'https://optimizer.gramsevamitra.com',
@@ -24,4 +30,14 @@ export const SITES = {
   },
 } as const;
 
-export type SiteKey = keyof typeof SITES;
+export type SiteKey = 'hub' | 'optimizer' | 'resume' | 'pdf';
+
+/** Absolute URL for a utilities super-app route (e.g. `/tools/money`). */
+export function utilitiesHref(path = '/tools'): string {
+  return new URL(path, SITES.utilities.url).href;
+}
+
+/** Absolute URL for any GramSeva property route. */
+export function siteHref(site: SiteKey, path = '/'): string {
+  return new URL(path, SITES[site].url).href;
+}

@@ -31,7 +31,7 @@ export default defineConfig({
         shortName: 'PDF Tools',
         description:
           'Free PDF compress, merge, split, watermark, sign, and unlock — private browser utilities for exam documents',
-        navigateFallback: '/index.html',
+        navigateFallback: '/404.html',
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       }),
     ],

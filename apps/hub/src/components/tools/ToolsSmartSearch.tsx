@@ -1,20 +1,13 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type RefObject,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
 import { filterTools, type ToolEntry } from '../../config/toolsRegistry';
+import { utilitiesHref } from '@shared/config/sites';
 
 export const TOOLS_SEARCH_OPEN_EVENT = 'gsm-tools-search-open';
 
 function SearchResultRow({ tool, onNavigate }: { tool: ToolEntry; onNavigate?: () => void }) {
   return (
     <a
-      href={tool.path}
+      href={utilitiesHref(tool.path)}
       data-tool-id={tool.id}
       onClick={onNavigate}
       className="flex w-full items-center gap-3 rounded-lg border border-emerald-800/30 bg-slate-900/90 px-3 py-2.5 text-left transition hover:border-emerald-500 hover:bg-emerald-950/40 focus:outline-none focus:ring-2 focus:ring-emerald-400"

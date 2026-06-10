@@ -5,55 +5,58 @@ import Header from '@shared/components/Header.astro';
 import Footer from '@shared/components/Footer.astro';
 import { formatSeoTitle } from '@shared/config/seo';
 
-const tools = [
+const featuredTools = [
   {
     name: 'Merge PDF',
     description: 'Drag, reorder, and combine multiple PDFs into one submission-ready file.',
     href: '/merge',
     icon: '📎',
-    active: true,
   },
+  {
+    name: 'Compress PDF',
+    description: 'Shrink file size for strict exam upload limits — extreme, balanced, or high-quality presets.',
+    href: '/compress',
+    icon: '📉',
+  },
+];
+
+const tools = [
   {
     name: 'Split PDF',
     description: 'Extract or split pages from a PDF — select exactly what you need.',
     href: '/split',
     icon: '✂️',
-    active: true,
   },
   {
     name: 'Watermark PDF',
     description: 'Add a draft or personal watermark across every page locally.',
     href: '/watermark',
     icon: '💧',
-    active: true,
   },
   {
     name: 'Image to PDF',
     description: 'Convert JPG photos and scans into a crisp PDF document.',
     href: '/image-to-pdf',
     icon: '🖼️',
-    active: true,
   },
   {
     name: 'Protect PDF',
     description: 'Lock your PDF with a password — AES encryption runs entirely on your device.',
     href: '/protect',
     icon: '🔒',
-    active: true,
   },
   {
     name: 'Unlock PDF',
     description: 'Remove password protection from an encrypted PDF using the open password.',
     href: '/unlock',
     icon: '🔓',
-    active: true,
   },
 ];
 ---
 
 <BaseLayout
   title={formatSeoTitle('Free PDF Tools', 'Merge, Split & More')}
-  description="Merge, split, watermark, and convert PDFs entirely in your browser — zero uploads, built for exam documents."
+  description="Merge, split, compress, watermark, and convert PDFs entirely in your browser — zero uploads, built for exam documents."
   site="pdf"
 >
   <Header slot="header" active="pdf" />
@@ -65,7 +68,6 @@ const tools = [
     </div>
 
     <div class="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-20">
-      <!-- Hero -->
       <div class="mx-auto max-w-3xl text-center">
         <p
           class="mb-4 inline-flex items-center rounded-full border border-emerald-800/60 bg-emerald-950/50 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-300"
@@ -76,13 +78,32 @@ const tools = [
           PDF Tools for <span class="text-emerald-400">Exam Day</span>
         </h1>
         <p class="mt-5 text-base leading-relaxed text-slate-400 sm:text-lg">
-          Merge certificates, split annexures, watermark drafts, and convert photos — every operation runs locally
+          Merge certificates, compress uploads, split annexures, watermark drafts, and convert photos — every operation runs locally
           on your device. No server, no paywall, no app install.
         </p>
       </div>
 
-      <!-- Tool grid -->
-      <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <!-- Top tier: Merge + Compress -->
+      <div class="mt-12 grid gap-4 sm:grid-cols-2">
+        {
+          featuredTools.map((tool) => (
+            <a
+              href={tool.href}
+              class="group flex min-h-[200px] flex-col rounded-2xl border-2 border-emerald-700/50 bg-gradient-to-br from-emerald-950/50 to-slate-900/70 p-6 transition hover:border-emerald-500 hover:from-emerald-950/70 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            >
+              <span class="text-4xl" aria-hidden="true">
+                {tool.icon}
+              </span>
+              <h2 class="mt-4 text-xl font-bold text-white group-hover:text-emerald-300">{tool.name}</h2>
+              <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-400">{tool.description}</p>
+              <span class="mt-4 text-sm font-semibold text-emerald-400">Open tool →</span>
+            </a>
+          ))
+        }
+      </div>
+
+      <!-- Secondary tools -->
+      <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {
           tools.map((tool) => (
             <a
@@ -100,7 +121,6 @@ const tools = [
         }
       </div>
 
-      <!-- Studio link -->
       <div class="mt-10 text-center">
         <a
           href="/studio"

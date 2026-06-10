@@ -1,0 +1,378 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+import { utilitiesHref } from '@shared/config/sites';
+
+const toolName = 'Exam Age Eligibility Calculator';
+const toolDescription =
+  'Calculate exact age as of a government exam cutoff date — years, months, days, plus eligible / not eligible for UPSC, SSC, and custom age limits.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="life"
+>
+  <div class="exam-age-eligibility">
+    <header class="mb-6">
+      <a href={utilitiesHref('/tools/life')} class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Life &amp; Focus Tracker
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Standard exam age math — DOB and cutoff date stay private on your device.
+      </p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="exam-age-inputs-heading"
+      >
+        <h2 id="exam-age-inputs-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Exam details
+        </h2>
+
+        <label class="mt-5 block">
+          <span class="mb-1 block text-sm font-medium text-slate-300">Exam preset</span>
+          <select id="exam-preset" class="select-field w-full py-2.5 text-sm">
+            <option value="custom">Custom age limits</option>
+            <option value="upsc">UPSC Civil Services (21–32 years)</option>
+            <option value="ssc-cgl">SSC CGL (18–32 years)</option>
+            <option value="rrb">Railway RRB NTPC (18–30 years)</option>
+            <option value="ibps">IBPS PO (20–30 years)</option>
+          </select>
+        </label>
+
+        <div class="mt-4 space-y-4">
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Date of birth</span>
+            <input id="dob" type="date" class="input-field w-full" required />
+          </label>
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Cutoff date</span>
+            <input id="cutoff-date" type="date" class="input-field w-full" required />
+            <p class="mt-1 text-xs text-slate-500">Age is calculated as on this date (exam notification cutoff).</p>
+          </label>
+        </div>
+
+        <div id="custom-limits" class="mt-4 grid grid-cols-2 gap-3">
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Min age (years)</span>
+            <input id="min-age" type="number" min="0" max="100" step="1" value="18" class="input-field w-full tabular-nums" />
+          </label>
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Max age (years)</span>
+            <input id="max-age" type="number" min="0" max="100" step="1" value="32" class="input-field w-full tabular-nums" />
+          </label>
+        </div>
+
+        <button type="button" id="reset-exam-age" class="btn-secondary mt-6 w-full text-sm">Reset</button>
+      </section>
+
+      <section
+        class="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="exam-age-results-heading"
+        aria-live="polite"
+      >
+        <h2 id="exam-age-results-heading" class="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          Eligibility result
+        </h2>
+
+        <div id="eligibility-banner" class="eligibility-banner mt-5 rounded-xl border px-4 py-4 text-center" hidden>
+          <p id="eligibility-status" class="text-lg font-extrabold">—</p>
+          <p id="eligibility-detail" class="mt-1 text-xs text-slate-400">—</p>
+        </div>
+
+        <div class="mt-5 text-center">
+          <p id="age-primary" class="text-3xl font-extrabold tabular-nums text-white sm:text-4xl">—</p>
+          <p id="age-secondary" class="mt-2 text-sm text-slate-400">Enter DOB and cutoff date</p>
+        </div>
+
+        <dl class="mt-6 grid grid-cols-3 gap-3 text-center">
+          <div class="rounded-xl border border-slate-800 bg-slate-950/50 px-2 py-3">
+            <dt class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Years</dt>
+            <dd id="age-years" class="mt-1 text-2xl font-bold tabular-nums text-emerald-400">—</dd>
+          </div>
+          <div class="rounded-xl border border-slate-800 bg-slate-950/50 px-2 py-3">
+            <dt class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Months</dt>
+            <dd id="age-months" class="mt-1 text-2xl font-bold tabular-nums text-emerald-400">—</dd>
+          </div>
+          <div class="rounded-xl border border-slate-800 bg-slate-950/50 px-2 py-3">
+            <dt class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Days</dt>
+            <dd id="age-days" class="mt-1 text-2xl font-bold tabular-nums text-emerald-400">—</dd>
+          </div>
+        </dl>
+
+        <div class="mt-5 rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4 text-sm">
+          <div class="flex justify-between gap-2">
+            <span class="text-slate-400">Required age range</span>
+            <span id="age-range-label" class="font-semibold tabular-nums text-white">—</span>
+          </div>
+          <div class="mt-2 flex justify-between gap-2 border-t border-slate-800 pt-2">
+            <span class="text-slate-400">Days until / past max age</span>
+            <span id="days-to-max" class="font-semibold tabular-nums text-emerald-300">—</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <style>
+    .eligibility-banner.eligible {
+      @apply border-emerald-600/50 bg-emerald-950/40;
+    }
+    .eligibility-banner.eligible #eligibility-status {
+      @apply text-emerald-400;
+    }
+    .eligibility-banner.ineligible {
+      @apply border-rose-700/50 bg-rose-950/30;
+    }
+    .eligibility-banner.ineligible #eligibility-status {
+      @apply text-rose-400;
+    }
+    .eligibility-banner.pending {
+      @apply border-slate-700 bg-slate-950/40;
+    }
+    .eligibility-banner.pending #eligibility-status {
+      @apply text-slate-400;
+    }
+  </style>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:exam-age-eligibility';
+
+    const PRESETS: Record<string, { min: number; max: number; label: string }> = {
+      upsc: { min: 21, max: 32, label: 'UPSC Civil Services' },
+      'ssc-cgl': { min: 18, max: 32, label: 'SSC CGL' },
+      rrb: { min: 18, max: 30, label: 'Railway RRB NTPC' },
+      ibps: { min: 20, max: 30, label: 'IBPS PO' },
+      custom: { min: 18, max: 32, label: 'Custom' },
+    };
+
+    const presetSelect = document.getElementById('exam-preset') as HTMLSelectElement;
+    const dobInput = document.getElementById('dob') as HTMLInputElement;
+    const cutoffInput = document.getElementById('cutoff-date') as HTMLInputElement;
+    const minAgeInput = document.getElementById('min-age') as HTMLInputElement;
+    const maxAgeInput = document.getElementById('max-age') as HTMLInputElement;
+    const customLimitsEl = document.getElementById('custom-limits')!;
+    const resetBtn = document.getElementById('reset-exam-age') as HTMLButtonElement;
+
+    const eligibilityBanner = document.getElementById('eligibility-banner')!;
+    const eligibilityStatus = document.getElementById('eligibility-status')!;
+    const eligibilityDetail = document.getElementById('eligibility-detail')!;
+    const agePrimary = document.getElementById('age-primary')!;
+    const ageSecondary = document.getElementById('age-secondary')!;
+    const ageYears = document.getElementById('age-years')!;
+    const ageMonths = document.getElementById('age-months')!;
+    const ageDays = document.getElementById('age-days')!;
+    const ageRangeLabel = document.getElementById('age-range-label')!;
+    const daysToMaxEl = document.getElementById('days-to-max')!;
+
+    function parseDateOnly(iso: string): Date | null {
+      if (!iso) return null;
+      const [y, mo, da] = iso.split('-').map(Number);
+      if (!y || !mo || !da) return null;
+      const date = new Date(y, mo - 1, da);
+      if (date.getFullYear() !== y || date.getMonth() !== mo - 1 || date.getDate() !== da) return null;
+      return date;
+    }
+
+    function diffYmd(from: Date, to: Date): { years: number; months: number; days: number } {
+      let years = to.getFullYear() - from.getFullYear();
+      let months = to.getMonth() - from.getMonth();
+      let days = to.getDate() - from.getDate();
+
+      if (days < 0) {
+        months -= 1;
+        days += new Date(to.getFullYear(), to.getMonth(), 0).getDate();
+      }
+      if (months < 0) {
+        years -= 1;
+        months += 12;
+      }
+
+      return { years, months, days };
+    }
+
+    function addYears(date: Date, years: number): Date {
+      const d = new Date(date);
+      d.setFullYear(d.getFullYear() + years);
+      return d;
+    }
+
+    function daysBetween(from: Date, to: Date): number {
+      return Math.floor((to.getTime() - from.getTime()) / 86_400_000);
+    }
+
+    function formatDisplayDate(date: Date): string {
+      return new Intl.DateTimeFormat('en-IN', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }).format(date);
+    }
+
+    function applyPreset(presetId: string): void {
+      const preset = PRESETS[presetId] ?? PRESETS.custom;
+      minAgeInput.value = String(preset.min);
+      maxAgeInput.value = String(preset.max);
+      customLimitsEl.classList.toggle('opacity-60', presetId !== 'custom');
+      minAgeInput.disabled = presetId !== 'custom';
+      maxAgeInput.disabled = presetId !== 'custom';
+    }
+
+    function setBanner(state: 'eligible' | 'ineligible' | 'pending', status: string, detail: string): void {
+      eligibilityBanner.hidden = false;
+      eligibilityBanner.classList.remove('eligible', 'ineligible', 'pending');
+      eligibilityBanner.classList.add(state);
+      eligibilityStatus.textContent = status;
+      eligibilityDetail.textContent = detail;
+    }
+
+    function renderEmpty(): void {
+      agePrimary.textContent = '—';
+      ageSecondary.textContent = 'Enter DOB and cutoff date';
+      ageYears.textContent = '—';
+      ageMonths.textContent = '—';
+      ageDays.textContent = '—';
+      ageRangeLabel.textContent = '—';
+      daysToMaxEl.textContent = '—';
+      eligibilityBanner.hidden = true;
+    }
+
+    function recalculate(): void {
+      const dob = parseDateOnly(dobInput.value);
+      const cutoff = parseDateOnly(cutoffInput.value);
+      const minAge = Number(minAgeInput.value);
+      const maxAge = Number(maxAgeInput.value);
+
+      if (!dob || !cutoff || !Number.isFinite(minAge) || !Number.isFinite(maxAge)) {
+        renderEmpty();
+        saveState();
+        return;
+      }
+
+      if (cutoff < dob) {
+        setBanner('pending', 'Invalid dates', 'Cutoff date must be on or after date of birth.');
+        agePrimary.textContent = 'Invalid range';
+        ageSecondary.textContent = 'Check your dates.';
+        ageYears.textContent = '—';
+        ageMonths.textContent = '—';
+        ageDays.textContent = '—';
+        saveState();
+        return;
+      }
+
+      const { years, months, days } = diffYmd(dob, cutoff);
+      agePrimary.textContent = `${years}y ${months}m ${days}d`;
+      ageSecondary.textContent = `As of ${formatDisplayDate(cutoff)}`;
+      ageYears.textContent = String(years);
+      ageMonths.textContent = String(months);
+      ageDays.textContent = String(days);
+      ageRangeLabel.textContent = `${minAge} – ${maxAge} years`;
+
+      const maxAgeDate = addYears(dob, maxAge);
+      const daysToMax = daysBetween(cutoff, maxAgeDate);
+      if (daysToMax > 0) {
+        daysToMaxEl.textContent = `${daysToMax.toLocaleString('en-IN')} days remaining`;
+      } else if (daysToMax === 0) {
+        daysToMaxEl.textContent = 'Last day of max age';
+      } else {
+        daysToMaxEl.textContent = `${Math.abs(daysToMax).toLocaleString('en-IN')} days past max age`;
+      }
+
+      const underMin = years < minAge;
+      const overMax = years > maxAge;
+
+      const preset = PRESETS[presetSelect.value]?.label ?? 'Exam';
+
+      if (underMin) {
+        setBanner(
+          'ineligible',
+          'Not eligible — too young',
+          `Minimum age is ${minAge} years as of cutoff. You are ${years}y ${months}m ${days}d (${preset}).`,
+        );
+      } else if (overMax) {
+        setBanner(
+          'ineligible',
+          'Not eligible — over age limit',
+          `Maximum age is ${maxAge} years as of cutoff. You are ${years}y ${months}m ${days}d (${preset}).`,
+        );
+      } else {
+        setBanner(
+          'eligible',
+          'Eligible ✓',
+          `Your age ${years}y ${months}m ${days}d falls within ${minAge}–${maxAge} years for ${preset}.`,
+        );
+      }
+
+      saveState();
+    }
+
+    function saveState(): void {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            preset: presetSelect.value,
+            dob: dobInput.value,
+            cutoff: cutoffInput.value,
+            minAge: minAgeInput.value,
+            maxAge: maxAgeInput.value,
+          }),
+        );
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function loadState(): void {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw) as {
+          preset?: string;
+          dob?: string;
+          cutoff?: string;
+          minAge?: string;
+          maxAge?: string;
+        };
+        if (parsed.preset) presetSelect.value = parsed.preset;
+        if (parsed.dob) dobInput.value = parsed.dob;
+        if (parsed.cutoff) cutoffInput.value = parsed.cutoff;
+        if (parsed.minAge) minAgeInput.value = parsed.minAge;
+        if (parsed.maxAge) maxAgeInput.value = parsed.maxAge;
+      } catch {
+        /* ignore */
+      }
+    }
+
+    presetSelect.addEventListener('change', () => {
+      applyPreset(presetSelect.value);
+      recalculate();
+    });
+
+    [dobInput, cutoffInput, minAgeInput, maxAgeInput].forEach((el) => {
+      el.addEventListener('change', recalculate);
+      el.addEventListener('input', recalculate);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      presetSelect.value = 'ssc-cgl';
+      applyPreset('ssc-cgl');
+      dobInput.value = '';
+      cutoffInput.value = '';
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+      renderEmpty();
+    });
+
+    loadState();
+    applyPreset(presetSelect.value);
+    recalculate();
+  </script>
+</ToolsLayout>

@@ -1,4 +1,4 @@
-# PWA edge fallback for unmatched paths (static assets served first)
 /privacy            /privacy/            301
 /terms              /terms/              301
-/*                  /index.html          200
+
+# Unknown paths fall through to static 404.html (no SPA catch-all)

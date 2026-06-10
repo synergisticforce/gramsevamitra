@@ -1,9 +1,9 @@
 ---
-import { SITES } from '../config/sites';
+import { SITES, utilitiesHref } from '../config/sites';
 import MobileNavMenu from './MobileNavMenu';
 
 interface Props {
-  active?: 'hub' | 'optimizer' | 'resume' | 'pdf';
+  active?: 'hub' | 'utilities' | 'optimizer' | 'resume' | 'pdf';
 }
 
 const { active = 'hub' } = Astro.props;
@@ -33,6 +33,17 @@ const { active = 'hub' } = Astro.props;
           ]}
         >
           Home
+        </a>
+      </li>
+      <li>
+        <a
+          href={utilitiesHref('/tools')}
+          class:list={[
+            'transition hover:text-emerald-400',
+            active === 'utilities' ? 'text-emerald-400' : 'text-slate-300',
+          ]}
+        >
+          Utilities
         </a>
       </li>
       <li>

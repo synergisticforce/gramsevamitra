@@ -1,5 +1,6 @@
 ---
 import type { WorkspaceMeta } from '../../config/toolsRegistry';
+import { utilitiesHref } from '@shared/config/sites';
 
 interface Props {
   workspace: WorkspaceMeta;
@@ -9,7 +10,7 @@ const { workspace } = Astro.props;
 ---
 
 <a
-  href={workspace.path}
+  href={utilitiesHref(workspace.path)}
   class="group card flex flex-col transition hover:border-emerald-700/60 hover:bg-slate-900/80"
 >
   <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/20 text-2xl">

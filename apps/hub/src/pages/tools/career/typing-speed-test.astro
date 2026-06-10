@@ -1,0 +1,293 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+import { utilitiesHref } from '@shared/config/sites';
+
+const toolName = 'Typing Speed Test';
+const toolDescription =
+  'Practice typing with a 60-second timer — live WPM and accuracy for government exam and job typing test prep. 100% offline.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="career"
+>
+  <div class="typing-speed-test">
+    <header class="mb-6">
+      <a href={utilitiesHref('/tools/career')} class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Career Prep Room
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        60-second timed test — standard WPM formula (5 chars = 1 word). Nothing leaves your device.
+      </p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-3">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6 lg:col-span-2"
+        aria-labelledby="typing-test-heading"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="typing-test-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+            Type the passage
+          </h2>
+          <div class="flex items-center gap-2">
+            <span id="timer-display" class="rounded-lg border border-emerald-800/50 bg-emerald-950/40 px-3 py-1.5 text-lg font-bold tabular-nums text-emerald-400">
+              60s
+            </span>
+            <button type="button" id="new-passage" class="btn-secondary px-3 py-1.5 text-xs">New passage</button>
+          </div>
+        </div>
+
+        <p
+          id="prompt-text"
+          class="mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-4 font-mono text-sm leading-relaxed text-slate-300"
+          aria-label="Text to type"
+        ></p>
+
+        <label class="mt-4 block">
+          <span class="sr-only">Your typing</span>
+          <textarea
+            id="typing-input"
+            rows="5"
+            spellcheck="false"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            placeholder="Click Start, then type here…"
+            disabled
+            class="input-field w-full resize-y font-mono text-sm leading-relaxed disabled:opacity-50"
+          ></textarea>
+        </label>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button type="button" id="start-test" class="btn-primary flex-1 text-sm sm:flex-none sm:px-8">Start test</button>
+          <button type="button" id="reset-test" class="btn-secondary flex-1 text-sm sm:flex-none sm:px-8" disabled>Reset</button>
+        </div>
+      </section>
+
+      <section
+        class="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="typing-stats-heading"
+        aria-live="polite"
+      >
+        <h2 id="typing-stats-heading" class="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          Live stats
+        </h2>
+
+        <div class="mt-5 space-y-4">
+          <div class="rounded-xl border border-emerald-800/40 bg-slate-950/50 px-4 py-5 text-center">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">WPM</p>
+            <p id="stat-wpm" class="mt-1 text-4xl font-extrabold tabular-nums text-emerald-400">0</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-4 text-center">
+              <p class="text-[10px] font-medium uppercase tracking-wider text-slate-500">Accuracy</p>
+              <p id="stat-accuracy" class="mt-1 text-2xl font-bold tabular-nums text-white">100%</p>
+            </div>
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-4 text-center">
+              <p class="text-[10px] font-medium uppercase tracking-wider text-slate-500">Correct</p>
+              <p id="stat-correct" class="mt-1 text-2xl font-bold tabular-nums text-emerald-400">0</p>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-4 text-center">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-500">Errors</p>
+            <p id="stat-errors" class="mt-1 text-xl font-bold tabular-nums text-rose-400">0</p>
+          </div>
+
+          <p id="test-status" class="text-center text-xs text-slate-500">Press Start to begin a 60-second test.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:typing-speed-best';
+
+    const PASSAGES = [
+      'The quick brown fox jumps over the lazy dog. Practice typing every day to improve speed and accuracy for government exams.',
+      'GramSeva Mitra helps aspirants prepare offline with calculators, document tools, and career utilities that work on slow networks.',
+      'Typing tests measure words per minute and accuracy. Focus on smooth rhythm rather than rushing at the cost of mistakes.',
+      'Public service examinations require attention to detail, time management, and consistent preparation over many months.',
+      'Digital empowerment means tools that respect your privacy, run in the browser, and never upload personal documents.',
+      'Accuracy matters as much as speed. Each error slows effective throughput even when raw keystrokes are fast.',
+    ];
+
+    const TEST_SECONDS = 60;
+
+    const promptEl = document.getElementById('prompt-text')!;
+    const inputEl = document.getElementById('typing-input') as HTMLTextAreaElement;
+    const timerEl = document.getElementById('timer-display')!;
+    const startBtn = document.getElementById('start-test') as HTMLButtonElement;
+    const resetBtn = document.getElementById('reset-test') as HTMLButtonElement;
+    const newPassageBtn = document.getElementById('new-passage') as HTMLButtonElement;
+    const statWpm = document.getElementById('stat-wpm')!;
+    const statAccuracy = document.getElementById('stat-accuracy')!;
+    const statCorrect = document.getElementById('stat-correct')!;
+    const statErrors = document.getElementById('stat-errors')!;
+    const testStatus = document.getElementById('test-status')!;
+
+    let passage = '';
+    let running = false;
+    let secondsLeft = TEST_SECONDS;
+    let timerId: ReturnType<typeof setInterval> | null = null;
+    let startedAt = 0;
+
+    function pickPassage(): string {
+      return PASSAGES[Math.floor(Math.random() * PASSAGES.length)];
+    }
+
+    function renderPrompt(typed: string): void {
+      let html = '';
+      for (let i = 0; i < passage.length; i++) {
+        const char = passage[i];
+        const typedChar = typed[i];
+        if (i >= typed.length) {
+          html += `<span class="text-slate-500">${escapeHtml(char)}</span>`;
+        } else if (typedChar === char) {
+          html += `<span class="text-emerald-400">${escapeHtml(char)}</span>`;
+        } else {
+          html += `<span class="rounded bg-rose-950/60 text-rose-400">${escapeHtml(char)}</span>`;
+        }
+      }
+      promptEl.innerHTML = html;
+    }
+
+    function escapeHtml(text: string): string {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function analyze(typed: string): { correct: number; errors: number; accuracy: number } {
+      const len = typed.length;
+      let correct = 0;
+      for (let i = 0; i < len; i++) {
+        if (typed[i] === passage[i]) correct++;
+      }
+      const errors = len - correct;
+      const accuracy = len === 0 ? 100 : Math.round((correct / len) * 100);
+      return { correct, errors, accuracy };
+    }
+
+    function computeWpm(correctChars: number, elapsedSeconds: number): number {
+      if (elapsedSeconds <= 0) return 0;
+      const words = correctChars / 5;
+      const minutes = elapsedSeconds / 60;
+      return Math.round(words / minutes);
+    }
+
+    function updateStats(forceElapsed?: number): void {
+      const typed = inputEl.value;
+      const { correct, errors, accuracy } = analyze(typed);
+      const elapsed = forceElapsed ?? (running ? (Date.now() - startedAt) / 1000 : TEST_SECONDS - secondsLeft);
+      const wpm = computeWpm(correct, Math.max(elapsed, 0.1));
+
+      statWpm.textContent = String(wpm);
+      statAccuracy.textContent = `${accuracy}%`;
+      statCorrect.textContent = String(correct);
+      statErrors.textContent = String(errors);
+      renderPrompt(typed);
+    }
+
+    function endTest(): void {
+      running = false;
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+      }
+      inputEl.disabled = true;
+      startBtn.disabled = false;
+      resetBtn.disabled = false;
+      timerEl.textContent = '0s';
+
+      const elapsed = TEST_SECONDS;
+      updateStats(elapsed);
+      const wpm = Number(statWpm.textContent);
+      testStatus.textContent = `Time's up! Final score: ${wpm} WPM at ${statAccuracy.textContent} accuracy.`;
+
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const best = raw ? (JSON.parse(raw) as { wpm: number }).wpm : 0;
+        if (wpm > best) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ wpm, accuracy: statAccuracy.textContent, date: new Date().toISOString() }));
+          testStatus.textContent += ` New personal best!`;
+        } else if (best > 0) {
+          testStatus.textContent += ` Personal best: ${best} WPM.`;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function startTest(): void {
+      if (running) return;
+      passage = pickPassage();
+      promptEl.textContent = passage;
+      inputEl.value = '';
+      inputEl.disabled = false;
+      inputEl.focus();
+      running = true;
+      secondsLeft = TEST_SECONDS;
+      startedAt = Date.now();
+      timerEl.textContent = `${secondsLeft}s`;
+      startBtn.disabled = true;
+      resetBtn.disabled = true;
+      testStatus.textContent = 'Typing… keep going until the timer ends.';
+      updateStats(0);
+
+      timerId = setInterval(() => {
+        secondsLeft -= 1;
+        timerEl.textContent = `${Math.max(secondsLeft, 0)}s`;
+        updateStats();
+        if (secondsLeft <= 0) endTest();
+      }, 1000);
+    }
+
+    function resetTest(): void {
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+      }
+      running = false;
+      secondsLeft = TEST_SECONDS;
+      timerEl.textContent = `${TEST_SECONDS}s`;
+      inputEl.value = '';
+      inputEl.disabled = true;
+      startBtn.disabled = false;
+      resetBtn.disabled = true;
+      passage = pickPassage();
+      promptEl.textContent = passage;
+      statWpm.textContent = '0';
+      statAccuracy.textContent = '100%';
+      statCorrect.textContent = '0';
+      statErrors.textContent = '0';
+      testStatus.textContent = 'Press Start to begin a 60-second test.';
+    }
+
+    inputEl.addEventListener('input', () => {
+      if (!running) return;
+      updateStats();
+      if (inputEl.value.length >= passage.length) {
+        testStatus.textContent = 'Passage complete! Keep typing or wait for the timer.';
+      }
+    });
+
+    startBtn.addEventListener('click', startTest);
+    resetBtn.addEventListener('click', resetTest);
+    newPassageBtn.addEventListener('click', () => {
+      if (running) return;
+      passage = pickPassage();
+      promptEl.textContent = passage;
+      inputEl.value = '';
+      updateStats(0);
+    });
+
+    resetTest();
+  </script>
+</ToolsLayout>

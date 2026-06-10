@@ -225,6 +225,15 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
     keywords: ['plagiarism', 'similarity', 'compare text', 'diff'],
   },
   {
+    id: 'ocr-extractor',
+    name: 'Browser OCR Text Extractor',
+    description: 'Extract text from images using ONNX WASM (TrOCR) with Canvas preprocessing and Web Worker inference.',
+    path: '/tools/writing/ocr-extractor',
+    workspace: 'writing',
+    keywords: ['ocr', 'scan', 'text extract', 'image to text', 'onnx', 'wasm', 'optical character'],
+    aliases: ['ocr', 'image ocr', 'scan text'],
+  },
+  {
     id: 'word-counter',
     name: 'Word & Character Counter',
     description: 'Count words, characters, sentences, paragraphs, and reading time in real time.',
@@ -341,6 +350,24 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
     workspace: 'career',
     keywords: ['nda', 'rental agreement', 'legal', 'contract', 'template'],
   },
+  {
+    id: 'typing-speed-test',
+    name: 'Typing Speed Test',
+    description: '60-second typing test with live WPM and accuracy — ideal for exam and job typing prep.',
+    path: '/tools/career/typing-speed-test',
+    workspace: 'career',
+    keywords: ['typing', 'wpm', 'speed test', 'accuracy', 'keyboard', 'exam typing'],
+    aliases: ['typing test', 'words per minute'],
+  },
+  {
+    id: 'ats-keyword-matcher',
+    name: 'ATS Resume Keyword Matcher',
+    description: 'Match resume text against job descriptions with fuzzy keyword analysis and missing-term lists.',
+    path: '/tools/career/ats-keyword-matcher',
+    workspace: 'career',
+    keywords: ['ats', 'resume keywords', 'job description', 'match score', 'missing keywords', 'applicant tracking'],
+    aliases: ['keyword matcher', 'resume match', 'ats score'],
+  },
   // Life & Focus Tracker
   {
     id: 'life-dashboard',
@@ -385,6 +412,15 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
     aliases: ['age calculator', 'dob calculator'],
   },
   {
+    id: 'exam-age-eligibility',
+    name: 'Exam Age Eligibility Calculator',
+    description: 'Calculate age as of exam cutoff date with UPSC, SSC, RRB presets and eligible / not eligible banner.',
+    path: '/tools/life/exam-age-eligibility',
+    workspace: 'life',
+    keywords: ['exam age', 'upsc age', 'ssc age limit', 'cutoff date', 'eligibility', 'government exam'],
+    aliases: ['age eligibility', 'exam eligibility'],
+  },
+  {
     id: 'menstrual-tracker',
     name: 'Menstrual & Ovulation Calculator',
     description: 'Estimate next period, ovulation window, and fertile timeline from cycle length — fully offline.',
@@ -418,6 +454,24 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
     path: '/tools/quick/qr-generator',
     workspace: 'quick',
     keywords: ['qr', 'barcode', 'scan', 'link'],
+  },
+  {
+    id: 'exam-photo-studio',
+    name: 'Exam Photo & Signature Studio',
+    description: 'Crop and compress passport photos and signatures for SSC, UPSC, RRB, and IBPS uploads.',
+    path: '/tools/quick/exam-photo-studio',
+    workspace: 'quick',
+    keywords: ['exam photo', 'passport photo', 'signature', 'ssc photo', 'upsc photo', 'compress', '50kb'],
+    aliases: ['photo compressor', 'exam upload', 'document photo'],
+  },
+  {
+    id: 'document-redactor',
+    name: 'Secure Document Redactor',
+    description: 'Draw permanent black redaction boxes on images or PDF pages and export flattened PNG.',
+    path: '/tools/quick/document-redactor',
+    workspace: 'quick',
+    keywords: ['redact', 'privacy', 'blackout', 'pii', 'censor', 'document', 'secure'],
+    aliases: ['redaction tool', 'document privacy'],
   },
   {
     id: 'unit-converter',
@@ -570,10 +624,10 @@ export function getWorkspaceTools(workspace: ToolWorkspace): ToolEntry[] {
   return TOOLS_REGISTRY.filter((t) => t.workspace === workspace && t.path.startsWith(prefix));
 }
 
-export type ToolsLayoutNav = 'home' | 'money' | 'writing' | 'career' | 'quick';
+export type ToolsLayoutNav = 'home' | 'money' | 'writing' | 'career' | 'life' | 'quick';
 
 export function activeNavForWorkspace(workspace: ToolWorkspace): ToolsLayoutNav {
-  if (workspace === 'life') return 'home';
+  if (workspace === 'life') return 'life';
   return workspace;
 }
 
