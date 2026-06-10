@@ -1,0 +1,229 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Baby Name Finder';
+const toolDescription =
+  'Browse ~40 Indian baby names with boys/girls filter and search — shortlist favourites to localStorage.';
+
+const NAMES = [
+  { name: 'Aarav', gender: 'boy', meaning: 'Peaceful, wise' },
+  { name: 'Vihaan', gender: 'boy', meaning: 'Morning, dawn' },
+  { name: 'Arjun', gender: 'boy', meaning: 'Bright, shining' },
+  { name: 'Reyansh', gender: 'boy', meaning: 'Ray of light' },
+  { name: 'Advait', gender: 'boy', meaning: 'Unique, one of a kind' },
+  { name: 'Ishaan', gender: 'boy', meaning: 'Sun, lord Shiva' },
+  { name: 'Kabir', gender: 'boy', meaning: 'Great, powerful' },
+  { name: 'Rohan', gender: 'boy', meaning: 'Ascending, growing' },
+  { name: 'Dhruv', gender: 'boy', meaning: 'Pole star, constant' },
+  { name: 'Vivaan', gender: 'boy', meaning: 'Full of life' },
+  { name: 'Krishna', gender: 'boy', meaning: 'Dark, attractive' },
+  { name: 'Siddharth', gender: 'boy', meaning: 'One who has attained goals' },
+  { name: 'Ayaan', gender: 'boy', meaning: 'Gift of God' },
+  { name: 'Atharv', gender: 'boy', meaning: 'Knower of the arthas' },
+  { name: 'Shaurya', gender: 'boy', meaning: 'Bravery, courage' },
+  { name: 'Dev', gender: 'boy', meaning: 'Divine, god-like' },
+  { name: 'Rudra', gender: 'boy', meaning: 'Lord Shiva' },
+  { name: 'Yash', gender: 'boy', meaning: 'Fame, success' },
+  { name: 'Ananya', gender: 'girl', meaning: 'Unique, matchless' },
+  { name: 'Aadhya', gender: 'girl', meaning: 'First power, goddess' },
+  { name: 'Diya', gender: 'girl', meaning: 'Lamp, light' },
+  { name: 'Ira', gender: 'girl', meaning: 'Earth, goddess Saraswati' },
+  { name: 'Kiara', gender: 'girl', meaning: 'Dark, little dark one' },
+  { name: 'Myra', gender: 'girl', meaning: 'Beloved, admirable' },
+  { name: 'Pari', gender: 'girl', meaning: 'Fairy, angel' },
+  { name: 'Saanvi', gender: 'girl', meaning: 'Goddess Lakshmi' },
+  { name: 'Aanya', gender: 'girl', meaning: 'Gracious, limitless' },
+  { name: 'Navya', gender: 'girl', meaning: 'Young, new' },
+  { name: 'Riya', gender: 'girl', meaning: 'Singer, graceful' },
+  { name: 'Tara', gender: 'girl', meaning: 'Star' },
+  { name: 'Zara', gender: 'girl', meaning: 'Princess, flower' },
+  { name: 'Meera', gender: 'girl', meaning: 'Prosperous, ocean' },
+  { name: 'Kavya', gender: 'girl', meaning: 'Poetry, wisdom' },
+  { name: 'Ishita', gender: 'girl', meaning: 'Desired, mastery' },
+  { name: 'Avni', gender: 'girl', meaning: 'Earth' },
+  { name: 'Prisha', gender: 'girl', meaning: 'Beloved, gift of God' },
+  { name: 'Siya', gender: 'girl', meaning: 'Goddess Sita' },
+  { name: 'Aarohi', gender: 'girl', meaning: 'Ascending music' },
+  { name: 'Vedika', gender: 'girl', meaning: 'Consciousness, altar' },
+  { name: 'Lakshmi', gender: 'girl', meaning: 'Goddess of wealth' },
+  { name: 'Arnav', gender: 'boy', meaning: 'Ocean' },
+  { name: 'Nakul', gender: 'boy', meaning: 'Mongoose, Pandava prince' },
+] as const;
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="quick"
+>
+  <div class="baby-names">
+    <header class="mb-6">
+      <a href="/tools/quick" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Quick Tools Drawer
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">Indian baby names with meanings — shortlist saved on this device only.</p>
+    </header>
+
+    <section
+      class="mb-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+      aria-labelledby="bn-filter-heading"
+    >
+      <h2 id="bn-filter-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+        Filter &amp; search
+      </h2>
+
+      <label class="mt-4 block">
+        <span class="mb-1 block text-sm font-medium text-slate-300">Search name or meaning</span>
+        <input id="bn-search" type="search" placeholder="e.g. light, Arjun…" class="input-field w-full" />
+      </label>
+
+      <div class="mt-4 flex flex-wrap gap-2" role="group" aria-label="Gender filter">
+        <button type="button" class="filter-pill active" data-gender="all">All</button>
+        <button type="button" class="filter-pill" data-gender="boy">Boys</button>
+        <button type="button" class="filter-pill" data-gender="girl">Girls</button>
+      </div>
+    </section>
+
+    <section aria-labelledby="bn-shortlist-heading" class="mb-6">
+      <h2 id="bn-shortlist-heading" class="mb-3 text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+        Shortlist <span id="bn-shortlist-count" class="text-slate-500">(0)</span>
+      </h2>
+      <ul id="bn-shortlist" class="flex min-h-[48px] flex-wrap gap-2 rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-3">
+        <li class="text-xs text-slate-500">Tap ☆ on any name to add here.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="bn-list-heading">
+      <h2 id="bn-list-heading" class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">
+        Names <span id="bn-count" class="text-slate-600"></span>
+      </h2>
+      <ul id="bn-list" class="grid gap-3 sm:grid-cols-2"></ul>
+      <p id="bn-empty" class="hidden text-center text-sm text-slate-500">No names match your filters.</p>
+    </section>
+  </div>
+
+  <style>
+    .filter-pill {
+      @apply rounded-full border border-slate-700 bg-slate-950/60 px-4 py-1.5 text-xs font-semibold text-slate-400 transition hover:border-slate-600 hover:text-white;
+    }
+    .filter-pill.active {
+      @apply border-emerald-600 bg-emerald-950/50 text-emerald-300;
+    }
+    .name-card {
+      @apply flex items-start justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 transition hover:border-slate-700;
+    }
+    .shortlist-tag {
+      @apply inline-flex items-center gap-1 rounded-lg border border-emerald-800/60 bg-emerald-950/40 px-2.5 py-1 text-xs font-medium text-emerald-300;
+    }
+    .star-btn {
+      @apply shrink-0 rounded-lg border border-slate-700 px-2 py-1 text-sm text-slate-500 transition hover:border-amber-600 hover:text-amber-400;
+    }
+    .star-btn.active {
+      @apply border-amber-600 bg-amber-950/40 text-amber-400;
+    }
+  </style>
+
+  <script define:vars={{ NAMES }}>
+    const STORAGE_KEY = 'gsm-tools:baby-names-shortlist';
+
+    const searchEl = document.getElementById('bn-search');
+    const listEl = document.getElementById('bn-list');
+    const shortlistEl = document.getElementById('bn-shortlist');
+    const shortlistCount = document.getElementById('bn-shortlist-count');
+    const countEl = document.getElementById('bn-count');
+    const emptyEl = document.getElementById('bn-empty');
+    const filterPills = document.querySelectorAll('.filter-pill');
+
+    let genderFilter = 'all';
+    let shortlist = [];
+
+    function loadShortlist() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        shortlist = raw ? JSON.parse(raw) : [];
+      } catch {
+        shortlist = [];
+      }
+    }
+
+    function saveShortlist() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(shortlist));
+      } catch { /* ignore */ }
+    }
+
+    function toggleShortlist(name) {
+      const idx = shortlist.indexOf(name);
+      if (idx >= 0) shortlist.splice(idx, 1);
+      else shortlist.push(name);
+      saveShortlist();
+      renderShortlist();
+      renderList();
+    }
+
+    function renderShortlist() {
+      shortlistCount.textContent = `(${shortlist.length})`;
+      shortlistEl.innerHTML = '';
+      if (shortlist.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'text-xs text-slate-500';
+        li.textContent = 'Tap ☆ on any name to add here.';
+        shortlistEl.appendChild(li);
+        return;
+      }
+      shortlist.forEach((name) => {
+        const entry = NAMES.find((n) => n.name === name);
+        const li = document.createElement('li');
+        li.className = 'shortlist-tag';
+        li.innerHTML = `${name} <button type="button" class="ml-1 text-rose-400 hover:text-rose-300" aria-label="Remove ${name}">×</button>`;
+        li.querySelector('button').addEventListener('click', () => toggleShortlist(name));
+        if (entry) li.title = entry.meaning;
+        shortlistEl.appendChild(li);
+      });
+    }
+
+    function renderList() {
+      const query = searchEl.value.trim().toLowerCase();
+      const filtered = NAMES.filter((n) => {
+        const matchGender = genderFilter === 'all' || n.gender === genderFilter;
+        const matchSearch = !query || n.name.toLowerCase().includes(query) || n.meaning.toLowerCase().includes(query);
+        return matchGender && matchSearch;
+      });
+
+      countEl.textContent = `(${filtered.length})`;
+      emptyEl.classList.toggle('hidden', filtered.length > 0);
+      listEl.innerHTML = '';
+
+      filtered.forEach((entry) => {
+        const li = document.createElement('li');
+        const isStarred = shortlist.includes(entry.name);
+        li.className = 'name-card';
+        li.innerHTML = `
+          <div>
+            <p class="font-semibold text-white">${entry.name}</p>
+            <p class="text-xs text-slate-500">${entry.gender === 'boy' ? '♂ Boy' : '♀ Girl'} · ${entry.meaning}</p>
+          </div>
+          <button type="button" class="star-btn ${isStarred ? 'active' : ''}" aria-label="${isStarred ? 'Remove from' : 'Add to'} shortlist">${isStarred ? '★' : '☆'}</button>
+        `;
+        li.querySelector('.star-btn').addEventListener('click', () => toggleShortlist(entry.name));
+        listEl.appendChild(li);
+      });
+    }
+
+    searchEl.addEventListener('input', renderList);
+    filterPills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        filterPills.forEach((p) => p.classList.remove('active'));
+        pill.classList.add('active');
+        genderFilter = pill.dataset.gender;
+        renderList();
+      });
+    });
+
+    loadShortlist();
+    renderShortlist();
+    renderList();
+  </script>
+</ToolsLayout>

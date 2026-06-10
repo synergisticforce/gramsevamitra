@@ -1,0 +1,458 @@
+---
+import '@shared/styles/global.css';
+import BaseLayout from '@shared/layouts/BaseLayout.astro';
+import Header from '@shared/components/Header.astro';
+import Footer from '@shared/components/Footer.astro';
+import { SITE_HOME_SEO } from '@shared/config/seo';
+
+const toolName = 'ATS Resume Scanner';
+const toolDescription =
+  'Upload your resume PDF, paste the job description, and get an instant keyword match score — 100% private, runs in your browser.';
+---
+
+<BaseLayout
+  title={SITE_HOME_SEO.resume.title}
+  description={SITE_HOME_SEO.resume.description}
+  site="resume"
+  showCrossPromo={true}
+>
+  <Header slot="header" active="resume" />
+
+  <section class="relative overflow-hidden">
+    <div
+      class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/20 via-slate-950 to-slate-950"
+    >
+    </div>
+
+    <div class="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <header class="mb-8 text-center">
+        <p
+          class="mb-3 inline-flex items-center rounded-full border border-emerald-800/60 bg-emerald-950/50 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-300"
+        >
+          100% Private · Zero Uploads
+        </p>
+        <h1 class="text-3xl font-bold text-white sm:text-4xl">{toolName}</h1>
+        <p class="mx-auto mt-3 max-w-2xl text-sm text-slate-400 sm:text-base">{toolDescription}</p>
+      </header>
+
+      <div class="grid gap-6 lg:grid-cols-2 lg:gap-8">
+        <!-- Left: inputs -->
+        <div class="space-y-5">
+          <div
+            id="drop-zone"
+            class="drop-zone"
+            role="button"
+            tabindex="0"
+            aria-label="Drop your resume PDF here or click to browse"
+          >
+            <input
+              id="file-input"
+              type="file"
+              accept="application/pdf,.pdf"
+              class="sr-only"
+              aria-hidden="true"
+            />
+            <div class="pointer-events-none flex flex-col items-center px-4 py-8 text-center">
+              <span class="text-4xl" aria-hidden="true">📄</span>
+              <p class="mt-3 text-base font-bold text-white">Drop your resume PDF</p>
+              <p class="mt-1 text-sm text-slate-400">or click to browse</p>
+            </div>
+          </div>
+
+          <div id="file-meta" class="hidden rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
+            <p id="meta-name" class="truncate text-sm font-semibold text-white"></p>
+            <p id="meta-size" class="text-xs text-slate-500"></p>
+            <button type="button" id="clear-file" class="btn-secondary mt-2 w-full text-xs">Choose a different file</button>
+          </div>
+
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Job description</span>
+            <textarea
+              id="job-description"
+              rows="14"
+              class="input-field w-full resize-y text-sm leading-relaxed"
+              placeholder="Paste the full job description here — requirements, skills, qualifications…"
+            ></textarea>
+          </label>
+
+          <p id="scan-error" class="hidden text-sm text-rose-400" role="alert"></p>
+
+          <button type="button" id="scan-btn" class="btn-primary w-full py-3 text-base font-bold">
+            Scan Resume
+          </button>
+        </div>
+
+        <!-- Right: results -->
+        <div class="results-panel">
+          <h2 class="text-lg font-semibold text-white">Match Results</h2>
+          <p class="mt-1 text-xs text-slate-500">Keyword overlap between your resume and the job description</p>
+
+          <div id="results-placeholder" class="mt-6 flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-900/40 px-6 py-16 text-center">
+            <span class="text-4xl opacity-40" aria-hidden="true">🎯</span>
+            <p class="mt-4 text-sm text-slate-500">
+              Upload a resume and paste a job description, then click <strong class="text-slate-400">Scan Resume</strong> to see your match score.
+            </p>
+          </div>
+
+          <div id="results-panel" class="mt-6 hidden space-y-6">
+            <div class="flex flex-col items-center gap-4 rounded-xl border border-emerald-800/40 bg-emerald-950/20 p-6">
+              <div class="score-gauge" aria-hidden="true">
+                <svg viewBox="0 0 100 100" class="score-gauge-svg">
+                  <circle cx="50" cy="50" r="45" fill="none" stroke="#1e293b" stroke-width="8"></circle>
+                  <circle id="gauge-ring" cx="50" cy="50" r="45" fill="none" stroke="#34d399" stroke-width="8" stroke-linecap="round" class="gauge-ring"></circle>
+                </svg>
+                <div class="score-gauge-label">
+                  <span id="score-value" class="text-4xl font-bold text-white">0</span>
+                  <span class="text-xs text-slate-400">Match Score</span>
+                </div>
+              </div>
+              <p id="score-summary" class="text-center text-sm text-slate-400"></p>
+            </div>
+
+            <div>
+              <h3 class="text-sm font-semibold uppercase tracking-wider text-emerald-300">Matched Keywords</h3>
+              <ul id="matched-list" class="mt-3 flex flex-wrap gap-2" aria-label="Matched keywords"></ul>
+              <p id="matched-empty" class="mt-2 hidden text-xs text-slate-500">No matching keywords found.</p>
+            </div>
+
+            <div>
+              <h3 class="text-sm font-semibold uppercase tracking-wider text-rose-300">Missing Keywords</h3>
+              <ul id="missing-list" class="mt-3 flex flex-wrap gap-2" aria-label="Missing keywords"></ul>
+              <p id="missing-empty" class="mt-2 hidden text-xs text-slate-500">All target keywords were found in your resume.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="loading-overlay" class="loading-overlay hidden" aria-hidden="true">
+        <div class="flex flex-col items-center gap-3 rounded-2xl border border-emerald-800/50 bg-slate-900/95 px-8 py-6 shadow-2xl">
+          <div class="spinner" aria-hidden="true"></div>
+          <p id="loading-label" class="text-sm font-medium text-emerald-300">Extracting resume text…</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Footer slot="footer" />
+</BaseLayout>
+
+<style>
+  .drop-zone {
+    @apply cursor-pointer rounded-2xl border-2 border-dashed border-emerald-700/50 bg-gradient-to-br from-emerald-950/40 to-slate-900/60 transition hover:border-emerald-500 hover:bg-emerald-950/50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-slate-950;
+  }
+  .drop-zone.is-dragover {
+    @apply border-emerald-400 bg-emerald-950/60 ring-2 ring-emerald-400/40;
+  }
+  .results-panel {
+    @apply rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6;
+  }
+  .score-gauge {
+    @apply relative h-40 w-40;
+  }
+  .score-gauge-svg {
+    @apply h-full w-full -rotate-90;
+  }
+  .gauge-ring {
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 1s ease-out, stroke 0.3s ease;
+  }
+  .score-gauge-label {
+    @apply absolute inset-0 flex flex-col items-center justify-center;
+  }
+  .keyword-pill-matched {
+    @apply rounded-full bg-emerald-950/60 px-3 py-1 text-xs font-medium text-emerald-300 ring-1 ring-emerald-800;
+  }
+  .keyword-pill-missing {
+    @apply rounded-full bg-rose-950/60 px-3 py-1 text-xs font-medium text-rose-300 ring-1 ring-rose-800;
+  }
+  .loading-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm;
+  }
+  .spinner {
+    @apply h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-emerald-400;
+  }
+</style>
+
+<script>
+  import { configurePdfJsWorker, pdfjsLib } from '../lib/pdfJsWorker';
+
+  const STOP_WORDS = new Set([
+    'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as',
+    'is', 'was', 'are', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will',
+    'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'i', 'you', 'he', 'she', 'it', 'we',
+    'they', 'this', 'that', 'these', 'those', 'am', 'if', 'because', 'until', 'while', 'about', 'into',
+    'through', 'during', 'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under',
+    'again', 'our', 'your', 'their', 'my', 'his', 'her', 'its', 'all', 'any', 'both', 'each', 'few', 'more',
+    'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very',
+    'just', 'also', 'now', 'etc', 'who', 'whom', 'which', 'what', 'when', 'where', 'how', 'why',
+  ]);
+
+  const dropZone = document.getElementById('drop-zone')!;
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const fileMeta = document.getElementById('file-meta')!;
+  const metaName = document.getElementById('meta-name')!;
+  const metaSize = document.getElementById('meta-size')!;
+  const clearFileBtn = document.getElementById('clear-file') as HTMLButtonElement;
+  const jobDescription = document.getElementById('job-description') as HTMLTextAreaElement;
+  const scanBtn = document.getElementById('scan-btn') as HTMLButtonElement;
+  const scanError = document.getElementById('scan-error')!;
+  const resultsPlaceholder = document.getElementById('results-placeholder')!;
+  const resultsPanel = document.getElementById('results-panel')!;
+  const scoreValue = document.getElementById('score-value')!;
+  const gaugeRing = document.getElementById('gauge-ring')!;
+  const scoreSummary = document.getElementById('score-summary')!;
+  const matchedList = document.getElementById('matched-list')!;
+  const missingList = document.getElementById('missing-list')!;
+  const matchedEmpty = document.getElementById('matched-empty')!;
+  const missingEmpty = document.getElementById('missing-empty')!;
+  const loadingOverlay = document.getElementById('loading-overlay')!;
+  const loadingLabel = document.getElementById('loading-label')!;
+
+  let currentFile: File | null = null;
+
+  configurePdfJsWorker();
+
+  function isPdfFile(file: File): boolean {
+    return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+  }
+
+  function formatSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  function showError(message: string): void {
+    scanError.textContent = message;
+    scanError.classList.remove('hidden');
+  }
+
+  function clearError(): void {
+    scanError.textContent = '';
+    scanError.classList.add('hidden');
+  }
+
+  function setLoading(active: boolean, label = 'Extracting resume text…'): void {
+    loadingOverlay.classList.toggle('hidden', !active);
+    loadingOverlay.setAttribute('aria-hidden', String(!active));
+    loadingLabel.textContent = label;
+    scanBtn.disabled = active;
+    jobDescription.disabled = active;
+  }
+
+  function normalizeText(text: string): string {
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s+#.-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function extractTokens(text: string): string[] {
+    return normalizeText(text)
+      .split(' ')
+      .filter((word) => word.length > 1 && !STOP_WORDS.has(word));
+  }
+
+  function extractTargetKeywords(jobText: string): string[] {
+    const tokens = extractTokens(jobText);
+    const seen = new Set<string>();
+    const keywords: string[] = [];
+
+    for (const token of tokens) {
+      if (!seen.has(token)) {
+        seen.add(token);
+        keywords.push(token);
+      }
+    }
+
+    for (let i = 0; i < tokens.length - 1; i++) {
+      const bigram = `${tokens[i]} ${tokens[i + 1]}`;
+      if (bigram.length >= 5 && !seen.has(bigram)) {
+        seen.add(bigram);
+        keywords.push(bigram);
+      }
+    }
+
+    return keywords;
+  }
+
+  function escapeHtml(text: string): string {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function scoreColor(score: number): string {
+    if (score >= 75) return '#34d399';
+    if (score >= 50) return '#fbbf24';
+    if (score >= 30) return '#fb923c';
+    return '#f87171';
+  }
+
+  function updateGauge(score: number): void {
+    const circumference = 283;
+    const offset = circumference - (score / 100) * circumference;
+    gaugeRing.style.strokeDashoffset = String(offset);
+    gaugeRing.setAttribute('stroke', scoreColor(score));
+    scoreValue.textContent = String(score);
+  }
+
+  function renderKeywordLists(matched: string[], missing: string[]): void {
+    matchedList.innerHTML = matched
+      .map((kw) => `<li class="keyword-pill-matched">${escapeHtml(kw)}</li>`)
+      .join('');
+    missingList.innerHTML = missing
+      .map((kw) => `<li class="keyword-pill-missing">${escapeHtml(kw)}</li>`)
+      .join('');
+
+    matchedEmpty.classList.toggle('hidden', matched.length > 0);
+    missingEmpty.classList.toggle('hidden', missing.length > 0);
+  }
+
+  function analyzeMatch(resumeText: string, jobText: string): { score: number; matched: string[]; missing: string[] } {
+    const targetKeywords = extractTargetKeywords(jobText);
+    if (targetKeywords.length === 0) {
+      throw new Error('Could not extract keywords from the job description. Paste more detail.');
+    }
+
+    const resumeNormalized = normalizeText(resumeText);
+    const resumeTokenSet = new Set(extractTokens(resumeText));
+
+    const matched: string[] = [];
+    const missing: string[] = [];
+
+    for (const keyword of targetKeywords) {
+      const found =
+        resumeTokenSet.has(keyword) ||
+        (keyword.includes(' ') && resumeNormalized.includes(keyword)) ||
+        resumeNormalized.includes(keyword);
+
+      if (found) matched.push(keyword);
+      else missing.push(keyword);
+    }
+
+    const score = Math.round((matched.length / targetKeywords.length) * 100);
+    return { score, matched, missing };
+  }
+
+  async function extractTextFromPdf(arrayBuffer: ArrayBuffer): Promise<string> {
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    const pages: string[] = [];
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+      setLoading(true, `Reading page ${i} of ${pdf.numPages}…`);
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const pageText = content.items
+        .map((item) => ('str' in item ? item.str : ''))
+        .join(' ');
+      pages.push(pageText);
+    }
+
+    return pages.join('\n\n');
+  }
+
+  function loadFile(file: File): void {
+    clearError();
+    if (!isPdfFile(file)) {
+      showError('Please upload a PDF resume.');
+      return;
+    }
+
+    currentFile = file;
+    metaName.textContent = file.name;
+    metaSize.textContent = formatSize(file.size);
+    fileMeta.classList.remove('hidden');
+    resultsPlaceholder.classList.remove('hidden');
+    resultsPanel.classList.add('hidden');
+  }
+
+  function resetFile(): void {
+    currentFile = null;
+    fileMeta.classList.add('hidden');
+    fileInput.value = '';
+  }
+
+  async function scanResume(): Promise<void> {
+    clearError();
+
+    if (!currentFile) {
+      showError('Upload your resume PDF first.');
+      return;
+    }
+
+    const jobText = jobDescription.value.trim();
+    if (!jobText) {
+      showError('Paste the job description to scan against.');
+      return;
+    }
+
+    setLoading(true, 'Extracting resume text…');
+
+    try {
+      const buffer = await currentFile.arrayBuffer();
+      const resumeText = await extractTextFromPdf(buffer);
+
+      if (!resumeText.trim()) {
+        showError('No text found in this PDF. Try a text-based resume (not a scanned image).');
+        return;
+      }
+
+      setLoading(true, 'Analyzing keywords…');
+      const { score, matched, missing } = analyzeMatch(resumeText, jobText);
+
+      updateGauge(score);
+      scoreSummary.textContent = `${matched.length} of ${matched.length + missing.length} job keywords found in your resume`;
+      renderKeywordLists(matched, missing);
+
+      resultsPlaceholder.classList.add('hidden');
+      resultsPanel.classList.remove('hidden');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Scan failed. Please try again.';
+      showError(message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput.click();
+    }
+  });
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (file) loadFile(file);
+  });
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('is-dragover');
+  });
+
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('is-dragover'));
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('is-dragover');
+    const file = e.dataTransfer?.files?.[0];
+    if (file) loadFile(file);
+  });
+
+  clearFileBtn.addEventListener('click', () => {
+    clearError();
+    resetFile();
+  });
+
+  scanBtn.addEventListener('click', () => {
+    void scanResume();
+  });
+</script>

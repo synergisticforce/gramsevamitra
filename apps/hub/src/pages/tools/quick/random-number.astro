@@ -1,0 +1,253 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Random Number Generator';
+const toolDescription =
+  'Generate random integers in any range — with optional duplicates, sorting, and one-click copy. 100% offline in your browser.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="quick"
+>
+  <div class="random-number">
+    <header class="mb-6">
+      <a href="/tools/quick" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Quick Tools Drawer
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">Fair pseudo-random integers — generated locally, never sent anywhere.</p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="rng-options-heading"
+      >
+        <h2 id="rng-options-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Range &amp; quantity
+        </h2>
+
+        <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <label class="min-w-0">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Minimum</span>
+            <input id="rng-min" type="number" value="1" inputmode="numeric" class="input-field w-full tabular-nums" />
+          </label>
+          <label class="min-w-0">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Maximum</span>
+            <input id="rng-max" type="number" value="100" inputmode="numeric" class="input-field w-full tabular-nums" />
+          </label>
+          <label class="min-w-0 col-span-2 sm:col-span-1">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Quantity</span>
+            <input id="rng-qty" type="number" min="1" max="1000" value="10" inputmode="numeric" class="input-field w-full tabular-nums" />
+          </label>
+        </div>
+
+        <label class="mt-5 flex cursor-pointer items-center gap-3">
+          <input id="rng-duplicates" type="checkbox" checked class="h-4 w-4 accent-emerald-500" />
+          <span class="text-sm text-slate-300">Allow duplicates</span>
+        </label>
+
+        <p id="rng-error" class="mt-3 hidden text-xs text-rose-400" role="alert"></p>
+
+        <button type="button" id="rng-generate" class="btn-primary mt-5 w-full">Generate</button>
+        <button type="button" id="rng-reset" class="btn-secondary mt-2 w-full text-sm">Reset</button>
+      </section>
+
+      <section
+        class="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="rng-results-heading"
+        aria-live="polite"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 id="rng-results-heading" class="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+            Results
+          </h2>
+          <span id="rng-count" class="text-xs text-slate-500">0 numbers</span>
+        </div>
+
+        <div
+          id="rng-results"
+          class="mt-4 flex min-h-[200px] flex-wrap content-start gap-2 rounded-xl border border-slate-800 bg-slate-950/50 p-4"
+        >
+          <p class="text-sm text-slate-500">Click Generate to create random numbers.</p>
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button type="button" id="rng-sort" class="btn-secondary flex-1 text-sm" disabled>Sort ascending</button>
+          <button type="button" id="rng-copy" class="btn-secondary flex-1 text-sm" disabled>Copy to clipboard</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <style>
+    .rng-chip {
+      @apply inline-flex min-w-[2.75rem] items-center justify-center rounded-lg border border-emerald-800/50 bg-emerald-950/40 px-3 py-2 text-sm font-bold tabular-nums text-emerald-300;
+    }
+  </style>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:random-number';
+
+    const minInput = document.getElementById('rng-min') as HTMLInputElement;
+    const maxInput = document.getElementById('rng-max') as HTMLInputElement;
+    const qtyInput = document.getElementById('rng-qty') as HTMLInputElement;
+    const dupInput = document.getElementById('rng-duplicates') as HTMLInputElement;
+    const errorEl = document.getElementById('rng-error')!;
+    const generateBtn = document.getElementById('rng-generate') as HTMLButtonElement;
+    const resetBtn = document.getElementById('rng-reset') as HTMLButtonElement;
+    const resultsEl = document.getElementById('rng-results')!;
+    const countEl = document.getElementById('rng-count')!;
+    const sortBtn = document.getElementById('rng-sort') as HTMLButtonElement;
+    const copyBtn = document.getElementById('rng-copy') as HTMLButtonElement;
+
+    let currentNumbers: number[] = [];
+
+    function clampInt(value: number, fallback: number): number {
+      return Number.isFinite(value) ? Math.trunc(value) : fallback;
+    }
+
+    function readOptions(): { min: number; max: number; qty: number; allowDup: boolean } {
+      let min = clampInt(Number(minInput.value), 1);
+      let max = clampInt(Number(maxInput.value), 100);
+      if (min > max) [min, max] = [max, min];
+      const qty = Math.min(1000, Math.max(1, clampInt(Number(qtyInput.value), 10)));
+      return { min, max, qty, allowDup: dupInput.checked };
+    }
+
+    function saveOptions(): void {
+      const opts = readOptions();
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...opts, allowDup: dupInput.checked }));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function loadOptions(): void {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw) as { min?: number; max?: number; qty?: number; allowDup?: boolean };
+        if (typeof parsed.min === 'number') minInput.value = String(parsed.min);
+        if (typeof parsed.max === 'number') maxInput.value = String(parsed.max);
+        if (typeof parsed.qty === 'number') qtyInput.value = String(parsed.qty);
+        if (typeof parsed.allowDup === 'boolean') dupInput.checked = parsed.allowDup;
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function randomInt(min: number, max: number): number {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generateNumbers(): number[] | null {
+      const { min, max, qty, allowDup } = readOptions();
+      const rangeSize = max - min + 1;
+
+      errorEl.classList.add('hidden');
+      errorEl.textContent = '';
+
+      if (rangeSize <= 0) {
+        errorEl.textContent = 'Maximum must be greater than or equal to minimum.';
+        errorEl.classList.remove('hidden');
+        return null;
+      }
+
+      if (!allowDup && qty > rangeSize) {
+        errorEl.textContent = `Without duplicates, quantity cannot exceed ${rangeSize} (range size).`;
+        errorEl.classList.remove('hidden');
+        return null;
+      }
+
+      const out: number[] = [];
+
+      if (allowDup) {
+        for (let i = 0; i < qty; i++) out.push(randomInt(min, max));
+      } else {
+        const pool: number[] = [];
+        for (let n = min; n <= max; n++) pool.push(n);
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        out.push(...pool.slice(0, qty));
+      }
+
+      return out;
+    }
+
+    function renderResults(nums: number[]): void {
+      currentNumbers = nums;
+      countEl.textContent = `${nums.length} number${nums.length === 1 ? '' : 's'}`;
+      sortBtn.disabled = nums.length === 0;
+      copyBtn.disabled = nums.length === 0;
+
+      if (nums.length === 0) {
+        resultsEl.innerHTML = '<p class="text-sm text-slate-500">No numbers generated.</p>';
+        return;
+      }
+
+      resultsEl.innerHTML = nums.map((n) => `<span class="rng-chip">${n}</span>`).join('');
+    }
+
+    function generate(): void {
+      const nums = generateNumbers();
+      if (!nums) return;
+      renderResults(nums);
+      saveOptions();
+    }
+
+    sortBtn.addEventListener('click', () => {
+      if (currentNumbers.length === 0) return;
+      currentNumbers = [...currentNumbers].sort((a, b) => a - b);
+      renderResults(currentNumbers);
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      if (currentNumbers.length === 0) return;
+      try {
+        await navigator.clipboard.writeText(currentNumbers.join(', '));
+        const original = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => {
+          copyBtn.textContent = original;
+        }, 2000);
+      } catch {
+        copyBtn.textContent = 'Copy failed';
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy to clipboard';
+        }, 2000);
+      }
+    });
+
+    generateBtn.addEventListener('click', generate);
+    resetBtn.addEventListener('click', () => {
+      minInput.value = '1';
+      maxInput.value = '100';
+      qtyInput.value = '10';
+      dupInput.checked = true;
+      currentNumbers = [];
+      errorEl.classList.add('hidden');
+      resultsEl.innerHTML = '<p class="text-sm text-slate-500">Click Generate to create random numbers.</p>';
+      countEl.textContent = '0 numbers';
+      sortBtn.disabled = true;
+      copyBtn.disabled = true;
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+    });
+
+    [minInput, maxInput, qtyInput, dupInput].forEach((el) => {
+      el.addEventListener('change', saveOptions);
+    });
+
+    loadOptions();
+  </script>
+</ToolsLayout>

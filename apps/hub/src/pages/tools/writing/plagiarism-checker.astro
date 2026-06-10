@@ -1,0 +1,265 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Plagiarism Checker';
+const toolDescription =
+  'Compare two texts side by side with client-side word overlap analysis — see similarity percentage and matched phrases.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="writing"
+>
+  <div class="plagiarism-checker">
+    <header class="mb-6">
+      <a href="/tools/writing" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Smart Writing Studio
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Local overlap check — your documents never leave this device. Not a substitute for professional tools.
+      </p>
+    </header>
+
+    <section
+      class="mb-4 rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/40 to-slate-900/60 p-4 shadow-lg"
+      aria-label="Similarity score"
+    >
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Similarity score</p>
+          <p id="plag-score" class="mt-1 text-3xl font-bold tabular-nums text-emerald-400">—</p>
+        </div>
+        <div class="text-right text-xs text-slate-500">
+          <p id="plag-words-a">Original: 0 words</p>
+          <p id="plag-words-b" class="mt-0.5">Comparison: 0 words</p>
+          <p id="plag-matched" class="mt-0.5">Matched tokens: 0</p>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-xl sm:p-5"
+      aria-labelledby="plag-input-heading"
+    >
+      <h2 id="plag-input-heading" class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
+        Compare texts
+      </h2>
+
+      <div class="grid gap-4 lg:grid-cols-2">
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-slate-300">Original text</span>
+          <textarea
+            id="plag-original"
+            rows="10"
+            spellcheck="true"
+            placeholder="Paste your original draft here…"
+            class="input-field w-full resize-y text-sm leading-relaxed"
+          ></textarea>
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-slate-300">Comparison text</span>
+          <textarea
+            id="plag-comparison"
+            rows="10"
+            spellcheck="true"
+            placeholder="Paste the text to compare against…"
+            class="input-field w-full resize-y text-sm leading-relaxed"
+          ></textarea>
+        </label>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button type="button" id="plag-analyze" class="btn-primary text-sm">Analyze overlap</button>
+        <button type="button" id="plag-swap" class="btn-secondary text-sm">Swap texts</button>
+        <button type="button" id="plag-clear" class="btn-secondary text-sm">Clear</button>
+      </div>
+    </section>
+
+    <section
+      class="mt-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-xl sm:p-5"
+      aria-labelledby="plag-results-heading"
+    >
+      <h2 id="plag-results-heading" class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
+        Matched phrases
+      </h2>
+      <div
+        id="plag-highlights"
+        class="min-h-[120px] rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-sm leading-relaxed text-slate-300"
+      >
+        Run analysis to see overlapping word sequences highlighted here.
+      </div>
+    </section>
+  </div>
+
+  <style>
+    .plag-match {
+      @apply rounded bg-emerald-500/25 px-0.5 text-emerald-200;
+    }
+  </style>
+
+  <script>
+    const originalEl = document.getElementById('plag-original') as HTMLTextAreaElement;
+    const comparisonEl = document.getElementById('plag-comparison') as HTMLTextAreaElement;
+    const scoreEl = document.getElementById('plag-score')!;
+    const wordsAEl = document.getElementById('plag-words-a')!;
+    const wordsBEl = document.getElementById('plag-words-b')!;
+    const matchedEl = document.getElementById('plag-matched')!;
+    const highlightsEl = document.getElementById('plag-highlights')!;
+    const analyzeBtn = document.getElementById('plag-analyze') as HTMLButtonElement;
+    const swapBtn = document.getElementById('plag-swap') as HTMLButtonElement;
+    const clearBtn = document.getElementById('plag-clear') as HTMLButtonElement;
+
+    function tokenize(text: string): string[] {
+      return text
+        .toLowerCase()
+        .replace(/[^\w\s']/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length > 1);
+    }
+
+    function escapeHtml(text: string): string {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function findMatchingPhrases(tokensA: string[], tokensB: string[], minLen = 3): string[] {
+      const setB = new Set(tokensB);
+      const phrases: string[] = [];
+      const seen = new Set<string>();
+
+      for (let i = 0; i <= tokensA.length - minLen; i++) {
+        for (let len = minLen; len <= Math.min(8, tokensA.length - i); len++) {
+          const slice = tokensA.slice(i, i + len);
+          const phrase = slice.join(' ');
+          if (seen.has(phrase)) continue;
+
+          let found = true;
+          for (const token of slice) {
+            if (!setB.has(token)) {
+              found = false;
+              break;
+            }
+          }
+          if (found) {
+            const isSubphrase = phrases.some((p) => p.includes(phrase) && p !== phrase);
+            if (!isSubphrase) {
+              phrases.push(phrase);
+              seen.add(phrase);
+            }
+          }
+        }
+      }
+
+      return phrases.sort((a, b) => b.length - a.length).slice(0, 40);
+    }
+
+    function jaccardSimilarity(a: string[], b: string[]): number {
+      const setA = new Set(a);
+      const setB = new Set(b);
+      if (!setA.size && !setB.size) return 0;
+      let intersection = 0;
+      for (const token of setA) {
+        if (setB.has(token)) intersection++;
+      }
+      const union = setA.size + setB.size - intersection;
+      return union ? (intersection / union) * 100 : 0;
+    }
+
+    function highlightText(text: string, phrases: string[]): string {
+      if (!phrases.length) return escapeHtml(text);
+
+      const sorted = [...phrases].sort((a, b) => b.length - a.length);
+      let html = escapeHtml(text);
+
+      for (const phrase of sorted) {
+        const pattern = phrase
+          .split(/\s+/)
+          .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+          .join('\\s+');
+        const regex = new RegExp(`(${pattern})`, 'gi');
+        html = html.replace(regex, '<mark class="plag-match">$1</mark>');
+      }
+      return html;
+    }
+
+    function analyze(): void {
+      const textA = originalEl.value.trim();
+      const textB = comparisonEl.value.trim();
+      const tokensA = tokenize(textA);
+      const tokensB = tokenize(textB);
+
+      wordsAEl.textContent = `Original: ${tokensA.length} words`;
+      wordsBEl.textContent = `Comparison: ${tokensB.length} words`;
+
+      if (!textA || !textB) {
+        scoreEl.textContent = '—';
+        matchedEl.textContent = 'Matched tokens: 0';
+        highlightsEl.textContent = 'Enter text in both fields to compare.';
+        return;
+      }
+
+      const setA = new Set(tokensA);
+      const setB = new Set(tokensB);
+      let matched = 0;
+      for (const t of setA) {
+        if (setB.has(t)) matched++;
+      }
+
+      const similarity = jaccardSimilarity(tokensA, tokensB);
+      scoreEl.textContent = `${similarity.toFixed(1)}%`;
+      scoreEl.className =
+        similarity > 60
+          ? 'mt-1 text-3xl font-bold tabular-nums text-amber-400'
+          : 'mt-1 text-3xl font-bold tabular-nums text-emerald-400';
+      matchedEl.textContent = `Matched tokens: ${matched}`;
+
+      const phrases = findMatchingPhrases(tokensA, tokensB);
+      if (!phrases.length) {
+        highlightsEl.innerHTML =
+          '<p class="text-slate-500">No matching phrases of 3+ words found. Individual word overlap may still exist.</p>';
+        return;
+      }
+
+      const originalHtml = highlightText(textA, phrases);
+      const comparisonHtml = highlightText(textB, phrases);
+
+      highlightsEl.innerHTML = `
+        <p class="mb-3 text-xs text-slate-500">${phrases.length} matching phrase(s) found (3+ words)</p>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div>
+            <p class="mb-1 text-xs font-semibold uppercase text-slate-500">Original highlights</p>
+            <div class="whitespace-pre-wrap">${originalHtml}</div>
+          </div>
+          <div>
+            <p class="mb-1 text-xs font-semibold uppercase text-slate-500">Comparison highlights</p>
+            <div class="whitespace-pre-wrap">${comparisonHtml}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    analyzeBtn.addEventListener('click', analyze);
+    swapBtn.addEventListener('click', () => {
+      const tmp = originalEl.value;
+      originalEl.value = comparisonEl.value;
+      comparisonEl.value = tmp;
+      analyze();
+    });
+    clearBtn.addEventListener('click', () => {
+      originalEl.value = '';
+      comparisonEl.value = '';
+      scoreEl.textContent = '—';
+      scoreEl.className = 'mt-1 text-3xl font-bold tabular-nums text-emerald-400';
+      wordsAEl.textContent = 'Original: 0 words';
+      wordsBEl.textContent = 'Comparison: 0 words';
+      matchedEl.textContent = 'Matched tokens: 0';
+      highlightsEl.textContent = 'Run analysis to see overlapping word sequences highlighted here.';
+    });
+  </script>
+</ToolsLayout>

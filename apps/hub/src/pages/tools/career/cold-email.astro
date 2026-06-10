@@ -1,0 +1,300 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Cold Email & Networking Builder';
+const toolDescription =
+  'Generate cover letters, LinkedIn connection requests, and cold emails from your details — copy-ready, 100% offline.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="career"
+>
+  <div class="cold-email-builder">
+    <header class="mb-6">
+      <a href="/tools/career" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Career Prep Room
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Three tailored templates — your details stay on this device only.
+      </p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="cold-form-heading"
+      >
+        <h2 id="cold-form-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Your details
+        </h2>
+
+        <form id="cold-form" class="mt-5 space-y-4">
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Your name</span>
+            <input id="user-name" type="text" autocomplete="name" placeholder="e.g. Priya Sharma" class="input-field w-full" />
+          </label>
+
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Target role</span>
+            <input id="target-role" type="text" placeholder="e.g. Product Manager" class="input-field w-full" />
+          </label>
+
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Target company</span>
+            <input id="target-company" type="text" placeholder="e.g. Razorpay" class="input-field w-full" />
+          </label>
+
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Key skills (2–3, comma-separated)</span>
+            <input
+              id="key-skills"
+              type="text"
+              placeholder="e.g. SQL, stakeholder management, A/B testing"
+              class="input-field w-full"
+            />
+          </label>
+        </form>
+
+        <button type="button" id="reset-cold" class="btn-secondary mt-6 w-full text-sm">Clear form</button>
+      </section>
+
+      <section aria-labelledby="templates-heading" class="space-y-4">
+        <h2 id="templates-heading" class="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          Generated templates
+        </h2>
+
+        <article class="template-card" data-template="cover">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-sm font-bold text-white">Formal cover letter</h3>
+            <button type="button" class="copy-btn" data-copy="cover">Copy</button>
+          </div>
+          <pre id="template-cover" class="template-body">Fill in your details to generate a cover letter.</pre>
+        </article>
+
+        <article class="template-card" data-template="linkedin">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-sm font-bold text-white">LinkedIn connection request</h3>
+            <button type="button" class="copy-btn" data-copy="linkedin">Copy</button>
+          </div>
+          <pre id="template-linkedin" class="template-body">Fill in your details to generate a connection note.</pre>
+        </article>
+
+        <article class="template-card" data-template="cold">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-sm font-bold text-white">Cold email to hiring manager</h3>
+            <button type="button" class="copy-btn" data-copy="cold">Copy</button>
+          </div>
+          <pre id="template-cold" class="template-body">Fill in your details to generate a cold email.</pre>
+        </article>
+      </section>
+    </div>
+  </div>
+
+  <style>
+    .template-card {
+      @apply rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-4 shadow-lg sm:p-5;
+    }
+    .template-body {
+      @apply mt-3 max-h-64 overflow-y-auto whitespace-pre-wrap rounded-xl border border-slate-800 bg-slate-950/50 p-3 font-sans text-xs leading-relaxed text-slate-300 sm:text-sm;
+    }
+    .copy-btn {
+      @apply rounded-lg border border-emerald-700/60 bg-emerald-950/40 px-3 py-1.5 text-xs font-semibold text-emerald-400 transition hover:border-emerald-500 hover:bg-emerald-900/40 hover:text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-400;
+    }
+    .copy-btn.copied {
+      @apply border-emerald-500 text-emerald-300;
+    }
+  </style>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:cold-email';
+
+    interface FormState {
+      userName: string;
+      targetRole: string;
+      targetCompany: string;
+      keySkills: string;
+    }
+
+    const userNameInput = document.getElementById('user-name') as HTMLInputElement;
+    const targetRoleInput = document.getElementById('target-role') as HTMLInputElement;
+    const targetCompanyInput = document.getElementById('target-company') as HTMLInputElement;
+    const keySkillsInput = document.getElementById('key-skills') as HTMLInputElement;
+    const resetBtn = document.getElementById('reset-cold') as HTMLButtonElement;
+
+    const templateCover = document.getElementById('template-cover')!;
+    const templateLinkedin = document.getElementById('template-linkedin')!;
+    const templateCold = document.getElementById('template-cold')!;
+
+    const PLACEHOLDER = {
+      name: '[Your Name]',
+      role: '[Target Role]',
+      company: '[Target Company]',
+      skills: '[your key skills]',
+    };
+
+    function readForm(): FormState {
+      return {
+        userName: userNameInput.value.trim(),
+        targetRole: targetRoleInput.value.trim(),
+        targetCompany: targetCompanyInput.value.trim(),
+        keySkills: keySkillsInput.value.trim(),
+      };
+    }
+
+    function val(raw: string, fallback: string): string {
+      return raw || fallback;
+    }
+
+    function parseSkills(raw: string): string[] {
+      if (!raw) return [];
+      return raw
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 3);
+    }
+
+    function skillsPhrase(skills: string[]): string {
+      if (skills.length === 0) return PLACEHOLDER.skills;
+      if (skills.length === 1) return skills[0];
+      if (skills.length === 2) return `${skills[0]} and ${skills[1]}`;
+      return `${skills[0]}, ${skills[1]}, and ${skills[2]}`;
+    }
+
+    function buildCoverLetter(state: FormState): string {
+      const name = val(state.userName, PLACEHOLDER.name);
+      const role = val(state.targetRole, PLACEHOLDER.role);
+      const company = val(state.targetCompany, PLACEHOLDER.company);
+      const skills = skillsPhrase(parseSkills(state.keySkills));
+
+      return `Dear Hiring Manager,
+
+I am writing to express my interest in the ${role} position at ${company}. With hands-on experience in ${skills}, I am confident I can contribute meaningfully to your team from day one.
+
+In my recent roles, I have focused on delivering measurable outcomes while collaborating across functions. I am particularly drawn to ${company}'s mission and would welcome the opportunity to bring my skills in ${skills} to your organization.
+
+I have attached my resume for your review and would appreciate the chance to discuss how my background aligns with your needs. Thank you for your time and consideration.
+
+Sincerely,
+${name}`;
+    }
+
+    function buildLinkedIn(state: FormState): string {
+      const name = val(state.userName, PLACEHOLDER.name);
+      const role = val(state.targetRole, PLACEHOLDER.role);
+      const company = val(state.targetCompany, PLACEHOLDER.company);
+      const skills = skillsPhrase(parseSkills(state.keySkills));
+
+      return `Hi — I'm ${name}, and I'm exploring ${role} opportunities at ${company}. I admire the work your team is doing and would love to connect.
+
+My background includes ${skills}, and I'm eager to learn more about how your team operates. If you're open to it, I'd appreciate any advice on breaking into ${role} roles at ${company}.
+
+Thanks for considering my request!`;
+    }
+
+    function buildColdEmail(state: FormState): string {
+      const name = val(state.userName, PLACEHOLDER.name);
+      const role = val(state.targetRole, PLACEHOLDER.role);
+      const company = val(state.targetCompany, PLACEHOLDER.company);
+      const skills = skillsPhrase(parseSkills(state.keySkills));
+
+      return `Subject: ${role} opportunity at ${company} — ${name}
+
+Dear Hiring Manager,
+
+My name is ${name}, and I am reaching out regarding the ${role} opening at ${company}. I specialize in ${skills} and believe my experience could support your team's goals.
+
+I would value 15 minutes to share how I've applied ${skills} in past projects and learn more about your current priorities. I've attached my resume for reference.
+
+Would you be available for a brief call this week or next?
+
+Best regards,
+${name}`;
+    }
+
+    function saveForm(state: FormState): void {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function loadForm(): FormState | null {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? (JSON.parse(raw) as FormState) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function renderTemplates(): void {
+      const state = readForm();
+      templateCover.textContent = buildCoverLetter(state);
+      templateLinkedin.textContent = buildLinkedIn(state);
+      templateCold.textContent = buildColdEmail(state);
+      saveForm(state);
+    }
+
+    async function copyText(text: string, btn: HTMLButtonElement): Promise<void> {
+      try {
+        await navigator.clipboard.writeText(text);
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = original;
+          btn.classList.remove('copied');
+        }, 2000);
+      } catch {
+        btn.textContent = 'Copy failed';
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+        }, 2000);
+      }
+    }
+
+    [userNameInput, targetRoleInput, targetCompanyInput, keySkillsInput].forEach((el) => {
+      el.addEventListener('input', renderTemplates);
+    });
+
+    document.querySelectorAll<HTMLButtonElement>('.copy-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.copy;
+        let text = '';
+        if (key === 'cover') text = templateCover.textContent ?? '';
+        else if (key === 'linkedin') text = templateLinkedin.textContent ?? '';
+        else if (key === 'cold') text = templateCold.textContent ?? '';
+        if (text) copyText(text, btn);
+      });
+    });
+
+    resetBtn.addEventListener('click', () => {
+      userNameInput.value = '';
+      targetRoleInput.value = '';
+      targetCompanyInput.value = '';
+      keySkillsInput.value = '';
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+      renderTemplates();
+    });
+
+    const saved = loadForm();
+    if (saved) {
+      userNameInput.value = saved.userName ?? '';
+      targetRoleInput.value = saved.targetRole ?? '';
+      targetCompanyInput.value = saved.targetCompany ?? '';
+      keySkillsInput.value = saved.keySkills ?? '';
+    }
+
+    renderTemplates();
+  </script>
+</ToolsLayout>

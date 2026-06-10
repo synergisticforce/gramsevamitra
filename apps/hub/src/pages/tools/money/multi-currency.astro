@@ -1,0 +1,311 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Multi-Currency Converter';
+const toolDescription =
+  'Convert between INR, USD, EUR, GBP, AED, and SGD using static offline rates — free and instant in your browser.';
+const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'] as const;
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="money"
+>
+  <div class="multi-currency">
+    <header class="mb-6">
+      <a href="/tools/money" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Money &amp; Gig Ledger
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Static reference rates for quick estimates — no live feed, works fully offline.
+      </p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="fx-inputs-heading"
+      >
+        <h2 id="fx-inputs-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Convert
+        </h2>
+
+        <div class="mt-5 space-y-5">
+          <div>
+            <label for="fx-amount" class="mb-2 block text-sm font-medium text-slate-300">Amount</label>
+            <input
+              id="fx-amount"
+              type="number"
+              min="0"
+              step="any"
+              inputmode="decimal"
+              placeholder="1000"
+              class="input-field w-full tabular-nums"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <label class="min-w-0">
+              <span class="mb-2 block text-sm font-medium text-slate-300">From</span>
+              <select id="fx-from" class="select-field w-full py-2.5 text-sm">
+                {CURRENCIES.map((code) => (
+                  <option value={code}>{code}</option>
+                ))}
+              </select>
+            </label>
+            <label class="min-w-0">
+              <span class="mb-2 block text-sm font-medium text-slate-300">To</span>
+              <select id="fx-to" class="select-field w-full py-2.5 text-sm">
+                {CURRENCIES.map((code) => (
+                  <option value={code} selected={code === 'USD'}>
+                    {code}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <button type="button" id="fx-swap" class="btn-secondary w-full text-sm">
+            ⇅ Swap currencies
+          </button>
+        </div>
+
+        <button type="button" id="reset-fx" class="btn-secondary mt-6 w-full text-sm">
+          Reset
+        </button>
+
+        <p class="mt-4 text-[10px] leading-relaxed text-slate-500">
+          Rates are illustrative only (base INR). Not for trading or tax purposes.
+        </p>
+      </section>
+
+      <section
+        class="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="fx-results-heading"
+        aria-live="polite"
+      >
+        <h2 id="fx-results-heading" class="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          Result
+        </h2>
+
+        <div class="mt-5 space-y-4">
+          <div class="rounded-xl border border-emerald-800/40 bg-slate-950/50 px-4 py-5 text-center">
+            <p id="result-label" class="text-xs font-medium uppercase tracking-wider text-slate-400">
+              Converted amount
+            </p>
+            <p id="result-amount" class="mt-1 text-3xl font-extrabold tabular-nums text-emerald-400 sm:text-4xl">
+              —
+            </p>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-500">Rate used</p>
+            <p id="result-rate" class="mt-1 text-sm font-semibold tabular-nums text-white">—</p>
+            <p id="result-inverse" class="mt-1 text-xs tabular-nums text-slate-500">—</p>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4">
+            <p class="mb-2 text-[10px] font-medium uppercase tracking-wider text-slate-500">Quick reference (1 unit → INR)</p>
+            <ul id="rate-table" class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+              {CURRENCIES.map((code) => (
+                <li class="flex justify-between tabular-nums text-slate-400">
+                  <span>{code}</span>
+                  <span id={`ref-${code}`} class="font-medium text-slate-300">—</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <p id="fx-note" class="text-center text-xs text-slate-500">
+            Enter an amount to convert instantly.
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:multi-currency';
+
+    /** 1 unit of currency = X INR (static offline reference rates) */
+    const TO_INR: Record<string, number> = {
+      INR: 1,
+      USD: 84.25,
+      EUR: 91.5,
+      GBP: 106.8,
+      AED: 22.95,
+      SGD: 62.6,
+    };
+
+    const CURRENCY_SYMBOLS: Record<string, string> = {
+      INR: '₹',
+      USD: '$',
+      EUR: '€',
+      GBP: '£',
+      AED: 'AED ',
+      SGD: 'S$',
+    };
+
+    const DEFAULTS = {
+      amount: 10000,
+      from: 'INR',
+      to: 'USD',
+    };
+
+    interface SavedState {
+      amount: number;
+      from: string;
+      to: string;
+    }
+
+    interface FxResult {
+      converted: number;
+      rate: number;
+      inverseRate: number;
+      from: string;
+      to: string;
+      sourceAmount: number;
+    }
+
+    const amountInput = document.getElementById('fx-amount') as HTMLInputElement;
+    const fromSelect = document.getElementById('fx-from') as HTMLSelectElement;
+    const toSelect = document.getElementById('fx-to') as HTMLSelectElement;
+    const swapBtn = document.getElementById('fx-swap') as HTMLButtonElement;
+    const resetBtn = document.getElementById('reset-fx') as HTMLButtonElement;
+
+    const resultLabel = document.getElementById('result-label')!;
+    const resultAmount = document.getElementById('result-amount')!;
+    const resultRate = document.getElementById('result-rate')!;
+    const resultInverse = document.getElementById('result-inverse')!;
+    const fxNote = document.getElementById('fx-note')!;
+
+    function formatAmount(value: number, currency: string): string {
+      if (!Number.isFinite(value)) return '—';
+      const decimals = currency === 'INR' || currency === 'AED' ? 2 : 4;
+      const formatted = new Intl.NumberFormat('en-IN', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      }).format(value);
+      const sym = CURRENCY_SYMBOLS[currency] ?? `${currency} `;
+      return `${sym}${formatted}`;
+    }
+
+    function formatRate(value: number): string {
+      if (!Number.isFinite(value)) return '—';
+      return new Intl.NumberFormat('en-IN', {
+        minimumFractionDigits: 4,
+        maximumFractionDigits: 6,
+      }).format(value);
+    }
+
+    function convert(amount: number, from: string, to: string): FxResult | null {
+      if (amount < 0 || !TO_INR[from] || !TO_INR[to]) return null;
+      const inInr = amount * TO_INR[from];
+      const converted = inInr / TO_INR[to];
+      const rate = TO_INR[from] / TO_INR[to];
+      const inverseRate = TO_INR[to] / TO_INR[from];
+      return { converted, rate, inverseRate, from, to, sourceAmount: amount };
+    }
+
+    function renderReferenceRates(): void {
+      Object.keys(TO_INR).forEach((code) => {
+        const el = document.getElementById(`ref-${code}`);
+        if (el) {
+          el.textContent =
+            code === 'INR'
+              ? '₹1.00'
+              : `₹${new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(TO_INR[code])}`;
+        }
+      });
+    }
+
+    function readState(): SavedState {
+      return {
+        amount: Math.max(0, Number(amountInput.value) || 0),
+        from: fromSelect.value,
+        to: toSelect.value,
+      };
+    }
+
+    function applyState(state: SavedState): void {
+      amountInput.value = state.amount > 0 ? String(state.amount) : '';
+      fromSelect.value = state.from;
+      toSelect.value = state.to;
+    }
+
+    function saveState(state: SavedState): void {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function loadState(): SavedState {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { ...DEFAULTS };
+        const parsed = JSON.parse(raw) as Partial<SavedState>;
+        return {
+          amount: typeof parsed.amount === 'number' && parsed.amount >= 0 ? parsed.amount : DEFAULTS.amount,
+          from: parsed.from && TO_INR[parsed.from] ? parsed.from : DEFAULTS.from,
+          to: parsed.to && TO_INR[parsed.to] ? parsed.to : DEFAULTS.to,
+        };
+      } catch {
+        return { ...DEFAULTS };
+      }
+    }
+
+    function renderResults(result: FxResult | null): void {
+      if (!result || result.sourceAmount <= 0) {
+        resultLabel.textContent = 'Converted amount';
+        resultAmount.textContent = '—';
+        resultRate.textContent = '—';
+        resultInverse.textContent = '—';
+        fxNote.textContent = 'Enter an amount to convert instantly.';
+        return;
+      }
+
+      resultLabel.textContent = `${result.sourceAmount} ${result.from} equals`;
+      resultAmount.textContent = formatAmount(result.converted, result.to);
+      resultRate.textContent = `1 ${result.from} = ${formatRate(result.rate)} ${result.to}`;
+      resultInverse.textContent = `1 ${result.to} = ${formatRate(result.inverseRate)} ${result.from}`;
+      fxNote.textContent = `Cross-rate via INR base: ${result.from} → INR → ${result.to}.`;
+    }
+
+    function recalculate(): void {
+      const state = readState();
+      const result = state.amount > 0 ? convert(state.amount, state.from, state.to) : null;
+      renderResults(result);
+      saveState(state);
+    }
+
+    amountInput.addEventListener('input', recalculate);
+    fromSelect.addEventListener('change', recalculate);
+    toSelect.addEventListener('change', recalculate);
+
+    swapBtn.addEventListener('click', () => {
+      const from = fromSelect.value;
+      fromSelect.value = toSelect.value;
+      toSelect.value = from;
+      recalculate();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      applyState({ ...DEFAULTS });
+      recalculate();
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+    });
+
+    renderReferenceRates();
+    applyState(loadState());
+    recalculate();
+  </script>
+</ToolsLayout>

@@ -1,0 +1,195 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main, production]
+  pull_request:
+    branches: [main, production]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  build-and-verify:
+    name: Build & Verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Cache Astro and Vite build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/hub/node_modules/.astro
+            apps/hub/node_modules/.vite
+            apps/pdf/node_modules/.astro
+            apps/pdf/node_modules/.vite
+            apps/resume/node_modules/.astro
+            apps/resume/node_modules/.vite
+            apps/optimizer/node_modules/.astro
+            apps/optimizer/node_modules/.vite
+            node_modules/.cache
+          key: ${{ runner.os }}-astro-vite-${{ hashFiles('package-lock.json') }}-${{ hashFiles('apps/**/**', 'packages/**/**') }}
+          restore-keys: |
+            ${{ runner.os }}-astro-vite-${{ hashFiles('package-lock.json') }}-
+            ${{ runner.os }}-astro-vite-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync public assets
+        run: |
+          node scripts/sync-public.mjs
+          node scripts/generate-pwa-icons.mjs
+
+      - name: Typecheck all workspaces
+        run: npm run typecheck
+
+      - name: Validate tools registry
+        run: npm run validate:tools
+
+      - name: Build all apps
+        run: npm run build
+
+      - name: Production sanity check
+        run: npm run prod-check
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium
+
+      - name: QA stress test (optimizer 3G compression)
+        run: npm run test:stress
+
+      - name: Deploy dry-run validation
+        run: npm run deploy:dry-run
+
+      - name: Upload hub artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hub-dist
+          path: apps/hub/dist
+          retention-days: 7
+
+      - name: Upload optimizer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: optimizer-dist
+          path: apps/optimizer/dist
+          retention-days: 7
+
+      - name: Upload pdf artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf-dist
+          path: apps/pdf/dist
+          retention-days: 7
+
+      - name: Upload resume artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: resume-dist
+          path: apps/resume/dist
+          retention-days: 7
+
+  deploy-hub:
+    name: Deploy Hub
+    needs: build-and-verify
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production')
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Download hub artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: hub-dist
+          path: apps/hub/dist
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/hub/dist --project-name=gramsevamitra-hub --branch=main
+
+  deploy-optimizer:
+    name: Deploy Optimizer
+    needs: build-and-verify
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production')
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Download optimizer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: optimizer-dist
+          path: apps/optimizer/dist
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/optimizer/dist --project-name=gramsevamitra-optimizer --branch=main
+
+  deploy-pdf:
+    name: Deploy PDF
+    needs: build-and-verify
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production')
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Download pdf artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pdf-dist
+          path: apps/pdf/dist
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/pdf/dist --project-name=gramsevamitra-pdf --branch=main
+
+  deploy-resume:
+    name: Deploy Resume
+    needs: build-and-verify
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production')
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Download resume artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: resume-dist
+          path: apps/resume/dist
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/resume/dist --project-name=gramsevamitra-resume --branch=main

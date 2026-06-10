@@ -1,0 +1,337 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Crypto Capital Gains';
+const toolDescription =
+  'Calculate crypto capital gains with STCG vs LTCG classification — free, instant, and 100% offline in your browser.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="money"
+>
+  <div class="crypto-tax">
+    <header class="mb-6">
+      <a href="/tools/money" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Money &amp; Gig Ledger
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Simple gain/loss math with holding-period classification — India: &gt;365 days = LTCG indicator.
+      </p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="crypto-inputs-heading"
+      >
+        <h2 id="crypto-inputs-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Trade details
+        </h2>
+
+        <div class="mt-5 space-y-5">
+          <div>
+            <label for="buy-price" class="mb-2 block text-sm font-medium text-slate-300">Buy price per unit (₹)</label>
+            <input
+              id="buy-price"
+              type="number"
+              min="0"
+              step="any"
+              inputmode="decimal"
+              placeholder="50000"
+              class="input-field w-full tabular-nums"
+            />
+          </div>
+
+          <div>
+            <label for="sell-price" class="mb-2 block text-sm font-medium text-slate-300">Sell price per unit (₹)</label>
+            <input
+              id="sell-price"
+              type="number"
+              min="0"
+              step="any"
+              inputmode="decimal"
+              placeholder="65000"
+              class="input-field w-full tabular-nums"
+            />
+          </div>
+
+          <div>
+            <label for="quantity" class="mb-2 block text-sm font-medium text-slate-300">Quantity</label>
+            <input
+              id="quantity"
+              type="number"
+              min="0"
+              step="any"
+              inputmode="decimal"
+              placeholder="0.5"
+              class="input-field w-full tabular-nums"
+            />
+          </div>
+
+          <div>
+            <label for="holding-days" class="mb-2 block text-sm font-medium text-slate-300">Holding period (days)</label>
+            <input
+              id="holding-days"
+              type="number"
+              min="0"
+              max="3650"
+              step="1"
+              inputmode="numeric"
+              placeholder="400"
+              class="input-field w-full tabular-nums"
+            />
+            <p class="mt-1 text-xs text-slate-500">More than 365 days qualifies as LTCG (long-term).</p>
+          </div>
+        </div>
+
+        <button type="button" id="reset-crypto" class="btn-secondary mt-6 w-full text-sm">
+          Reset
+        </button>
+      </section>
+
+      <section
+        class="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="crypto-results-heading"
+        aria-live="polite"
+      >
+        <h2 id="crypto-results-heading" class="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          Capital gains
+        </h2>
+
+        <div class="mt-5 space-y-4">
+          <div class="rounded-xl border border-emerald-800/40 bg-slate-950/50 px-4 py-5 text-center">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Net gain / loss</p>
+            <p id="result-gain" class="mt-1 text-3xl font-extrabold tabular-nums text-emerald-400 sm:text-4xl">
+              ₹0
+            </p>
+          </div>
+
+          <div
+            id="term-badge"
+            class="rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-3 text-center"
+          >
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-500">Classification</p>
+            <p id="result-term" class="mt-1 text-lg font-bold text-white">—</p>
+            <p id="result-term-detail" class="mt-1 text-xs text-slate-500">—</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-4">
+              <p class="text-[10px] font-medium uppercase tracking-wider text-slate-500">Cost basis</p>
+              <p id="result-cost" class="mt-1 text-lg font-bold tabular-nums text-slate-300">₹0</p>
+            </div>
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-4">
+              <p class="text-[10px] font-medium uppercase tracking-wider text-slate-500">Sale proceeds</p>
+              <p id="result-proceeds" class="mt-1 text-lg font-bold tabular-nums text-slate-300">₹0</p>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4">
+            <dl class="space-y-2 text-sm">
+              <div class="flex justify-between gap-3">
+                <dt class="text-slate-400">Return</dt>
+                <dd id="result-return" class="font-semibold tabular-nums text-amber-400">—</dd>
+              </div>
+              <div class="flex justify-between gap-3">
+                <dt class="text-slate-400">Per-unit gain</dt>
+                <dd id="result-per-unit" class="font-semibold tabular-nums text-slate-300">—</dd>
+              </div>
+            </dl>
+          </div>
+
+          <p id="crypto-note" class="text-center text-xs text-slate-500">
+            Enter trade details for an instant gain/loss estimate. Not tax advice.
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:crypto-tax';
+    const LTCG_THRESHOLD_DAYS = 365;
+
+    const DEFAULTS = {
+      buyPrice: 50000,
+      sellPrice: 65000,
+      quantity: 0.5,
+      holdingDays: 400,
+    };
+
+    interface SavedState {
+      buyPrice: number;
+      sellPrice: number;
+      quantity: number;
+      holdingDays: number;
+    }
+
+    interface CryptoResult {
+      costBasis: number;
+      proceeds: number;
+      gain: number;
+      returnPct: number;
+      perUnitGain: number;
+      isLtcg: boolean;
+      holdingDays: number;
+    }
+
+    const buyPriceInput = document.getElementById('buy-price') as HTMLInputElement;
+    const sellPriceInput = document.getElementById('sell-price') as HTMLInputElement;
+    const quantityInput = document.getElementById('quantity') as HTMLInputElement;
+    const holdingDaysInput = document.getElementById('holding-days') as HTMLInputElement;
+    const resetBtn = document.getElementById('reset-crypto') as HTMLButtonElement;
+
+    const resultGain = document.getElementById('result-gain')!;
+    const resultTerm = document.getElementById('result-term')!;
+    const resultTermDetail = document.getElementById('result-term-detail')!;
+    const termBadge = document.getElementById('term-badge')!;
+    const resultCost = document.getElementById('result-cost')!;
+    const resultProceeds = document.getElementById('result-proceeds')!;
+    const resultReturn = document.getElementById('result-return')!;
+    const resultPerUnit = document.getElementById('result-per-unit')!;
+    const cryptoNote = document.getElementById('crypto-note')!;
+
+    function formatInr(value: number): string {
+      if (!Number.isFinite(value)) return '₹0';
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value);
+    }
+
+    function calculate(
+      buyPrice: number,
+      sellPrice: number,
+      quantity: number,
+      holdingDays: number
+    ): CryptoResult | null {
+      if (buyPrice < 0 || sellPrice < 0 || quantity <= 0 || holdingDays < 0) return null;
+
+      const costBasis = buyPrice * quantity;
+      const proceeds = sellPrice * quantity;
+      const gain = proceeds - costBasis;
+      const returnPct = costBasis > 0 ? (gain / costBasis) * 100 : 0;
+      const perUnitGain = sellPrice - buyPrice;
+      const isLtcg = holdingDays > LTCG_THRESHOLD_DAYS;
+
+      return { costBasis, proceeds, gain, returnPct, perUnitGain, isLtcg, holdingDays };
+    }
+
+    function readState(): SavedState {
+      return {
+        buyPrice: Math.max(0, Number(buyPriceInput.value) || 0),
+        sellPrice: Math.max(0, Number(sellPriceInput.value) || 0),
+        quantity: Math.max(0, Number(quantityInput.value) || 0),
+        holdingDays: Math.max(0, Math.round(Number(holdingDaysInput.value) || 0)),
+      };
+    }
+
+    function applyState(state: SavedState): void {
+      buyPriceInput.value = state.buyPrice > 0 ? String(state.buyPrice) : '';
+      sellPriceInput.value = state.sellPrice > 0 ? String(state.sellPrice) : '';
+      quantityInput.value = state.quantity > 0 ? String(state.quantity) : '';
+      holdingDaysInput.value = state.holdingDays >= 0 ? String(state.holdingDays) : '';
+    }
+
+    function saveState(state: SavedState): void {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function loadState(): SavedState {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { ...DEFAULTS };
+        const parsed = JSON.parse(raw) as Partial<SavedState>;
+        return {
+          buyPrice: typeof parsed.buyPrice === 'number' ? parsed.buyPrice : DEFAULTS.buyPrice,
+          sellPrice: typeof parsed.sellPrice === 'number' ? parsed.sellPrice : DEFAULTS.sellPrice,
+          quantity: typeof parsed.quantity === 'number' ? parsed.quantity : DEFAULTS.quantity,
+          holdingDays: typeof parsed.holdingDays === 'number' ? parsed.holdingDays : DEFAULTS.holdingDays,
+        };
+      } catch {
+        return { ...DEFAULTS };
+      }
+    }
+
+    function renderResults(result: CryptoResult | null): void {
+      if (!result) {
+        resultGain.textContent = '₹0';
+        resultGain.className = 'mt-1 text-3xl font-extrabold tabular-nums text-emerald-400 sm:text-4xl';
+        resultTerm.textContent = '—';
+        resultTermDetail.textContent = '—';
+        termBadge.className = 'rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-3 text-center';
+        resultCost.textContent = '₹0';
+        resultProceeds.textContent = '₹0';
+        resultReturn.textContent = '—';
+        resultPerUnit.textContent = '—';
+        cryptoNote.textContent = 'Enter valid trade details to calculate gains.';
+        return;
+      }
+
+      const isProfit = result.gain >= 0;
+      resultGain.textContent = `${isProfit ? '+' : ''}${formatInr(result.gain)}`;
+      resultGain.className = `mt-1 text-3xl font-extrabold tabular-nums sm:text-4xl ${isProfit ? 'text-emerald-400' : 'text-rose-400'}`;
+
+      if (result.isLtcg) {
+        resultTerm.textContent = 'LTCG — Long-term';
+        resultTermDetail.textContent = `Held ${result.holdingDays} days (> ${LTCG_THRESHOLD_DAYS} days)`;
+        termBadge.className =
+          'rounded-xl border border-emerald-800/50 bg-emerald-950/30 px-4 py-3 text-center';
+        resultTerm.className = 'mt-1 text-lg font-bold text-emerald-300';
+      } else {
+        resultTerm.textContent = 'STCG — Short-term';
+        resultTermDetail.textContent = `Held ${result.holdingDays} days (≤ ${LTCG_THRESHOLD_DAYS} days)`;
+        termBadge.className =
+          'rounded-xl border border-amber-800/50 bg-amber-950/30 px-4 py-3 text-center';
+        resultTerm.className = 'mt-1 text-lg font-bold text-amber-300';
+      }
+
+      resultCost.textContent = formatInr(result.costBasis);
+      resultProceeds.textContent = formatInr(result.proceeds);
+      resultReturn.textContent = `${result.returnPct >= 0 ? '+' : ''}${result.returnPct.toFixed(2)}%`;
+      resultReturn.className = `font-semibold tabular-nums ${isProfit ? 'text-emerald-400' : 'text-rose-400'}`;
+      resultPerUnit.textContent = `${result.perUnitGain >= 0 ? '+' : ''}${formatInr(result.perUnitGain)}`;
+
+      cryptoNote.textContent = isProfit
+        ? `Profit of ${formatInr(result.gain)} on ${result.isLtcg ? 'long-term' : 'short-term'} holding.`
+        : `Loss of ${formatInr(Math.abs(result.gain))} on ${result.isLtcg ? 'long-term' : 'short-term'} holding.`;
+    }
+
+    function recalculate(): void {
+      const state = readState();
+      const hasInput = state.buyPrice > 0 && state.sellPrice > 0 && state.quantity > 0;
+      const result = hasInput
+        ? calculate(state.buyPrice, state.sellPrice, state.quantity, state.holdingDays)
+        : null;
+      renderResults(result);
+      saveState(state);
+    }
+
+    [buyPriceInput, sellPriceInput, quantityInput, holdingDaysInput].forEach((el) => {
+      el.addEventListener('input', recalculate);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      applyState({ ...DEFAULTS });
+      recalculate();
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+    });
+
+    applyState(loadState());
+    recalculate();
+  </script>
+</ToolsLayout>

@@ -1,0 +1,37 @@
+---
+import '@shared/styles/global.css';
+import { ViewTransitions } from 'astro:transitions';
+import BaseLayout from '@shared/layouts/BaseLayout.astro';
+import ToolsHeader from '../components/tools/ToolsHeader.astro';
+import ToolsSmartSearch from '../components/tools/ToolsSmartSearch';
+import ToolsBottomNav from '../components/tools/ToolsBottomNav.astro';
+import PwaRegister from '../components/tools/PwaRegister';
+
+interface Props {
+  title: string;
+  description?: string;
+  activeNav?: 'home' | 'money' | 'writing' | 'career' | 'quick';
+}
+
+const {
+  title,
+  description = 'Free browser utilities for students, gig workers, and job seekers — money trackers, writing tools, career prep, and quick calculators. 100% offline.',
+  activeNav = 'home',
+} = Astro.props;
+---
+
+<BaseLayout title={title} description={description} site="hub">
+  <ViewTransitions slot="head" />
+
+  <ToolsHeader slot="header" />
+
+  <div class="flex min-h-[calc(100vh-57px)] flex-col pb-20 md:pb-0">
+    <ToolsSmartSearch client:load transition:persist="tools-smart-search" />
+    <div class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <slot />
+    </div>
+  </div>
+
+  <ToolsBottomNav slot="footer" active={activeNav} />
+  <PwaRegister client:load slot="footer" />
+</BaseLayout>

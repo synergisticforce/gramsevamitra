@@ -1,0 +1,381 @@
+---
+import '@shared/styles/global.css';
+import BaseLayout from '@shared/layouts/BaseLayout.astro';
+import Header from '@shared/components/Header.astro';
+import Footer from '@shared/components/Footer.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Watermark PDF';
+const toolDescription =
+  'Add a text watermark to every page of your PDF — draft labels, confidential stamps, and more, processed locally.';
+---
+
+<BaseLayout
+  title={formatSeoTitle('Add Watermark to PDF', 'Free Online Tool')}
+  description={toolDescription}
+  site="pdf"
+>
+  <Header slot="header" active="pdf" />
+
+  <section class="relative overflow-hidden">
+    <div
+      class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/20 via-slate-950 to-slate-950"
+    >
+    </div>
+
+    <div class="relative mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+      <header class="mb-6">
+        <a href="/" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+          ← PDF Tools Home
+        </a>
+        <h1 class="mt-3 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+        <p class="mt-1 text-sm text-slate-400">{toolDescription}</p>
+      </header>
+
+      <div
+        id="drop-zone"
+        class="drop-zone"
+        role="button"
+        tabindex="0"
+        aria-label="Drop a PDF file here or click to browse"
+      >
+        <input id="file-input" type="file" accept="application/pdf,.pdf" class="sr-only" aria-hidden="true" />
+        <div class="pointer-events-none flex flex-col items-center px-4 py-10 text-center sm:py-12">
+          <span class="text-5xl" aria-hidden="true">💧</span>
+          <p class="mt-4 text-lg font-bold text-white">Drop a PDF here</p>
+          <p class="mt-1 text-sm text-slate-400">or click to browse · one file at a time</p>
+        </div>
+      </div>
+
+      <p id="file-error" class="mt-3 hidden text-sm text-rose-400" role="alert"></p>
+
+      <div id="file-meta" class="mt-5 hidden rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-4">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Loaded file</h2>
+        <p id="meta-name" class="mt-2 truncate text-sm font-semibold text-white"></p>
+        <p id="meta-size" class="text-xs text-slate-500"></p>
+        <p id="meta-pages" class="mt-2 text-sm font-bold text-emerald-400"></p>
+        <button type="button" id="clear-file" class="btn-secondary mt-3 w-full text-sm">Choose a different file</button>
+      </div>
+
+      <div id="watermark-panel" class="mt-6 hidden space-y-5">
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-slate-300">Watermark text</span>
+          <input
+            id="watermark-text"
+            type="text"
+            value="DRAFT"
+            maxlength="120"
+            class="input-field w-full"
+            placeholder="e.g. CONFIDENTIAL, DRAFT, Sample"
+          />
+        </label>
+
+        <label class="block">
+          <span class="mb-1 flex items-center justify-between text-sm font-medium text-slate-300">
+            <span>Opacity</span>
+            <span id="opacity-value" class="tabular-nums text-emerald-400">0.30</span>
+          </span>
+          <input
+            id="opacity-slider"
+            type="range"
+            min="0.1"
+            max="1"
+            step="0.05"
+            value="0.3"
+            class="w-full accent-emerald-500"
+          />
+        </label>
+
+        <fieldset>
+          <legend class="mb-2 text-sm font-medium text-slate-300">Placement</legend>
+          <div class="flex flex-wrap gap-2" role="radiogroup" aria-label="Watermark placement">
+            <label class="mode-pill">
+              <input type="radio" name="placement" value="center" class="sr-only peer" checked />
+              <span class="mode-pill-label">Center</span>
+            </label>
+            <label class="mode-pill">
+              <input type="radio" name="placement" value="diagonal" class="sr-only peer" />
+              <span class="mode-pill-label">Diagonal</span>
+            </label>
+            <label class="mode-pill">
+              <input type="radio" name="placement" value="bottom-right" class="sr-only peer" />
+              <span class="mode-pill-label">Bottom-Right</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <button type="button" id="watermark-btn" class="btn-primary w-full py-3 text-base font-bold">
+          Apply Watermark &amp; Download
+        </button>
+        <p id="watermark-status" class="text-center text-xs text-slate-500" aria-live="polite"></p>
+      </div>
+
+      <div id="loading-overlay" class="loading-overlay hidden" aria-hidden="true">
+        <div class="flex flex-col items-center gap-3 rounded-2xl border border-emerald-800/50 bg-slate-900/95 px-8 py-6 shadow-2xl">
+          <div class="spinner" aria-hidden="true"></div>
+          <p id="loading-label" class="text-sm font-medium text-emerald-300">Processing…</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Footer slot="footer" />
+</BaseLayout>
+
+<style>
+  .drop-zone {
+    @apply cursor-pointer rounded-2xl border-2 border-dashed border-emerald-700/50 bg-gradient-to-br from-emerald-950/40 to-slate-900/60 transition hover:border-emerald-500 hover:bg-emerald-950/50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-slate-950;
+  }
+  .drop-zone.is-dragover {
+    @apply border-emerald-400 bg-emerald-950/60 ring-2 ring-emerald-400/40;
+  }
+  .mode-pill-label {
+    @apply inline-flex cursor-pointer items-center rounded-full border border-slate-700 bg-slate-950/60 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-emerald-600 hover:text-white;
+  }
+  .mode-pill :global(input:checked) + .mode-pill-label {
+    @apply border-emerald-500 bg-emerald-950/50 text-emerald-300 ring-2 ring-emerald-400/40;
+  }
+  .mode-pill :global(input:focus-visible) + .mode-pill-label {
+    @apply outline-none ring-2 ring-emerald-400;
+  }
+  .loading-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm;
+  }
+  .spinner {
+    @apply h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-emerald-400;
+  }
+</style>
+
+<script>
+  import { PDFDocument, StandardFonts, rgb, degrees } from 'pdf-lib';
+  import {
+    overlayPositionToPdfCoords,
+    bottomLeftForCenterRotation,
+    cssRotationToPdfDegrees,
+  } from '../lib/overlayPosition';
+
+  type Placement = 'center' | 'diagonal' | 'bottom-right';
+
+  const dropZone = document.getElementById('drop-zone')!;
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const fileError = document.getElementById('file-error')!;
+  const fileMeta = document.getElementById('file-meta')!;
+  const metaName = document.getElementById('meta-name')!;
+  const metaSize = document.getElementById('meta-size')!;
+  const metaPages = document.getElementById('meta-pages')!;
+  const clearFileBtn = document.getElementById('clear-file') as HTMLButtonElement;
+  const watermarkPanel = document.getElementById('watermark-panel')!;
+  const watermarkText = document.getElementById('watermark-text') as HTMLInputElement;
+  const opacitySlider = document.getElementById('opacity-slider') as HTMLInputElement;
+  const opacityValue = document.getElementById('opacity-value')!;
+  const watermarkBtn = document.getElementById('watermark-btn') as HTMLButtonElement;
+  const watermarkStatus = document.getElementById('watermark-status')!;
+  const loadingOverlay = document.getElementById('loading-overlay')!;
+  const loadingLabel = document.getElementById('loading-label')!;
+
+  let currentFile: File | null = null;
+  let totalPages = 0;
+  let pdfBytes: ArrayBuffer | null = null;
+
+  const FONT_SIZE = 48;
+  const DIAGONAL_ROTATION = -45;
+
+  function isPdfFile(file: File): boolean {
+    return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+  }
+
+  function formatSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  function showError(message: string): void {
+    fileError.textContent = message;
+    fileError.classList.remove('hidden');
+  }
+
+  function clearError(): void {
+    fileError.textContent = '';
+    fileError.classList.add('hidden');
+  }
+
+  function setLoading(active: boolean, label = 'Processing…'): void {
+    loadingOverlay.classList.toggle('hidden', !active);
+    loadingOverlay.setAttribute('aria-hidden', String(!active));
+    loadingLabel.textContent = label;
+    watermarkBtn.disabled = active;
+  }
+
+  function getPlacement(): Placement {
+    const checked = document.querySelector<HTMLInputElement>('input[name="placement"]:checked');
+    const value = checked?.value;
+    if (value === 'diagonal' || value === 'bottom-right') return value;
+    return 'center';
+  }
+
+  function resetState(): void {
+    currentFile = null;
+    pdfBytes = null;
+    totalPages = 0;
+    fileMeta.classList.add('hidden');
+    watermarkPanel.classList.add('hidden');
+    dropZone.classList.remove('hidden');
+    watermarkStatus.textContent = '';
+    fileInput.value = '';
+  }
+
+  async function loadPdf(file: File): Promise<void> {
+    clearError();
+    if (!isPdfFile(file)) {
+      showError('Please select a valid PDF file.');
+      return;
+    }
+
+    setLoading(true, 'Reading PDF…');
+
+    try {
+      pdfBytes = await file.arrayBuffer();
+      const pdf = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+      totalPages = pdf.getPageCount();
+
+      if (totalPages === 0) {
+        showError('This PDF has no pages.');
+        resetState();
+        return;
+      }
+
+      currentFile = file;
+      metaName.textContent = file.name;
+      metaSize.textContent = formatSize(file.size);
+      metaPages.textContent = `${totalPages} page${totalPages === 1 ? '' : 's'} total`;
+
+      dropZone.classList.add('hidden');
+      fileMeta.classList.remove('hidden');
+      watermarkPanel.classList.remove('hidden');
+    } catch {
+      showError('Could not read this PDF. It may be corrupted or password-protected.');
+      resetState();
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function downloadBlob(bytes: Uint8Array, filename: string): void {
+    const blob = new Blob([bytes as BlobPart], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function applyWatermark(): Promise<void> {
+    if (!pdfBytes || !currentFile) {
+      showError('Load a PDF file first.');
+      return;
+    }
+
+    const text = watermarkText.value.trim();
+    if (!text) {
+      showError('Enter watermark text.');
+      return;
+    }
+
+    clearError();
+    const placement = getPlacement();
+    const opacity = Number(opacitySlider.value);
+
+    setLoading(true, 'Applying watermark…');
+
+    try {
+      const doc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+      const font = await doc.embedFont(StandardFonts.Helvetica);
+      const pages = doc.getPages();
+      const rotation = placement === 'diagonal' ? DIAGONAL_ROTATION : 0;
+
+      for (let i = 0; i < pages.length; i++) {
+        setLoading(true, `Watermarking page ${i + 1} of ${pages.length}…`);
+        const page = pages[i];
+        const { width, height } = page.getSize();
+        const textWidth = font.widthOfTextAtSize(text, FONT_SIZE);
+
+        const overlayPos = placement === 'bottom-right' ? 'bottom-right' : 'center';
+        const { x: boxX, y: boxY } = overlayPositionToPdfCoords(
+          overlayPos,
+          width,
+          height,
+          textWidth,
+          FONT_SIZE
+        );
+
+        const cx = boxX + textWidth / 2;
+        const cy = boxY + FONT_SIZE / 2;
+        const { x, y } = bottomLeftForCenterRotation(cx, cy, textWidth, FONT_SIZE, rotation);
+
+        page.drawText(text, {
+          x,
+          y,
+          size: FONT_SIZE,
+          font,
+          color: rgb(0.45, 0.45, 0.45),
+          opacity,
+          rotate: degrees(cssRotationToPdfDegrees(rotation)),
+        });
+      }
+
+      setLoading(true, 'Saving PDF…');
+      const bytes = await doc.save();
+      downloadBlob(bytes, 'watermarked-document.pdf');
+      watermarkStatus.textContent = `Watermark applied to ${pages.length} page${pages.length === 1 ? '' : 's'}.`;
+      watermarkStatus.className = 'text-center text-xs text-emerald-400';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Watermark failed.';
+      showError(message);
+      watermarkStatus.textContent = '';
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  opacitySlider.addEventListener('input', () => {
+    opacityValue.textContent = Number(opacitySlider.value).toFixed(2);
+  });
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput.click();
+    }
+  });
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (file) void loadPdf(file);
+  });
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('is-dragover');
+  });
+
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('is-dragover'));
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('is-dragover');
+    const file = e.dataTransfer?.files?.[0];
+    if (file) void loadPdf(file);
+  });
+
+  clearFileBtn.addEventListener('click', () => {
+    clearError();
+    resetState();
+  });
+
+  watermarkBtn.addEventListener('click', () => {
+    void applyWatermark();
+  });
+</script>

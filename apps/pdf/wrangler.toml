@@ -1,0 +1,8 @@
+# PDF Micro-Tools — pdf.gramsevamitra.com
+
+[build]
+command = "cd ../.. && npm ci && node scripts/sync-public.mjs && node scripts/generate-pwa-icons.mjs && npm run build --workspace=@gramsevamitra/pdf"
+publish = "dist"
+
+[build.environment]
+NODE_VERSION = "20"

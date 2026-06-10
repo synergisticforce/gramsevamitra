@@ -1,0 +1,75 @@
+---
+import { SITES } from '../config/sites';
+import MobileNavMenu from './MobileNavMenu';
+
+interface Props {
+  active?: 'hub' | 'optimizer' | 'resume' | 'pdf';
+}
+
+const { active = 'hub' } = Astro.props;
+---
+
+<header class="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6" aria-label="Main navigation">
+    <a href={SITES.hub.url} class="group flex items-center gap-2">
+      <span
+        class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-sm font-bold text-white transition group-hover:bg-emerald-500"
+        aria-hidden="true"
+      >
+        GS
+      </span>
+      <span class="text-lg font-bold tracking-tight text-white">
+        Gram<span class="text-emerald-400">Seva</span> Mitra
+      </span>
+    </a>
+
+    <ul class="hidden items-center gap-6 text-sm font-medium sm:flex">
+      <li>
+        <a
+          href={SITES.hub.url}
+          class:list={[
+            'transition hover:text-emerald-400',
+            active === 'hub' ? 'text-emerald-400' : 'text-slate-300',
+          ]}
+        >
+          Home
+        </a>
+      </li>
+      <li>
+        <a
+          href={SITES.optimizer.url}
+          class:list={[
+            'transition hover:text-emerald-400',
+            active === 'optimizer' ? 'text-emerald-400' : 'text-slate-300',
+          ]}
+        >
+          Doc Optimizer
+        </a>
+      </li>
+      <li>
+        <a
+          href={SITES.resume.url}
+          class:list={[
+            'transition hover:text-emerald-400',
+            active === 'resume' ? 'text-emerald-400' : 'text-slate-300',
+          ]}
+        >
+          Resume Scanner
+        </a>
+      </li>
+      <li>
+        <a
+          href={SITES.pdf.url}
+          class:list={[
+            'transition hover:text-emerald-400',
+            active === 'pdf' ? 'text-emerald-400' : 'text-slate-300',
+          ]}
+        >
+          PDF Tools
+        </a>
+      </li>
+    </ul>
+
+    <MobileNavMenu client:load active={active} />
+  </nav>
+</header>

@@ -1,0 +1,415 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Invoice Builder';
+const toolDescription =
+  'Create client invoices with line items and optional GST — preview and print from your browser, 100% offline.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="money"
+>
+  <div class="invoice-builder">
+    <header class="mb-6">
+      <a href="/tools/money" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Money &amp; Gig Ledger
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Build a printable invoice with line items — no PDF library, uses your browser print dialog.
+      </p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        class="no-print rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="invoice-form-heading"
+      >
+        <h2 id="invoice-form-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Invoice details
+        </h2>
+
+        <div class="mt-5 space-y-4">
+          <label class="block min-w-0">
+            <span class="mb-2 block text-sm font-medium text-slate-300">Your business name</span>
+            <input id="business-name" type="text" placeholder="Gram Seva Services" class="input-field w-full" autocomplete="organization" />
+          </label>
+
+          <label class="block min-w-0">
+            <span class="mb-2 block text-sm font-medium text-slate-300">Client name</span>
+            <input id="client-name" type="text" placeholder="Client / Company" class="input-field w-full" autocomplete="off" />
+          </label>
+
+          <label class="block min-w-0">
+            <span class="mb-2 block text-sm font-medium text-slate-300">Invoice date</span>
+            <input id="invoice-date" type="date" class="input-field w-full" />
+          </label>
+
+          <label class="flex cursor-pointer items-center gap-3">
+            <input id="gst-enabled" type="checkbox" class="h-4 w-4 rounded border-slate-600 accent-emerald-500" />
+            <span class="text-sm font-medium text-slate-300">Add GST (18%)</span>
+          </label>
+
+          <div>
+            <div class="mb-2 flex items-center justify-between">
+              <span class="text-sm font-medium text-slate-300">Line items</span>
+              <button type="button" id="add-line" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300">
+                + Add row
+              </button>
+            </div>
+            <div id="line-items" class="space-y-2"></div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-wrap gap-2">
+          <button type="button" id="print-invoice" class="btn-primary flex-1 text-sm sm:flex-none">
+            Print / Save PDF
+          </button>
+          <button type="button" id="reset-invoice" class="btn-secondary flex-1 text-sm sm:flex-none">
+            Reset
+          </button>
+        </div>
+      </section>
+
+      <section
+        class="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="invoice-preview-heading"
+      >
+        <h2 id="invoice-preview-heading" class="no-print text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          Preview
+        </h2>
+
+        <div id="invoice-print-area" class="invoice-document mt-5 rounded-xl border border-slate-700 bg-white p-5 text-slate-900 shadow-lg sm:p-6">
+          <div class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 pb-4">
+            <div>
+              <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Invoice</p>
+              <p id="preview-business" class="mt-1 text-lg font-bold text-slate-900">Your Business</p>
+            </div>
+            <div class="text-right text-sm">
+              <p class="text-slate-500">Date</p>
+              <p id="preview-date" class="font-medium tabular-nums text-slate-800">—</p>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Bill to</p>
+            <p id="preview-client" class="mt-1 font-medium text-slate-800">Client Name</p>
+          </div>
+
+          <table class="mt-5 w-full text-left text-sm">
+            <thead>
+              <tr class="border-b border-slate-200 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                <th class="pb-2 pr-2">Description</th>
+                <th class="pb-2 pr-2 text-right">Qty</th>
+                <th class="pb-2 pr-2 text-right">Rate</th>
+                <th class="pb-2 text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="preview-lines">
+              <tr>
+                <td colspan="4" class="py-4 text-center text-slate-400">Add line items to preview</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <dl class="mt-4 space-y-1 border-t border-slate-200 pt-4 text-sm">
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-600">Subtotal</dt>
+              <dd id="preview-subtotal" class="font-medium tabular-nums">₹0.00</dd>
+            </div>
+            <div id="preview-gst-row" class="hidden flex justify-between gap-3">
+              <dt class="text-slate-600">GST (18%)</dt>
+              <dd id="preview-gst" class="font-medium tabular-nums">₹0.00</dd>
+            </div>
+            <div class="flex justify-between gap-3 border-t border-slate-200 pt-2 text-base font-bold">
+              <dt class="text-slate-900">Total</dt>
+              <dd id="preview-total" class="tabular-nums text-emerald-700">₹0.00</dd>
+            </div>
+          </dl>
+
+          <p class="mt-6 text-center text-[10px] text-slate-400">Thank you for your business.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <style>
+    .line-item-row {
+      @apply grid grid-cols-12 gap-2;
+    }
+    .line-item-row input {
+      @apply text-sm;
+    }
+    @media print {
+      :global(body *) {
+        visibility: hidden;
+      }
+      :global(#invoice-print-area),
+      :global(#invoice-print-area *) {
+        visibility: visible;
+      }
+      :global(#invoice-print-area) {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 24px;
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:invoice-builder';
+    const GST_RATE = 0.18;
+
+    interface LineItem {
+      id: string;
+      description: string;
+      qty: number;
+      rate: number;
+    }
+
+    interface InvoiceState {
+      businessName: string;
+      clientName: string;
+      invoiceDate: string;
+      gstEnabled: boolean;
+      lines: LineItem[];
+    }
+
+    const DEFAULTS: InvoiceState = {
+      businessName: '',
+      clientName: '',
+      invoiceDate: new Date().toISOString().slice(0, 10),
+      gstEnabled: false,
+      lines: [{ id: '1', description: 'Consulting services', qty: 1, rate: 5000 }],
+    };
+
+    const businessInput = document.getElementById('business-name') as HTMLInputElement;
+    const clientInput = document.getElementById('client-name') as HTMLInputElement;
+    const dateInput = document.getElementById('invoice-date') as HTMLInputElement;
+    const gstCheckbox = document.getElementById('gst-enabled') as HTMLInputElement;
+    const lineItemsContainer = document.getElementById('line-items')!;
+    const addLineBtn = document.getElementById('add-line') as HTMLButtonElement;
+    const printBtn = document.getElementById('print-invoice') as HTMLButtonElement;
+    const resetBtn = document.getElementById('reset-invoice') as HTMLButtonElement;
+
+    const previewBusiness = document.getElementById('preview-business')!;
+    const previewDate = document.getElementById('preview-date')!;
+    const previewClient = document.getElementById('preview-client')!;
+    const previewLines = document.getElementById('preview-lines')!;
+    const previewSubtotal = document.getElementById('preview-subtotal')!;
+    const previewGstRow = document.getElementById('preview-gst-row')!;
+    const previewGst = document.getElementById('preview-gst')!;
+    const previewTotal = document.getElementById('preview-total')!;
+
+    let lines: LineItem[] = [];
+
+    function createId(): string {
+      return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function formatInr(value: number): string {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value);
+    }
+
+    function escapeHtml(text: string): string {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatDisplayDate(iso: string): string {
+      const d = new Date(iso + 'T12:00:00');
+      if (Number.isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    function lineAmount(item: LineItem): number {
+      return Math.max(0, item.qty) * Math.max(0, item.rate);
+    }
+
+    function readLinesFromDom(): LineItem[] {
+      const rows = lineItemsContainer.querySelectorAll<HTMLElement>('.line-item-row');
+      return [...rows].map((row) => ({
+        id: row.dataset.id ?? createId(),
+        description: (row.querySelector('.line-desc') as HTMLInputElement)?.value ?? '',
+        qty: Math.max(0, Number((row.querySelector('.line-qty') as HTMLInputElement)?.value) || 0),
+        rate: Math.max(0, Number((row.querySelector('.line-rate') as HTMLInputElement)?.value) || 0),
+      }));
+    }
+
+    function renderLineInputs(): void {
+      lineItemsContainer.innerHTML = '';
+      lines.forEach((item) => {
+        const row = document.createElement('div');
+        row.className = 'line-item-row';
+        row.dataset.id = item.id;
+        row.innerHTML = `
+          <input type="text" class="line-desc input-field col-span-6" placeholder="Description" value="${escapeHtml(item.description)}" />
+          <input type="number" class="line-qty input-field col-span-2 text-right tabular-nums" min="0" step="1" inputmode="numeric" value="${item.qty}" aria-label="Quantity" />
+          <input type="number" class="line-rate input-field col-span-3 text-right tabular-nums" min="0" step="1" inputmode="decimal" value="${item.rate}" aria-label="Rate" />
+          <button type="button" class="line-remove col-span-1 rounded-lg text-slate-500 hover:bg-rose-950/50 hover:text-rose-400" aria-label="Remove line">✕</button>
+        `;
+        lineItemsContainer.appendChild(row);
+      });
+    }
+
+    function readState(): InvoiceState {
+      return {
+        businessName: businessInput.value.trim(),
+        clientName: clientInput.value.trim(),
+        invoiceDate: dateInput.value,
+        gstEnabled: gstCheckbox.checked,
+        lines: readLinesFromDom(),
+      };
+    }
+
+    function applyState(state: InvoiceState): void {
+      businessInput.value = state.businessName;
+      clientInput.value = state.clientName;
+      dateInput.value = state.invoiceDate;
+      gstCheckbox.checked = state.gstEnabled;
+      lines = state.lines.length > 0 ? state.lines : [{ id: createId(), description: '', qty: 1, rate: 0 }];
+      renderLineInputs();
+    }
+
+    function saveState(state: InvoiceState): void {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function loadState(): InvoiceState {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { ...DEFAULTS, lines: [...DEFAULTS.lines] };
+        const parsed = JSON.parse(raw) as Partial<InvoiceState>;
+        return {
+          businessName: String(parsed.businessName ?? ''),
+          clientName: String(parsed.clientName ?? ''),
+          invoiceDate: parsed.invoiceDate ?? DEFAULTS.invoiceDate,
+          gstEnabled: Boolean(parsed.gstEnabled),
+          lines:
+            Array.isArray(parsed.lines) && parsed.lines.length > 0
+              ? parsed.lines.map((l) => ({
+                  id: String(l.id ?? createId()),
+                  description: String(l.description ?? ''),
+                  qty: Number(l.qty) || 0,
+                  rate: Number(l.rate) || 0,
+                }))
+              : [...DEFAULTS.lines],
+        };
+      } catch {
+        return { ...DEFAULTS, lines: [...DEFAULTS.lines] };
+      }
+    }
+
+    function updatePreview(): void {
+      const state = readState();
+      lines = state.lines;
+
+      previewBusiness.textContent = state.businessName || 'Your Business';
+      previewClient.textContent = state.clientName || 'Client Name';
+      previewDate.textContent = state.invoiceDate ? formatDisplayDate(state.invoiceDate) : '—';
+
+      const validLines = state.lines.filter((l) => l.description || l.rate > 0);
+
+      if (validLines.length === 0) {
+        previewLines.innerHTML = `
+          <tr>
+            <td colspan="4" class="py-4 text-center text-slate-400">Add line items to preview</td>
+          </tr>
+        `;
+      } else {
+        previewLines.innerHTML = validLines
+          .map(
+            (l) => `
+          <tr class="border-b border-slate-100">
+            <td class="py-2 pr-2">${escapeHtml(l.description || '—')}</td>
+            <td class="py-2 pr-2 text-right tabular-nums">${l.qty}</td>
+            <td class="py-2 pr-2 text-right tabular-nums">${formatInr(l.rate)}</td>
+            <td class="py-2 text-right tabular-nums font-medium">${formatInr(lineAmount(l))}</td>
+          </tr>
+        `
+          )
+          .join('');
+      }
+
+      const subtotal = validLines.reduce((sum, l) => sum + lineAmount(l), 0);
+      const gst = state.gstEnabled ? subtotal * GST_RATE : 0;
+      const total = subtotal + gst;
+
+      previewSubtotal.textContent = formatInr(subtotal);
+      previewGst.textContent = formatInr(gst);
+      previewTotal.textContent = formatInr(total);
+      previewGstRow.classList.toggle('hidden', !state.gstEnabled);
+
+      saveState(state);
+    }
+
+    lineItemsContainer.addEventListener('input', updatePreview);
+    lineItemsContainer.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
+      const removeBtn = target.closest('.line-remove');
+      if (!removeBtn) return;
+      const row = removeBtn.closest<HTMLElement>('.line-item-row');
+      if (!row) return;
+      lines = readLinesFromDom().filter((l) => l.id !== row.dataset.id);
+      if (lines.length === 0) {
+        lines = [{ id: createId(), description: '', qty: 1, rate: 0 }];
+      }
+      renderLineInputs();
+      updatePreview();
+    });
+
+    addLineBtn.addEventListener('click', () => {
+      lines = readLinesFromDom();
+      lines.push({ id: createId(), description: '', qty: 1, rate: 0 });
+      renderLineInputs();
+      updatePreview();
+    });
+
+    [businessInput, clientInput, dateInput, gstCheckbox].forEach((el) => {
+      el.addEventListener('input', updatePreview);
+      el.addEventListener('change', updatePreview);
+    });
+
+    printBtn.addEventListener('click', () => {
+      updatePreview();
+      window.print();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      applyState({ ...DEFAULTS, lines: [{ id: createId(), description: 'Consulting services', qty: 1, rate: 5000 }] });
+      updatePreview();
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+    });
+
+    applyState(loadState());
+    updatePreview();
+  </script>
+</ToolsLayout>

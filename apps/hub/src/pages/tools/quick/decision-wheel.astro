@@ -1,0 +1,202 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Decision Wheel';
+const toolDescription =
+  'Enter comma-separated options, spin the canvas wheel, and get a random selection with highlight animation.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="quick"
+>
+  <div class="decision-wheel">
+    <header class="mb-6">
+      <a href="/tools/quick" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Quick Tools Drawer
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">Can't decide? Spin the wheel — add at least 2 options separated by commas.</p>
+    </header>
+
+    <section
+      class="mb-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+      aria-labelledby="dw-input-heading"
+    >
+      <h2 id="dw-input-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+        Options
+      </h2>
+
+      <label class="mt-4 block">
+        <span class="mb-1 block text-sm font-medium text-slate-300">Comma-separated choices</span>
+        <input
+          id="dw-options"
+          type="text"
+          placeholder="e.g. Pizza, Biryani, Dosa, Burger"
+          class="input-field w-full"
+        />
+      </label>
+
+      <button type="button" id="dw-spin" class="btn-primary mt-4 w-full text-sm">Spin the wheel!</button>
+    </section>
+
+    <section class="text-center" aria-labelledby="dw-wheel-heading">
+      <h2 id="dw-wheel-heading" class="sr-only">Spinning wheel</h2>
+      <div class="relative mx-auto max-w-sm">
+        <div class="pointer-events-none absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1">
+          <div class="h-0 w-0 border-x-[12px] border-x-transparent border-t-[20px] border-t-emerald-400"></div>
+        </div>
+        <canvas id="dw-canvas" width="320" height="320" class="mx-auto rounded-full border-4 border-slate-700 shadow-xl" role="img" aria-label="Decision wheel"></canvas>
+      </div>
+
+      <p id="dw-result" class="mt-6 text-lg font-bold text-emerald-400" aria-live="polite">Add options and spin</p>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:decision-wheel';
+
+    const optionsEl = document.getElementById('dw-options') as HTMLInputElement;
+    const spinBtn = document.getElementById('dw-spin') as HTMLButtonElement;
+    const canvas = document.getElementById('dw-canvas') as HTMLCanvasElement;
+    const resultEl = document.getElementById('dw-result')!;
+    const ctx = canvas.getContext('2d')!;
+
+    const COLORS = ['#10b981', '#059669', '#047857', '#065f46', '#34d399', '#6ee7b7', '#a7f3d0', '#064e3b'];
+    let options: string[] = [];
+    let rotation = 0;
+    let spinning = false;
+    let selectedIndex = -1;
+
+    function parseOptions(): string[] {
+      return optionsEl.value
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+
+    function drawWheel(highlightIdx = -1): void {
+      options = parseOptions();
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const r = Math.min(cx, cy) - 4;
+
+      ctx.clearRect(0, 0, w, h);
+
+      if (options.length === 0) {
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#64748b';
+        ctx.font = '14px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Add options', cx, cy);
+        return;
+      }
+
+      const slice = (Math.PI * 2) / options.length;
+
+      options.forEach((label, i) => {
+        const start = rotation + i * slice;
+        const end = start + slice;
+        const isHighlight = i === highlightIdx;
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, start, end);
+        ctx.closePath();
+        ctx.fillStyle = isHighlight ? '#fbbf24' : COLORS[i % COLORS.length];
+        ctx.fill();
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(start + slice / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = isHighlight ? '#1e293b' : '#f8fafc';
+        ctx.font = `bold ${options.length > 6 ? 10 : 12}px system-ui, sans-serif`;
+        const maxLen = options.length > 8 ? 8 : 14;
+        const text = label.length > maxLen ? label.slice(0, maxLen - 1) + '…' : label;
+        ctx.fillText(text, r - 12, 4);
+        ctx.restore();
+      });
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+      ctx.fillStyle = '#0f172a';
+      ctx.fill();
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function spin(): void {
+      if (spinning) return;
+      options = parseOptions();
+      if (options.length < 2) {
+        resultEl.textContent = 'Add at least 2 options.';
+        drawWheel();
+        return;
+      }
+
+      spinning = true;
+      spinBtn.disabled = true;
+      resultEl.textContent = 'Spinning…';
+
+      const winner = Math.floor(Math.random() * options.length);
+      const slice = (Math.PI * 2) / options.length;
+      const targetAngle = -(winner * slice + slice / 2 + Math.PI / 2);
+      const extraSpins = (4 + Math.random() * 3) * Math.PI * 2;
+      const startRot = rotation;
+      const endRot = targetAngle + extraSpins;
+      const duration = 3000 + Math.random() * 1000;
+      const startTime = performance.now();
+
+      function animate(now: number): void {
+        const t = Math.min(1, (now - startTime) / duration);
+        const ease = 1 - Math.pow(1 - t, 3);
+        rotation = startRot + (endRot - startRot) * ease;
+        drawWheel(t > 0.95 ? winner : -1);
+
+        if (t < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          rotation = endRot % (Math.PI * 2);
+          selectedIndex = winner;
+          spinning = false;
+          spinBtn.disabled = false;
+          resultEl.textContent = `🎉 ${options[winner]}!`;
+          drawWheel(winner);
+        }
+      }
+
+      requestAnimationFrame(animate);
+
+      try {
+        localStorage.setItem(STORAGE_KEY, optionsEl.value);
+      } catch { /* ignore */ }
+    }
+
+    optionsEl.addEventListener('input', () => {
+      selectedIndex = -1;
+      resultEl.textContent = 'Add options and spin';
+      drawWheel();
+    });
+
+    spinBtn.addEventListener('click', spin);
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) optionsEl.value = saved;
+    } catch { /* ignore */ }
+
+    drawWheel();
+  </script>
+</ToolsLayout>

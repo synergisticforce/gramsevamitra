@@ -1,0 +1,6 @@
+# Clean URL normalization
+/privacy            /privacy/            301
+/terms              /terms/              301
+
+# PWA edge fallback for unmatched paths (static assets served first)
+/*                  /index.html          200

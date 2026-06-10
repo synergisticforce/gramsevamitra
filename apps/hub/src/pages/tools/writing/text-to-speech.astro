@@ -1,0 +1,261 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Text to Speech';
+const toolDescription =
+  'Listen to your drafts aloud with browser Speech Synthesis — pick a voice, rate, and pitch. Private and offline-capable.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="writing"
+>
+  <div class="text-to-speech">
+    <header class="mb-6">
+      <a href="/tools/writing" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Smart Writing Studio
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Proof-read by ear — adjust voice, speed, and pitch, then listen locally.
+      </p>
+    </header>
+
+    <div
+      id="tts-unsupported"
+      class="hidden rounded-2xl border border-amber-900/50 bg-amber-950/30 p-4 text-sm text-amber-200"
+      role="alert"
+    >
+      Speech synthesis is not available in this browser.
+    </div>
+
+    <section
+      id="tts-panel"
+      class="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-xl sm:p-5"
+      aria-labelledby="tts-heading"
+    >
+      <h2 id="tts-heading" class="sr-only">Text to speech controls</h2>
+
+      <label class="block">
+        <span class="mb-1 block text-sm font-medium text-slate-300">Text to read aloud</span>
+        <textarea
+          id="tts-text"
+          rows="8"
+          spellcheck="true"
+          placeholder="Paste an essay, email draft, or study notes here…"
+          class="input-field w-full resize-y text-sm leading-relaxed"
+        ></textarea>
+      </label>
+
+      <div class="mt-4 grid gap-4 sm:grid-cols-3">
+        <label class="block sm:col-span-3">
+          <span class="mb-1 block text-sm font-medium text-slate-300">Voice</span>
+          <select id="tts-voice" class="input-field w-full text-sm">
+            <option value="">Loading voices…</option>
+          </select>
+        </label>
+        <label class="block">
+          <span class="mb-1 flex justify-between text-sm font-medium text-slate-300">
+            <span>Rate</span>
+            <span id="tts-rate-val" class="tabular-nums text-emerald-400">1.0</span>
+          </span>
+          <input id="tts-rate" type="range" min="0.5" max="2" step="0.1" value="1" class="w-full accent-emerald-500" />
+        </label>
+        <label class="block">
+          <span class="mb-1 flex justify-between text-sm font-medium text-slate-300">
+            <span>Pitch</span>
+            <span id="tts-pitch-val" class="tabular-nums text-emerald-400">1.0</span>
+          </span>
+          <input id="tts-pitch" type="range" min="0.5" max="2" step="0.1" value="1" class="w-full accent-emerald-500" />
+        </label>
+        <label class="block">
+          <span class="mb-1 flex justify-between text-sm font-medium text-slate-300">
+            <span>Volume</span>
+            <span id="tts-volume-val" class="tabular-nums text-emerald-400">1.0</span>
+          </span>
+          <input id="tts-volume" type="range" min="0" max="1" step="0.05" value="1" class="w-full accent-emerald-500" />
+        </label>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button type="button" id="tts-speak" class="btn-primary text-sm">Speak</button>
+        <button type="button" id="tts-stop" class="btn-secondary text-sm" disabled>Stop</button>
+        <button type="button" id="tts-clear" class="btn-secondary text-sm">Clear text</button>
+      </div>
+      <p id="tts-status" class="mt-2 text-xs text-emerald-400" role="status" aria-live="polite"></p>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:text-to-speech';
+
+    const unsupportedEl = document.getElementById('tts-unsupported')!;
+    const panelEl = document.getElementById('tts-panel')!;
+    const textEl = document.getElementById('tts-text') as HTMLTextAreaElement;
+    const voiceEl = document.getElementById('tts-voice') as HTMLSelectElement;
+    const rateEl = document.getElementById('tts-rate') as HTMLInputElement;
+    const pitchEl = document.getElementById('tts-pitch') as HTMLInputElement;
+    const volumeEl = document.getElementById('tts-volume') as HTMLInputElement;
+    const rateVal = document.getElementById('tts-rate-val')!;
+    const pitchVal = document.getElementById('tts-pitch-val')!;
+    const volumeVal = document.getElementById('tts-volume-val')!;
+    const speakBtn = document.getElementById('tts-speak') as HTMLButtonElement;
+    const stopBtn = document.getElementById('tts-stop') as HTMLButtonElement;
+    const clearBtn = document.getElementById('tts-clear') as HTMLButtonElement;
+    const statusEl = document.getElementById('tts-status')!;
+
+    let voices: SpeechSynthesisVoice[] = [];
+
+    function showStatus(msg: string): void {
+      statusEl.textContent = msg;
+    }
+
+    function saveSettings(): void {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            text: textEl.value,
+            voiceURI: voiceEl.value,
+            rate: rateEl.value,
+            pitch: pitchEl.value,
+            volume: volumeEl.value,
+          }),
+        );
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function populateVoices(): void {
+      voices = speechSynthesis.getVoices();
+      const prev = voiceEl.value;
+      voiceEl.innerHTML = '';
+
+      if (!voices.length) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'Default voice';
+        voiceEl.appendChild(opt);
+        return;
+      }
+
+      const lang = (navigator.language || 'en').slice(0, 2);
+      const sorted = [...voices].sort((a, b) => {
+        const aMatch = a.lang.startsWith(lang) ? 0 : 1;
+        const bMatch = b.lang.startsWith(lang) ? 0 : 1;
+        if (aMatch !== bMatch) return aMatch - bMatch;
+        return a.name.localeCompare(b.name);
+      });
+
+      for (const voice of sorted) {
+        const opt = document.createElement('option');
+        opt.value = voice.voiceURI;
+        opt.textContent = `${voice.name} (${voice.lang})`;
+        voiceEl.appendChild(opt);
+      }
+
+      if (prev && voices.some((v) => v.voiceURI === prev)) {
+        voiceEl.value = prev;
+      }
+    }
+
+    function speak(): void {
+      const text = textEl.value.trim();
+      if (!text) {
+        showStatus('Enter some text first.');
+        return;
+      }
+
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      const selected = voices.find((v) => v.voiceURI === voiceEl.value);
+      if (selected) utterance.voice = selected;
+      utterance.rate = parseFloat(rateEl.value);
+      utterance.pitch = parseFloat(pitchEl.value);
+      utterance.volume = parseFloat(volumeEl.value);
+
+      utterance.onstart = () => {
+        stopBtn.disabled = false;
+        speakBtn.disabled = true;
+        showStatus('Speaking…');
+      };
+      utterance.onend = () => {
+        stopBtn.disabled = true;
+        speakBtn.disabled = false;
+        showStatus('Finished.');
+      };
+      utterance.onerror = () => {
+        stopBtn.disabled = true;
+        speakBtn.disabled = false;
+        showStatus('Playback interrupted.');
+      };
+
+      speechSynthesis.speak(utterance);
+      saveSettings();
+    }
+
+    function stop(): void {
+      speechSynthesis.cancel();
+      stopBtn.disabled = true;
+      speakBtn.disabled = false;
+      showStatus('Stopped.');
+    }
+
+    if (!('speechSynthesis' in window)) {
+      unsupportedEl.classList.remove('hidden');
+      panelEl.classList.add('opacity-50', 'pointer-events-none');
+    } else {
+      populateVoices();
+      speechSynthesis.onvoiceschanged = populateVoices;
+
+      speakBtn.addEventListener('click', speak);
+      stopBtn.addEventListener('click', stop);
+    }
+
+    [rateEl, pitchEl, volumeEl].forEach((el) => {
+      el.addEventListener('input', () => {
+        rateVal.textContent = parseFloat(rateEl.value).toFixed(1);
+        pitchVal.textContent = parseFloat(pitchEl.value).toFixed(1);
+        volumeVal.textContent = parseFloat(volumeEl.value).toFixed(2);
+        saveSettings();
+      });
+    });
+
+    textEl.addEventListener('input', saveSettings);
+    voiceEl.addEventListener('change', saveSettings);
+
+    clearBtn.addEventListener('click', () => {
+      stop();
+      textEl.value = '';
+      saveSettings();
+      showStatus('Text cleared.');
+    });
+
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const data = JSON.parse(raw) as {
+          text?: string;
+          voiceURI?: string;
+          rate?: string;
+          pitch?: string;
+          volume?: string;
+        };
+        if (data.text) textEl.value = data.text;
+        if (data.rate) rateEl.value = data.rate;
+        if (data.pitch) pitchEl.value = data.pitch;
+        if (data.volume) volumeEl.value = data.volume;
+        if (data.voiceURI) voiceEl.value = data.voiceURI;
+      }
+    } catch {
+      /* ignore */
+    }
+
+    rateVal.textContent = parseFloat(rateEl.value).toFixed(1);
+    pitchVal.textContent = parseFloat(pitchEl.value).toFixed(1);
+    volumeVal.textContent = parseFloat(volumeEl.value).toFixed(2);
+  </script>
+</ToolsLayout>

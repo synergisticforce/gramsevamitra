@@ -1,0 +1,411 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'SIP Calculator';
+const toolDescription =
+  'Estimate mutual fund SIP maturity value, total investment, and wealth gained — free, instant, and 100% offline.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="money"
+>
+  <div class="sip-calculator">
+    <header class="mb-6">
+      <a href="/tools/money" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Money &amp; Gig Ledger
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Standard SIP formula — your numbers never leave this device.
+      </p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="sip-inputs-heading"
+      >
+        <h2 id="sip-inputs-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+          SIP details
+        </h2>
+
+        <div class="mt-5 space-y-6">
+          <div>
+            <div class="mb-2 flex items-center justify-between gap-2">
+              <label for="monthly-investment" class="text-sm font-medium text-slate-300">Monthly investment (₹)</label>
+              <input
+                id="monthly-investment"
+                type="number"
+                min="500"
+                max="500000"
+                step="500"
+                inputmode="numeric"
+                class="input-field w-36 text-right tabular-nums sm:w-40"
+                aria-describedby="monthly-investment-slider"
+              />
+            </div>
+            <input
+              id="monthly-investment-slider"
+              type="range"
+              min="500"
+              max="100000"
+              step="500"
+              class="w-full accent-emerald-500"
+              aria-label="Monthly investment slider"
+            />
+            <div class="mt-1 flex justify-between text-[10px] text-slate-500">
+              <span>₹500</span>
+              <span>₹1L</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="mb-2 flex items-center justify-between gap-2">
+              <label for="return-rate" class="text-sm font-medium text-slate-300">Expected return (% p.a.)</label>
+              <input
+                id="return-rate"
+                type="number"
+                min="1"
+                max="30"
+                step="0.1"
+                inputmode="decimal"
+                class="input-field w-36 text-right tabular-nums sm:w-40"
+                aria-describedby="return-rate-slider"
+              />
+            </div>
+            <input
+              id="return-rate-slider"
+              type="range"
+              min="4"
+              max="20"
+              step="0.1"
+              class="w-full accent-emerald-500"
+              aria-label="Expected return rate slider"
+            />
+            <div class="mt-1 flex justify-between text-[10px] text-slate-500">
+              <span>4%</span>
+              <span>20%</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="mb-2 flex items-center justify-between gap-2">
+              <label for="time-period" class="text-sm font-medium text-slate-300">Time period (years)</label>
+              <input
+                id="time-period"
+                type="number"
+                min="1"
+                max="40"
+                step="1"
+                inputmode="numeric"
+                class="input-field w-36 text-right tabular-nums sm:w-40"
+                aria-describedby="time-period-slider"
+              />
+            </div>
+            <input
+              id="time-period-slider"
+              type="range"
+              min="1"
+              max="30"
+              step="1"
+              class="w-full accent-emerald-500"
+              aria-label="Time period slider"
+            />
+            <div class="mt-1 flex justify-between text-[10px] text-slate-500">
+              <span>1 yr</span>
+              <span>30 yr</span>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" id="reset-sip" class="btn-secondary mt-6 w-full text-sm">
+          Reset to defaults
+        </button>
+      </section>
+
+      <section
+        class="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="sip-results-heading"
+        aria-live="polite"
+      >
+        <h2 id="sip-results-heading" class="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          Projected returns
+        </h2>
+
+        <div class="mt-5 space-y-4">
+          <div class="rounded-xl border border-emerald-800/40 bg-slate-950/50 px-4 py-5 text-center">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total value</p>
+            <p id="result-total-value" class="mt-1 text-3xl font-extrabold tabular-nums text-emerald-400 sm:text-4xl">
+              ₹0
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-4">
+              <p class="text-[10px] font-medium uppercase tracking-wider text-slate-500">Total invested</p>
+              <p id="result-invested" class="mt-1 text-lg font-bold tabular-nums text-white">₹0</p>
+            </div>
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-4">
+              <p class="text-[10px] font-medium uppercase tracking-wider text-slate-500">Est. returns</p>
+              <p id="result-returns" class="mt-1 text-lg font-bold tabular-nums text-amber-400">₹0</p>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4">
+            <div class="mb-2 flex items-center justify-between text-xs">
+              <span class="font-medium text-slate-400">Invested vs wealth gained</span>
+              <span id="breakdown-ratio" class="tabular-nums text-slate-500">—</span>
+            </div>
+
+            <div
+              class="flex h-4 w-full overflow-hidden rounded-full bg-slate-800"
+              role="img"
+              aria-labelledby="breakdown-legend"
+            >
+              <div
+                id="bar-invested"
+                class="h-full bg-emerald-500 transition-all duration-300 ease-out"
+                style="width: 50%"
+              ></div>
+              <div
+                id="bar-gains"
+                class="h-full bg-amber-500 transition-all duration-300 ease-out"
+                style="width: 50%"
+              ></div>
+            </div>
+
+            <ul id="breakdown-legend" class="mt-3 grid grid-cols-2 gap-2 text-xs">
+              <li class="flex items-center gap-2">
+                <span class="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" aria-hidden="true"></span>
+                <span class="text-slate-400">Invested</span>
+                <span id="legend-invested" class="ml-auto font-semibold tabular-nums text-emerald-400">₹0</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500" aria-hidden="true"></span>
+                <span class="text-slate-400">Gains</span>
+                <span id="legend-gains" class="ml-auto font-semibold tabular-nums text-amber-400">₹0</span>
+              </li>
+            </ul>
+          </div>
+
+          <p id="result-note" class="text-center text-xs text-slate-500">
+            Adjust SIP details to see projected maturity value.
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:sip-calculator';
+
+    const DEFAULTS = {
+      monthlyInvestment: 5000,
+      returnRate: 12,
+      timePeriodYears: 10,
+    };
+
+    interface SavedState {
+      monthlyInvestment: number;
+      returnRate: number;
+      timePeriodYears: number;
+    }
+
+    interface SipResult {
+      totalValue: number;
+      totalInvested: number;
+      estimatedReturns: number;
+      investedPct: number;
+      gainsPct: number;
+    }
+
+    const monthlyInput = document.getElementById('monthly-investment') as HTMLInputElement;
+    const monthlySlider = document.getElementById('monthly-investment-slider') as HTMLInputElement;
+    const rateInput = document.getElementById('return-rate') as HTMLInputElement;
+    const rateSlider = document.getElementById('return-rate-slider') as HTMLInputElement;
+    const yearsInput = document.getElementById('time-period') as HTMLInputElement;
+    const yearsSlider = document.getElementById('time-period-slider') as HTMLInputElement;
+    const resetBtn = document.getElementById('reset-sip') as HTMLButtonElement;
+
+    const resultTotalValue = document.getElementById('result-total-value')!;
+    const resultInvested = document.getElementById('result-invested')!;
+    const resultReturns = document.getElementById('result-returns')!;
+    const resultNote = document.getElementById('result-note')!;
+    const breakdownRatio = document.getElementById('breakdown-ratio')!;
+    const barInvested = document.getElementById('bar-invested') as HTMLDivElement;
+    const barGains = document.getElementById('bar-gains') as HTMLDivElement;
+    const legendInvested = document.getElementById('legend-invested')!;
+    const legendGains = document.getElementById('legend-gains')!;
+
+    function formatInr(value: number): string {
+      if (!Number.isFinite(value)) return '₹0';
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0,
+      }).format(value);
+    }
+
+    function clamp(value: number, min: number, max: number): number {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    /**
+     * M = P × ({[1 + i]^n – 1} / i) × (1 + i)
+     * P = monthly investment, i = monthly rate, n = months
+     */
+    function calculateSip(monthly: number, annualRatePct: number, years: number): SipResult | null {
+      if (monthly <= 0 || years <= 0 || annualRatePct < 0) return null;
+
+      const P = monthly;
+      const n = Math.round(years * 12);
+      const totalInvested = P * n;
+
+      let totalValue: number;
+      if (annualRatePct === 0) {
+        totalValue = totalInvested;
+      } else {
+        const i = annualRatePct / 12 / 100;
+        const compound = Math.pow(1 + i, n);
+        totalValue = P * ((compound - 1) / i) * (1 + i);
+      }
+
+      if (!Number.isFinite(totalValue) || totalValue < 0) return null;
+
+      const estimatedReturns = Math.max(0, totalValue - totalInvested);
+      const investedPct = totalValue > 0 ? (totalInvested / totalValue) * 100 : 50;
+      const gainsPct = totalValue > 0 ? (estimatedReturns / totalValue) * 100 : 50;
+
+      return {
+        totalValue,
+        totalInvested,
+        estimatedReturns,
+        investedPct,
+        gainsPct,
+      };
+    }
+
+    function readState(): SavedState {
+      return {
+        monthlyInvestment: clamp(Number(monthlyInput.value) || 0, 500, 500_000),
+        returnRate: clamp(Number(rateInput.value) || 0, 0, 30),
+        timePeriodYears: clamp(Number(yearsInput.value) || 1, 1, 40),
+      };
+    }
+
+    function applyState(state: SavedState): void {
+      monthlyInput.value = String(state.monthlyInvestment);
+      monthlySlider.value = String(
+        clamp(state.monthlyInvestment, Number(monthlySlider.min), Number(monthlySlider.max))
+      );
+      rateInput.value = String(state.returnRate);
+      rateSlider.value = String(clamp(state.returnRate, Number(rateSlider.min), Number(rateSlider.max)));
+      yearsInput.value = String(state.timePeriodYears);
+      yearsSlider.value = String(
+        clamp(state.timePeriodYears, Number(yearsSlider.min), Number(yearsSlider.max))
+      );
+    }
+
+    function saveState(state: SavedState): void {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function loadState(): SavedState {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { ...DEFAULTS };
+        const parsed = JSON.parse(raw) as Partial<SavedState>;
+        return {
+          monthlyInvestment:
+            typeof parsed.monthlyInvestment === 'number' && parsed.monthlyInvestment > 0
+              ? parsed.monthlyInvestment
+              : DEFAULTS.monthlyInvestment,
+          returnRate:
+            typeof parsed.returnRate === 'number' && parsed.returnRate >= 0
+              ? parsed.returnRate
+              : DEFAULTS.returnRate,
+          timePeriodYears:
+            typeof parsed.timePeriodYears === 'number' && parsed.timePeriodYears > 0
+              ? parsed.timePeriodYears
+              : DEFAULTS.timePeriodYears,
+        };
+      } catch {
+        return { ...DEFAULTS };
+      }
+    }
+
+    function renderResults(result: SipResult | null, years: number): void {
+      if (!result) {
+        resultTotalValue.textContent = '₹0';
+        resultInvested.textContent = '₹0';
+        resultReturns.textContent = '₹0';
+        legendInvested.textContent = '₹0';
+        legendGains.textContent = '₹0';
+        breakdownRatio.textContent = '—';
+        barInvested.style.width = '50%';
+        barGains.style.width = '50%';
+        resultNote.textContent = 'Enter valid SIP details to calculate.';
+        return;
+      }
+
+      resultTotalValue.textContent = formatInr(Math.round(result.totalValue));
+      resultInvested.textContent = formatInr(Math.round(result.totalInvested));
+      resultReturns.textContent = formatInr(Math.round(result.estimatedReturns));
+      legendInvested.textContent = formatInr(Math.round(result.totalInvested));
+      legendGains.textContent = formatInr(Math.round(result.estimatedReturns));
+      breakdownRatio.textContent = `${result.investedPct.toFixed(0)}% / ${result.gainsPct.toFixed(0)}%`;
+      barInvested.style.width = `${result.investedPct}%`;
+      barGains.style.width = `${result.gainsPct}%`;
+      resultNote.textContent = `${years} year${years === 1 ? '' : 's'} at ${rateInput.value}% p.a. — estimates only, not financial advice.`;
+    }
+
+    function recalculate(): void {
+      const state = readState();
+      const result = calculateSip(state.monthlyInvestment, state.returnRate, state.timePeriodYears);
+      renderResults(result, state.timePeriodYears);
+      saveState(state);
+    }
+
+    function bindDualControl(
+      input: HTMLInputElement,
+      slider: HTMLInputElement,
+      onChange: () => void
+    ): void {
+      input.addEventListener('input', () => {
+        const val = Number(input.value);
+        if (Number.isFinite(val)) {
+          slider.value = String(clamp(val, Number(slider.min), Number(slider.max)));
+        }
+        onChange();
+      });
+      slider.addEventListener('input', () => {
+        input.value = slider.value;
+        onChange();
+      });
+    }
+
+    bindDualControl(monthlyInput, monthlySlider, recalculate);
+    bindDualControl(rateInput, rateSlider, recalculate);
+    bindDualControl(yearsInput, yearsSlider, recalculate);
+
+    resetBtn.addEventListener('click', () => {
+      applyState({ ...DEFAULTS });
+      recalculate();
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+    });
+
+    applyState(loadState());
+    recalculate();
+  </script>
+</ToolsLayout>

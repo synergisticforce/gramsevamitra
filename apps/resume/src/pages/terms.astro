@@ -1,0 +1,21 @@
+---
+import '@shared/styles/global.css';
+import BaseLayout from '@shared/layouts/BaseLayout.astro';
+import Header from '@shared/components/Header.astro';
+import Footer from '@shared/components/Footer.astro';
+import LegalPage from '@shared/components/LegalPage.astro';
+import TermsOfServiceContent from '@shared/components/legal/TermsOfServiceContent.astro';
+import { LEGAL_SEO } from '@shared/config/seo';
+---
+
+<BaseLayout
+  title={LEGAL_SEO.terms.resume.title}
+  description={LEGAL_SEO.terms.resume.description}
+  site="resume"
+>
+  <Header slot="header" active="resume" />
+  <LegalPage title="Terms of Service">
+    <TermsOfServiceContent />
+  </LegalPage>
+  <Footer slot="footer" />
+</BaseLayout>

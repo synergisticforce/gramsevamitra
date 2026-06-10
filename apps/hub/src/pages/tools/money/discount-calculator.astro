@@ -1,0 +1,264 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Discount & Margin Calculator';
+const toolDescription =
+  'Calculate final price after discount and optional sales tax — itemized receipt layout, 100% offline.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="money"
+>
+  <div class="discount-calculator">
+    <header class="mb-6">
+      <a href="/tools/money" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Money &amp; Gig Ledger
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">Shop smarter — your numbers never leave this device.</p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="discount-inputs-heading"
+      >
+        <h2 id="discount-inputs-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Price details
+        </h2>
+
+        <div class="mt-5 space-y-5">
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Original price (₹)</span>
+            <input id="original-price" type="number" min="0" step="1" inputmode="decimal" placeholder="1999" class="input-field w-full tabular-nums" />
+          </label>
+
+          <fieldset>
+            <legend class="mb-2 text-sm font-medium text-slate-300">Discount type</legend>
+            <div class="flex flex-wrap gap-2" role="radiogroup" aria-label="Discount type">
+              <label class="disc-pill">
+                <input type="radio" name="discount-type" value="percent" class="sr-only peer" checked />
+                <span class="disc-pill-label">Percentage (%)</span>
+              </label>
+              <label class="disc-pill">
+                <input type="radio" name="discount-type" value="flat" class="sr-only peer" />
+                <span class="disc-pill-label">Flat amount (₹)</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <label class="block">
+            <span id="discount-label" class="mb-1 block text-sm font-medium text-slate-300">Discount (%)</span>
+            <input id="discount-value" type="number" min="0" step="0.1" inputmode="decimal" placeholder="20" class="input-field w-full tabular-nums" />
+          </label>
+
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Sales tax (%) <span class="text-slate-500">optional</span></span>
+            <input id="tax-rate" type="number" min="0" max="100" step="0.1" inputmode="decimal" placeholder="0" class="input-field w-full tabular-nums" />
+          </label>
+        </div>
+
+        <button type="button" id="reset-discount" class="btn-secondary mt-6 w-full text-sm">Reset</button>
+      </section>
+
+      <section
+        class="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="discount-receipt-heading"
+        aria-live="polite"
+      >
+        <h2 id="discount-receipt-heading" class="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          Price receipt
+        </h2>
+
+        <div class="mt-5 rounded-xl border border-dashed border-slate-700 bg-slate-950/50 p-4 sm:p-5">
+          <div class="mb-4 border-b border-slate-800 pb-3 text-center">
+            <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Checkout summary</p>
+            <p id="receipt-summary" class="mt-1 text-sm font-medium text-emerald-400">Enter price details</p>
+          </div>
+
+          <dl class="space-y-3 text-sm">
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-400">Original price</dt>
+              <dd id="result-original" class="font-semibold tabular-nums text-white">₹0.00</dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-400">Discount</dt>
+              <dd id="result-discount" class="font-semibold tabular-nums text-amber-400">− ₹0.00</dd>
+            </div>
+            <div class="flex justify-between gap-3 border-t border-slate-800/80 pt-3">
+              <dt class="text-slate-400">Price after discount</dt>
+              <dd id="result-subtotal" class="font-semibold tabular-nums text-slate-200">₹0.00</dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-400">Sales tax</dt>
+              <dd id="result-tax" class="font-semibold tabular-nums text-amber-300">₹0.00</dd>
+            </div>
+            <div class="flex justify-between gap-3 rounded-lg border border-emerald-800/40 bg-emerald-950/30 px-3 py-3">
+              <dt class="font-medium text-emerald-200">Final price</dt>
+              <dd id="result-final" class="text-lg font-bold tabular-nums text-emerald-400">₹0.00</dd>
+            </div>
+            <div class="flex justify-between gap-3 border-t border-slate-800/80 pt-3">
+              <dt class="font-medium text-slate-300">Total saved</dt>
+              <dd id="result-saved" class="font-bold tabular-nums text-emerald-300">₹0.00</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <style>
+    .disc-pill-label {
+      @apply inline-flex cursor-pointer items-center rounded-full border border-slate-700 bg-slate-950/60 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-emerald-600 hover:text-white;
+    }
+    .disc-pill :global(input:checked) + .disc-pill-label {
+      @apply border-emerald-500 bg-emerald-950/50 text-emerald-300 ring-2 ring-emerald-400/40;
+    }
+    .disc-pill :global(input:focus-visible) + .disc-pill-label {
+      @apply outline-none ring-2 ring-emerald-400;
+    }
+  </style>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:discount-calculator';
+
+    const originalInput = document.getElementById('original-price') as HTMLInputElement;
+    const discountValueInput = document.getElementById('discount-value') as HTMLInputElement;
+    const taxInput = document.getElementById('tax-rate') as HTMLInputElement;
+    const discountLabel = document.getElementById('discount-label')!;
+    const resetBtn = document.getElementById('reset-discount') as HTMLButtonElement;
+    const receiptSummary = document.getElementById('receipt-summary')!;
+    const resultOriginal = document.getElementById('result-original')!;
+    const resultDiscount = document.getElementById('result-discount')!;
+    const resultSubtotal = document.getElementById('result-subtotal')!;
+    const resultTax = document.getElementById('result-tax')!;
+    const resultFinal = document.getElementById('result-final')!;
+    const resultSaved = document.getElementById('result-saved')!;
+
+    function formatInr(value: number): string {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value);
+    }
+
+    function getDiscountType(): 'percent' | 'flat' {
+      const checked = document.querySelector<HTMLInputElement>('input[name="discount-type"]:checked');
+      return checked?.value === 'flat' ? 'flat' : 'percent';
+    }
+
+    function updateDiscountLabel(): void {
+      const type = getDiscountType();
+      discountLabel.textContent = type === 'percent' ? 'Discount (%)' : 'Discount amount (₹)';
+      discountValueInput.placeholder = type === 'percent' ? '20' : '200';
+    }
+
+    function recalculate(): void {
+      const original = Math.max(0, Number(originalInput.value) || 0);
+      const discountVal = Math.max(0, Number(discountValueInput.value) || 0);
+      const taxRate = Math.max(0, Number(taxInput.value) || 0);
+      const type = getDiscountType();
+
+      let saved = 0;
+      if (type === 'percent') {
+        const pct = Math.min(100, discountVal);
+        saved = original * (pct / 100);
+      } else {
+        saved = Math.min(original, discountVal);
+      }
+
+      const subtotal = Math.max(0, original - saved);
+      const tax = subtotal * (taxRate / 100);
+      const final = subtotal + tax;
+
+      resultOriginal.textContent = formatInr(original);
+      resultDiscount.textContent = `− ${formatInr(saved)}`;
+      resultSubtotal.textContent = formatInr(subtotal);
+      resultTax.textContent = formatInr(tax);
+      resultFinal.textContent = formatInr(final);
+      resultSaved.textContent = formatInr(saved);
+
+      if (original <= 0) {
+        receiptSummary.textContent = 'Enter price details';
+      } else {
+        const discLabel = type === 'percent' ? `${Math.min(100, discountVal)}% off` : `₹${discountVal} off`;
+        receiptSummary.textContent = `${discLabel}${taxRate > 0 ? ` · ${taxRate}% tax` : ''}`;
+      }
+
+      saveState();
+    }
+
+    function saveState(): void {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            original: originalInput.value,
+            discount: discountValueInput.value,
+            tax: taxInput.value,
+            type: getDiscountType(),
+          })
+        );
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function loadState(): void {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw) as {
+          original?: string;
+          discount?: string;
+          tax?: string;
+          type?: 'percent' | 'flat';
+        };
+        if (parsed.original) originalInput.value = parsed.original;
+        if (parsed.discount) discountValueInput.value = parsed.discount;
+        if (parsed.tax) taxInput.value = parsed.tax;
+        const typeInput = document.querySelector<HTMLInputElement>(
+          `input[name="discount-type"][value="${parsed.type === 'flat' ? 'flat' : 'percent'}"]`
+        );
+        if (typeInput) typeInput.checked = true;
+      } catch {
+        /* ignore */
+      }
+      updateDiscountLabel();
+    }
+
+    [originalInput, discountValueInput, taxInput].forEach((el) => {
+      el.addEventListener('input', recalculate);
+    });
+
+    document.querySelectorAll<HTMLInputElement>('input[name="discount-type"]').forEach((el) => {
+      el.addEventListener('change', () => {
+        updateDiscountLabel();
+        recalculate();
+      });
+    });
+
+    resetBtn.addEventListener('click', () => {
+      originalInput.value = '';
+      discountValueInput.value = '';
+      taxInput.value = '';
+      const percentRadio = document.querySelector<HTMLInputElement>('input[name="discount-type"][value="percent"]');
+      if (percentRadio) percentRadio.checked = true;
+      updateDiscountLabel();
+      recalculate();
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+    });
+
+    loadState();
+    recalculate();
+  </script>
+</ToolsLayout>

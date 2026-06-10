@@ -1,0 +1,420 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+import { SITES } from '@shared/config/sites';
+
+const toolName = 'Job Application Tracker';
+const toolDescription =
+  'Offline Kanban board for tracking job applications — drag cards across Wishlist, Applied, Interview, Offer, and Rejected. Saved locally on your device.';
+const atsScannerUrl = SITES.resume.url;
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="career"
+>
+  <div class="job-tracker">
+    <header class="mb-4">
+      <a href="/tools/career" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Career Prep Room
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">Drag jobs across stages — your hunt stays private and offline.</p>
+    </header>
+
+    <a
+      href={atsScannerUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="group mb-5 flex items-center justify-between gap-3 rounded-xl border border-emerald-700/40 bg-gradient-to-r from-emerald-950/60 to-slate-900/60 px-4 py-3 transition hover:border-emerald-500/60 hover:from-emerald-900/40"
+    >
+      <p class="text-sm text-slate-300">
+        Is your resume ready for these applications?
+        <span class="font-semibold text-emerald-400 group-hover:text-emerald-300">
+          Try our free ATS Scanner →
+        </span>
+      </p>
+      <span class="hidden shrink-0 text-emerald-400 sm:inline" aria-hidden="true">↗</span>
+    </a>
+
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <p id="board-summary" class="text-xs text-slate-500">0 applications tracked</p>
+      <button type="button" id="add-job-btn" class="btn-primary px-4 py-2 text-sm">+ Add job</button>
+    </div>
+
+    <div
+      id="kanban-board"
+      class="kanban-board -mx-1 flex gap-3 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory scroll-smooth px-1 sm:mx-0 sm:grid sm:grid-cols-5 sm:gap-3 sm:overflow-visible sm:snap-none"
+      role="region"
+      aria-label="Job application Kanban board"
+    >
+      <!-- Columns injected by script -->
+    </div>
+  </div>
+
+  <!-- Add job modal -->
+  <dialog
+    id="job-modal"
+    class="w-[min(100%,24rem)] max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-0 text-white shadow-2xl backdrop:bg-black/60 open:flex open:flex-col"
+  >
+    <form id="job-form" method="dialog" class="flex flex-col">
+      <div class="border-b border-slate-800 px-5 py-4">
+        <h2 class="text-lg font-bold text-white">Add job application</h2>
+        <p class="mt-0.5 text-xs text-slate-400">New cards start in Wishlist — drag them as you progress.</p>
+      </div>
+
+      <div class="space-y-4 px-5 py-4">
+        <label class="block">
+          <span class="label">Company name</span>
+          <input
+            id="field-company"
+            type="text"
+            required
+            autocomplete="organization"
+            class="input-field w-full"
+            placeholder="e.g. Infosys"
+          />
+        </label>
+        <label class="block">
+          <span class="label">Role</span>
+          <input
+            id="field-role"
+            type="text"
+            required
+            autocomplete="organization-title"
+            class="input-field w-full"
+            placeholder="e.g. Software Engineer"
+          />
+        </label>
+        <label class="block">
+          <span class="label">Date applied</span>
+          <input id="field-date" type="date" class="input-field w-full" />
+        </label>
+        <label class="block">
+          <span class="label">Job link <span class="text-slate-500">(optional)</span></span>
+          <input
+            id="field-link"
+            type="url"
+            inputmode="url"
+            class="input-field w-full"
+            placeholder="https://…"
+          />
+        </label>
+      </div>
+
+      <div class="flex gap-2 border-t border-slate-800 px-5 py-4">
+        <button type="button" id="modal-cancel" class="btn-secondary flex-1 text-sm">Cancel</button>
+        <button type="submit" class="btn-primary flex-1 text-sm">Save job</button>
+      </div>
+    </form>
+  </dialog>
+
+  <style>
+    .kanban-column {
+      @apply flex min-h-[420px] min-w-[85vw] snap-center flex-col rounded-2xl border border-slate-800 bg-slate-900/50 sm:min-w-0;
+    }
+    .column-header {
+      @apply shrink-0 border-b border-slate-800 px-3 py-3;
+    }
+    .column-list {
+      @apply flex min-h-[120px] flex-1 flex-col gap-2 overflow-y-auto p-2;
+    }
+    .job-card {
+      @apply cursor-grab rounded-xl border border-slate-700 bg-slate-950/80 p-3 shadow-sm transition active:cursor-grabbing;
+    }
+    .job-card.sortable-chosen {
+      @apply border-emerald-500/60 shadow-lg ring-2 ring-emerald-500/30;
+    }
+    .sortable-ghost {
+      @apply opacity-40;
+    }
+    .sortable-drag {
+      @apply opacity-90;
+    }
+    #job-modal::backdrop {
+      background: rgb(0 0 0 / 0.65);
+    }
+  </style>
+
+  <script>
+    import Sortable from 'sortablejs';
+
+    const STORAGE_KEY = 'gsm-tools:job-tracker';
+
+    const COLUMNS = [
+      { id: 'wishlist', label: 'Wishlist', accent: 'text-slate-300' },
+      { id: 'applied', label: 'Applied', accent: 'text-sky-400' },
+      { id: 'interview', label: 'Interview', accent: 'text-amber-400' },
+      { id: 'offer', label: 'Offer', accent: 'text-emerald-400' },
+      { id: 'rejected', label: 'Rejected', accent: 'text-rose-400' },
+    ] as const;
+
+    type ColumnId = (typeof COLUMNS)[number]['id'];
+
+    interface JobCard {
+      id: string;
+      company: string;
+      role: string;
+      dateApplied: string;
+      link: string;
+    }
+
+    type BoardState = Record<ColumnId, JobCard[]>;
+
+    const boardEl = document.getElementById('kanban-board')!;
+    const summaryEl = document.getElementById('board-summary')!;
+    const addJobBtn = document.getElementById('add-job-btn') as HTMLButtonElement;
+    const modal = document.getElementById('job-modal') as HTMLDialogElement;
+    const jobForm = document.getElementById('job-form') as HTMLFormElement;
+    const modalCancel = document.getElementById('modal-cancel') as HTMLButtonElement;
+    const fieldCompany = document.getElementById('field-company') as HTMLInputElement;
+    const fieldRole = document.getElementById('field-role') as HTMLInputElement;
+    const fieldDate = document.getElementById('field-date') as HTMLInputElement;
+    const fieldLink = document.getElementById('field-link') as HTMLInputElement;
+
+    let state: BoardState = emptyBoard();
+    const sortableInstances: Sortable[] = [];
+
+    function emptyBoard(): BoardState {
+      return {
+        wishlist: [],
+        applied: [],
+        interview: [],
+        offer: [],
+        rejected: [],
+      };
+    }
+
+    function createId(): string {
+      return `job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function escapeHtml(text: string): string {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatDate(iso: string): string {
+      if (!iso) return 'No date set';
+      const d = new Date(iso + 'T12:00:00');
+      if (Number.isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function totalJobs(): number {
+      return COLUMNS.reduce((sum, col) => sum + state[col.id].length, 0);
+    }
+
+    function updateSummary(): void {
+      summaryEl.textContent = `${totalJobs()} application${totalJobs() === 1 ? '' : 's'} tracked`;
+    }
+
+    function updateColumnCounts(): void {
+      for (const col of COLUMNS) {
+        const badge = boardEl.querySelector(`[data-column="${col.id}"] .column-header span`);
+        if (badge) badge.textContent = String(state[col.id].length);
+      }
+      updateSummary();
+    }
+
+    function saveState(): void {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch {
+        /* ignore */
+      }
+      updateSummary();
+    }
+
+    function loadState(): BoardState {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return emptyBoard();
+        const parsed = JSON.parse(raw) as Partial<BoardState>;
+        const board = emptyBoard();
+        for (const col of COLUMNS) {
+          const items = parsed[col.id];
+          if (!Array.isArray(items)) continue;
+          board[col.id] = items
+            .filter((item): item is JobCard => item && typeof item === 'object' && typeof item.id === 'string')
+            .map((item) => ({
+              id: item.id,
+              company: String(item.company ?? ''),
+              role: String(item.role ?? ''),
+              dateApplied: String(item.dateApplied ?? ''),
+              link: String(item.link ?? ''),
+            }));
+        }
+        return board;
+      } catch {
+        return emptyBoard();
+      }
+    }
+
+    function renderCard(card: JobCard): string {
+      const linkHtml = card.link.trim()
+        ? `<a href="${escapeHtml(card.link)}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-xs font-semibold text-emerald-400 hover:text-emerald-300" onclick="event.stopPropagation()">View posting ↗</a>`
+        : '';
+
+      return `
+        <article class="job-card" data-id="${escapeHtml(card.id)}">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0 flex-1">
+              <h3 class="truncate text-sm font-bold text-white">${escapeHtml(card.company)}</h3>
+              <p class="mt-0.5 truncate text-xs text-slate-400">${escapeHtml(card.role)}</p>
+            </div>
+            <button
+              type="button"
+              class="delete-job shrink-0 rounded-lg p-1.5 text-slate-500 transition hover:bg-rose-950/50 hover:text-rose-400"
+              aria-label="Delete ${escapeHtml(card.company)} application"
+            >🗑</button>
+          </div>
+          <p class="mt-2 text-[10px] font-medium uppercase tracking-wide text-slate-500">${escapeHtml(formatDate(card.dateApplied))}</p>
+          ${linkHtml}
+        </article>
+      `;
+    }
+
+    function renderBoard(): void {
+      boardEl.innerHTML = COLUMNS.map((col) => {
+        const cards = state[col.id].map(renderCard).join('');
+        const count = state[col.id].length;
+        return `
+          <section class="kanban-column" data-column="${col.id}" aria-label="${col.label}">
+            <header class="column-header">
+              <div class="flex items-center justify-between gap-2">
+                <h2 class="text-sm font-bold ${col.accent}">${col.label}</h2>
+                <span class="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-bold tabular-nums text-slate-400">${count}</span>
+              </div>
+            </header>
+            <div class="column-list" data-column-list="${col.id}">
+              ${cards}
+            </div>
+          </section>
+        `;
+      }).join('');
+    }
+
+    function destroySortables(): void {
+      while (sortableInstances.length) {
+        sortableInstances.pop()?.destroy();
+      }
+    }
+
+    function readStateFromDom(): void {
+      const next = emptyBoard();
+      for (const col of COLUMNS) {
+        const list = boardEl.querySelector(`[data-column-list="${col.id}"]`);
+        if (!list) continue;
+        const cardEls = list.querySelectorAll<HTMLElement>('.job-card');
+        cardEls.forEach((el) => {
+          const id = el.dataset.id;
+          if (!id) return;
+          const existing = findCardById(id);
+          if (existing) next[col.id].push(existing);
+        });
+      }
+      state = next;
+    }
+
+    function findCardById(id: string): JobCard | undefined {
+      for (const col of COLUMNS) {
+        const found = state[col.id].find((c) => c.id === id);
+        if (found) return found;
+      }
+      return undefined;
+    }
+
+    function initSortables(): void {
+      destroySortables();
+      const lists = boardEl.querySelectorAll<HTMLElement>('[data-column-list]');
+      lists.forEach((list) => {
+        const instance = Sortable.create(list, {
+          group: 'job-tracker',
+          animation: 180,
+          easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+          delay: 120,
+          delayOnTouchOnly: true,
+          touchStartThreshold: 4,
+          forceFallback: false,
+          fallbackTolerance: 3,
+          ghostClass: 'sortable-ghost',
+          chosenClass: 'sortable-chosen',
+          dragClass: 'sortable-drag',
+          onEnd: () => {
+            readStateFromDom();
+            saveState();
+            updateColumnCounts();
+          },
+        });
+        sortableInstances.push(instance);
+      });
+    }
+
+    function bindBoardEvents(): void {
+      boardEl.addEventListener('click', (event) => {
+        const target = event.target as HTMLElement;
+        const deleteBtn = target.closest('.delete-job');
+        if (!deleteBtn) return;
+
+        const cardEl = deleteBtn.closest<HTMLElement>('.job-card');
+        const id = cardEl?.dataset.id;
+        if (!id) return;
+
+        for (const col of COLUMNS) {
+          state[col.id] = state[col.id].filter((c) => c.id !== id);
+        }
+        saveState();
+        renderBoard();
+        initSortables();
+      });
+    }
+
+    function openModal(): void {
+      fieldCompany.value = '';
+      fieldRole.value = '';
+      fieldDate.value = new Date().toISOString().slice(0, 10);
+      fieldLink.value = '';
+      modal.showModal();
+      fieldCompany.focus();
+    }
+
+    function closeModal(): void {
+      modal.close();
+    }
+
+    addJobBtn.addEventListener('click', openModal);
+    modalCancel.addEventListener('click', closeModal);
+
+    jobForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const company = fieldCompany.value.trim();
+      const role = fieldRole.value.trim();
+      if (!company || !role) return;
+
+      const card: JobCard = {
+        id: createId(),
+        company,
+        role,
+        dateApplied: fieldDate.value,
+        link: fieldLink.value.trim(),
+      };
+
+      state.wishlist.push(card);
+      saveState();
+      renderBoard();
+      initSortables();
+      closeModal();
+    });
+
+    state = loadState();
+    renderBoard();
+    bindBoardEvents();
+    initSortables();
+    saveState();
+  </script>
+</ToolsLayout>

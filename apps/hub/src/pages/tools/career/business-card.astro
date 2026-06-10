@@ -1,0 +1,243 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Business Card Generator';
+const toolDescription = 'Create downloadable vCard 3.0 contact files — name, title, company, phone, email, website.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="career"
+>
+  <div class="business-card-tool">
+    <header class="mb-6">
+      <a href="/tools/career" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Career Prep Room
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">Generate a vCard 3.0 file — preview and download locally, nothing uploaded.</p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="bc-form-heading"
+      >
+        <h2 id="bc-form-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Contact details
+        </h2>
+
+        <form id="bc-form" class="mt-5 space-y-4">
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Full name</span>
+            <input id="bc-name" type="text" autocomplete="name" placeholder="e.g. Priya Sharma" class="input-field w-full" />
+          </label>
+
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Job title</span>
+            <input id="bc-title" type="text" placeholder="e.g. Product Manager" class="input-field w-full" />
+          </label>
+
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Company</span>
+            <input id="bc-company" type="text" placeholder="e.g. Razorpay" class="input-field w-full" />
+          </label>
+
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Phone</span>
+            <input id="bc-phone" type="tel" autocomplete="tel" placeholder="e.g. +91 98765 43210" class="input-field w-full" />
+          </label>
+
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Email</span>
+            <input id="bc-email" type="email" autocomplete="email" placeholder="e.g. priya@example.com" class="input-field w-full" />
+          </label>
+
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Website</span>
+            <input id="bc-website" type="url" placeholder="e.g. https://example.com" class="input-field w-full" />
+          </label>
+        </form>
+
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+          <button type="button" id="bc-download" class="btn-primary flex-1 text-sm" disabled>Download .vcf</button>
+          <button type="button" id="bc-clear" class="btn-secondary flex-1 text-sm">Clear</button>
+        </div>
+      </section>
+
+      <section aria-labelledby="bc-preview-heading">
+        <h2 id="bc-preview-heading" class="mb-4 text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          vCard preview
+        </h2>
+
+        <article class="preview-card">
+          <div id="bc-card-visual" class="mb-4 rounded-xl border border-emerald-800/50 bg-slate-950/60 p-4">
+            <p id="bc-vis-name" class="text-lg font-bold text-white">Your Name</p>
+            <p id="bc-vis-title" class="text-sm text-emerald-400">Job Title</p>
+            <p id="bc-vis-company" class="mt-1 text-sm text-slate-400">Company</p>
+            <div class="mt-3 space-y-1 text-xs text-slate-500">
+              <p id="bc-vis-phone">—</p>
+              <p id="bc-vis-email">—</p>
+              <p id="bc-vis-website">—</p>
+            </div>
+          </div>
+
+          <pre id="bc-vcard-raw" class="vcard-raw" aria-label="vCard 3.0 string">BEGIN:VCARD
+VERSION:3.0
+FN:
+END:VCARD</pre>
+
+          <button type="button" id="bc-copy" class="copy-btn mt-3 w-full" disabled>Copy vCard text</button>
+        </article>
+      </section>
+    </div>
+  </div>
+
+  <style>
+    .preview-card {
+      @apply rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-4 shadow-lg sm:p-5;
+    }
+    .vcard-raw {
+      @apply max-h-64 overflow-y-auto whitespace-pre-wrap rounded-xl border border-slate-800 bg-slate-950/50 p-3 font-mono text-xs leading-relaxed text-slate-400;
+    }
+    .copy-btn {
+      @apply rounded-lg border border-emerald-700/60 bg-emerald-950/40 px-3 py-2 text-xs font-semibold text-emerald-400 transition hover:border-emerald-500 hover:text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 disabled:cursor-not-allowed disabled:opacity-40;
+    }
+  </style>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:business-card';
+
+    interface FormState {
+      name: string;
+      title: string;
+      company: string;
+      phone: string;
+      email: string;
+      website: string;
+    }
+
+    const fields = {
+      name: document.getElementById('bc-name') as HTMLInputElement,
+      title: document.getElementById('bc-title') as HTMLInputElement,
+      company: document.getElementById('bc-company') as HTMLInputElement,
+      phone: document.getElementById('bc-phone') as HTMLInputElement,
+      email: document.getElementById('bc-email') as HTMLInputElement,
+      website: document.getElementById('bc-website') as HTMLInputElement,
+    };
+
+    const visName = document.getElementById('bc-vis-name')!;
+    const visTitle = document.getElementById('bc-vis-title')!;
+    const visCompany = document.getElementById('bc-vis-company')!;
+    const visPhone = document.getElementById('bc-vis-phone')!;
+    const visEmail = document.getElementById('bc-vis-email')!;
+    const visWebsite = document.getElementById('bc-vis-website')!;
+    const vcardRaw = document.getElementById('bc-vcard-raw')!;
+    const downloadBtn = document.getElementById('bc-download') as HTMLButtonElement;
+    const copyBtn = document.getElementById('bc-copy') as HTMLButtonElement;
+    const clearBtn = document.getElementById('bc-clear') as HTMLButtonElement;
+
+    function escapeVCard(value: string): string {
+      return value.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+    }
+
+    function readForm(): FormState {
+      return {
+        name: fields.name.value.trim(),
+        title: fields.title.value.trim(),
+        company: fields.company.value.trim(),
+        phone: fields.phone.value.trim(),
+        email: fields.email.value.trim(),
+        website: fields.website.value.trim(),
+      };
+    }
+
+    function buildVCard(state: FormState): string {
+      const lines = ['BEGIN:VCARD', 'VERSION:3.0'];
+      if (state.name) lines.push(`FN:${escapeVCard(state.name)}`);
+      if (state.name) lines.push(`N:${escapeVCard(state.name)};;;;`);
+      if (state.title) lines.push(`TITLE:${escapeVCard(state.title)}`);
+      if (state.company) lines.push(`ORG:${escapeVCard(state.company)}`);
+      if (state.phone) lines.push(`TEL;TYPE=CELL:${escapeVCard(state.phone)}`);
+      if (state.email) lines.push(`EMAIL;TYPE=INTERNET:${escapeVCard(state.email)}`);
+      if (state.website) lines.push(`URL:${escapeVCard(state.website)}`);
+      lines.push('END:VCARD');
+      return lines.join('\r\n');
+    }
+
+    function render(): void {
+      const state = readForm();
+      const vcard = buildVCard(state);
+      const hasName = Boolean(state.name);
+
+      visName.textContent = state.name || 'Your Name';
+      visTitle.textContent = state.title || 'Job Title';
+      visCompany.textContent = state.company || 'Company';
+      visPhone.textContent = state.phone ? `📞 ${state.phone}` : '—';
+      visEmail.textContent = state.email ? `✉ ${state.email}` : '—';
+      visWebsite.textContent = state.website ? `🌐 ${state.website}` : '—';
+      vcardRaw.textContent = vcard;
+
+      downloadBtn.disabled = !hasName;
+      copyBtn.disabled = !hasName;
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function downloadVcf(): void {
+      const state = readForm();
+      if (!state.name) return;
+      const vcard = buildVCard(state);
+      const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const safeName = state.name.replace(/[^a-zA-Z0-9_-]/g, '_');
+      a.href = url;
+      a.download = `${safeName}.vcf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    Object.values(fields).forEach((el) => el.addEventListener('input', render));
+    downloadBtn.addEventListener('click', downloadVcf);
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(vcardRaw.textContent ?? '');
+        const orig = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = orig; }, 2000);
+      } catch {
+        copyBtn.textContent = 'Copy failed';
+        setTimeout(() => { copyBtn.textContent = 'Copy vCard text'; }, 2000);
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      Object.values(fields).forEach((el) => { el.value = ''; });
+      try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+      render();
+    });
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const state = JSON.parse(saved) as FormState;
+        fields.name.value = state.name ?? '';
+        fields.title.value = state.title ?? '';
+        fields.company.value = state.company ?? '';
+        fields.phone.value = state.phone ?? '';
+        fields.email.value = state.email ?? '';
+        fields.website.value = state.website ?? '';
+      }
+    } catch { /* ignore */ }
+
+    render();
+  </script>
+</ToolsLayout>

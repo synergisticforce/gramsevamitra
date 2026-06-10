@@ -1,0 +1,9 @@
+# Hub — gramsevamitra.com
+# Build from repo root: npm ci && npm run build --workspace=@gramsevamitra/hub
+
+[build]
+command = "cd ../.. && npm ci && node scripts/sync-public.mjs && node scripts/generate-pwa-icons.mjs && npm run build --workspace=@gramsevamitra/hub"
+publish = "dist"
+
+[build.environment]
+NODE_VERSION = "20"

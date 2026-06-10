@@ -1,0 +1,429 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import ToolGridCard from '../../../components/tools/ToolGridCard.astro';
+import { getWorkspaceMeta, getWorkspaceTools } from '../../../config/toolsRegistry';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const workspace = getWorkspaceMeta('life');
+const lifeTools = getWorkspaceTools('life');
+---
+
+<ToolsLayout
+  title={formatSeoTitle(workspace.label, 'Free Offline Tools')}
+  description={workspace.description}
+  activeNav="home"
+>
+  <div class="life-dashboard">
+    <header class="mb-5">
+      <a href="/tools" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← All utilities
+      </a>
+      <div class="mt-3 flex items-start gap-3">
+        <span class="text-3xl" aria-hidden="true">{workspace.emoji}</span>
+        <div>
+          <h1 class="text-2xl font-extrabold text-white sm:text-3xl">{workspace.label}</h1>
+          <p class="mt-1 max-w-2xl text-sm text-slate-400">{workspace.description}</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Widget grid -->
+    <div class="grid gap-4 lg:grid-cols-2">
+      <!-- Widget 1: Pomodoro -->
+      <section
+        class="widget-card lg:col-span-2"
+        aria-labelledby="pomodoro-heading"
+      >
+        <h2 id="pomodoro-heading" class="widget-title">Pomodoro focus timer</h2>
+        <div class="mt-4 flex flex-col items-center">
+          <p
+            id="pomodoro-display"
+            class="text-6xl font-extrabold tabular-nums tracking-tight text-emerald-400 sm:text-7xl"
+            aria-live="polite"
+          >
+            25:00
+          </p>
+          <p id="pomodoro-status" class="mt-2 text-sm text-slate-400">Ready to focus</p>
+          <div class="mt-5 flex flex-wrap justify-center gap-2">
+            <button type="button" id="pomodoro-start" class="btn-primary min-w-[5.5rem] text-sm">Start</button>
+            <button type="button" id="pomodoro-pause" class="btn-secondary min-w-[5.5rem] text-sm" disabled>
+              Pause
+            </button>
+            <button type="button" id="pomodoro-reset" class="btn-secondary min-w-[5.5rem] text-sm">Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Widget 2: Habits -->
+      <section class="widget-card" aria-labelledby="habits-heading">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 id="habits-heading" class="widget-title">Daily habits</h2>
+          <button type="button" id="habits-reset-today" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300">
+            Reset all for today
+          </button>
+        </div>
+
+        <form id="habit-form" class="mt-4 flex gap-2">
+          <label class="sr-only" for="habit-input">New habit</label>
+          <input
+            id="habit-input"
+            type="text"
+            placeholder="Add a habit…"
+            class="input-field min-w-0 flex-1 text-sm"
+            autocomplete="off"
+            maxlength="120"
+          />
+          <button type="submit" class="btn-primary shrink-0 px-3 py-2 text-sm">Add</button>
+        </form>
+
+        <ul id="habit-list" class="mt-4 space-y-2" aria-label="Habit checklist"></ul>
+        <p id="habit-empty" class="mt-4 text-center text-sm text-slate-500">No habits yet — add your first above.</p>
+      </section>
+
+      <!-- Widget 3: Hydration -->
+      <section class="widget-card" aria-labelledby="water-heading">
+        <h2 id="water-heading" class="widget-title">Hydration</h2>
+        <p class="mt-1 text-xs text-slate-500">Daily goal: 8 glasses</p>
+
+        <div class="mt-5 flex flex-col items-center">
+          <p id="water-count" class="text-4xl font-extrabold tabular-nums text-sky-400" aria-live="polite">0/8</p>
+
+          <div class="mt-4 flex w-full max-w-xs gap-2" id="water-glasses" aria-hidden="true">
+            <!-- Filled by script -->
+          </div>
+
+          <div class="mt-5 flex gap-3">
+            <button
+              type="button"
+              id="water-minus"
+              class="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-700 bg-slate-950 text-xl font-bold text-white transition hover:border-slate-500 disabled:opacity-40"
+              aria-label="Remove one glass"
+              disabled
+            >
+              −
+            </button>
+            <button
+              type="button"
+              id="water-plus"
+              class="flex h-12 w-12 items-center justify-center rounded-xl border border-sky-800/60 bg-sky-950/40 text-xl font-bold text-sky-300 transition hover:border-sky-500 hover:bg-sky-900/40"
+              aria-label="Add one glass"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Micro-tools grid -->
+    <section class="mt-10" aria-labelledby="life-tools-heading">
+      <h2 id="life-tools-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+        {lifeTools.length} wellness &amp; focus tools
+      </h2>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {lifeTools.map((tool) => (
+          <ToolGridCard tool={tool} />
+        ))}
+      </div>
+    </section>
+  </div>
+
+  <style>
+    .widget-card {
+      @apply rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-xl sm:p-5;
+    }
+    .widget-title {
+      @apply text-sm font-semibold uppercase tracking-wider text-slate-400;
+    }
+    .habit-item {
+      @apply flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-950/50 px-3 py-2.5;
+    }
+    .habit-checkbox {
+      @apply h-5 w-5 shrink-0 cursor-pointer rounded border-slate-600 bg-slate-900 accent-emerald-500;
+    }
+    .water-glass {
+      @apply h-8 flex-1 rounded-lg border border-slate-700 bg-slate-950/60 transition;
+    }
+    .water-glass.filled {
+      @apply border-sky-600/50 bg-sky-500/30;
+    }
+  </style>
+
+  <script>
+    const HABITS_KEY = 'gsm-tools:life-habits';
+    const WATER_KEY = 'gsm-tools:life-water';
+    const POMODORO_DEFAULT = 25 * 60;
+    const WATER_GOAL = 8;
+
+    interface Habit {
+      id: string;
+      text: string;
+      checked: boolean;
+    }
+
+    interface HabitsState {
+      habits: Habit[];
+      date: string;
+    }
+
+    interface WaterState {
+      glasses: number;
+      date: string;
+    }
+
+    function todayKey(): string {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function createId(): string {
+      return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function escapeHtml(text: string): string {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    /* ── Pomodoro ── */
+    const pomodoroDisplay = document.getElementById('pomodoro-display')!;
+    const pomodoroStatus = document.getElementById('pomodoro-status')!;
+    const pomodoroStart = document.getElementById('pomodoro-start') as HTMLButtonElement;
+    const pomodoroPause = document.getElementById('pomodoro-pause') as HTMLButtonElement;
+    const pomodoroReset = document.getElementById('pomodoro-reset') as HTMLButtonElement;
+
+    let pomodoroRemaining = POMODORO_DEFAULT;
+    let pomodoroTimerId: ReturnType<typeof setInterval> | null = null;
+
+    function formatTime(seconds: number): string {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updatePomodoroUi(): void {
+      pomodoroDisplay.textContent = formatTime(pomodoroRemaining);
+      const running = pomodoroTimerId !== null;
+      pomodoroStart.disabled = running;
+      pomodoroPause.disabled = !running;
+      if (pomodoroRemaining === 0) {
+        pomodoroStatus.textContent = 'Session complete — take a break!';
+        pomodoroDisplay.classList.add('text-amber-400');
+        pomodoroDisplay.classList.remove('text-emerald-400');
+      } else if (running) {
+        pomodoroStatus.textContent = 'Focusing…';
+        pomodoroDisplay.classList.add('text-emerald-400');
+        pomodoroDisplay.classList.remove('text-amber-400');
+      } else {
+        pomodoroStatus.textContent = 'Ready to focus';
+        pomodoroDisplay.classList.add('text-emerald-400');
+        pomodoroDisplay.classList.remove('text-amber-400');
+      }
+    }
+
+    function stopPomodoroTimer(): void {
+      if (pomodoroTimerId !== null) {
+        clearInterval(pomodoroTimerId);
+        pomodoroTimerId = null;
+      }
+    }
+
+    function tickPomodoro(): void {
+      if (pomodoroRemaining <= 0) {
+        stopPomodoroTimer();
+        updatePomodoroUi();
+        return;
+      }
+      pomodoroRemaining -= 1;
+      updatePomodoroUi();
+      if (pomodoroRemaining === 0) stopPomodoroTimer();
+    }
+
+    pomodoroStart.addEventListener('click', () => {
+      if (pomodoroRemaining === 0) pomodoroRemaining = POMODORO_DEFAULT;
+      stopPomodoroTimer();
+      pomodoroTimerId = setInterval(tickPomodoro, 1000);
+      updatePomodoroUi();
+    });
+
+    pomodoroPause.addEventListener('click', () => {
+      stopPomodoroTimer();
+      updatePomodoroUi();
+    });
+
+    pomodoroReset.addEventListener('click', () => {
+      stopPomodoroTimer();
+      pomodoroRemaining = POMODORO_DEFAULT;
+      updatePomodoroUi();
+    });
+
+    /* ── Habits ── */
+    const habitForm = document.getElementById('habit-form') as HTMLFormElement;
+    const habitInput = document.getElementById('habit-input') as HTMLInputElement;
+    const habitList = document.getElementById('habit-list')!;
+    const habitEmpty = document.getElementById('habit-empty')!;
+    const habitsResetToday = document.getElementById('habits-reset-today') as HTMLButtonElement;
+
+    let habitsState: HabitsState = { habits: [], date: todayKey() };
+
+    function saveHabits(): void {
+      habitsState.date = todayKey();
+      try {
+        localStorage.setItem(HABITS_KEY, JSON.stringify(habitsState));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function loadHabits(): HabitsState {
+      try {
+        const raw = localStorage.getItem(HABITS_KEY);
+        if (!raw) return { habits: [], date: todayKey() };
+        const parsed = JSON.parse(raw) as HabitsState;
+        const habits = Array.isArray(parsed.habits)
+          ? parsed.habits
+              .filter((h) => h && typeof h.id === 'string')
+              .map((h) => ({
+                id: h.id,
+                text: String(h.text ?? ''),
+                checked: Boolean(h.checked),
+              }))
+          : [];
+        const date = typeof parsed.date === 'string' ? parsed.date : todayKey();
+        if (date !== todayKey()) {
+          return { habits: habits.map((h) => ({ ...h, checked: false })), date: todayKey() };
+        }
+        return { habits, date };
+      } catch {
+        return { habits: [], date: todayKey() };
+      }
+    }
+
+    function renderHabits(): void {
+      habitList.innerHTML = '';
+      const hasHabits = habitsState.habits.length > 0;
+      habitEmpty.classList.toggle('hidden', hasHabits);
+
+      habitsState.habits.forEach((habit) => {
+        const li = document.createElement('li');
+        li.className = 'habit-item';
+        li.dataset.id = habit.id;
+        li.innerHTML = `
+          <input type="checkbox" class="habit-checkbox" ${habit.checked ? 'checked' : ''} aria-label="${escapeHtml(habit.text)}" />
+          <span class="min-w-0 flex-1 text-sm ${habit.checked ? 'text-slate-500 line-through' : 'text-white'}">${escapeHtml(habit.text)}</span>
+          <button type="button" class="habit-delete shrink-0 rounded px-1.5 text-xs text-slate-500 hover:text-rose-400" aria-label="Delete habit">✕</button>
+        `;
+        habitList.appendChild(li);
+      });
+    }
+
+    habitForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const text = habitInput.value.trim();
+      if (!text) return;
+      habitsState.habits.push({ id: createId(), text, checked: false });
+      habitInput.value = '';
+      saveHabits();
+      renderHabits();
+    });
+
+    habitList.addEventListener('change', (event) => {
+      const target = event.target as HTMLElement;
+      if (!(target instanceof HTMLInputElement) || target.type !== 'checkbox') return;
+      const li = target.closest<HTMLElement>('.habit-item');
+      const id = li?.dataset.id;
+      if (!id) return;
+      const habit = habitsState.habits.find((h) => h.id === id);
+      if (!habit) return;
+      habit.checked = target.checked;
+      saveHabits();
+      renderHabits();
+    });
+
+    habitList.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
+      const deleteBtn = target.closest('.habit-delete');
+      if (!deleteBtn) return;
+      const li = deleteBtn.closest<HTMLElement>('.habit-item');
+      const id = li?.dataset.id;
+      if (!id) return;
+      habitsState.habits = habitsState.habits.filter((h) => h.id !== id);
+      saveHabits();
+      renderHabits();
+    });
+
+    habitsResetToday.addEventListener('click', () => {
+      habitsState.habits = habitsState.habits.map((h) => ({ ...h, checked: false }));
+      saveHabits();
+      renderHabits();
+    });
+
+    /* ── Hydration ── */
+    const waterCountEl = document.getElementById('water-count')!;
+    const waterGlassesEl = document.getElementById('water-glasses')!;
+    const waterPlus = document.getElementById('water-plus') as HTMLButtonElement;
+    const waterMinus = document.getElementById('water-minus') as HTMLButtonElement;
+
+    let waterState: WaterState = { glasses: 0, date: todayKey() };
+
+    function saveWater(): void {
+      waterState.date = todayKey();
+      try {
+        localStorage.setItem(WATER_KEY, JSON.stringify(waterState));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function loadWater(): WaterState {
+      try {
+        const raw = localStorage.getItem(WATER_KEY);
+        if (!raw) return { glasses: 0, date: todayKey() };
+        const parsed = JSON.parse(raw) as WaterState;
+        const date = typeof parsed.date === 'string' ? parsed.date : todayKey();
+        if (date !== todayKey()) return { glasses: 0, date: todayKey() };
+        return {
+          glasses: Math.max(0, Number(parsed.glasses) || 0),
+          date: todayKey(),
+        };
+      } catch {
+        return { glasses: 0, date: todayKey() };
+      }
+    }
+
+    function renderWater(): void {
+      const count = waterState.glasses;
+      waterCountEl.textContent = `${count}/${WATER_GOAL}`;
+      waterMinus.disabled = count <= 0;
+
+      waterGlassesEl.innerHTML = '';
+      for (let i = 0; i < WATER_GOAL; i++) {
+        const glass = document.createElement('div');
+        glass.className = `water-glass${i < count ? ' filled' : ''}`;
+        waterGlassesEl.appendChild(glass);
+      }
+    }
+
+    waterPlus.addEventListener('click', () => {
+      waterState.glasses += 1;
+      saveWater();
+      renderWater();
+    });
+
+    waterMinus.addEventListener('click', () => {
+      if (waterState.glasses <= 0) return;
+      waterState.glasses -= 1;
+      saveWater();
+      renderWater();
+    });
+
+    /* ── Init ── */
+    updatePomodoroUi();
+    habitsState = loadHabits();
+    renderHabits();
+    waterState = loadWater();
+    renderWater();
+  </script>
+</ToolsLayout>

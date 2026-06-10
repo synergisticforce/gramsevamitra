@@ -1,0 +1,226 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Pet Feeding Scheduler';
+const toolDescription =
+  'Set pet name, meals per day, and portion notes — localStorage schedule with daily feeding checklist.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="quick"
+>
+  <div class="pet-feeding">
+    <header class="mb-6">
+      <a href="/tools/quick" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Quick Tools Drawer
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">Track daily meals for your pet — data stays on this device only.</p>
+    </header>
+
+    <section
+      class="mb-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+      aria-labelledby="pf-setup-heading"
+    >
+      <h2 id="pf-setup-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+        Pet schedule
+      </h2>
+
+      <form id="pf-form" class="mt-5 space-y-4">
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-slate-300">Pet name</span>
+          <input id="pf-name" type="text" placeholder="e.g. Bruno" class="input-field w-full" />
+        </label>
+
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-slate-300">Meals per day</span>
+          <select id="pf-meals" class="input-field w-full">
+            <option value="1">1 meal</option>
+            <option value="2" selected>2 meals</option>
+            <option value="3">3 meals</option>
+            <option value="4">4 meals</option>
+          </select>
+        </label>
+
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-slate-300">Portion notes</span>
+          <textarea
+            id="pf-notes"
+            rows="2"
+            placeholder="e.g. 1 cup dry food morning, ½ cup evening"
+            class="input-field w-full resize-none text-sm"
+          ></textarea>
+        </label>
+      </form>
+
+      <button type="button" id="pf-save" class="btn-primary mt-4 w-full text-sm">Save schedule</button>
+    </section>
+
+    <section aria-labelledby="pf-checklist-heading">
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h2 id="pf-checklist-heading" class="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          Today's checklist
+        </h2>
+        <span id="pf-today" class="text-xs font-medium text-slate-500"></span>
+      </div>
+
+      <div id="pf-checklist" class="checklist-card">
+        <p class="text-sm text-slate-500">Save a pet schedule to see today's feeding checklist.</p>
+      </div>
+
+      <button type="button" id="pf-reset-day" class="btn-secondary mt-4 w-full text-sm hidden">Reset today's checklist</button>
+    </section>
+  </div>
+
+  <style>
+    .checklist-card {
+      @apply rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-4 shadow-lg sm:p-5;
+    }
+    .meal-item {
+      @apply flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-950/50 px-4 py-3;
+    }
+    .meal-item.done {
+      @apply border-emerald-800/50 bg-emerald-950/30;
+    }
+    .meal-check {
+      @apply h-5 w-5 shrink-0 cursor-pointer rounded border border-slate-600 accent-emerald-500;
+    }
+  </style>
+
+  <script>
+    const SCHEDULE_KEY = 'gsm-tools:pet-feeding-schedule';
+    const CHECKLIST_KEY = 'gsm-tools:pet-feeding-checklist';
+
+    interface Schedule {
+      name: string;
+      meals: number;
+      notes: string;
+    }
+
+    const nameEl = document.getElementById('pf-name') as HTMLInputElement;
+    const mealsEl = document.getElementById('pf-meals') as HTMLSelectElement;
+    const notesEl = document.getElementById('pf-notes') as HTMLTextAreaElement;
+    const saveBtn = document.getElementById('pf-save') as HTMLButtonElement;
+    const checklistEl = document.getElementById('pf-checklist')!;
+    const todayEl = document.getElementById('pf-today')!;
+    const resetBtn = document.getElementById('pf-reset-day') as HTMLButtonElement;
+
+    const MEAL_LABELS = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
+
+    function todayKey(): string {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function loadSchedule(): Schedule | null {
+      try {
+        const raw = localStorage.getItem(SCHEDULE_KEY);
+        return raw ? (JSON.parse(raw) as Schedule) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function saveSchedule(schedule: Schedule): void {
+      try {
+        localStorage.setItem(SCHEDULE_KEY, JSON.stringify(schedule));
+      } catch { /* ignore */ }
+    }
+
+    function loadChecklist(): Record<string, boolean[]> {
+      try {
+        const raw = localStorage.getItem(CHECKLIST_KEY);
+        return raw ? (JSON.parse(raw) as Record<string, boolean[]>) : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveChecklist(data: Record<string, boolean[]>): void {
+      try {
+        localStorage.setItem(CHECKLIST_KEY, JSON.stringify(data));
+      } catch { /* ignore */ }
+    }
+
+    function renderChecklist(): void {
+      const schedule = loadSchedule();
+      const dateKey = todayKey();
+      todayEl.textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' });
+
+      if (!schedule || !schedule.name) {
+        checklistEl.innerHTML = '<p class="text-sm text-slate-500">Save a pet schedule to see today\'s feeding checklist.</p>';
+        resetBtn.classList.add('hidden');
+        return;
+      }
+
+      resetBtn.classList.remove('hidden');
+      const allChecklists = loadChecklist();
+      const meals = schedule.meals;
+      if (!allChecklists[dateKey]) {
+        allChecklists[dateKey] = Array(meals).fill(false);
+      }
+      const checked = allChecklists[dateKey];
+
+      let html = `<p class="mb-4 text-sm text-slate-300">Feeding <strong class="text-white">${schedule.name}</strong> — ${meals} meal${meals > 1 ? 's' : ''} today</p>`;
+      if (schedule.notes) {
+        html += `<p class="mb-4 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-xs text-slate-400">${schedule.notes}</p>`;
+      }
+      html += '<ul class="space-y-2" id="pf-meal-list"></ul>';
+      checklistEl.innerHTML = html;
+
+      const list = document.getElementById('pf-meal-list')!;
+      for (let i = 0; i < meals; i++) {
+        const li = document.createElement('li');
+        li.className = `meal-item ${checked[i] ? 'done' : ''}`;
+        const label = MEAL_LABELS[i] ?? `Meal ${i + 1}`;
+        li.innerHTML = `
+          <input type="checkbox" class="meal-check" data-meal="${i}" ${checked[i] ? 'checked' : ''} id="meal-${i}" />
+          <label for="meal-${i}" class="flex-1 cursor-pointer text-sm ${checked[i] ? 'text-emerald-400 line-through' : 'text-white'}">${label}</label>
+        `;
+        li.querySelector('.meal-check')!.addEventListener('change', (e) => {
+          const idx = parseInt((e.target as HTMLInputElement).dataset.meal!, 10);
+          const data = loadChecklist();
+          if (!data[dateKey]) data[dateKey] = Array(meals).fill(false);
+          data[dateKey][idx] = (e.target as HTMLInputElement).checked;
+          saveChecklist(data);
+          renderChecklist();
+        });
+        list.appendChild(li);
+      }
+
+      const doneCount = checked.filter(Boolean).length;
+      const progress = document.createElement('p');
+      progress.className = 'mt-4 text-center text-xs text-slate-500';
+      progress.textContent = `${doneCount} of ${meals} meals completed`;
+      checklistEl.appendChild(progress);
+    }
+
+    saveBtn.addEventListener('click', () => {
+      const schedule: Schedule = {
+        name: nameEl.value.trim(),
+        meals: parseInt(mealsEl.value, 10) || 2,
+        notes: notesEl.value.trim(),
+      };
+      saveSchedule(schedule);
+      renderChecklist();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      const data = loadChecklist();
+      delete data[todayKey()];
+      saveChecklist(data);
+      renderChecklist();
+    });
+
+    const saved = loadSchedule();
+    if (saved) {
+      nameEl.value = saved.name ?? '';
+      mealsEl.value = String(saved.meals ?? 2);
+      notesEl.value = saved.notes ?? '';
+    }
+
+    renderChecklist();
+  </script>
+</ToolsLayout>

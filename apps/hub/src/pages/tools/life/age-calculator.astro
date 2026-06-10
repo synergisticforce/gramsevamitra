@@ -1,0 +1,233 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Age & Date Calculator';
+const toolDescription =
+  'Calculate exact age in years, months, and days — plus total days lived and birth weekday. 100% private, offline.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="home"
+>
+  <div class="age-calculator">
+    <header class="mb-6">
+      <a href="/tools/life" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Life &amp; Focus Tracker
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">Precise date math — your dates never leave this device.</p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="age-inputs-heading"
+      >
+        <h2 id="age-inputs-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Dates
+        </h2>
+
+        <div class="mt-5 space-y-4">
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Date of birth</span>
+            <input id="dob" type="date" class="input-field w-full" />
+          </label>
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Compare date</span>
+            <input id="compare-date" type="date" class="input-field w-full" />
+          </label>
+        </div>
+
+        <button type="button" id="reset-age" class="btn-secondary mt-6 w-full text-sm">Reset to today</button>
+      </section>
+
+      <section
+        class="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="age-results-heading"
+        aria-live="polite"
+      >
+        <h2 id="age-results-heading" class="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          Your age
+        </h2>
+
+        <div class="mt-5 text-center">
+          <p id="age-primary" class="text-3xl font-extrabold tabular-nums text-white sm:text-4xl">—</p>
+          <p id="age-secondary" class="mt-2 text-sm text-slate-400">Select a date of birth</p>
+        </div>
+
+        <dl class="mt-6 grid grid-cols-3 gap-3 text-center">
+          <div class="rounded-xl border border-slate-800 bg-slate-950/50 px-2 py-3">
+            <dt class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Years</dt>
+            <dd id="age-years" class="mt-1 text-2xl font-bold tabular-nums text-emerald-400">—</dd>
+          </div>
+          <div class="rounded-xl border border-slate-800 bg-slate-950/50 px-2 py-3">
+            <dt class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Months</dt>
+            <dd id="age-months" class="mt-1 text-2xl font-bold tabular-nums text-emerald-400">—</dd>
+          </div>
+          <div class="rounded-xl border border-slate-800 bg-slate-950/50 px-2 py-3">
+            <dt class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Days</dt>
+            <dd id="age-days" class="mt-1 text-2xl font-bold tabular-nums text-emerald-400">—</dd>
+          </div>
+        </dl>
+
+        <div class="mt-5 rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4 text-sm">
+          <div class="flex justify-between gap-2">
+            <span class="text-slate-400">Total days lived</span>
+            <span id="total-days" class="font-semibold tabular-nums text-white">—</span>
+          </div>
+          <div class="mt-2 flex justify-between gap-2 border-t border-slate-800 pt-2">
+            <span class="text-slate-400">Born on</span>
+            <span id="birth-weekday" class="font-semibold text-emerald-300">—</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:age-calculator';
+
+    const dobInput = document.getElementById('dob') as HTMLInputElement;
+    const compareInput = document.getElementById('compare-date') as HTMLInputElement;
+    const resetBtn = document.getElementById('reset-age') as HTMLButtonElement;
+    const agePrimary = document.getElementById('age-primary')!;
+    const ageSecondary = document.getElementById('age-secondary')!;
+    const ageYears = document.getElementById('age-years')!;
+    const ageMonths = document.getElementById('age-months')!;
+    const ageDays = document.getElementById('age-days')!;
+    const totalDaysEl = document.getElementById('total-days')!;
+    const birthWeekdayEl = document.getElementById('birth-weekday')!;
+
+    function todayIso(): string {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function parseDateOnly(iso: string): Date | null {
+      if (!iso) return null;
+      const [y, mo, da] = iso.split('-').map(Number);
+      if (!y || !mo || !da) return null;
+      const date = new Date(y, mo - 1, da);
+      if (date.getFullYear() !== y || date.getMonth() !== mo - 1 || date.getDate() !== da) return null;
+      return date;
+    }
+
+    function diffYmd(from: Date, to: Date): { years: number; months: number; days: number } {
+      let years = to.getFullYear() - from.getFullYear();
+      let months = to.getMonth() - from.getMonth();
+      let days = to.getDate() - from.getDate();
+
+      if (days < 0) {
+        months -= 1;
+        days += new Date(to.getFullYear(), to.getMonth(), 0).getDate();
+      }
+      if (months < 0) {
+        years -= 1;
+        months += 12;
+      }
+
+      return { years, months, days };
+    }
+
+    function daysBetween(from: Date, to: Date): number {
+      const ms = to.getTime() - from.getTime();
+      return Math.floor(ms / 86_400_000);
+    }
+
+    function formatWeekday(date: Date): string {
+      return new Intl.DateTimeFormat('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(
+        date
+      );
+    }
+
+    function renderEmpty(): void {
+      agePrimary.textContent = '—';
+      ageSecondary.textContent = 'Select a date of birth';
+      ageYears.textContent = '—';
+      ageMonths.textContent = '—';
+      ageDays.textContent = '—';
+      totalDaysEl.textContent = '—';
+      birthWeekdayEl.textContent = '—';
+    }
+
+    function recalculate(): void {
+      const dob = parseDateOnly(dobInput.value);
+      const compare = parseDateOnly(compareInput.value);
+
+      if (!dob || !compare) {
+        renderEmpty();
+        saveState();
+        return;
+      }
+
+      if (compare < dob) {
+        agePrimary.textContent = 'Invalid range';
+        ageSecondary.textContent = 'Compare date must be on or after date of birth.';
+        ageYears.textContent = '—';
+        ageMonths.textContent = '—';
+        ageDays.textContent = '—';
+        totalDaysEl.textContent = '—';
+        birthWeekdayEl.textContent = formatWeekday(dob);
+        saveState();
+        return;
+      }
+
+      const { years, months, days } = diffYmd(dob, compare);
+      const total = daysBetween(dob, compare);
+
+      agePrimary.textContent = `${years}y ${months}m ${days}d`;
+      ageSecondary.textContent = `As of ${formatWeekday(compare)}`;
+      ageYears.textContent = String(years);
+      ageMonths.textContent = String(months);
+      ageDays.textContent = String(days);
+      totalDaysEl.textContent = total.toLocaleString('en-IN');
+      birthWeekdayEl.textContent = formatWeekday(dob);
+
+      saveState();
+    }
+
+    function saveState(): void {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ dob: dobInput.value, compare: compareInput.value })
+        );
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function loadState(): void {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as { dob?: string; compare?: string };
+          if (parsed.dob) dobInput.value = parsed.dob;
+          if (parsed.compare) compareInput.value = parsed.compare;
+          return;
+        }
+      } catch {
+        /* ignore */
+      }
+      compareInput.value = todayIso();
+    }
+
+    dobInput.addEventListener('change', recalculate);
+    compareInput.addEventListener('change', recalculate);
+
+    resetBtn.addEventListener('click', () => {
+      compareInput.value = todayIso();
+      recalculate();
+    });
+
+    loadState();
+    if (!compareInput.value) compareInput.value = todayIso();
+    recalculate();
+  </script>
+</ToolsLayout>

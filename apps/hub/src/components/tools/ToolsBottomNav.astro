@@ -1,0 +1,60 @@
+---
+import { WORKSPACES } from '../../config/toolsRegistry';
+
+interface Props {
+  active?: 'home' | 'money' | 'writing' | 'career' | 'quick' | 'search';
+}
+
+const { active = 'home' } = Astro.props;
+
+const navItems = [
+  { id: 'home' as const, label: 'Home', emoji: '🏠', path: '/tools' },
+  ...WORKSPACES.filter((w) => w.id !== 'life').map((w) => ({
+    id: w.id as 'money' | 'writing' | 'career' | 'quick',
+    label: w.id === 'writing' ? 'Write' : w.label.split(' ')[0],
+    emoji: w.emoji,
+    path: w.path,
+  })),
+];
+---
+
+<nav
+  class="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] md:hidden"
+  aria-label="Tools workspace navigation"
+>
+  <ul class="mx-auto flex max-w-lg items-stretch justify-around">
+    {
+      navItems.map((item) => (
+        <li class="flex-1">
+          <a
+            href={item.path}
+            class:list={[
+              'flex flex-col items-center justify-center gap-0.5 px-0.5 py-2.5 text-[10px] font-semibold transition',
+              active === item.id ? 'text-emerald-400' : 'text-slate-400 hover:text-slate-200',
+            ]}
+            aria-current={active === item.id ? 'page' : undefined}
+          >
+            <span class="text-lg leading-none" aria-hidden="true">
+              {item.emoji}
+            </span>
+            <span>{item.label}</span>
+          </a>
+        </li>
+      ))
+    }
+    <li class="flex-1">
+      <button
+        type="button"
+        id="tools-search-trigger"
+        class:list={[
+          'flex w-full flex-col items-center justify-center gap-0.5 px-0.5 py-2.5 text-[10px] font-semibold transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-400',
+          active === 'search' ? 'text-emerald-400' : 'text-slate-400 hover:text-slate-200',
+        ]}
+        aria-label="Search tools"
+      >
+        <span class="text-lg leading-none" aria-hidden="true">🔍</span>
+        <span>Search</span>
+      </button>
+    </li>
+  </ul>
+</nav>

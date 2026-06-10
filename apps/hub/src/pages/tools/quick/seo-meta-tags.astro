@@ -1,0 +1,170 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'SEO Meta Tag Generator';
+const toolDescription =
+  'Generate HTML meta, Open Graph, and Twitter Card tags from title, description, URL, and image — copy ready.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="quick"
+>
+  <div class="seo-meta-tags">
+    <header class="mb-6">
+      <a href="/tools/quick" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Quick Tools Drawer
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">Build standard, OG, and Twitter meta tags — paste into your page head.</p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="seo-form-heading"
+      >
+        <h2 id="seo-form-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Page details
+        </h2>
+
+        <form id="seo-form" class="mt-5 space-y-4">
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Title</span>
+            <input id="seo-title" type="text" placeholder="e.g. GramSeva Mitra — Free Tools" class="input-field w-full" maxlength="70" />
+            <span id="seo-title-count" class="mt-1 block text-xs text-slate-500">0 / 70</span>
+          </label>
+
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Description</span>
+            <textarea id="seo-desc" rows="3" placeholder="Brief page description for search engines…" class="input-field w-full resize-none text-sm" maxlength="160"></textarea>
+            <span id="seo-desc-count" class="mt-1 block text-xs text-slate-500">0 / 160</span>
+          </label>
+
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">URL</span>
+            <input id="seo-url" type="url" placeholder="e.g. https://example.com/page" class="input-field w-full" />
+          </label>
+
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium text-slate-300">Image URL</span>
+            <input id="seo-image" type="url" placeholder="e.g. https://example.com/og-image.jpg" class="input-field w-full" />
+          </label>
+        </form>
+      </section>
+
+      <section aria-labelledby="seo-output-heading">
+        <div class="mb-3 flex items-center justify-between">
+          <h2 id="seo-output-heading" class="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+            Generated tags
+          </h2>
+          <button type="button" id="seo-copy" class="copy-btn">Copy all</button>
+        </div>
+        <textarea
+          id="seo-output"
+          rows="18"
+          readonly
+          class="input-field w-full resize-y font-mono text-xs text-emerald-300"
+          spellcheck="false"
+        ></textarea>
+      </section>
+    </div>
+  </div>
+
+  <style>
+    .copy-btn {
+      @apply rounded-lg border border-emerald-700/60 bg-emerald-950/40 px-3 py-1.5 text-xs font-semibold text-emerald-400 transition hover:border-emerald-500 hover:text-emerald-300;
+    }
+  </style>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:seo-meta-tags';
+
+    const titleEl = document.getElementById('seo-title') as HTMLInputElement;
+    const descEl = document.getElementById('seo-desc') as HTMLTextAreaElement;
+    const urlEl = document.getElementById('seo-url') as HTMLInputElement;
+    const imageEl = document.getElementById('seo-image') as HTMLInputElement;
+    const outputEl = document.getElementById('seo-output') as HTMLTextAreaElement;
+    const titleCount = document.getElementById('seo-title-count')!;
+    const descCount = document.getElementById('seo-desc-count')!;
+    const copyBtn = document.getElementById('seo-copy') as HTMLButtonElement;
+
+    function escapeAttr(s: string): string {
+      return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+
+    function buildTags(): string {
+      const title = titleEl.value.trim();
+      const desc = descEl.value.trim();
+      const url = urlEl.value.trim();
+      const image = imageEl.value.trim();
+      const lines: string[] = [];
+
+      if (title) lines.push(`<title>${escapeAttr(title)}</title>`);
+      if (desc) lines.push(`<meta name="description" content="${escapeAttr(desc)}">`);
+      lines.push(`<meta name="robots" content="index, follow">`);
+
+      if (title) lines.push(`<meta property="og:title" content="${escapeAttr(title)}">`);
+      if (desc) lines.push(`<meta property="og:description" content="${escapeAttr(desc)}">`);
+      if (url) {
+        lines.push(`<meta property="og:url" content="${escapeAttr(url)}">`);
+        lines.push(`<link rel="canonical" href="${escapeAttr(url)}">`);
+      }
+      if (image) lines.push(`<meta property="og:image" content="${escapeAttr(image)}">`);
+      lines.push(`<meta property="og:type" content="website">`);
+
+      if (title) lines.push(`<meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">`);
+      if (title) lines.push(`<meta name="twitter:title" content="${escapeAttr(title)}">`);
+      if (desc) lines.push(`<meta name="twitter:description" content="${escapeAttr(desc)}">`);
+      if (image) lines.push(`<meta name="twitter:image" content="${escapeAttr(image)}">`);
+
+      return lines.join('\n');
+    }
+
+    function render(): void {
+      titleCount.textContent = `${titleEl.value.length} / 70`;
+      descCount.textContent = `${descEl.value.length} / 160`;
+      titleCount.classList.toggle('text-amber-400', titleEl.value.length > 60);
+      descCount.classList.toggle('text-amber-400', descEl.value.length > 150);
+      outputEl.value = buildTags();
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          title: titleEl.value,
+          desc: descEl.value,
+          url: urlEl.value,
+          image: imageEl.value,
+        }));
+      } catch { /* ignore */ }
+    }
+
+    [titleEl, descEl, urlEl, imageEl].forEach((el) => el.addEventListener('input', render));
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(outputEl.value);
+        const orig = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = orig; }, 2000);
+      } catch {
+        copyBtn.textContent = 'Failed';
+        setTimeout(() => { copyBtn.textContent = 'Copy all'; }, 2000);
+      }
+    });
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved) as { title: string; desc: string; url: string; image: string };
+        titleEl.value = data.title ?? '';
+        descEl.value = data.desc ?? '';
+        urlEl.value = data.url ?? '';
+        imageEl.value = data.image ?? '';
+      }
+    } catch { /* ignore */ }
+
+    render();
+  </script>
+</ToolsLayout>

@@ -1,0 +1,248 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Format Converter';
+const toolDescription = 'Convert between CSV, JSON, and XML in the browser — parse and transform locally with error display.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="quick"
+>
+  <div class="format-converter">
+    <header class="mb-6">
+      <a href="/tools/quick" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Quick Tools Drawer
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">Paste data, pick source and target formats — conversion runs entirely offline.</p>
+    </header>
+
+    <section
+      class="mb-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+      aria-labelledby="fc-mode-heading"
+    >
+      <h2 id="fc-mode-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+        Conversion mode
+      </h2>
+
+      <div class="mt-4 flex flex-wrap gap-2" role="group" aria-label="Format selection">
+        <button type="button" class="mode-pill active" data-from="csv" data-to="json">CSV → JSON</button>
+        <button type="button" class="mode-pill" data-from="json" data-to="csv">JSON → CSV</button>
+        <button type="button" class="mode-pill" data-from="json" data-to="xml">JSON → XML</button>
+        <button type="button" class="mode-pill" data-from="xml" data-to="json">XML → JSON</button>
+        <button type="button" class="mode-pill" data-from="csv" data-to="xml">CSV → XML</button>
+        <button type="button" class="mode-pill" data-from="xml" data-to="csv">XML → CSV</button>
+      </div>
+
+      <p id="fc-mode-label" class="mt-3 text-xs text-emerald-400">CSV → JSON</p>
+    </section>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section aria-labelledby="fc-input-heading">
+        <h2 id="fc-input-heading" class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Input
+        </h2>
+        <textarea
+          id="fc-input"
+          rows="14"
+          placeholder="Paste your data here…"
+          class="input-field w-full resize-y font-mono text-xs"
+          spellcheck="false"
+        ></textarea>
+        <p id="fc-error" class="mt-2 hidden rounded-lg border border-rose-800/60 bg-rose-950/30 px-3 py-2 text-xs text-rose-300" role="alert"></p>
+      </section>
+
+      <section aria-labelledby="fc-output-heading">
+        <div class="mb-3 flex items-center justify-between">
+          <h2 id="fc-output-heading" class="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+            Output
+          </h2>
+          <button type="button" id="fc-copy" class="copy-btn" disabled>Copy</button>
+        </div>
+        <textarea
+          id="fc-output"
+          rows="14"
+          readonly
+          class="input-field w-full resize-y font-mono text-xs text-emerald-300"
+          spellcheck="false"
+        ></textarea>
+      </section>
+    </div>
+  </div>
+
+  <style>
+    .mode-pill {
+      @apply rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1.5 text-xs font-semibold text-slate-400 transition hover:border-slate-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-400;
+    }
+    .mode-pill.active {
+      @apply border-emerald-600 bg-emerald-950/50 text-emerald-300;
+    }
+    .copy-btn {
+      @apply rounded-lg border border-emerald-700/60 bg-emerald-950/40 px-3 py-1.5 text-xs font-semibold text-emerald-400 transition hover:border-emerald-500 hover:text-emerald-300 disabled:cursor-not-allowed disabled:opacity-40;
+    }
+  </style>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:format-converter';
+
+    let fromFmt = 'csv';
+    let toFmt = 'json';
+
+    const inputEl = document.getElementById('fc-input') as HTMLTextAreaElement;
+    const outputEl = document.getElementById('fc-output') as HTMLTextAreaElement;
+    const errorEl = document.getElementById('fc-error')!;
+    const modeLabel = document.getElementById('fc-mode-label')!;
+    const copyBtn = document.getElementById('fc-copy') as HTMLButtonElement;
+    const pills = document.querySelectorAll<HTMLButtonElement>('.mode-pill');
+
+    function parseCSV(text: string): Record<string, string>[] {
+      const lines = text.trim().split(/\r?\n/).filter(Boolean);
+      if (lines.length === 0) return [];
+      const headers = lines[0].split(',').map((h) => h.trim().replace(/^"|"$/g, ''));
+      return lines.slice(1).map((line) => {
+        const values = line.match(/("([^"]|"")*"|[^,]*)/g) ?? line.split(',');
+        const row: Record<string, string> = {};
+        headers.forEach((h, i) => {
+          let v = (values[i] ?? '').trim();
+          if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1, -1).replace(/""/g, '"');
+          row[h] = v;
+        });
+        return row;
+      });
+    }
+
+    function toCSV(data: unknown): string {
+      if (!Array.isArray(data)) throw new Error('JSON must be an array of objects for CSV conversion.');
+      if (data.length === 0) return '';
+      const headers = Object.keys(data[0] as object);
+      const escape = (v: unknown) => {
+        const s = String(v ?? '');
+        return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const rows = data.map((row) => headers.map((h) => escape((row as Record<string, unknown>)[h])).join(','));
+      return [headers.join(','), ...rows].join('\n');
+    }
+
+    function jsonToXml(obj: unknown, root = 'root', indent = 0): string {
+      const pad = '  '.repeat(indent);
+      if (obj === null || obj === undefined) return `${pad}<${root}/>`;
+      if (typeof obj !== 'object') {
+        return `${pad}<${root}>${String(obj).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</${root}>`;
+      }
+      if (Array.isArray(obj)) {
+        return obj.map((item, i) => jsonToXml(item, `${root.slice(0, -1) || 'item'}${i}`, indent)).join('\n');
+      }
+      const inner = Object.entries(obj as Record<string, unknown>)
+        .map(([k, v]) => jsonToXml(v, k.replace(/[^a-zA-Z0-9_-]/g, '_'), indent + 1))
+        .join('\n');
+      return `${pad}<${root}>\n${inner}\n${pad}</${root}>`;
+    }
+
+    function xmlToJson(xml: string): unknown {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xml, 'text/xml');
+      if (doc.querySelector('parsererror')) throw new Error('Invalid XML — check syntax.');
+      function nodeToObj(node: Element): unknown {
+        const children = Array.from(node.children);
+        if (children.length === 0) return node.textContent?.trim() ?? '';
+        const obj: Record<string, unknown> = {};
+        children.forEach((child) => {
+          const key = child.tagName;
+          const val = nodeToObj(child);
+          if (obj[key] !== undefined) {
+            if (!Array.isArray(obj[key])) obj[key] = [obj[key]];
+            (obj[key] as unknown[]).push(val);
+          } else {
+            obj[key] = val;
+          }
+        });
+        return obj;
+      }
+      return nodeToObj(doc.documentElement);
+    }
+
+    function convert(): void {
+      const text = inputEl.value.trim();
+      errorEl.classList.add('hidden');
+      errorEl.textContent = '';
+      outputEl.value = '';
+      copyBtn.disabled = true;
+
+      if (!text) return;
+
+      try {
+        let result = '';
+        if (fromFmt === 'csv' && toFmt === 'json') {
+          result = JSON.stringify(parseCSV(text), null, 2);
+        } else if (fromFmt === 'json' && toFmt === 'csv') {
+          result = toCSV(JSON.parse(text));
+        } else if (fromFmt === 'json' && toFmt === 'xml') {
+          const parsed = JSON.parse(text);
+          result = '<?xml version="1.0" encoding="UTF-8"?>\n' + jsonToXml(parsed, 'root');
+        } else if (fromFmt === 'xml' && toFmt === 'json') {
+          result = JSON.stringify(xmlToJson(text), null, 2);
+        } else if (fromFmt === 'csv' && toFmt === 'xml') {
+          const json = parseCSV(text);
+          result = '<?xml version="1.0" encoding="UTF-8"?>\n' + jsonToXml(json, 'rows');
+        } else if (fromFmt === 'xml' && toFmt === 'csv') {
+          result = toCSV(xmlToJson(text) as unknown[]);
+        } else {
+          throw new Error('Unsupported conversion.');
+        }
+        outputEl.value = result;
+        copyBtn.disabled = false;
+      } catch (err) {
+        errorEl.textContent = err instanceof Error ? err.message : 'Conversion failed.';
+        errorEl.classList.remove('hidden');
+      }
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ input: inputEl.value, from: fromFmt, to: toFmt }));
+      } catch { /* ignore */ }
+    }
+
+    pills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        pills.forEach((p) => p.classList.remove('active'));
+        pill.classList.add('active');
+        fromFmt = pill.dataset.from!;
+        toFmt = pill.dataset.to!;
+        modeLabel.textContent = `${fromFmt.toUpperCase()} → ${toFmt.toUpperCase()}`;
+        convert();
+      });
+    });
+
+    inputEl.addEventListener('input', convert);
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(outputEl.value);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);
+      } catch {
+        copyBtn.textContent = 'Failed';
+        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);
+      }
+    });
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved) as { input: string; from: string; to: string };
+        inputEl.value = data.input ?? '';
+        fromFmt = data.from ?? 'csv';
+        toFmt = data.to ?? 'json';
+        pills.forEach((p) => {
+          const active = p.dataset.from === fromFmt && p.dataset.to === toFmt;
+          p.classList.toggle('active', active);
+        });
+        modeLabel.textContent = `${fromFmt.toUpperCase()} → ${toFmt.toUpperCase()}`;
+      }
+    } catch { /* ignore */ }
+
+    convert();
+  </script>
+</ToolsLayout>

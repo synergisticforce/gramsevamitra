@@ -1,0 +1,206 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Skill Gap Analyzer';
+const toolDescription =
+  'Compare your skills against a job description — keyword extraction, matched vs missing skills, and match percentage.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="career"
+>
+  <div class="skill-gap-tool">
+    <header class="mb-6">
+      <a href="/tools/career" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Career Prep Room
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Paste your skills and a job description — analysis runs locally in your browser.
+      </p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="sg-input-heading"
+      >
+        <h2 id="sg-input-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Input
+        </h2>
+
+        <label class="mt-4 block">
+          <span class="mb-1 block text-sm font-medium text-slate-300">Your skills</span>
+          <textarea
+            id="sg-skills"
+            rows="6"
+            placeholder="e.g. Python, SQL, data analysis, Excel, stakeholder management, Agile…"
+            class="input-field w-full resize-y text-sm"
+          ></textarea>
+        </label>
+
+        <label class="mt-4 block">
+          <span class="mb-1 block text-sm font-medium text-slate-300">Job description</span>
+          <textarea
+            id="sg-jd"
+            rows="8"
+            placeholder="Paste the full job description here…"
+            class="input-field w-full resize-y text-sm"
+          ></textarea>
+        </label>
+
+        <button type="button" id="sg-analyze" class="btn-primary mt-4 w-full text-sm">Analyze gap</button>
+      </section>
+
+      <section aria-labelledby="sg-results-heading" class="space-y-4">
+        <h2 id="sg-results-heading" class="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          Results
+        </h2>
+
+        <div class="result-card text-center">
+          <p class="text-xs uppercase tracking-wider text-slate-500">Match score</p>
+          <p id="sg-score" class="mt-1 text-4xl font-bold text-emerald-400">—</p>
+          <div class="mx-auto mt-3 h-2 max-w-xs overflow-hidden rounded-full bg-slate-800">
+            <div id="sg-score-bar" class="h-full rounded-full bg-emerald-500 transition-all" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <article class="result-card">
+          <h3 class="text-sm font-bold text-emerald-400">Matched skills <span id="sg-matched-count" class="text-slate-500">(0)</span></h3>
+          <ul id="sg-matched" class="mt-3 flex flex-wrap gap-2">
+            <li class="text-xs text-slate-500">Run analysis to see matches.</li>
+          </ul>
+        </article>
+
+        <article class="result-card">
+          <h3 class="text-sm font-bold text-rose-400">Missing skills <span id="sg-missing-count" class="text-slate-500">(0)</span></h3>
+          <ul id="sg-missing" class="mt-3 flex flex-wrap gap-2">
+            <li class="text-xs text-slate-500">Run analysis to see gaps.</li>
+          </ul>
+        </article>
+      </section>
+    </div>
+  </div>
+
+  <style>
+    .result-card {
+      @apply rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-4 shadow-lg sm:p-5;
+    }
+    .skill-tag {
+      @apply rounded-lg border border-slate-700 bg-slate-950/60 px-2.5 py-1 text-xs font-medium text-slate-300;
+    }
+    .skill-tag.matched {
+      @apply border-emerald-800/60 bg-emerald-950/40 text-emerald-300;
+    }
+    .skill-tag.missing {
+      @apply border-rose-800/60 bg-rose-950/40 text-rose-300;
+    }
+  </style>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:skill-gap';
+
+    const STOP_WORDS = new Set([
+      'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from',
+      'as', 'is', 'was', 'are', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did',
+      'will', 'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need', 'dare', 'ought',
+      'used', 'it', 'its', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'we', 'they', 'them',
+      'their', 'our', 'your', 'my', 'his', 'her', 'who', 'whom', 'which', 'what', 'where', 'when', 'why', 'how',
+      'all', 'each', 'every', 'both', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not',
+      'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'also', 'now', 'here', 'there', 'then',
+      'once', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'under',
+      'again', 'further', 'any', 'work', 'working', 'role', 'job', 'team', 'company', 'experience', 'years',
+      'year', 'ability', 'able', 'including', 'required', 'preferred', 'strong', 'good', 'excellent',
+    ]);
+
+    const skillsEl = document.getElementById('sg-skills') as HTMLTextAreaElement;
+    const jdEl = document.getElementById('sg-jd') as HTMLTextAreaElement;
+    const analyzeBtn = document.getElementById('sg-analyze') as HTMLButtonElement;
+    const scoreEl = document.getElementById('sg-score')!;
+    const scoreBar = document.getElementById('sg-score-bar') as HTMLElement;
+    const matchedEl = document.getElementById('sg-matched')!;
+    const missingEl = document.getElementById('sg-missing')!;
+    const matchedCount = document.getElementById('sg-matched-count')!;
+    const missingCount = document.getElementById('sg-missing-count')!;
+
+    function extractKeywords(text: string): Set<string> {
+      const tokens = text
+        .toLowerCase()
+        .replace(/[^a-z0-9+#.\s-]/g, ' ')
+        .split(/[\s,;/|]+/)
+        .map((t) => t.replace(/^-+|-+$/g, '').trim())
+        .filter((t) => t.length >= 2 && !STOP_WORDS.has(t) && !/^\d+$/.test(t));
+
+      return new Set(tokens);
+    }
+
+    function renderTags(container: HTMLElement, items: string[], type: 'matched' | 'missing'): void {
+      container.innerHTML = '';
+      if (items.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'text-xs text-slate-500';
+        li.textContent = type === 'matched' ? 'No matches found.' : 'No gaps — great fit!';
+        container.appendChild(li);
+        return;
+      }
+      items.sort().forEach((skill) => {
+        const li = document.createElement('li');
+        li.className = `skill-tag ${type}`;
+        li.textContent = skill;
+        container.appendChild(li);
+      });
+    }
+
+    function analyze(): void {
+      const userSkills = extractKeywords(skillsEl.value);
+      const jdSkills = extractKeywords(jdEl.value);
+
+      if (jdSkills.size === 0) {
+        scoreEl.textContent = '—';
+        scoreBar.style.width = '0%';
+        matchedCount.textContent = '(0)';
+        missingCount.textContent = '(0)';
+        renderTags(matchedEl, [], 'matched');
+        renderTags(missingEl, [], 'missing');
+        return;
+      }
+
+      const matched: string[] = [];
+      const missing: string[] = [];
+
+      jdSkills.forEach((skill) => {
+        if (userSkills.has(skill)) matched.push(skill);
+        else missing.push(skill);
+      });
+
+      const pct = Math.round((matched.length / jdSkills.size) * 100);
+      scoreEl.textContent = `${pct}%`;
+      scoreBar.style.width = `${pct}%`;
+      matchedCount.textContent = `(${matched.length})`;
+      missingCount.textContent = `(${missing.length})`;
+      renderTags(matchedEl, matched, 'matched');
+      renderTags(missingEl, missing, 'missing');
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ skills: skillsEl.value, jd: jdEl.value }));
+      } catch { /* ignore */ }
+    }
+
+    analyzeBtn.addEventListener('click', analyze);
+    [skillsEl, jdEl].forEach((el) => el.addEventListener('input', analyze));
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved) as { skills: string; jd: string };
+        skillsEl.value = data.skills ?? '';
+        jdEl.value = data.jd ?? '';
+      }
+    } catch { /* ignore */ }
+
+    analyze();
+  </script>
+</ToolsLayout>

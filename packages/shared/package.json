@@ -1,0 +1,17 @@
+{
+  "name": "@gramsevamitra/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./styles/global.css": "./src/styles/global.css",
+    "./components/*": "./src/components/*",
+    "./layouts/*": "./src/layouts/*",
+    "./utils/*": "./src/utils/*",
+    "./lib/*": "./src/lib/*",
+    "./config/*": "./src/config/*"
+  },
+  "files": [
+    "src"
+  ]
+}

@@ -1,0 +1,366 @@
+---
+import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const toolName = 'Pay Stub Generator';
+const toolDescription =
+  'Generate simple salary pay stubs with earnings and deductions — preview and print from your browser, 100% offline.';
+---
+
+<ToolsLayout
+  title={formatSeoTitle(toolName, 'Free Online Tool')}
+  description={toolDescription}
+  activeNav="money"
+>
+  <div class="pay-stub-generator">
+    <header class="mb-6">
+      <a href="/tools/money" class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300">
+        ← Money &amp; Gig Ledger
+      </a>
+      <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Create a printable pay stub for records — runs entirely on your device.
+      </p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        class="no-print rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="stub-form-heading"
+      >
+        <h2 id="stub-form-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
+          Pay details
+        </h2>
+
+        <div class="mt-5 space-y-4">
+          <label class="block min-w-0">
+            <span class="mb-2 block text-sm font-medium text-slate-300">Employee name</span>
+            <input id="employee-name" type="text" placeholder="Full name" class="input-field w-full" autocomplete="name" />
+          </label>
+
+          <label class="block min-w-0">
+            <span class="mb-2 block text-sm font-medium text-slate-300">Employer name</span>
+            <input id="employer-name" type="text" placeholder="Company / Organisation" class="input-field w-full" autocomplete="organization" />
+          </label>
+
+          <label class="block min-w-0">
+            <span class="mb-2 block text-sm font-medium text-slate-300">Pay period</span>
+            <input id="pay-period" type="text" placeholder="e.g. 1 Apr 2026 – 30 Apr 2026" class="input-field w-full" />
+          </label>
+
+          <div class="rounded-xl border border-emerald-900/30 bg-emerald-950/20 px-4 py-4">
+            <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-emerald-400/80">Earnings</p>
+            <div class="space-y-3">
+              <label class="block min-w-0">
+                <span class="mb-1 block text-sm text-slate-300">Basic salary (₹)</span>
+                <input id="basic-salary" type="number" min="0" step="1" inputmode="decimal" class="input-field w-full tabular-nums" />
+              </label>
+              <label class="block min-w-0">
+                <span class="mb-1 block text-sm text-slate-300">HRA (₹)</span>
+                <input id="hra" type="number" min="0" step="1" inputmode="decimal" placeholder="0" class="input-field w-full tabular-nums" />
+              </label>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-amber-900/30 bg-amber-950/20 px-4 py-4">
+            <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-amber-400/80">Deductions</p>
+            <div class="space-y-3">
+              <label class="block min-w-0">
+                <span class="mb-1 block text-sm text-slate-300">PF / EPF (₹)</span>
+                <input id="deduction-pf" type="number" min="0" step="1" inputmode="decimal" placeholder="0" class="input-field w-full tabular-nums" />
+              </label>
+              <label class="block min-w-0">
+                <span class="mb-1 block text-sm text-slate-300">Professional tax (₹)</span>
+                <input id="deduction-pt" type="number" min="0" step="1" inputmode="decimal" placeholder="0" class="input-field w-full tabular-nums" />
+              </label>
+              <label class="block min-w-0">
+                <span class="mb-1 block text-sm text-slate-300">Other deductions (₹)</span>
+                <input id="deduction-other" type="number" min="0" step="1" inputmode="decimal" placeholder="0" class="input-field w-full tabular-nums" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-wrap gap-2">
+          <button type="button" id="print-stub" class="btn-primary flex-1 text-sm sm:flex-none">
+            Print / Save PDF
+          </button>
+          <button type="button" id="reset-stub" class="btn-secondary flex-1 text-sm sm:flex-none">
+            Reset
+          </button>
+        </div>
+      </section>
+
+      <section
+        class="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6"
+        aria-labelledby="stub-preview-heading"
+      >
+        <h2 id="stub-preview-heading" class="no-print text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          Preview
+        </h2>
+
+        <div id="stub-print-area" class="stub-document mt-5 rounded-xl border border-slate-700 bg-white p-5 text-slate-900 shadow-lg sm:p-6">
+          <div class="border-b border-slate-200 pb-4 text-center">
+            <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Salary pay stub</p>
+            <p id="preview-employer" class="mt-1 text-lg font-bold text-slate-900">Employer Name</p>
+            <p id="preview-period" class="mt-1 text-sm text-slate-600">Pay period</p>
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Employee</p>
+              <p id="preview-employee" class="mt-1 font-medium text-slate-800">Employee Name</p>
+            </div>
+            <div class="text-right">
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Net pay</p>
+              <p id="preview-net" class="mt-1 text-xl font-bold tabular-nums text-emerald-700">₹0.00</p>
+            </div>
+          </div>
+
+          <div class="mt-5 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-700">Earnings</p>
+              <dl class="space-y-1.5">
+                <div class="flex justify-between gap-2">
+                  <dt class="text-slate-600">Basic</dt>
+                  <dd id="preview-basic" class="tabular-nums font-medium">₹0.00</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt class="text-slate-600">HRA</dt>
+                  <dd id="preview-hra" class="tabular-nums font-medium">₹0.00</dd>
+                </div>
+                <div class="flex justify-between gap-2 border-t border-slate-200 pt-1.5 font-semibold">
+                  <dt class="text-slate-800">Gross</dt>
+                  <dd id="preview-gross" class="tabular-nums text-emerald-700">₹0.00</dd>
+                </div>
+              </dl>
+            </div>
+            <div>
+              <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-700">Deductions</p>
+              <dl class="space-y-1.5">
+                <div class="flex justify-between gap-2">
+                  <dt class="text-slate-600">PF / EPF</dt>
+                  <dd id="preview-pf" class="tabular-nums font-medium">₹0.00</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt class="text-slate-600">Prof. tax</dt>
+                  <dd id="preview-pt" class="tabular-nums font-medium">₹0.00</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt class="text-slate-600">Other</dt>
+                  <dd id="preview-other" class="tabular-nums font-medium">₹0.00</dd>
+                </div>
+                <div class="flex justify-between gap-2 border-t border-slate-200 pt-1.5 font-semibold">
+                  <dt class="text-slate-800">Total</dt>
+                  <dd id="preview-deductions" class="tabular-nums text-amber-700">₹0.00</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-center">
+            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-800">Net pay (take home)</p>
+            <p id="preview-net-bottom" class="mt-1 text-2xl font-extrabold tabular-nums text-emerald-800">₹0.00</p>
+          </div>
+
+          <p class="mt-4 text-center text-[10px] text-slate-400">This is a simplified stub for personal records only.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <style>
+    @media print {
+      :global(body *) {
+        visibility: hidden;
+      }
+      :global(#stub-print-area),
+      :global(#stub-print-area *) {
+        visibility: visible;
+      }
+      :global(#stub-print-area) {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 24px;
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+
+  <script>
+    const STORAGE_KEY = 'gsm-tools:pay-stub';
+
+    interface StubState {
+      employeeName: string;
+      employerName: string;
+      payPeriod: string;
+      basic: number;
+      hra: number;
+      pf: number;
+      pt: number;
+      other: number;
+    }
+
+    const DEFAULTS: StubState = {
+      employeeName: '',
+      employerName: '',
+      payPeriod: '',
+      basic: 45000,
+      hra: 18000,
+      pf: 5400,
+      pt: 200,
+      other: 0,
+    };
+
+    const employeeInput = document.getElementById('employee-name') as HTMLInputElement;
+    const employerInput = document.getElementById('employer-name') as HTMLInputElement;
+    const periodInput = document.getElementById('pay-period') as HTMLInputElement;
+    const basicInput = document.getElementById('basic-salary') as HTMLInputElement;
+    const hraInput = document.getElementById('hra') as HTMLInputElement;
+    const pfInput = document.getElementById('deduction-pf') as HTMLInputElement;
+    const ptInput = document.getElementById('deduction-pt') as HTMLInputElement;
+    const otherInput = document.getElementById('deduction-other') as HTMLInputElement;
+    const printBtn = document.getElementById('print-stub') as HTMLButtonElement;
+    const resetBtn = document.getElementById('reset-stub') as HTMLButtonElement;
+
+    const previewEmployer = document.getElementById('preview-employer')!;
+    const previewPeriod = document.getElementById('preview-period')!;
+    const previewEmployee = document.getElementById('preview-employee')!;
+    const previewNet = document.getElementById('preview-net')!;
+    const previewBasic = document.getElementById('preview-basic')!;
+    const previewHra = document.getElementById('preview-hra')!;
+    const previewGross = document.getElementById('preview-gross')!;
+    const previewPf = document.getElementById('preview-pf')!;
+    const previewPt = document.getElementById('preview-pt')!;
+    const previewOther = document.getElementById('preview-other')!;
+    const previewDeductions = document.getElementById('preview-deductions')!;
+    const previewNetBottom = document.getElementById('preview-net-bottom')!;
+
+    function formatInr(value: number): string {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value);
+    }
+
+    function readState(): StubState {
+      return {
+        employeeName: employeeInput.value.trim(),
+        employerName: employerInput.value.trim(),
+        payPeriod: periodInput.value.trim(),
+        basic: Math.max(0, Number(basicInput.value) || 0),
+        hra: Math.max(0, Number(hraInput.value) || 0),
+        pf: Math.max(0, Number(pfInput.value) || 0),
+        pt: Math.max(0, Number(ptInput.value) || 0),
+        other: Math.max(0, Number(otherInput.value) || 0),
+      };
+    }
+
+    function applyState(state: StubState): void {
+      employeeInput.value = state.employeeName;
+      employerInput.value = state.employerName;
+      periodInput.value = state.payPeriod;
+      basicInput.value = state.basic > 0 ? String(state.basic) : '';
+      hraInput.value = state.hra > 0 ? String(state.hra) : '';
+      pfInput.value = state.pf > 0 ? String(state.pf) : '';
+      ptInput.value = state.pt > 0 ? String(state.pt) : '';
+      otherInput.value = state.other > 0 ? String(state.other) : '';
+    }
+
+    function saveState(state: StubState): void {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function loadState(): StubState {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { ...DEFAULTS };
+        const parsed = JSON.parse(raw) as Partial<StubState>;
+        return {
+          employeeName: String(parsed.employeeName ?? ''),
+          employerName: String(parsed.employerName ?? ''),
+          payPeriod: String(parsed.payPeriod ?? ''),
+          basic: typeof parsed.basic === 'number' ? parsed.basic : DEFAULTS.basic,
+          hra: typeof parsed.hra === 'number' ? parsed.hra : DEFAULTS.hra,
+          pf: typeof parsed.pf === 'number' ? parsed.pf : DEFAULTS.pf,
+          pt: typeof parsed.pt === 'number' ? parsed.pt : DEFAULTS.pt,
+          other: typeof parsed.other === 'number' ? parsed.other : DEFAULTS.other,
+        };
+      } catch {
+        return { ...DEFAULTS };
+      }
+    }
+
+    function updatePreview(): void {
+      const state = readState();
+      const gross = state.basic + state.hra;
+      const deductions = state.pf + state.pt + state.other;
+      const net = Math.max(0, gross - deductions);
+
+      previewEmployer.textContent = state.employerName || 'Employer Name';
+      previewPeriod.textContent = state.payPeriod || 'Pay period';
+      previewEmployee.textContent = state.employeeName || 'Employee Name';
+      previewBasic.textContent = formatInr(state.basic);
+      previewHra.textContent = formatInr(state.hra);
+      previewGross.textContent = formatInr(gross);
+      previewPf.textContent = formatInr(state.pf);
+      previewPt.textContent = formatInr(state.pt);
+      previewOther.textContent = formatInr(state.other);
+      previewDeductions.textContent = formatInr(deductions);
+      previewNet.textContent = formatInr(net);
+      previewNetBottom.textContent = formatInr(net);
+
+      saveState(state);
+    }
+
+    [
+      employeeInput,
+      employerInput,
+      periodInput,
+      basicInput,
+      hraInput,
+      pfInput,
+      ptInput,
+      otherInput,
+    ].forEach((el) => {
+      el.addEventListener('input', updatePreview);
+    });
+
+    printBtn.addEventListener('click', () => {
+      updatePreview();
+      window.print();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      applyState({ ...DEFAULTS });
+      updatePreview();
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+    });
+
+    applyState(loadState());
+    if (!periodInput.value) {
+      const now = new Date();
+      const month = now.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+      periodInput.value = month;
+    }
+    updatePreview();
+  </script>
+</ToolsLayout>
