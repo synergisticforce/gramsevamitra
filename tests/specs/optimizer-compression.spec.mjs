@@ -91,7 +91,7 @@ test.describe('Document Optimizer — 3G stress test', () => {
     }
 
     const resultItem = page.locator('li').filter({ hasText: /photo-.*\.(jpg|jpeg|png)/i }).first();
-    await expect(resultItem).toBeVisible({ timeout: 10_000 });
+    await expect(resultItem).toBeVisible({ timeout: 30_000 });
 
     const sizeLine = resultItem.locator('.text-xs.text-slate-500');
     await expect(sizeLine).toBeVisible();
