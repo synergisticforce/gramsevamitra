@@ -12,6 +12,7 @@ const UTILITIES_ORIGIN = 'https://utilities.gramsevamitra.com';
 export default defineConfig({
   site: 'https://gramsevamitra.com',
   output: 'static',
+  trailingSlash: 'ignore',
   integrations: [
     tailwind({ configFile: '../../packages/shared/tailwind.config.mjs' }),
     react(),
@@ -28,7 +29,7 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait-primary',
         scope: `${UTILITIES_ORIGIN}/`,
-        start_url: `${UTILITIES_ORIGIN}/tools/`,
+        start_url: `${UTILITIES_ORIGIN}/tools`,
         icons: [
           {
             src: '/pwa-192.png',

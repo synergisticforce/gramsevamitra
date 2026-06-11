@@ -1,5 +1,3 @@
-# Canonical utilities subdomain — tools live at utilities.gramsevamitra.com
-/tools              https://utilities.gramsevamitra.com/tools              301
-/tools/*            https://utilities.gramsevamitra.com/tools/:splat       301
-
-# Unknown paths fall through to static 404.html (no SPA catch-all)
+# Tools routes are served directly by this deployment on both
+# gramsevamitra.com and utilities.gramsevamitra.com — no cross-host redirects.
+# Unknown paths fall through to static 404.html (no SPA catch-all).
