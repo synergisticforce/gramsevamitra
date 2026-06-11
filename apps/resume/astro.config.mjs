@@ -29,7 +29,7 @@ export default defineConfig({
       }),
     ],
     optimizeDeps: {
-      include: ['pdfjs-dist', 'react', 'react-dom', 'mammoth'],
+      include: ['pdfjs-dist', 'react', 'react-dom', 'mammoth', 'compromise'],
     },
     worker: {
       format: 'es',
