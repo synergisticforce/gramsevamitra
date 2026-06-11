@@ -4,22 +4,17 @@ import {
   PWA_INSTALLED_EVENT,
   dismissInstallBanner,
   initPwaInstall,
-  isIosSafari,
   isNativeInstallAvailable,
   isStandalone,
   triggerPwaInstall,
-  type PwaInstallReadyDetail,
 } from '../lib/pwaInstall';
 
 export default function InstallAppBanner() {
-  const [visible, setVisible] = useState(false);
-  const [iosMode, setIosMode] = useState(false);
-  const [iosHint, setIosHint] = useState(false);
+  const [canInstall, setCanInstall] = useState(false);
 
   const hide = useCallback(() => {
     dismissInstallBanner();
-    setVisible(false);
-    setIosHint(false);
+    setCanInstall(false);
   }, []);
 
   useEffect(() => {
@@ -27,15 +22,12 @@ export default function InstallAppBanner() {
 
     initPwaInstall();
 
-    const onReady = (event: Event) => {
-      const detail = (event as CustomEvent<PwaInstallReadyDetail>).detail;
-      const ios = Boolean(detail?.ios) || isIosSafari();
-      if (!ios && !isNativeInstallAvailable()) return;
-      setIosMode(ios);
-      setVisible(true);
-    };
+    const sync = () => setCanInstall(isNativeInstallAvailable());
 
-    const onInstalled = () => setVisible(false);
+    sync();
+
+    const onReady = () => sync();
+    const onInstalled = () => setCanInstall(false);
 
     window.addEventListener(PWA_INSTALL_READY_EVENT, onReady);
     window.addEventListener(PWA_INSTALLED_EVENT, onInstalled);
@@ -48,12 +40,8 @@ export default function InstallAppBanner() {
 
   const handleInstall = useCallback(async () => {
     const outcome = await triggerPwaInstall();
-    if (outcome === 'ios-hint') {
-      setIosHint(true);
-      return;
-    }
     if (outcome === 'accepted') {
-      setVisible(false);
+      setCanInstall(false);
       return;
     }
     if (outcome === 'dismissed') {
@@ -61,7 +49,7 @@ export default function InstallAppBanner() {
     }
   }, [hide]);
 
-  if (!visible) return null;
+  if (!canInstall) return null;
 
   return (
     <div
@@ -77,17 +65,6 @@ export default function InstallAppBanner() {
           <p className="text-sm font-semibold leading-snug text-white">
             Get the GramSeva App — Works offline. Zero MB storage.
           </p>
-          {iosHint && (
-            <p className="mt-1.5 text-xs leading-relaxed text-slate-300">
-              On iPhone: tap the <span className="font-semibold text-emerald-400">Share</span> button in
-              Safari, then choose <span className="font-semibold text-emerald-400">Add to Home Screen</span>.
-            </p>
-          )}
-          {!iosHint && iosMode && (
-            <p className="mt-1 text-xs text-slate-400">
-              Tap Install for step-by-step iOS instructions.
-            </p>
-          )}
         </div>
         <button
           type="button"

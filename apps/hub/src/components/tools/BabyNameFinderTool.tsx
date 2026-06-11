@@ -1,10 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
-
-/**
- * Seed dataset (~50 names). Replace this import with a 5,000+ name JSON bundle at:
- * `apps/hub/src/data/babyNames.json` (drop-in; keep the same shape).
- */
-import SEED_NAMES from '../../data/babyNamesSeed.json';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export interface BabyNameEntry {
   name: string;
@@ -14,19 +8,38 @@ export interface BabyNameEntry {
   meaning: string;
 }
 
-const NAMES: BabyNameEntry[] = SEED_NAMES as BabyNameEntry[];
-
 const ORIGINS = ['Indian', 'Arabic', 'Latin', 'Celtic', 'Global'] as const;
 const GENDERS = ['Boy', 'Girl', 'Unisex'] as const;
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 const SHORTLIST_KEY = 'gsm-tools:baby-names-shortlist';
+const DATA_URL = '/data/babyNames.json';
 
 function toggleInList(list: string[], value: string): string[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 }
 
+function NamesSkeleton() {
+  return (
+    <ul className="grid gap-3 sm:grid-cols-2" aria-busy="true" aria-label="Loading baby names">
+      {Array.from({ length: 8 }, (_, i) => (
+        <li
+          key={i}
+          className="animate-pulse rounded-xl border border-slate-800 bg-slate-900/50 p-3"
+        >
+          <div className="h-4 w-24 rounded bg-slate-700" />
+          <div className="mt-2 h-3 w-32 rounded bg-slate-800" />
+          <div className="mt-2 h-3 w-full rounded bg-slate-800" />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function BabyNameFinderTool() {
+  const [names, setNames] = useState<BabyNameEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [origins, setOrigins] = useState<string[]>([]);
   const [genders, setGenders] = useState<string[]>([]);
@@ -39,6 +52,33 @@ export default function BabyNameFinderTool() {
       return [];
     }
   });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadNames() {
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const res = await fetch(DATA_URL);
+        if (!res.ok) throw new Error(`Failed to load names (${res.status})`);
+        const data = (await res.json()) as BabyNameEntry[];
+        if (!cancelled) setNames(Array.isArray(data) ? data : []);
+      } catch {
+        if (!cancelled) {
+          setLoadError('Unable to load the name database. Please refresh and try again.');
+          setNames([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    void loadNames();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const persistShortlist = useCallback((next: string[]) => {
     setShortlist(next);
@@ -60,7 +100,7 @@ export default function BabyNameFinderTool() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return NAMES.filter((entry) => {
+    return names.filter((entry) => {
       if (origins.length && !origins.includes(entry.origin)) return false;
       if (genders.length && !genders.includes(entry.gender)) return false;
       if (letters.length && !letters.includes(entry.name[0]?.toUpperCase() ?? '')) return false;
@@ -74,7 +114,7 @@ export default function BabyNameFinderTool() {
       }
       return true;
     });
-  }, [search, origins, genders, letters]);
+  }, [names, search, origins, genders, letters]);
 
   const pillClass = (active: boolean) =>
     `rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
@@ -95,7 +135,8 @@ export default function BabyNameFinderTool() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="e.g. light, Kai…"
-            className="input-field w-full"
+            disabled={loading}
+            className="input-field w-full disabled:opacity-50"
           />
         </label>
 
@@ -107,6 +148,7 @@ export default function BabyNameFinderTool() {
                 key={origin}
                 type="button"
                 onClick={() => setOrigins((prev) => toggleInList(prev, origin))}
+                disabled={loading}
                 className={pillClass(origins.includes(origin))}
               >
                 {origin}
@@ -123,6 +165,7 @@ export default function BabyNameFinderTool() {
                 key={gender}
                 type="button"
                 onClick={() => setGenders((prev) => toggleInList(prev, gender))}
+                disabled={loading}
                 className={pillClass(genders.includes(gender))}
               >
                 {gender}
@@ -139,6 +182,7 @@ export default function BabyNameFinderTool() {
                 key={letter}
                 type="button"
                 onClick={() => setLetters((prev) => toggleInList(prev, letter))}
+                disabled={loading}
                 className={`${pillClass(letters.includes(letter))} px-2 py-1.5 text-center`}
                 aria-pressed={letters.includes(letter)}
               >
@@ -172,7 +216,7 @@ export default function BabyNameFinderTool() {
             <li className="text-xs text-slate-500">Tap ☆ on any name to add here.</li>
           ) : (
             shortlist.map((name) => {
-              const entry = NAMES.find((n) => n.name === name);
+              const entry = names.find((n) => n.name === name);
               return (
                 <li key={name} className="inline-flex items-center gap-1 rounded-lg border border-emerald-800/60 bg-emerald-950/40 px-2.5 py-1 text-xs font-medium text-emerald-300">
                   {name}
@@ -194,10 +238,29 @@ export default function BabyNameFinderTool() {
 
       <section>
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">
-          Names <span className="text-slate-600">({filtered.length})</span>
+          Names{' '}
+          <span className="text-slate-600">
+            ({loading ? '…' : filtered.length.toLocaleString()})
+          </span>
         </h2>
-        {filtered.length === 0 ? (
+
+        {loading && (
+          <div className="mb-4 flex items-center gap-2 text-sm text-emerald-300" role="status">
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
+            Loading name database…
+          </div>
+        )}
+
+        {loadError && (
+          <p className="rounded-lg border border-rose-800/50 bg-rose-950/30 px-3 py-2 text-sm text-rose-300" role="alert">
+            {loadError}
+          </p>
+        )}
+
+        {!loading && !loadError && filtered.length === 0 ? (
           <p className="text-center text-sm text-slate-500">No names match your filters.</p>
+        ) : loading ? (
+          <NamesSkeleton />
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2">
             {filtered.map((entry) => {
@@ -213,7 +276,9 @@ export default function BabyNameFinderTool() {
                       {entry.gender} · {entry.origin} · {entry.syllables} syllable
                       {entry.syllables === 1 ? '' : 's'}
                     </p>
-                    <p className="mt-1 text-xs text-slate-400">{entry.meaning}</p>
+                    {entry.meaning ? (
+                      <p className="mt-1 text-xs text-slate-400">{entry.meaning}</p>
+                    ) : null}
                   </div>
                   <button
                     type="button"

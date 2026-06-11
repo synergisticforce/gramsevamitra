@@ -27,6 +27,7 @@ const { active = 'hub' } = Astro.props;
       <li>
         <a
           href={SITES.hub.url}
+          data-astro-reload={active !== 'hub' ? true : undefined}
           class:list={[
             'transition hover:text-emerald-400',
             active === 'hub' ? 'text-emerald-400' : 'text-slate-300',
@@ -38,6 +39,7 @@ const { active = 'hub' } = Astro.props;
       <li>
         <a
           href={utilitiesHref('/tools')}
+          data-astro-reload={active !== 'utilities' ? true : undefined}
           class:list={[
             'transition hover:text-emerald-400',
             active === 'utilities' ? 'text-emerald-400' : 'text-slate-300',
@@ -49,6 +51,7 @@ const { active = 'hub' } = Astro.props;
       <li>
         <a
           href={SITES.optimizer.url}
+          data-astro-reload={active !== 'optimizer' ? true : undefined}
           class:list={[
             'transition hover:text-emerald-400',
             active === 'optimizer' ? 'text-emerald-400' : 'text-slate-300',
@@ -60,6 +63,7 @@ const { active = 'hub' } = Astro.props;
       <li>
         <a
           href={SITES.resume.url}
+          data-astro-reload={active !== 'resume' ? true : undefined}
           class:list={[
             'transition hover:text-emerald-400',
             active === 'resume' ? 'text-emerald-400' : 'text-slate-300',
@@ -71,6 +75,7 @@ const { active = 'hub' } = Astro.props;
       <li>
         <a
           href={SITES.pdf.url}
+          data-astro-reload={active !== 'pdf' ? true : undefined}
           class:list={[
             'transition hover:text-emerald-400',
             active === 'pdf' ? 'text-emerald-400' : 'text-slate-300',

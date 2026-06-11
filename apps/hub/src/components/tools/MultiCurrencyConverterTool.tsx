@@ -2,8 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const STORAGE_KEY = 'gsm-tools:multi-currency';
 const RATES_CACHE_KEY = 'gsm-tools:fx-rates-cache';
-const FRANKFURTER_LATEST = 'https://api.frankfurter.app/latest';
-const FRANKFURTER_CURRENCIES = 'https://api.frankfurter.app/currencies';
+const ER_API_LATEST = 'https://open.er-api.com/v6/latest/USD';
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 
 const POPULAR_INR_REFS = ['USD', 'EUR', 'GBP', 'AED', 'SGD', 'JPY', 'AUD', 'CAD'];
@@ -24,7 +23,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   KRW: '₩',
 };
 
-const DEFAULTS = { amount: 10000, from: 'INR', to: 'USD' };
+const DEFAULTS = { amount: 100, from: 'USD', to: 'INR' };
 
 interface SavedState {
   amount: number;
@@ -38,14 +37,30 @@ interface RatesCache {
   rates: Record<string, number>;
 }
 
+interface ErApiResponse {
+  result: string;
+  base_code: string;
+  rates: Record<string, number>;
+  time_last_update_utc?: string;
+}
+
 function formatAmount(value: number, currency: string): string {
   if (!Number.isFinite(value)) return '—';
   const zeroDec = ['JPY', 'KRW', 'IDR', 'VND'].includes(currency);
-  const formatted = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: zeroDec ? 0 : 2,
-    maximumFractionDigits: zeroDec ? 0 : 4,
-  }).format(value);
-  return `${CURRENCY_SYMBOLS[currency] ?? `${currency} `}${formatted}`;
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: zeroDec ? 0 : 2,
+      maximumFractionDigits: zeroDec ? 0 : 2,
+    }).format(value);
+  } catch {
+    const formatted = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: zeroDec ? 0 : 2,
+      maximumFractionDigits: zeroDec ? 0 : 2,
+    }).format(value);
+    return `${CURRENCY_SYMBOLS[currency] ?? `${currency} `}${formatted}`;
+  }
 }
 
 function formatRate(value: number): string {
@@ -82,26 +97,39 @@ async function fetchLiveRates(): Promise<{ rates: Record<string, number>; update
     return { rates: cached.rates, updatedAt: new Date(cached.fetchedAt) };
   }
 
-  const res = await fetch(FRANKFURTER_LATEST, { signal: AbortSignal.timeout(10000) });
+  const res = await fetch(ER_API_LATEST, { signal: AbortSignal.timeout(10000) });
   if (!res.ok) throw new Error(`Rates unavailable (${res.status})`);
-  const data = (await res.json()) as { base: string; rates: Record<string, number> };
-  const rates = { [data.base]: 1, ...data.rates };
-  writeCache(rates, data.base);
-  return { rates, updatedAt: new Date() };
+  const data = (await res.json()) as ErApiResponse;
+  if (data.result !== 'success' || !data.rates) {
+    throw new Error('Rates unavailable');
+  }
+  const rates = { ...data.rates };
+  if (!rates[data.base_code]) rates[data.base_code] = 1;
+  writeCache(rates, data.base_code);
+  const updatedAt = data.time_last_update_utc ? new Date(data.time_last_update_utc) : new Date();
+  return { rates, updatedAt };
 }
 
-async function fetchCurrencyList(): Promise<string[]> {
-  const res = await fetch(FRANKFURTER_CURRENCIES, { signal: AbortSignal.timeout(10000) });
-  if (!res.ok) throw new Error('Currency list unavailable');
-  const data = (await res.json()) as Record<string, string>;
-  return Object.keys(data).sort();
+function convertAmount(
+  amount: number,
+  from: string,
+  to: string,
+  rates: Record<string, number>
+): { converted: number; rate: number; inverseRate: number } | null {
+  const fromRate = rates[from];
+  const toRate = rates[to];
+  if (!fromRate || !toRate) return null;
+  const usdValue = amount / fromRate;
+  const converted = usdValue * toRate;
+  const rate = toRate / fromRate;
+  return { converted, rate, inverseRate: 1 / rate };
 }
 
 export default function MultiCurrencyConverterTool() {
   const [amount, setAmount] = useState(String(DEFAULTS.amount));
   const [from, setFrom] = useState(DEFAULTS.from);
   const [to, setTo] = useState(DEFAULTS.to);
-  const [eurRates, setEurRates] = useState<Record<string, number> | null>(null);
+  const [usdRates, setUsdRates] = useState<Record<string, number> | null>(null);
   const [codes, setCodes] = useState<string[]>([]);
   const [ratesUpdatedAt, setRatesUpdatedAt] = useState<string>('');
   const [ratesError, setRatesError] = useState<string | null>(null);
@@ -129,20 +157,17 @@ export default function MultiCurrencyConverterTool() {
       setLoadingRates(true);
       setRatesError(null);
       try {
-        const [{ rates, updatedAt }, currencyCodes] = await Promise.all([
-          fetchLiveRates(),
-          fetchCurrencyList(),
-        ]);
+        const { rates, updatedAt } = await fetchLiveRates();
         if (cancelled) return;
-        setEurRates(rates);
-        setCodes([...new Set([...currencyCodes, ...Object.keys(rates)])].sort());
+        setUsdRates(rates);
+        setCodes(Object.keys(rates).sort());
         setRatesUpdatedAt(
           updatedAt.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
         );
       } catch {
         if (!cancelled) {
           setRatesError('Unable to load live exchange rates. Check your connection and try again.');
-          setEurRates(null);
+          setUsdRates(null);
         }
       } finally {
         if (!cancelled) setLoadingRates(false);
@@ -158,16 +183,9 @@ export default function MultiCurrencyConverterTool() {
   const amountNum = Math.max(0, Number(amount) || 0);
 
   const result = useMemo(() => {
-    if (!eurRates || amountNum <= 0) return null;
-    const fromRate = eurRates[from];
-    const toRate = eurRates[to];
-    if (!fromRate || !toRate) return null;
-    const inEur = amountNum / fromRate;
-    const converted = inEur * toRate;
-    const rate = toRate / fromRate;
-    const inverseRate = fromRate / toRate;
-    return { converted, rate, inverseRate };
-  }, [eurRates, amountNum, from, to]);
+    if (!usdRates || amountNum <= 0) return null;
+    return convertAmount(amountNum, from, to, usdRates);
+  }, [usdRates, amountNum, from, to]);
 
   const persist = useCallback((next: SavedState) => {
     try {
@@ -209,8 +227,6 @@ export default function MultiCurrencyConverterTool() {
     }
   };
 
-  const inrRate = eurRates?.INR;
-
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
@@ -242,7 +258,7 @@ export default function MultiCurrencyConverterTool() {
               inputMode="decimal"
               value={amount}
               onChange={(e) => handleAmount(e.target.value)}
-              disabled={!eurRates}
+              disabled={!usdRates}
               className="input-field w-full tabular-nums"
             />
           </label>
@@ -253,7 +269,7 @@ export default function MultiCurrencyConverterTool() {
               <select
                 value={from}
                 onChange={(e) => handleFrom(e.target.value)}
-                disabled={!eurRates}
+                disabled={!usdRates}
                 className="select-field w-full py-2.5 text-sm"
               >
                 {codes.map((code) => (
@@ -268,7 +284,7 @@ export default function MultiCurrencyConverterTool() {
               <select
                 value={to}
                 onChange={(e) => handleTo(e.target.value)}
-                disabled={!eurRates}
+                disabled={!usdRates}
                 className="select-field w-full py-2.5 text-sm"
               >
                 {codes.map((code) => (
@@ -280,7 +296,7 @@ export default function MultiCurrencyConverterTool() {
             </label>
           </div>
 
-          <button type="button" onClick={swap} disabled={!eurRates} className="btn-secondary w-full text-sm">
+          <button type="button" onClick={swap} disabled={!usdRates} className="btn-secondary w-full text-sm">
             ⇅ Swap currencies
           </button>
         </div>
@@ -313,18 +329,24 @@ export default function MultiCurrencyConverterTool() {
             </p>
           </div>
 
-          {inrRate && eurRates && (
+          {usdRates?.INR && (
             <div className="rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4">
               <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-slate-500">
                 Popular rates (1 unit → INR)
               </p>
               <ul className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                {POPULAR_INR_REFS.filter((code) => eurRates[code]).map((code) => {
-                  const inInr = eurRates.INR / eurRates[code];
+                {POPULAR_INR_REFS.filter((code) => usdRates[code]).map((code) => {
+                  const inInr = usdRates.INR / usdRates[code];
                   return (
                     <li key={code} className="flex justify-between tabular-nums text-slate-400">
                       <span>{code}</span>
-                      <span className="font-medium text-slate-300">₹{inInr.toFixed(2)}</span>
+                      <span className="font-medium text-slate-300">
+                        {new Intl.NumberFormat('en-IN', {
+                          style: 'currency',
+                          currency: 'INR',
+                          maximumFractionDigits: 2,
+                        }).format(inInr)}
+                      </span>
                     </li>
                   );
                 })}

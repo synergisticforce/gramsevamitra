@@ -8,13 +8,22 @@ export type PwaInstallReadyDetail = {
 
 export type PwaInstallOutcome = 'accepted' | 'dismissed' | 'unavailable' | 'ios-hint';
 
-interface BeforeInstallPromptEvent extends Event {
+export interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-let deferredPrompt: BeforeInstallPromptEvent | null = null;
+declare global {
+  interface Window {
+    deferredPrompt: BeforeInstallPromptEvent | null;
+  }
+}
+
 let initialized = false;
+
+function setDeferredPrompt(event: BeforeInstallPromptEvent | null): void {
+  window.deferredPrompt = event;
+}
 
 export function isStandalone(): boolean {
   if (typeof window === 'undefined') return false;
@@ -52,18 +61,22 @@ export function dismissInstallBanner(): void {
 }
 
 export function isNativeInstallAvailable(): boolean {
-  return deferredPrompt !== null;
+  return typeof window !== 'undefined' && window.deferredPrompt !== null;
 }
 
 export function initPwaInstall(): void {
   if (initialized || typeof window === 'undefined') return;
   initialized = true;
 
+  if (typeof window.deferredPrompt === 'undefined') {
+    window.deferredPrompt = null;
+  }
+
   if (isStandalone() || wasInstallBannerDismissed()) return;
 
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
-    deferredPrompt = event as BeforeInstallPromptEvent;
+    setDeferredPrompt(event as BeforeInstallPromptEvent);
     window.dispatchEvent(
       new CustomEvent<PwaInstallReadyDetail>(PWA_INSTALL_READY_EVENT, {
         detail: { ios: false },
@@ -72,34 +85,23 @@ export function initPwaInstall(): void {
   });
 
   window.addEventListener('appinstalled', () => {
-    deferredPrompt = null;
+    setDeferredPrompt(null);
     dismissInstallBanner();
     window.dispatchEvent(new CustomEvent(PWA_INSTALLED_EVENT));
   });
-
-  if (isIosSafari()) {
-    window.dispatchEvent(
-      new CustomEvent<PwaInstallReadyDetail>(PWA_INSTALL_READY_EVENT, {
-        detail: { ios: true },
-      })
-    );
-  }
 }
 
 export async function triggerPwaInstall(): Promise<PwaInstallOutcome> {
-  if (isIosSafari()) {
-    dismissInstallBanner();
-    return 'ios-hint';
-  }
+  const promptEvent = window.deferredPrompt;
 
-  if (!deferredPrompt) {
+  if (!promptEvent) {
     return 'unavailable';
   }
 
   try {
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    deferredPrompt = null;
+    await promptEvent.prompt();
+    const { outcome } = await promptEvent.userChoice;
+    setDeferredPrompt(null);
 
     console.info(`[PWA] Install prompt outcome: ${outcome}`);
 
@@ -110,7 +112,7 @@ export async function triggerPwaInstall(): Promise<PwaInstallOutcome> {
     return outcome;
   } catch (err) {
     console.warn('[PWA] Install prompt failed:', err);
-    deferredPrompt = null;
+    setDeferredPrompt(null);
     return 'unavailable';
   }
 }

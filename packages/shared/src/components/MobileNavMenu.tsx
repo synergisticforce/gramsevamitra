@@ -111,6 +111,7 @@ export default function MobileNavMenu({ active = 'hub' }: Props) {
             <li key={key}>
               <a
                 href={href}
+                data-astro-reload={active !== key ? true : undefined}
                 onClick={close}
                 className={`block px-4 py-3.5 text-sm transition hover:bg-slate-800 ${
                   active === key ? 'font-semibold text-emerald-400' : 'text-slate-200'
