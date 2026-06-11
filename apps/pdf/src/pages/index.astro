@@ -14,7 +14,7 @@ const featuredTools = [
   },
   {
     name: 'Compress PDF',
-    description: 'Shrink file size for strict exam upload limits — extreme, balanced, or high-quality presets.',
+    description: 'Shrink file size for strict upload limits — extreme, balanced, or high-quality presets.',
     href: '/compress',
     icon: '📉',
   },
@@ -56,7 +56,7 @@ const tools = [
 
 <BaseLayout
   title={formatSeoTitle('Free PDF Tools', 'Merge, Split & More')}
-  description="Merge, split, compress, watermark, and convert PDFs entirely in your browser — zero uploads, built for exam documents."
+  description="Merge, split, compress, watermark, and convert PDFs entirely in your browser — zero uploads, built for professionals and teams."
   site="pdf"
 >
   <Header slot="header" active="pdf" />
@@ -75,10 +75,10 @@ const tools = [
           100% Private · Zero Uploads
         </p>
         <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-          PDF Tools for <span class="text-emerald-400">Exam Day</span>
+          Professional <span class="text-emerald-400">PDF Utilities</span>
         </h1>
         <p class="mt-5 text-base leading-relaxed text-slate-400 sm:text-lg">
-          Merge certificates, compress uploads, split annexures, watermark drafts, and convert photos — every operation runs locally
+          Merge documents, compress uploads, split pages, watermark drafts, and convert photos — every operation runs locally
           on your device. No server, no paywall, no app install.
         </p>
       </div>
@@ -89,6 +89,7 @@ const tools = [
           featuredTools.map((tool) => (
             <a
               href={tool.href}
+              data-astro-reload
               class="group flex min-h-[200px] flex-col rounded-2xl border-2 border-emerald-700/50 bg-gradient-to-br from-emerald-950/50 to-slate-900/70 p-6 transition hover:border-emerald-500 hover:from-emerald-950/70 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             >
               <span class="text-4xl" aria-hidden="true">
@@ -108,6 +109,7 @@ const tools = [
           tools.map((tool) => (
             <a
               href={tool.href}
+              data-astro-reload
               class="group flex min-h-[180px] flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-5 transition hover:border-emerald-700/60 hover:bg-slate-900/80 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             >
               <span class="text-3xl" aria-hidden="true">
@@ -124,6 +126,7 @@ const tools = [
       <div class="mt-10 text-center">
         <a
           href="/studio"
+          data-astro-reload
           class="inline-flex items-center gap-2 rounded-xl border border-emerald-800/50 bg-emerald-950/30 px-5 py-3 text-sm font-semibold text-emerald-300 transition hover:border-emerald-600 hover:bg-emerald-950/50"
         >
           Browse all 20+ PDF utilities

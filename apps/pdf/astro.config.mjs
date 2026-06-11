@@ -11,6 +11,7 @@ const sharedRoot = path.resolve(__dirname, '../../packages/shared/src');
 export default defineConfig({
   site: 'https://pdf.gramsevamitra.com',
   output: 'static',
+  trailingSlash: 'ignore',
   integrations: [
     tailwind({ configFile: '../../packages/shared/tailwind.config.mjs' }),
     react(),
@@ -30,7 +31,7 @@ export default defineConfig({
         name: 'PDF Tools — GramSeva Mitra',
         shortName: 'PDF Tools',
         description:
-          'Free PDF compress, merge, split, watermark, sign, and unlock — private browser utilities for exam documents',
+          'Free PDF compress, merge, split, watermark, sign, and unlock — professional document utilities that run privately in your browser',
         navigateFallback: '/404.html',
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       }),

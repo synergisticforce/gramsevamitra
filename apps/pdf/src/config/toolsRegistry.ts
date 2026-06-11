@@ -91,7 +91,7 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
   {
     id: 'merge-pdf',
     name: 'Merge Multiple PDFs',
-    description: 'Drag, reorder, and combine certificates and marksheets into one submission-ready file.',
+    description: 'Drag, reorder, and combine multiple PDFs into one polished, submission-ready file.',
     keywords: ['jodna', 'merge', 'combine', 'join', 'ek file', 'mila dena', 'multiple'],
     category: 'popular',
     isFree: true,
@@ -127,7 +127,7 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
   {
     id: 'reorder-pages',
     name: 'Reorder PDF Pages',
-    description: 'Change page sequence when certificates or annexures are in the wrong order.',
+    description: 'Change page sequence when documents are in the wrong order.',
     keywords: ['reorder', 'sequence', 'order change', 'kram', 'arrange pages'],
     category: 'edit',
     isFree: true,

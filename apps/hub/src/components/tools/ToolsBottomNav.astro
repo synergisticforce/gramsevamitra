@@ -15,12 +15,13 @@ function navLabel(id: (typeof WORKSPACES)[number]['id']): string {
 }
 
 const navItems = [
-  { id: 'home' as const, label: 'Home', emoji: '🏠', path: utilitiesHref('/tools') },
+  { id: 'home' as const, label: 'Home', emoji: '🏠', path: '/', reload: true },
   ...WORKSPACES.map((w) => ({
     id: w.id as 'money' | 'writing' | 'career' | 'life' | 'quick',
     label: navLabel(w.id),
     emoji: w.emoji,
     path: utilitiesHref(w.path),
+    reload: false,
   })),
 ];
 ---
@@ -35,6 +36,7 @@ const navItems = [
         <li class="min-w-0 flex-1">
           <a
             href={item.path}
+            data-astro-reload={item.reload ? true : undefined}
             class:list={[
               'flex flex-col items-center justify-center gap-0.5 px-0.5 py-2 text-[9px] font-semibold transition sm:text-[10px]',
               active === item.id ? 'text-emerald-400' : 'text-slate-400 hover:text-slate-200',

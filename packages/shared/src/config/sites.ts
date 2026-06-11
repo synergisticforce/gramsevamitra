@@ -11,7 +11,7 @@ export const SITES = {
     shortName: 'Utilities',
   },
   optimizer: {
-    name: 'Government Exam Document Optimizer',
+    name: 'Document Photo Optimizer',
     url: 'https://optimizer.gramsevamitra.com',
     domain: 'optimizer.gramsevamitra.com',
     shortName: 'Doc Optimizer',

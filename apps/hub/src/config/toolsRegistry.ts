@@ -423,10 +423,10 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
   {
     id: 'exam-age-eligibility',
     name: 'Exam Age Eligibility Calculator',
-    description: 'Calculate age as of exam cutoff date with government exam presets and eligible / not eligible banner.',
+    description: 'Calculate age as of an application cutoff date with common presets and eligible / not eligible banner.',
     path: '/tools/life/exam-age-eligibility',
     workspace: 'life',
-    keywords: ['exam age', 'age limit', 'cutoff date', 'eligibility', 'government exam'],
+    keywords: ['exam age', 'age limit', 'cutoff date', 'eligibility', 'application deadline'],
     aliases: ['age eligibility', 'exam eligibility'],
   },
   {
@@ -476,7 +476,7 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
   {
     id: 'exam-photo-studio',
     name: 'Exam Photo & Signature Studio',
-    description: 'Crop and compress passport photos and signatures for visa applications and government exam uploads.',
+    description: 'Crop and compress passport photos and signatures for visa applications and professional form uploads.',
     path: '/tools/quick/exam-photo-studio',
     workspace: 'quick',
     keywords: ['exam photo', 'passport photo', 'signature', 'id photo', 'visa photo', 'compress', '50kb'],

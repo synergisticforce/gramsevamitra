@@ -1,13 +1,2 @@
-# Clean URL normalization for PDF tool routes
-/compress            /compress/            301
-/merge              /merge/              301
-/split              /split/              301
-/watermark          /watermark/          301
-/protect            /protect/             301
-/unlock             /unlock/             301
-/image-to-pdf       /image-to-pdf/       301
-/studio             /studio/             301
-/privacy            /privacy/            301
-/terms              /terms/              301
-
-# Unknown paths fall through to static 404.html (no SPA catch-all)
+# Tool routes are served directly by this deployment — no trailing-slash redirects.
+# Unknown paths fall through to static 404.html (no SPA catch-all).
