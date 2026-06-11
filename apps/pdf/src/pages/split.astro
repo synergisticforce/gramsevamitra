@@ -343,8 +343,7 @@ const toolDescription =
       splitStatus.textContent = `Extracted ${indices.length} page${indices.length === 1 ? '' : 's'} successfully.`;
       splitStatus.className = 'text-center text-xs text-emerald-400';
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Split failed.';
-      showError(message);
+      showError("Oops! We couldn't process this file. Ensure it is a valid, unlocked document.");
       splitStatus.textContent = '';
     } finally {
       setLoading(false);

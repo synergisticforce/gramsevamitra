@@ -22,7 +22,7 @@ export default defineConfig({
       manifest: {
         name: 'GramSeva Mitra Utilities',
         short_name: 'Utilities',
-        description: 'Digital empowerment suite for Indian aspirants — offline calculators, trackers, and career tools.',
+        description: 'Your free global document and productivity toolkit — offline calculators, trackers, and career tools.',
         theme_color: '#020617',
         background_color: '#020617',
         display: 'standalone',

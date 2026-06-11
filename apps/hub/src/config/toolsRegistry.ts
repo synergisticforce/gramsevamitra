@@ -129,7 +129,7 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
   {
     id: 'multi-currency',
     name: 'Multi-Currency Converter',
-    description: 'Convert amounts using static offline exchange rates.',
+    description: 'Convert amounts using live Frankfurter exchange rates — cached locally for 12 hours.',
     path: '/tools/money/multi-currency',
     workspace: 'money',
     keywords: ['currency', 'forex', 'dollar', 'rupee', 'exchange'],
@@ -267,6 +267,15 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
     path: '/tools/writing/flashcard-maker',
     workspace: 'writing',
     keywords: ['flashcard', 'study', 'revision', 'deck'],
+  },
+  {
+    id: 'flashcard-generator',
+    name: 'Flashcard Generator',
+    description: 'Paste Question-Answer lines and study with interactive flip cards.',
+    path: '/tools/writing/flashcard-generator',
+    workspace: 'writing',
+    keywords: ['flashcard', 'generator', 'study', 'flip card', 'notes', 'revision'],
+    aliases: ['flash cards', 'study cards'],
   },
   {
     id: 'mindmap-builder',
@@ -414,10 +423,10 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
   {
     id: 'exam-age-eligibility',
     name: 'Exam Age Eligibility Calculator',
-    description: 'Calculate age as of exam cutoff date with UPSC, SSC, RRB presets and eligible / not eligible banner.',
+    description: 'Calculate age as of exam cutoff date with government exam presets and eligible / not eligible banner.',
     path: '/tools/life/exam-age-eligibility',
     workspace: 'life',
-    keywords: ['exam age', 'upsc age', 'ssc age limit', 'cutoff date', 'eligibility', 'government exam'],
+    keywords: ['exam age', 'age limit', 'cutoff date', 'eligibility', 'government exam'],
     aliases: ['age eligibility', 'exam eligibility'],
   },
   {
@@ -436,6 +445,15 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
     path: '/tools/life/mood-tracker',
     workspace: 'life',
     keywords: ['mood', 'mental health', 'journal', 'feelings', 'daily log'],
+  },
+  {
+    id: 'macro-calculator',
+    name: 'Macro & Calorie Calculator',
+    description: 'Daily calories and macro split using Mifflin-St Jeor — protein, fat, and carbs for cut, maintain, or bulk.',
+    path: '/tools/life/macro-calculator',
+    workspace: 'life',
+    keywords: ['macro', 'calories', 'protein', 'diet', 'tdee', 'bmr', 'nutrition', 'fitness'],
+    aliases: ['calorie calculator', 'macro calculator'],
   },
   // Quick Tools Drawer
   {
@@ -458,10 +476,10 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
   {
     id: 'exam-photo-studio',
     name: 'Exam Photo & Signature Studio',
-    description: 'Crop and compress passport photos and signatures for SSC, UPSC, RRB, and IBPS uploads.',
+    description: 'Crop and compress passport photos and signatures for visa applications and government exam uploads.',
     path: '/tools/quick/exam-photo-studio',
     workspace: 'quick',
-    keywords: ['exam photo', 'passport photo', 'signature', 'ssc photo', 'upsc photo', 'compress', '50kb'],
+    keywords: ['exam photo', 'passport photo', 'signature', 'id photo', 'visa photo', 'compress', '50kb'],
     aliases: ['photo compressor', 'exam upload', 'document photo'],
   },
   {
@@ -480,6 +498,24 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
     path: '/tools/quick/unit-converter',
     workspace: 'quick',
     keywords: ['unit', 'convert', 'metric', 'imperial'],
+  },
+  {
+    id: 'percentage-calculator',
+    name: 'Percentage Calculator',
+    description: 'What is X% of Y, ratio to percent, and percent increase/decrease — instant results.',
+    path: '/tools/quick/percentage-calculator',
+    workspace: 'quick',
+    keywords: ['percent', 'percentage', 'ratio', 'change', 'math', 'discount'],
+    aliases: ['percent calculator'],
+  },
+  {
+    id: 'scientific-calculator',
+    name: 'Scientific Calculator',
+    description: 'Trig, log, powers, and calculation history in a mobile-friendly grid layout.',
+    path: '/tools/quick/scientific-calculator',
+    workspace: 'quick',
+    keywords: ['calculator', 'scientific', 'sin', 'cos', 'math', 'trigonometry'],
+    aliases: ['sci calc'],
   },
   {
     id: 'password-generator',
@@ -544,7 +580,7 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
   {
     id: 'baby-names',
     name: 'Baby Name Finder',
-    description: 'Browse and shortlist baby names offline.',
+    description: 'Browse diverse baby names by origin, letter, and gender — shortlist saved offline.',
     path: '/tools/quick/baby-names',
     workspace: 'quick',
     keywords: ['baby name', 'names', 'newborn'],

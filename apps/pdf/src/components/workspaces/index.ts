@@ -17,6 +17,7 @@ import SignPdfTool from './SignPdfTool';
 import CropPdfTool from './CropPdfTool';
 import UnlockPdfTool from './UnlockPdfTool';
 import ProtectPdfTool from './ProtectPdfTool';
+import PdfScannerEffectTool from './PdfScannerEffectTool';
 import {
   RepairPdfTool,
   RepairMetaTool,
@@ -54,4 +55,5 @@ export const TOOL_COMPONENTS: Record<ToolId, ComponentType> = {
   'crop-pdf': CropPdfTool,
   'unlock-pdf': UnlockPdfTool,
   'protect-pdf': ProtectPdfTool,
+  'pdf-scanner': PdfScannerEffectTool,
 };

@@ -19,39 +19,38 @@ import { SITE_HOME_SEO } from '@shared/config/seo';
     <div class="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
       <div class="mx-auto max-w-3xl text-center">
         <p class="mb-4 inline-flex items-center rounded-full border border-emerald-800/60 bg-emerald-950/50 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-300">
-          Made for Bharat&apos;s Aspirants
+          Free · Private · Offline-Ready
         </p>
         <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-6xl">
           Gram<span class="text-emerald-400">Seva</span> Mitra
         </h1>
         <p class="mt-6 text-lg leading-relaxed text-slate-400 sm:text-xl">
-          A digital empowerment suite helping you clear government exam uploads and land interviews —
-          with privacy-first tools that run entirely in your browser, even on 3G.
+          Your Free Global Document &amp; Productivity Toolkit. No Sign-Up, Works Offline.
         </p>
       </div>
 
-      <div class="mt-12">
+      <div class="product-grid mt-12">
         <a
           href={utilitiesHref('/tools')}
-          class="group flex flex-col items-center rounded-2xl border border-emerald-700/40 bg-gradient-to-r from-emerald-950/60 to-slate-900/60 px-6 py-5 text-center transition hover:border-emerald-500/60 sm:flex-row sm:justify-between sm:text-left"
+          class="group card flex flex-col transition hover:border-emerald-700/60 hover:bg-slate-900"
         >
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-widest text-emerald-400">New — Utilities Super-App</p>
-            <p class="mt-1 text-lg font-bold text-white group-hover:text-emerald-300">
-              40+ free offline tools for money, writing, career &amp; daily life
-            </p>
-            <p class="mt-1 text-sm text-slate-400">EMI calculators, flashcards, job tracker, QR codes — all in your browser.</p>
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/20 text-2xl">
+            🧰
           </div>
-          <span class="mt-4 inline-flex items-center text-sm font-semibold text-emerald-400 sm:mt-0">
+          <h2 class="text-xl font-bold text-white group-hover:text-emerald-300">
+            Utilities Super-App
+          </h2>
+          <p class="mt-3 flex-1 text-sm leading-relaxed text-slate-400">
+            40+ free offline tools for money, writing, career, wellness, and quick calculators — all in your browser.
+          </p>
+          <span class="mt-6 inline-flex items-center text-sm font-semibold text-emerald-400">
             Explore Tools Hub
             <svg class="ml-2 h-4 w-4 transition group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
           </span>
         </a>
-      </div>
 
-      <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
         <a
           href={SITES.optimizer.url}
           class="group card flex flex-col transition hover:border-emerald-700/60 hover:bg-slate-900"
@@ -60,10 +59,10 @@ import { SITE_HOME_SEO } from '@shared/config/seo';
             📄
           </div>
           <h2 class="text-xl font-bold text-white group-hover:text-emerald-300">
-            Government Exam Document Optimizer
+            Document Photo Optimizer
           </h2>
           <p class="mt-3 flex-1 text-sm leading-relaxed text-slate-400">
-            Resize photos and signatures to SSC, UPSC, RRB, and IBPS specifications — exact dimensions and file sizes, processed locally.
+            Resize photos and signatures for visa applications, government exams, and National ID uploads — exact dimensions and file sizes, processed locally.
           </p>
           <span class="mt-6 inline-flex items-center text-sm font-semibold text-emerald-400">
             Open Optimizer
@@ -126,8 +125,8 @@ import { SITE_HOME_SEO } from '@shared/config/seo';
           <p class="mt-1 text-sm text-slate-400">Files uploaded to servers</p>
         </div>
         <div class="text-center">
-          <p class="text-3xl font-bold text-emerald-400">3G</p>
-          <p class="mt-1 text-sm text-slate-400">Optimized for rural networks</p>
+          <p class="text-3xl font-bold text-emerald-400">Offline</p>
+          <p class="mt-1 text-sm text-slate-400">Works without a connection</p>
         </div>
       </div>
     </div>
@@ -135,3 +134,16 @@ import { SITE_HOME_SEO } from '@shared/config/seo';
 
   <Footer slot="footer" />
 </BaseLayout>
+
+<style>
+  .product-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  @media (min-width: 1024px) {
+    .product-grid {
+      gap: 2rem;
+    }
+  }
+</style>

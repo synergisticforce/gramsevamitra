@@ -35,7 +35,33 @@ const lifeTools = getWorkspaceTools('life');
         class="widget-card lg:col-span-2"
         aria-labelledby="pomodoro-heading"
       >
-        <h2 id="pomodoro-heading" class="widget-title">Pomodoro focus timer</h2>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 id="pomodoro-heading" class="widget-title">Pomodoro focus timer</h2>
+          <button
+            type="button"
+            id="pomodoro-settings-toggle"
+            class="text-xs font-semibold text-emerald-400 hover:text-emerald-300"
+            aria-expanded="false"
+            aria-controls="pomodoro-settings"
+          >
+            Settings
+          </button>
+        </div>
+
+        <div id="pomodoro-settings" class="mt-4 hidden rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block">
+              <span class="mb-1 block text-xs font-medium text-slate-400">Work duration (minutes)</span>
+              <input id="pomodoro-work-mins" type="number" min="1" max="120" value="25" class="input-field w-full tabular-nums text-sm" />
+            </label>
+            <label class="block">
+              <span class="mb-1 block text-xs font-medium text-slate-400">Break duration (minutes)</span>
+              <input id="pomodoro-break-mins" type="number" min="1" max="60" value="5" class="input-field w-full tabular-nums text-sm" />
+            </label>
+          </div>
+          <button type="button" id="pomodoro-settings-save" class="btn-primary mt-3 px-4 py-2 text-xs">Save settings</button>
+        </div>
+
         <div class="mt-4 flex flex-col items-center">
           <p
             id="pomodoro-display"
@@ -45,6 +71,7 @@ const lifeTools = getWorkspaceTools('life');
             25:00
           </p>
           <p id="pomodoro-status" class="mt-2 text-sm text-slate-400">Ready to focus</p>
+          <p id="pomodoro-sessions" class="mt-1 text-xs font-semibold text-emerald-400/80">Sessions completed today: 0</p>
           <div class="mt-5 flex flex-wrap justify-center gap-2">
             <button type="button" id="pomodoro-start" class="btn-primary min-w-[5.5rem] text-sm">Start</button>
             <button type="button" id="pomodoro-pause" class="btn-secondary min-w-[5.5rem] text-sm" disabled>
@@ -153,8 +180,21 @@ const lifeTools = getWorkspaceTools('life');
   <script>
     const HABITS_KEY = 'gsm-tools:life-habits';
     const WATER_KEY = 'gsm-tools:life-water';
-    const POMODORO_DEFAULT = 25 * 60;
+    const POMODORO_SETTINGS_KEY = 'gsm-tools:pomodoro-settings';
+    const POMODORO_SESSIONS_KEY = 'gsm-tools:pomodoro-sessions';
     const WATER_GOAL = 8;
+
+    interface PomodoroSettings {
+      workMins: number;
+      breakMins: number;
+    }
+
+    interface PomodoroSessions {
+      count: number;
+      date: string;
+    }
+
+    type PomodoroPhase = 'work' | 'break';
 
     interface Habit {
       id: string;
@@ -191,12 +231,90 @@ const lifeTools = getWorkspaceTools('life');
     /* ── Pomodoro ── */
     const pomodoroDisplay = document.getElementById('pomodoro-display')!;
     const pomodoroStatus = document.getElementById('pomodoro-status')!;
+    const pomodoroSessionsEl = document.getElementById('pomodoro-sessions')!;
     const pomodoroStart = document.getElementById('pomodoro-start') as HTMLButtonElement;
     const pomodoroPause = document.getElementById('pomodoro-pause') as HTMLButtonElement;
     const pomodoroReset = document.getElementById('pomodoro-reset') as HTMLButtonElement;
+    const pomodoroSettingsToggle = document.getElementById('pomodoro-settings-toggle') as HTMLButtonElement;
+    const pomodoroSettingsPanel = document.getElementById('pomodoro-settings')!;
+    const pomodoroWorkMins = document.getElementById('pomodoro-work-mins') as HTMLInputElement;
+    const pomodoroBreakMins = document.getElementById('pomodoro-break-mins') as HTMLInputElement;
+    const pomodoroSettingsSave = document.getElementById('pomodoro-settings-save') as HTMLButtonElement;
 
-    let pomodoroRemaining = POMODORO_DEFAULT;
+    function loadPomodoroSettings(): PomodoroSettings {
+      try {
+        const raw = localStorage.getItem(POMODORO_SETTINGS_KEY);
+        if (!raw) return { workMins: 25, breakMins: 5 };
+        const parsed = JSON.parse(raw) as PomodoroSettings;
+        return {
+          workMins: Math.min(120, Math.max(1, Number(parsed.workMins) || 25)),
+          breakMins: Math.min(60, Math.max(1, Number(parsed.breakMins) || 5)),
+        };
+      } catch {
+        return { workMins: 25, breakMins: 5 };
+      }
+    }
+
+    function savePomodoroSettings(settings: PomodoroSettings): void {
+      try {
+        localStorage.setItem(POMODORO_SETTINGS_KEY, JSON.stringify(settings));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function loadPomodoroSessions(): PomodoroSessions {
+      try {
+        const raw = localStorage.getItem(POMODORO_SESSIONS_KEY);
+        if (!raw) return { count: 0, date: todayKey() };
+        const parsed = JSON.parse(raw) as PomodoroSessions;
+        if (parsed.date !== todayKey()) return { count: 0, date: todayKey() };
+        return { count: Math.max(0, Number(parsed.count) || 0), date: todayKey() };
+      } catch {
+        return { count: 0, date: todayKey() };
+      }
+    }
+
+    function savePomodoroSessions(sessions: PomodoroSessions): void {
+      sessions.date = todayKey();
+      try {
+        localStorage.setItem(POMODORO_SESSIONS_KEY, JSON.stringify(sessions));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    let pomodoroSettings = loadPomodoroSettings();
+    let pomodoroSessions = loadPomodoroSessions();
+    let pomodoroPhase: PomodoroPhase = 'work';
+    let pomodoroRemaining = pomodoroSettings.workMins * 60;
     let pomodoroTimerId: ReturnType<typeof setInterval> | null = null;
+
+    pomodoroWorkMins.value = String(pomodoroSettings.workMins);
+    pomodoroBreakMins.value = String(pomodoroSettings.breakMins);
+
+    function renderSessionCount(): void {
+      pomodoroSessionsEl.textContent = `Sessions completed today: ${pomodoroSessions.count}`;
+    }
+
+    pomodoroSettingsToggle.addEventListener('click', () => {
+      const open = pomodoroSettingsPanel.classList.toggle('hidden');
+      pomodoroSettingsToggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+    });
+
+    pomodoroSettingsSave.addEventListener('click', () => {
+      pomodoroSettings = {
+        workMins: Math.min(120, Math.max(1, Number(pomodoroWorkMins.value) || 25)),
+        breakMins: Math.min(60, Math.max(1, Number(pomodoroBreakMins.value) || 5)),
+      };
+      savePomodoroSettings(pomodoroSettings);
+      stopPomodoroTimer();
+      pomodoroPhase = 'work';
+      pomodoroRemaining = pomodoroSettings.workMins * 60;
+      updatePomodoroUi();
+      pomodoroSettingsPanel.classList.add('hidden');
+      pomodoroSettingsToggle.setAttribute('aria-expanded', 'false');
+    });
 
     function formatTime(seconds: number): string {
       const m = Math.floor(seconds / 60);
@@ -209,18 +327,38 @@ const lifeTools = getWorkspaceTools('life');
       const running = pomodoroTimerId !== null;
       pomodoroStart.disabled = running;
       pomodoroPause.disabled = !running;
+      renderSessionCount();
       if (pomodoroRemaining === 0) {
-        pomodoroStatus.textContent = 'Session complete — take a break!';
+        if (pomodoroPhase === 'work') {
+          pomodoroStatus.textContent = 'Work session complete — take a break!';
+        } else {
+          pomodoroStatus.textContent = 'Break over — ready for another focus session!';
+        }
         pomodoroDisplay.classList.add('text-amber-400');
         pomodoroDisplay.classList.remove('text-emerald-400');
       } else if (running) {
-        pomodoroStatus.textContent = 'Focusing…';
-        pomodoroDisplay.classList.add('text-emerald-400');
+        pomodoroStatus.textContent = pomodoroPhase === 'work' ? 'Focusing…' : 'On break…';
+        pomodoroDisplay.classList.toggle('text-emerald-400', pomodoroPhase === 'work');
+        pomodoroDisplay.classList.toggle('text-sky-400', pomodoroPhase === 'break');
         pomodoroDisplay.classList.remove('text-amber-400');
       } else {
-        pomodoroStatus.textContent = 'Ready to focus';
-        pomodoroDisplay.classList.add('text-emerald-400');
+        pomodoroStatus.textContent =
+          pomodoroPhase === 'work' ? 'Ready to focus' : 'Break time — rest up';
+        pomodoroDisplay.classList.toggle('text-emerald-400', pomodoroPhase === 'work');
+        pomodoroDisplay.classList.toggle('text-sky-400', pomodoroPhase === 'break');
         pomodoroDisplay.classList.remove('text-amber-400');
+      }
+    }
+
+    function onPomodoroPhaseComplete(): void {
+      if (pomodoroPhase === 'work') {
+        pomodoroSessions.count += 1;
+        savePomodoroSessions(pomodoroSessions);
+        pomodoroPhase = 'break';
+        pomodoroRemaining = pomodoroSettings.breakMins * 60;
+      } else {
+        pomodoroPhase = 'work';
+        pomodoroRemaining = pomodoroSettings.workMins * 60;
       }
     }
 
@@ -239,11 +377,20 @@ const lifeTools = getWorkspaceTools('life');
       }
       pomodoroRemaining -= 1;
       updatePomodoroUi();
-      if (pomodoroRemaining === 0) stopPomodoroTimer();
+      if (pomodoroRemaining === 0) {
+        stopPomodoroTimer();
+        onPomodoroPhaseComplete();
+        updatePomodoroUi();
+      }
     }
 
     pomodoroStart.addEventListener('click', () => {
-      if (pomodoroRemaining === 0) pomodoroRemaining = POMODORO_DEFAULT;
+      if (pomodoroRemaining === 0) {
+        pomodoroRemaining =
+          pomodoroPhase === 'work'
+            ? pomodoroSettings.workMins * 60
+            : pomodoroSettings.breakMins * 60;
+      }
       stopPomodoroTimer();
       pomodoroTimerId = setInterval(tickPomodoro, 1000);
       updatePomodoroUi();
@@ -256,7 +403,8 @@ const lifeTools = getWorkspaceTools('life');
 
     pomodoroReset.addEventListener('click', () => {
       stopPomodoroTimer();
-      pomodoroRemaining = POMODORO_DEFAULT;
+      pomodoroPhase = 'work';
+      pomodoroRemaining = pomodoroSettings.workMins * 60;
       updatePomodoroUi();
     });
 

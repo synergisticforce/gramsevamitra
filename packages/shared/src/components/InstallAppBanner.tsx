@@ -5,6 +5,7 @@ import {
   dismissInstallBanner,
   initPwaInstall,
   isIosSafari,
+  isNativeInstallAvailable,
   isStandalone,
   triggerPwaInstall,
   type PwaInstallReadyDetail,
@@ -28,7 +29,9 @@ export default function InstallAppBanner() {
 
     const onReady = (event: Event) => {
       const detail = (event as CustomEvent<PwaInstallReadyDetail>).detail;
-      setIosMode(Boolean(detail?.ios) || isIosSafari());
+      const ios = Boolean(detail?.ios) || isIosSafari();
+      if (!ios && !isNativeInstallAvailable()) return;
+      setIosMode(ios);
       setVisible(true);
     };
 

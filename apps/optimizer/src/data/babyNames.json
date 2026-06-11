@@ -1,0 +1,12 @@
+[
+  {"name": "Aarav", "origin": "Indian", "gender": "Boy", "syllables": 2, "meaning": "Peaceful"},
+  {"name": "Zara", "origin": "Arabic", "gender": "Girl", "syllables": 2, "meaning": "Blooming flower"},
+  {"name": "Liam", "origin": "Celtic", "gender": "Boy", "syllables": 2, "meaning": "Strong-willed warrior"},
+  {"name": "Mei", "origin": "Global", "gender": "Girl", "syllables": 1, "meaning": "Beautiful"},
+  {"name": "Kai", "origin": "Global", "gender": "Unisex", "syllables": 1, "meaning": "Sea"},
+  {"name": "Diya", "origin": "Indian", "gender": "Girl", "syllables": 2, "meaning": "Lamp, Light"},
+  {"name": "Mateo", "origin": "Latin", "gender": "Boy", "syllables": 3, "meaning": "Gift of God"},
+  {"name": "Rowan", "origin": "Celtic", "gender": "Unisex", "syllables": 2, "meaning": "Little redhead"},
+  {"name": "Amira", "origin": "Arabic", "gender": "Girl", "syllables": 3, "meaning": "Princess"},
+  {"name": "Leo", "origin": "Latin", "gender": "Boy", "syllables": 2, "meaning": "Lion"}
+]

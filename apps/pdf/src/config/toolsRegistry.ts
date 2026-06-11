@@ -25,7 +25,8 @@ export type ToolId =
   | 'sign-pdf'
   | 'crop-pdf'
   | 'unlock-pdf'
-  | 'protect-pdf';
+  | 'protect-pdf'
+  | 'pdf-scanner';
 
 export interface ToolEntry {
   id: ToolId;
@@ -67,6 +68,16 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
     category: 'compress',
     isFree: true,
     icon: '📐',
+  },
+  {
+    id: 'pdf-scanner',
+    name: 'Photo to Scanned PDF',
+    description: 'Convert phone photos to clean black-and-white scanned PDFs with canvas thresholding.',
+    keywords: ['scan', 'scanner', 'photo', 'black white', 'mobile scan', 'document scan', 'camera'],
+    aliases: ['mobile scanner', 'scan effect', 'bw scan'],
+    category: 'convert',
+    isFree: true,
+    icon: '📷',
   },
   {
     id: 'repair-meta',

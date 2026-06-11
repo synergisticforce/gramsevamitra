@@ -13,6 +13,7 @@ import {
   type PageGroup,
   type PageVisualState,
 } from '../../lib/visualPageTypes';
+import { toProcessingError } from '../../lib/processingErrors';
 import { runPdfWorkerWithStreamedFile } from '../../lib/pdfWorkerClient';
 
 export default function SplitPdfTool() {
@@ -124,7 +125,7 @@ export default function SplitPdfTool() {
         setSuccess(`Created ${outputs.length} branded PDFs inside a ZIP archive.`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Extract failed.');
+      setError(toProcessingError(err));
     } finally {
       resetProgress();
       setBusy(false);

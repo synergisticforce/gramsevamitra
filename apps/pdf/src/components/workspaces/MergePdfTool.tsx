@@ -3,6 +3,7 @@ import { ActionButton, FileDropZone, StatusMessage } from './ToolWorkspaceShell'
 import { useToolProgress } from './ToolProgressContext';
 import VisualFileGrid, { type MergeFileItem } from '../shared/VisualFileGrid';
 import { downloadBytes } from '../../lib/pdfEngine';
+import { toProcessingError } from '../../lib/processingErrors';
 import { getPdfPageCountFromFile, runPdfWorker } from '../../lib/pdfWorkerClient';
 
 export default function MergePdfTool() {
@@ -15,11 +16,15 @@ export default function MergePdfTool() {
   const addFiles = useCallback(async (files: File[]) => {
     setError(null);
     const next: MergeFileItem[] = [];
-    for (const file of files) {
-      const pageCount = await getPdfPageCountFromFile(file);
-      next.push({ id: crypto.randomUUID(), file, pageCount });
+    try {
+      for (const file of files) {
+        const pageCount = await getPdfPageCountFromFile(file);
+        next.push({ id: crypto.randomUUID(), file, pageCount });
+      }
+      setItems((prev) => [...prev, ...next]);
+    } catch (err) {
+      setError(toProcessingError(err));
     }
-    setItems((prev) => [...prev, ...next]);
   }, []);
 
   const removeItem = useCallback((id: string) => {
@@ -52,7 +57,7 @@ export default function MergePdfTool() {
       downloadBytes(out, 'merged-document.pdf', 'application/pdf', '_merged');
       setSuccess(`Merged ${items.length} PDFs (${items.reduce((s, x) => s + x.pageCount, 0)} pages total).`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Merge failed.');
+      setError(toProcessingError(err));
     } finally {
       resetProgress();
       setBusy(false);

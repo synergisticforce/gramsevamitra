@@ -290,8 +290,7 @@ const toolDescription =
       mergeStatus.textContent = `Success! Merged ${items.length} files (${totalPages} pages total).`;
       mergeStatus.className = 'mt-3 text-center text-xs text-emerald-400';
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Merge failed. Check that all files are valid PDFs.';
-      showError(message);
+      showError("Oops! We couldn't process this file. Ensure it is a valid, unlocked document.");
       mergeStatus.textContent = '';
     } finally {
       setLoading(false);
