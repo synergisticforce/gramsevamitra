@@ -125,3 +125,8 @@ To avoid context exhaustion and memory corruption within AI development, upgrade
 * **WAVE 4:** Financial & Mathematical Calculators (EMI, Salary, Crypto Tax).
 * **WAVE 5:** Business & Creative Utilities (SEO, SVG, Color Palettes).
 * **WAVE 6:** Daily Life & Micro-Tools (Unit Converters, Generators).
+
+### DEPLOYMENT & VERSION CONTROL LAW (GITOPS ONLY)
+1. **No Local Deployments:** Under no circumstances are you (the AI) to suggest, write, or execute local deployment commands (e.g., `npm run deploy`, `npx wrangler pages deploy`).
+2. **GitHub is the Source of Truth:** All code modifications must be staged, committed, and pushed to the `main` branch on GitHub. Cloudflare Pages is strictly configured to auto-deploy via GitHub webhooks.
+3. **Commit Protocol:** When finishing a task or wave, your final instruction to the user should ALWAYS be to verify the build (`npm run build:all`) and then execute a standard Git push sequence (`git add . && git commit -m "..." && git push`).
