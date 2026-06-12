@@ -11,12 +11,18 @@ export interface MergeFileItem {
   pageCount: number;
 }
 
+function formatFileSize(bytes: number): string {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${Math.round(bytes / 1024)} KB`;
+}
+
 interface FileCoverThumbnailProps {
   item: MergeFileItem;
+  orderIndex: number;
   onRemove: (id: string) => void;
 }
 
-export function FileCoverThumbnail({ item, onRemove }: FileCoverThumbnailProps) {
+export function FileCoverThumbnail({ item, orderIndex, onRemove }: FileCoverThumbnailProps) {
   const containerRef = useRef<HTMLDivElement | null>(null) as MutableRefObject<HTMLDivElement | null>;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pdfRef = useRef<PDFDocumentProxy | null>(null);
@@ -87,6 +93,10 @@ export function FileCoverThumbnail({ item, onRemove }: FileCoverThumbnailProps) 
       {...attributes}
       {...listeners}
     >
+      <span className="absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-bold text-white shadow-md">
+        {orderIndex}
+      </span>
+
       <div className="relative flex min-h-[120px] items-center justify-center bg-white">
         {loadError ? (
           <span className="px-2 text-center text-xs text-slate-500">Preview unavailable</span>
@@ -99,7 +109,9 @@ export function FileCoverThumbnail({ item, onRemove }: FileCoverThumbnailProps) 
         <p className="truncate text-xs font-semibold text-white" title={item.file.name}>
           {item.file.name}
         </p>
-        <p className="text-[10px] text-emerald-200/80">{item.pageCount} pages</p>
+        <p className="text-[10px] text-emerald-200/80">
+          {item.pageCount} pages · {formatFileSize(item.file.size)}
+        </p>
       </div>
 
       <button

@@ -184,9 +184,20 @@ export async function extractResumeText(file: File, onStatus: StatusCallback): P
     return extractDocxText(file, onStatus);
   }
 
-  throw new Error('Unsupported file format. Upload PDF, DOCX, JPG, PNG, or HEIC.');
+  if (file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt')) {
+    onStatus('Reading text file…');
+    return (await file.text()).trim();
+  }
+
+  throw new Error('Unsupported file format. Upload PDF, DOCX, TXT, JPG, PNG, or HEIC.');
 }
 
 export function isSupportedResumeFile(file: File): boolean {
-  return isPdfFile(file) || isDocxFile(file) || isImageFile(file);
+  return (
+    isPdfFile(file) ||
+    isDocxFile(file) ||
+    isImageFile(file) ||
+    file.type === 'text/plain' ||
+    file.name.toLowerCase().endsWith('.txt')
+  );
 }

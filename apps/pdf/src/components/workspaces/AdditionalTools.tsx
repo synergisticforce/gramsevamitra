@@ -59,42 +59,6 @@ export function RepairPdfTool() {
   );
 }
 
-export function RepairMetaTool() {
-  const s = usePdfToolState();
-  const run = useCallback(async () => {
-    if (!s.file) return s.setError('Select a PDF.');
-    s.setBusy(true);
-    try {
-      const out = await runPdfWorker<Uint8Array>(
-        'repair',
-        { buffer: await s.file.arrayBuffer() },
-        ({ current, total, label }) => s.report(current, total, label)
-      );
-      downloadBytes(out, s.file.name, 'application/pdf', '_metadata-stripped');
-      s.setSuccess('Metadata stripped — lighter clean PDF saved.');
-    } catch (e) {
-      s.setError(e instanceof Error ? e.message : 'Failed.');
-    } finally {
-      s.resetProgress();
-      s.setBusy(false);
-    }
-  }, [s]);
-
-  return (
-    <ToolShell
-      accept="application/pdf"
-      label="Upload PDF to strip metadata"
-      file={s.file}
-      onFiles={(f) => s.setFile(f[0] ?? null)}
-      action="Strip Metadata"
-      busy={s.busy}
-      onAction={run}
-      error={s.error}
-      success={s.success}
-    />
-  );
-}
-
 export function PngToPdfTool() {
   return <ImagesToPdfTool accept="image/png" label="Select PNG images" kind="png" />;
 }

@@ -1,0 +1,66 @@
+[
+  {
+    "role": "Software Engineer",
+    "bands": {
+      "fresher": { "label": "0–2 years", "min": 4, "mid": 8, "max": 12 },
+      "mid": { "label": "3–7 years", "min": 10, "mid": 18, "max": 28 },
+      "senior": { "label": "8+ years", "min": 20, "mid": 35, "max": 55 }
+    }
+  },
+  {
+    "role": "Data Analyst",
+    "bands": {
+      "fresher": { "label": "0–2 years", "min": 3, "mid": 6, "max": 9 },
+      "mid": { "label": "3–7 years", "min": 7, "mid": 12, "max": 18 },
+      "senior": { "label": "8+ years", "min": 14, "mid": 22, "max": 32 }
+    }
+  },
+  {
+    "role": "Product Manager",
+    "bands": {
+      "fresher": { "label": "0–2 years", "min": 8, "mid": 14, "max": 20 },
+      "mid": { "label": "3–7 years", "min": 16, "mid": 26, "max": 38 },
+      "senior": { "label": "8+ years", "min": 28, "mid": 42, "max": 60 }
+    }
+  },
+  {
+    "role": "Accountant",
+    "bands": {
+      "fresher": { "label": "0–2 years", "min": 2.5, "mid": 4.5, "max": 7 },
+      "mid": { "label": "3–7 years", "min": 5, "mid": 8, "max": 12 },
+      "senior": { "label": "8+ years", "min": 10, "mid": 16, "max": 24 }
+    }
+  },
+  {
+    "role": "Teacher",
+    "bands": {
+      "fresher": { "label": "0–2 years", "min": 2, "mid": 3.5, "max": 5 },
+      "mid": { "label": "3–7 years", "min": 4, "mid": 6, "max": 9 },
+      "senior": { "label": "8+ years", "min": 7, "mid": 11, "max": 16 }
+    }
+  },
+  {
+    "role": "Nurse",
+    "bands": {
+      "fresher": { "label": "0–2 years", "min": 2.5, "mid": 4, "max": 6 },
+      "mid": { "label": "3–7 years", "min": 4.5, "mid": 7, "max": 10 },
+      "senior": { "label": "8+ years", "min": 8, "mid": 12, "max": 18 }
+    }
+  },
+  {
+    "role": "Sales Executive",
+    "bands": {
+      "fresher": { "label": "0–2 years", "min": 2.5, "mid": 5, "max": 8 },
+      "mid": { "label": "3–7 years", "min": 5, "mid": 10, "max": 16 },
+      "senior": { "label": "8+ years", "min": 10, "mid": 18, "max": 30 }
+    }
+  },
+  {
+    "role": "UX Designer",
+    "bands": {
+      "fresher": { "label": "0–2 years", "min": 4, "mid": 7, "max": 11 },
+      "mid": { "label": "3–7 years", "min": 9, "mid": 15, "max": 22 },
+      "senior": { "label": "8+ years", "min": 18, "mid": 28, "max": 40 }
+    }
+  }
+]

@@ -8,10 +8,6 @@ export interface BabyNameEntry {
   meaning: string;
 }
 
-const ORIGINS = ['Indian', 'Arabic', 'Latin', 'Celtic', 'Global'] as const;
-const GENDERS = ['Boy', 'Girl', 'Unisex'] as const;
-const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-
 const SHORTLIST_KEY = 'gsm-tools:baby-names-shortlist';
 const DATA_URL = '/data/babyNames.json';
 
@@ -52,6 +48,23 @@ export default function BabyNameFinderTool() {
       return [];
     }
   });
+
+  const availableOrigins = useMemo(
+    () => [...new Set(names.map((n) => n.origin).filter(Boolean))].sort(),
+    [names]
+  );
+  const availableGenders = useMemo(
+    () => [...new Set(names.map((n) => n.gender))].sort(),
+    [names]
+  );
+  const availableLetters = useMemo(() => {
+    const set = new Set<string>();
+    for (const entry of names) {
+      const letter = entry.name[0]?.toUpperCase();
+      if (letter && /[A-Z]/.test(letter)) set.add(letter);
+    }
+    return [...set].sort();
+  }, [names]);
 
   useEffect(() => {
     let cancelled = false;
@@ -140,57 +153,60 @@ export default function BabyNameFinderTool() {
           />
         </label>
 
-        <div className="mt-5">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Origin</p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
-            {ORIGINS.map((origin) => (
-              <button
-                key={origin}
-                type="button"
-                onClick={() => setOrigins((prev) => toggleInList(prev, origin))}
-                disabled={loading}
-                className={pillClass(origins.includes(origin))}
-              >
-                {origin}
-              </button>
-            ))}
+        {!loading && availableOrigins.length > 0 && (
+          <div className="mt-5">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Origin</p>
+            <div className="flex flex-wrap gap-2">
+              {availableOrigins.map((origin) => (
+                <button
+                  key={origin}
+                  type="button"
+                  onClick={() => setOrigins((prev) => toggleInList(prev, origin))}
+                  className={pillClass(origins.includes(origin))}
+                >
+                  {origin}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="mt-5">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Gender</p>
-          <div className="grid grid-cols-3 gap-2">
-            {GENDERS.map((gender) => (
-              <button
-                key={gender}
-                type="button"
-                onClick={() => setGenders((prev) => toggleInList(prev, gender))}
-                disabled={loading}
-                className={pillClass(genders.includes(gender))}
-              >
-                {gender}
-              </button>
-            ))}
+        {!loading && availableGenders.length > 0 && (
+          <div className="mt-5">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Gender</p>
+            <div className="flex flex-wrap gap-2">
+              {availableGenders.map((gender) => (
+                <button
+                  key={gender}
+                  type="button"
+                  onClick={() => setGenders((prev) => toggleInList(prev, gender))}
+                  className={pillClass(genders.includes(gender))}
+                >
+                  {gender}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="mt-5">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Starting letter</p>
-          <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-9 md:grid-cols-[repeat(13,minmax(0,1fr))]">
-            {LETTERS.map((letter) => (
-              <button
-                key={letter}
-                type="button"
-                onClick={() => setLetters((prev) => toggleInList(prev, letter))}
-                disabled={loading}
-                className={`${pillClass(letters.includes(letter))} px-2 py-1.5 text-center`}
-                aria-pressed={letters.includes(letter)}
-              >
-                {letter}
-              </button>
-            ))}
+        {!loading && availableLetters.length > 0 && (
+          <div className="mt-5">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Starting letter</p>
+            <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-9 md:grid-cols-[repeat(13,minmax(0,1fr))]">
+              {availableLetters.map((letter) => (
+                <button
+                  key={letter}
+                  type="button"
+                  onClick={() => setLetters((prev) => toggleInList(prev, letter))}
+                  className={`${pillClass(letters.includes(letter))} px-2 py-1.5 text-center`}
+                  aria-pressed={letters.includes(letter)}
+                >
+                  {letter}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {(origins.length > 0 || genders.length > 0 || letters.length > 0) && (
           <button

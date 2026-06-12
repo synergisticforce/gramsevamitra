@@ -1,0 +1,16 @@
+---
+interface Props {
+  href: string;
+  label: string;
+}
+
+const { href, label } = Astro.props;
+---
+
+<a
+  href={href}
+  data-astro-reload
+  class="text-xs font-semibold text-emerald-400 transition hover:text-emerald-300"
+>
+  {label}
+</a>

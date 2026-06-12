@@ -18,9 +18,9 @@ import CropPdfTool from './CropPdfTool';
 import UnlockPdfTool from './UnlockPdfTool';
 import ProtectPdfTool from './ProtectPdfTool';
 import PdfScannerEffectTool from './PdfScannerEffectTool';
+import RemoveMetadataTool from './RemoveMetadataTool';
 import {
   RepairPdfTool,
-  RepairMetaTool,
   PngToPdfTool,
   WordToPdfTool,
   HeicToPdfTool,
@@ -33,7 +33,7 @@ export const TOOL_COMPONENTS: Record<ToolId, ComponentType> = {
   'compress-kb': CompressKbTool,
   'repair-pdf': RepairPdfTool,
   'deskew-pdf': DeskewPdfTool,
-  'repair-meta': RepairMetaTool,
+  'repair-meta': RemoveMetadataTool,
   'merge-pdf': MergePdfTool,
   'split-pdf': SplitPdfTool,
   'remove-pages': RemovePagesTool,

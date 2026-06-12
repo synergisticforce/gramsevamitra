@@ -268,6 +268,45 @@ export async function processImageDocument(
   return processImageCanvas(canvas, spec, dpi, type, baseName, mimeType);
 }
 
+/** ResizePixel-style custom pixel dimensions with explicit KB target. */
+export async function processImageToPixelTarget(
+  file: File,
+  widthPx: number,
+  heightPx: number,
+  targetMaxKb: number,
+  type: 'photo' | 'signature' = 'photo',
+  panX = 0.5,
+  panY = 0.5,
+): Promise<ProcessResult> {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Please upload a JPG or PNG image.');
+  }
+  if (widthPx < 32 || heightPx < 32) {
+    throw new Error('Width and height must be at least 32 pixels.');
+  }
+  if (targetMaxKb < 1) {
+    throw new Error('Target file size must be at least 1 KB.');
+  }
+
+  const image = await loadImageFromFile(file);
+  const canvas = cropImageToCanvas(image, widthPx, heightPx, panX, panY);
+  const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+  const minBytes = Math.max(1024, Math.floor(targetMaxKb * 1024 * 0.5));
+  const maxBytes = targetMaxKb * 1024;
+  const { blob, quality } = await compressToTargetSize(canvas, minBytes, maxBytes, mimeType);
+  const baseName = file.name.replace(/\.[^.]+$/, '') || 'optimized-image';
+  const ext = mimeType === 'image/png' ? 'png' : 'jpg';
+
+  return {
+    blob,
+    fileName: `${baseName}-${type}-${widthPx}x${heightPx}px.${ext}`,
+    width: widthPx,
+    height: heightPx,
+    sizeBytes: blob.size,
+    quality,
+  };
+}
+
 export async function processPdfDocument(file: File, maxKb: number): Promise<ProcessResult> {
   if (file.type !== 'application/pdf') {
     throw new Error('Please upload a PDF file.');

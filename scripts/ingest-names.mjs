@@ -1,12 +1,6 @@
 #!/usr/bin/env node
 /**
- * Ingest Indian baby name CSVs from repo root into apps/hub/public/data/babyNames.json
- *
- * Expected files (repo root):
- *   - Indian-Male-Names.csv
- *   - Indian-Female-Names.csv
- *
- * CSV headers: name,gender,race
+ * Ingest Indian baby name CSVs into apps/hub/public/data/babyNames.json
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,6 +16,9 @@ const CSV_FILES = [
   { file: 'Indian-Female-Names.csv', defaultGender: 'Girl' },
 ];
 
+const HONORIFIC_PATTERN =
+  /^(smt|smt\.|km|km\.|kumari|shri|shri\.|sri|sri\.|sh|mr|mr\.|mrs|mrs\.|ms|ms\.|dr|dr\.|prof|prof\.|lt|col|maj|gen|miss|master|sir|md|md\.|mohd|mohd\.|@|\.)[\s.]*/i;
+
 function resolveCsvPath(filename) {
   const candidates = [
     path.join(ROOT, filename),
@@ -33,13 +30,28 @@ function resolveCsvPath(filename) {
   return null;
 }
 
-function capitalizeName(raw) {
-  const trimmed = String(raw ?? '').trim();
-  if (!trimmed) return '';
-  return trimmed
-    .split(/\s+/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
+function stripHonorifics(raw) {
+  let name = raw.trim().toLowerCase();
+  let prev;
+  do {
+    prev = name;
+    name = name.replace(HONORIFIC_PATTERN, '').trim();
+  } while (name !== prev && name.length > 0);
+  return name;
+}
+
+function sanitizeGivenName(raw) {
+  let name = stripHonorifics(String(raw ?? ''));
+  if (!name) return '';
+
+  name = name.split('@')[0] ?? name;
+  name = name.replace(/[^a-z\s'-]/g, ' ');
+  name = name.replace(/\s+/g, ' ').trim();
+
+  const first = name.split(' ')[0] ?? '';
+  if (!first || first.length < 2 || !/^[a-z'-]+$/.test(first)) return '';
+
+  return first.charAt(0).toUpperCase() + first.slice(1);
 }
 
 function mapGender(raw, fallback) {
@@ -83,11 +95,14 @@ function ingest() {
 
     const text = fs.readFileSync(csvPath, 'utf8');
     const rows = parseCsv(text);
+    let kept = 0;
 
     for (const row of rows) {
-      const name = capitalizeName(row.name);
-      if (!name || seen.has(name.toLowerCase())) continue;
-      seen.add(name.toLowerCase());
+      const name = sanitizeGivenName(row.name);
+      const key = name.toLowerCase();
+      if (!name || seen.has(key)) continue;
+      seen.add(key);
+      kept++;
 
       entries.push({
         name,
@@ -98,13 +113,15 @@ function ingest() {
       });
     }
 
-    console.log(`✓ ${file}: ${rows.length} rows parsed (${csvPath})`);
+    console.log(`✓ ${file}: ${rows.length} rows parsed, ${kept} unique given names (${csvPath})`);
   }
+
+  entries.sort((a, b) => a.name.localeCompare(b.name));
 
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.writeFileSync(OUT_FILE, JSON.stringify(entries, null, 0));
 
-  console.log(`✓ Wrote ${entries.length} names → ${OUT_FILE}`);
+  console.log(`✓ Wrote ${entries.length} unique names → ${OUT_FILE}`);
 }
 
 ingest();

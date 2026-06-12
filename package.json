@@ -14,6 +14,7 @@
     "dev:resume": "npm run dev --workspace=@gramsevamitra/resume",
     "dev:pdf": "npm run dev --workspace=@gramsevamitra/pdf",
     "build": "npm run build --workspaces --if-present",
+    "build:all": "npm run build --workspaces --if-present",
     "build:hub": "npm run build --workspace=@gramsevamitra/hub",
     "build:optimizer": "npm run build --workspace=@gramsevamitra/optimizer",
     "build:resume": "npm run build --workspace=@gramsevamitra/resume",

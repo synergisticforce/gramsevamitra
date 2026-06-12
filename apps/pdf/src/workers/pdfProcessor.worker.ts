@@ -637,11 +637,19 @@ async function unlockPdf(id: string, buffer: ArrayBuffer, password: string) {
   return out.save({ useObjectStreams: true });
 }
 
+interface ProtectRestrictions {
+  disablePrinting?: boolean;
+  disableCopying?: boolean;
+  disableModifying?: boolean;
+  disableAnnotating?: boolean;
+}
+
 async function protectPdf(
   id: string,
   buffer: ArrayBuffer,
   userPassword: string,
-  ownerPassword: string
+  ownerPassword: string,
+  restrictions: ProtectRestrictions = {}
 ) {
   postProgress(id, 1, 2, 'Loading document…');
   const doc = await PDFDocument.load(buffer, { ignoreEncryption: true });
@@ -650,16 +658,57 @@ async function protectPdf(
     userPassword,
     ownerPassword: ownerPassword || userPassword,
     permissions: {
-      printing: 'highResolution',
-      modifying: false,
-      copying: false,
-      annotating: false,
+      printing: restrictions.disablePrinting ? undefined : 'highResolution',
+      modifying: restrictions.disableModifying !== false ? false : true,
+      copying: restrictions.disableCopying !== false ? false : true,
+      annotating: restrictions.disableAnnotating !== false ? false : true,
       fillingForms: false,
       contentAccessibility: false,
       documentAssembly: false,
     },
   });
   return doc.save({ useObjectStreams: true });
+}
+
+async function stripPdfMetadata(id: string, buffer: ArrayBuffer) {
+  postProgress(id, 1, 3, 'Reading document…');
+  const source = await PDFDocument.load(buffer, { ignoreEncryption: true });
+
+  postProgress(id, 2, 3, 'Rebuilding without metadata…');
+  const out = await PDFDocument.create();
+  const indices = source.getPageIndices();
+  const copied = await out.copyPages(source, indices);
+  copied.forEach((page) => out.addPage(page));
+
+  out.setTitle('');
+  out.setAuthor('');
+  out.setSubject('');
+  out.setKeywords([]);
+  out.setCreator('');
+  out.setProducer('');
+
+  postProgress(id, 3, 3, 'Sanitizing hidden document fields…');
+  let bytes = await out.save({ useObjectStreams: true });
+  bytes = sanitizePdfForExtremeCompression(bytes);
+  await yieldToGc();
+  return bytes;
+}
+
+async function splitAllPages(id: string, buffer: ArrayBuffer): Promise<Uint8Array[]> {
+  const source = await PDFDocument.load(buffer, { ignoreEncryption: true });
+  const indices = source.getPageIndices();
+  const outputs: Uint8Array[] = [];
+
+  for (let i = 0; i < indices.length; i++) {
+    postProgress(id, i + 1, indices.length, `Splitting page ${i + 1} of ${indices.length}…`);
+    const out = await PDFDocument.create();
+    const [page] = await out.copyPages(source, [indices[i]]);
+    out.addPage(page);
+    outputs.push(await out.save({ useObjectStreams: true }));
+    await yieldToGc();
+  }
+
+  return outputs;
 }
 
 async function pageCountFromBuffer(buffer: ArrayBuffer): Promise<{ pageCount: number }> {
@@ -761,8 +810,13 @@ async function dispatchOperation(
         id,
         payload.buffer as ArrayBuffer,
         payload.userPassword as string,
-        payload.ownerPassword as string
+        payload.ownerPassword as string,
+        (payload.restrictions as ProtectRestrictions) ?? {}
       );
+    case 'strip-metadata':
+      return stripPdfMetadata(id, payload.buffer as ArrayBuffer);
+    case 'split-all-pages':
+      return splitAllPages(id, payload.buffer as ArrayBuffer);
     default:
       throw new Error(`Unknown worker operation: ${op}`);
   }

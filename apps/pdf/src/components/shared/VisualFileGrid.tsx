@@ -38,8 +38,13 @@ export default function VisualFileGrid({ items, onOrderChange, onRemove }: Visua
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={items.map((i) => i.id)} strategy={rectSortingStrategy}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {items.map((item) => (
-            <FileCoverThumbnail key={item.id} item={item} onRemove={onRemove} />
+          {items.map((item, index) => (
+            <FileCoverThumbnail
+              key={item.id}
+              item={item}
+              orderIndex={index + 1}
+              onRemove={onRemove}
+            />
           ))}
         </div>
       </SortableContext>

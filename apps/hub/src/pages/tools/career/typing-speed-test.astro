@@ -1,6 +1,6 @@
 ---
 import ToolsLayout from '../../../layouts/ToolsLayout.astro';
-import TypingSpeedTestTool from '../../../components/tools/TypingSpeedTestTool';
+import TypingTestTool from '../../../components/tools/TypingTestTool';
 import { formatSeoTitle } from '@shared/config/seo';
 import { utilitiesHref } from '@shared/config/sites';
 
@@ -21,10 +21,10 @@ const toolDescription =
       </a>
       <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
       <p class="mt-1 text-sm text-slate-400">
-        60-second timed test — standard WPM formula (5 chars = 1 word). Timer starts on your first keystroke.
+        Monkeytype-style test — 15, 25, or 50 words. Timer starts on your first keystroke with live WPM timeline.
       </p>
     </header>
 
-    <TypingSpeedTestTool client:load />
+    <TypingTestTool client:load />
   </div>
 </ToolsLayout>

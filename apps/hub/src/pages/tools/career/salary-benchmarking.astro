@@ -1,26 +1,12 @@
 ---
 import ToolsLayout from '../../../layouts/ToolsLayout.astro';
+import SalaryBenchmarker from '../../../components/tools/SalaryBenchmarker';
 import { formatSeoTitle } from '@shared/config/seo';
 import { utilitiesHref } from '@shared/config/sites';
 
 const toolName = 'Salary Benchmarking';
 const toolDescription =
-  'Offline India salary ranges by role and experience band — search roles and compare min/mid/max CTC in lakhs.';
-
-const ROLES = [
-  { role: 'Software Engineer', bands: { fresher: [4, 8, 12], mid: [10, 18, 28], senior: [20, 35, 55] } },
-  { role: 'Data Analyst', bands: { fresher: [3, 6, 9], mid: [7, 12, 18], senior: [14, 22, 32] } },
-  { role: 'Accountant', bands: { fresher: [2.5, 4.5, 7], mid: [5, 8, 12], senior: [10, 16, 24] } },
-  { role: 'Teacher', bands: { fresher: [2, 3.5, 5], mid: [4, 6, 9], senior: [7, 11, 16] } },
-  { role: 'Nurse', bands: { fresher: [2.5, 4, 6], mid: [4.5, 7, 10], senior: [8, 12, 18] } },
-  { role: 'Sales Executive', bands: { fresher: [2.5, 5, 8], mid: [5, 10, 16], senior: [10, 18, 30] } },
-] as const;
-
-const BAND_LABELS: Record<string, string> = {
-  fresher: '0–2 years',
-  mid: '3–7 years',
-  senior: '8+ years',
-};
+  'Offline salary ranges by role and experience band — search roles and compare min/mid/max CTC in lakhs.';
 ---
 
 <ToolsLayout
@@ -35,184 +21,10 @@ const BAND_LABELS: Record<string, string> = {
       </a>
       <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{toolName}</h1>
       <p class="mt-1 text-sm text-slate-400">
-        Indicative annual CTC ranges (₹ lakhs) — offline reference data for Indian metros and tier-1 cities.
+        Indicative annual CTC ranges (₹ lakhs) — filters compile dynamically from loaded benchmark data.
       </p>
     </header>
 
-    <section
-      class="mb-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6"
-      aria-labelledby="sb-filter-heading"
-    >
-      <h2 id="sb-filter-heading" class="text-sm font-semibold uppercase tracking-wider text-slate-500">
-        Filter roles
-      </h2>
-
-      <label class="mt-4 block">
-        <span class="mb-1 block text-sm font-medium text-slate-300">Search role</span>
-        <input id="sb-search" type="search" placeholder="e.g. Software, Nurse…" class="input-field w-full" />
-      </label>
-
-      <label class="mt-4 block">
-        <span class="mb-1 block text-sm font-medium text-slate-300">Experience band</span>
-        <select id="sb-band" class="input-field w-full">
-          <option value="fresher">0–2 years (Fresher)</option>
-          <option value="mid" selected>3–7 years (Mid-level)</option>
-          <option value="senior">8+ years (Senior)</option>
-        </select>
-      </label>
-    </section>
-
-    <section aria-labelledby="sb-detail-heading" class="mb-6">
-      <h2 id="sb-detail-heading" class="mb-4 text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
-        Selected role range
-      </h2>
-      <div id="sb-detail" class="detail-card">
-        <p class="text-lg font-bold text-white" id="sb-detail-role">Select a role below</p>
-        <p class="mt-1 text-sm text-slate-400" id="sb-detail-band">—</p>
-        <div class="mt-4 grid grid-cols-3 gap-3 text-center">
-          <div class="stat-box">
-            <p class="text-xs uppercase text-slate-500">Min</p>
-            <p class="text-xl font-bold text-slate-300" id="sb-min">—</p>
-            <p class="text-xs text-slate-500">LPA</p>
-          </div>
-          <div class="stat-box stat-mid">
-            <p class="text-xs uppercase text-emerald-500">Mid</p>
-            <p class="text-xl font-bold text-emerald-400" id="sb-mid">—</p>
-            <p class="text-xs text-slate-500">LPA</p>
-          </div>
-          <div class="stat-box">
-            <p class="text-xs uppercase text-slate-500">Max</p>
-            <p class="text-xl font-bold text-slate-300" id="sb-max">—</p>
-            <p class="text-xs text-slate-500">LPA</p>
-          </div>
-        </div>
-        <div class="mt-4 h-3 overflow-hidden rounded-full bg-slate-800">
-          <div id="sb-range-bar" class="h-full rounded-full bg-gradient-to-r from-slate-600 via-emerald-500 to-emerald-300 transition-all" style="width: 60%"></div>
-        </div>
-      </div>
-    </section>
-
-    <section aria-labelledby="sb-table-heading">
-      <h2 id="sb-table-heading" class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">
-        All roles
-      </h2>
-      <div class="overflow-x-auto rounded-2xl border border-slate-800">
-        <table class="w-full min-w-[480px] text-left text-sm">
-          <thead class="bg-slate-900/80 text-xs uppercase tracking-wider text-slate-500">
-            <tr>
-              <th class="px-4 py-3">Role</th>
-              <th class="px-4 py-3">Min (LPA)</th>
-              <th class="px-4 py-3">Mid (LPA)</th>
-              <th class="px-4 py-3">Max (LPA)</th>
-            </tr>
-          </thead>
-          <tbody id="sb-tbody" class="divide-y divide-slate-800 bg-slate-900/40">
-            {ROLES.map((r) => (
-              <tr class="role-row cursor-pointer transition hover:bg-emerald-950/30" data-role={r.role}>
-                <td class="px-4 py-3 font-medium text-white">{r.role}</td>
-                <td class="px-4 py-3 text-slate-400 mid-min">—</td>
-                <td class="px-4 py-3 text-emerald-400 mid-mid">—</td>
-                <td class="px-4 py-3 text-slate-400 mid-max">—</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p id="sb-no-results" class="mt-3 hidden text-center text-sm text-slate-500">No roles match your search.</p>
-    </section>
+    <SalaryBenchmarker client:load />
   </div>
-
-  <style>
-    .detail-card {
-      @apply rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-5 shadow-lg;
-    }
-    .stat-box {
-      @apply rounded-xl border border-slate-800 bg-slate-950/50 px-2 py-3;
-    }
-    .stat-mid {
-      @apply border-emerald-800/50 bg-emerald-950/30;
-    }
-    .role-row.selected {
-      @apply bg-emerald-950/40 ring-1 ring-inset ring-emerald-700/50;
-    }
-  </style>
-
-  <script define:vars={{ ROLES, BAND_LABELS }}>
-    const searchEl = document.getElementById('sb-search');
-    const bandEl = document.getElementById('sb-band');
-    const tbody = document.getElementById('sb-tbody');
-    const noResults = document.getElementById('sb-no-results');
-    const detailRole = document.getElementById('sb-detail-role');
-    const detailBand = document.getElementById('sb-detail-band');
-    const minEl = document.getElementById('sb-min');
-    const midEl = document.getElementById('sb-mid');
-    const maxEl = document.getElementById('sb-max');
-    const rangeBar = document.getElementById('sb-range-bar');
-
-    let selectedRole = ROLES[0].role;
-
-    function getBand() {
-      return bandEl.value;
-    }
-
-    function updateTable() {
-      const query = searchEl.value.trim().toLowerCase();
-      const band = getBand();
-      let visible = 0;
-
-      tbody.querySelectorAll('.role-row').forEach((row) => {
-        const roleName = row.dataset.role;
-        const entry = ROLES.find((r) => r.role === roleName);
-        if (!entry) return;
-
-        const matches = !query || roleName.toLowerCase().includes(query);
-        row.classList.toggle('hidden', !matches);
-        row.classList.toggle('selected', roleName === selectedRole);
-
-        if (matches) {
-          visible++;
-          const [min, mid, max] = entry.bands[band];
-          row.querySelector('.mid-min').textContent = min.toFixed(1);
-          row.querySelector('.mid-mid').textContent = mid.toFixed(1);
-          row.querySelector('.mid-max').textContent = max.toFixed(1);
-        }
-      });
-
-      noResults.classList.toggle('hidden', visible > 0);
-    }
-
-    function updateDetail() {
-      const band = getBand();
-      const entry = ROLES.find((r) => r.role === selectedRole);
-      if (!entry) return;
-
-      const [min, mid, max] = entry.bands[band];
-      detailRole.textContent = entry.role;
-      detailBand.textContent = BAND_LABELS[band] ?? band;
-      minEl.textContent = `₹${min.toFixed(1)}`;
-      midEl.textContent = `₹${mid.toFixed(1)}`;
-      maxEl.textContent = `₹${max.toFixed(1)}`;
-
-      const span = max - min || 1;
-      const pct = Math.min(100, Math.max(20, ((mid - min) / span) * 80 + 20));
-      rangeBar.style.width = `${pct}%`;
-    }
-
-    function render() {
-      updateTable();
-      updateDetail();
-    }
-
-    searchEl.addEventListener('input', render);
-    bandEl.addEventListener('change', render);
-
-    tbody.querySelectorAll('.role-row').forEach((row) => {
-      row.addEventListener('click', () => {
-        selectedRole = row.dataset.role;
-        render();
-      });
-    });
-
-    render();
-  </script>
 </ToolsLayout>

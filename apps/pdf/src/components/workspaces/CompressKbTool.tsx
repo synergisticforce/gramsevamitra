@@ -11,19 +11,35 @@ import { isHeavyDocument } from '../../lib/pdfMemory';
 import { toProcessingError } from '../../lib/processingErrors';
 import { runPdfWorkerWithJpegPages } from '../../lib/pdfWorkerClient';
 
+type CompressionProfile = 'basic' | 'strong' | 'extreme';
+
+const PROFILES: Record<
+  CompressionProfile,
+  { quality: number; scale: number; label: string; description: string }
+> = {
+  basic: {
+    quality: 0.88,
+    scale: 1,
+    label: 'Basic Compression (High Quality)',
+    description: 'Best for text-heavy PDFs where sharpness matters most.',
+  },
+  strong: {
+    quality: 0.65,
+    scale: 0.85,
+    label: 'Strong Compression (Optimal Size)',
+    description: 'Balanced quality and file size — recommended for most uploads.',
+  },
+  extreme: {
+    quality: 0.42,
+    scale: 0.7,
+    label: 'Extreme Compression',
+    description: 'Smallest possible size with acceptable readability.',
+  },
+};
+
 function formatFileSize(bytes: number): string {
   if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   return `${Math.round(bytes / 1024)} KB`;
-}
-
-function sliderToParams(qualitySlider: number): { quality: number; scale: number; label: string } {
-  const t = Math.min(100, Math.max(0, qualitySlider)) / 100;
-  const quality = 0.35 + t * 0.57;
-  const scale = 0.85 + t * 0.55;
-  let label = 'Balanced compression';
-  if (t <= 0.25) label = 'Maximum compression (smaller file)';
-  else if (t >= 0.75) label = 'High quality (larger file)';
-  return { quality, scale, label };
 }
 
 async function compressWithJpegPreset(
@@ -48,14 +64,28 @@ async function compressWithJpegPreset(
 
 export default function CompressKbTool() {
   const [file, setFile] = useState<File | null>(null);
-  const [qualitySlider, setQualitySlider] = useState(55);
+  const [profile, setProfile] = useState<CompressionProfile>('strong');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [lastResult, setLastResult] = useState<{
+    originalBytes: number;
+    outputBytes: number;
+  } | null>(null);
   const { report, resetProgress, setProgress } = useToolProgress();
 
-  const params = useMemo(() => sliderToParams(qualitySlider), [qualitySlider]);
+  const activeProfile = PROFILES[profile];
   const heavyDocument = file ? isHeavyDocument(file.size) : false;
+
+  const savings = useMemo(() => {
+    if (!lastResult) return null;
+    const saved = Math.max(0, lastResult.originalBytes - lastResult.outputBytes);
+    const pct =
+      lastResult.originalBytes > 0
+        ? Math.round((saved / lastResult.originalBytes) * 100)
+        : 0;
+    return { saved, pct };
+  }, [lastResult]);
 
   const compress = useCallback(async () => {
     if (!file) {
@@ -65,21 +95,28 @@ export default function CompressKbTool() {
     setBusy(true);
     setError(null);
     setSuccess(null);
+    setLastResult(null);
     setProgress({ active: true, percent: 0, label: 'Analyzing PDF…' });
 
     try {
-      const { quality, scale, label } = sliderToParams(qualitySlider);
+      const { quality, scale, label } = PROFILES[profile];
       const out = await compressWithJpegPreset(file, quality, scale, report);
-      const finalKb = Math.round(out.length / 1024);
+      const originalBytes = file.size;
+      const outputBytes = out.length;
       downloadBytes(out, file.name, 'application/pdf', '_compressed');
-      setSuccess(`Done! Output size: ${finalKb} KB (${label}, quality ${qualitySlider}).`);
+      setLastResult({ originalBytes, outputBytes });
+      const savedKb = Math.max(0, Math.round((originalBytes - outputBytes) / 1024));
+      const savedPct = originalBytes > 0 ? Math.round(((originalBytes - outputBytes) / originalBytes) * 100) : 0;
+      setSuccess(
+        `${label}: ${formatFileSize(originalBytes)} → ${formatFileSize(outputBytes)} · saved ${savedKb} KB (${savedPct}%).`
+      );
     } catch (err) {
       setError(toProcessingError(err));
     } finally {
       resetProgress();
       setBusy(false);
     }
-  }, [file, qualitySlider, report, resetProgress, setProgress]);
+  }, [file, profile, report, resetProgress, setProgress]);
 
   return (
     <div className="space-y-4">
@@ -107,28 +144,64 @@ export default function CompressKbTool() {
       )}
 
       <div className="rounded-xl border border-emerald-900/50 bg-slate-950/60 px-4 py-4">
-        <div className="flex items-center justify-between gap-3">
-          <label htmlFor="compress-quality" className="text-sm font-semibold text-white">
-            Compression quality
-          </label>
-          <span className="text-sm tabular-nums text-emerald-400">{qualitySlider}</span>
+        <p className="text-sm font-semibold text-white">Compression profile</p>
+        <div className="mt-3 space-y-2">
+          {(Object.keys(PROFILES) as CompressionProfile[]).map((key) => {
+            const item = PROFILES[key];
+            const selected = profile === key;
+            return (
+              <label
+                key={key}
+                className={`flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-3 transition ${
+                  selected
+                    ? 'border-emerald-500 bg-emerald-950/40'
+                    : 'border-slate-700 bg-slate-900/40 hover:border-slate-600'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="compress-profile"
+                  value={key}
+                  checked={selected}
+                  onChange={() => setProfile(key)}
+                  className="mt-1 accent-emerald-500"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-white">{item.label}</span>
+                  <span className="mt-0.5 block text-xs text-slate-400">{item.description}</span>
+                </span>
+              </label>
+            );
+          })}
         </div>
-        <input
-          id="compress-quality"
-          type="range"
-          min={0}
-          max={100}
-          value={qualitySlider}
-          onChange={(e) => setQualitySlider(Number(e.target.value))}
-          className="mt-3 w-full accent-[#10b981]"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={qualitySlider}
-        />
-        <p className="mt-2 text-xs text-slate-400">
-          {params.label} — lower values shrink file size more; higher values preserve text sharpness.
+        <p className="mt-3 text-xs text-slate-500">
+          Active: {activeProfile.label} — quality {Math.round(activeProfile.quality * 100)}%, scale{' '}
+          {Math.round(activeProfile.scale * 100)}%.
         </p>
       </div>
+
+      {lastResult && savings && (
+        <div className="grid grid-cols-3 gap-3 rounded-xl border border-emerald-800/40 bg-emerald-950/30 p-4 text-center">
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Original</p>
+            <p className="mt-1 text-sm font-bold tabular-nums text-slate-300">
+              {formatFileSize(lastResult.originalBytes)}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Compressed</p>
+            <p className="mt-1 text-sm font-bold tabular-nums text-emerald-400">
+              {formatFileSize(lastResult.outputBytes)}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Saved</p>
+            <p className="mt-1 text-sm font-bold tabular-nums text-emerald-300">
+              {formatFileSize(savings.saved)} ({savings.pct}%)
+            </p>
+          </div>
+        </div>
+      )}
 
       <ActionButton onClick={compress} disabled={busy || !file}>
         {busy ? 'Compressing…' : 'Compress & Download'}

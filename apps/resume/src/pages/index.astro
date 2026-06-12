@@ -3,7 +3,7 @@ import '@shared/styles/global.css';
 import BaseLayout from '@shared/layouts/BaseLayout.astro';
 import Header from '@shared/components/Header.astro';
 import Footer from '@shared/components/Footer.astro';
-import AtsResumeScannerTool from '../components/AtsResumeScannerTool';
+import AtsScannerTool from '../components/AtsScannerTool';
 import { SITE_HOME_SEO } from '@shared/config/seo';
 
 const toolName = 'ATS Resume Scanner';
@@ -36,7 +36,7 @@ const toolDescription =
         <p class="mx-auto mt-3 max-w-2xl text-sm text-slate-400 sm:text-base">{toolDescription}</p>
       </header>
 
-      <AtsResumeScannerTool client:load />
+      <AtsScannerTool client:load />
     </div>
   </section>
 
