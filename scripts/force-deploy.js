@@ -1,19 +1,43 @@
 #!/usr/bin/env node
 /**
- * Force a Cloudflare Pages production deployment when GitHub webhooks stall.
- * Primary: Cloudflare Pages Git deployment API (branch trigger).
- * Fallback: sync origin/main, build PDF app, wrangler direct upload (this project's CI model).
+ * Force production deployments for the full GramSeva Mitra monorepo when
+ * GitHub → Cloudflare webhooks stall. Uses wrangler direct upload (Pages).
  */
 import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = process.cwd();
 const ACCOUNT_ID = 'b440186dd17095f27299d6fb3bfcc663';
-const PROJECT_NAME = 'gramsevamitra-pdf';
 const PRODUCTION_BRANCH = process.env.CF_PAGES_BRANCH || 'main';
 
-const API_URL = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/pages/projects/${PROJECT_NAME}/deployments`;
+/** @type {{ project: string; distDir: string; buildScript: string; domain: string }[]} */
+const TARGETS = [
+  {
+    project: 'gramsevamitra-hub',
+    distDir: 'apps/hub/dist',
+    buildScript: 'build:hub',
+    domain: 'gramsevamitra.com',
+  },
+  {
+    project: 'gramsevamitra-pdf',
+    distDir: 'apps/pdf/dist',
+    buildScript: 'build:pdf',
+    domain: 'pdf.gramsevamitra.com',
+  },
+  {
+    project: 'gramsevamitra-optimizer',
+    distDir: 'apps/optimizer/dist',
+    buildScript: 'build:optimizer',
+    domain: 'optimizer.gramsevamitra.com',
+  },
+  {
+    project: 'gramsevamitra-resume',
+    distDir: 'apps/resume/dist',
+    buildScript: 'build:resume',
+    domain: 'resume.gramsevamitra.com',
+  },
+];
 
 function loadEnvFile() {
   try {
@@ -35,14 +59,18 @@ function loadEnvFile() {
 
 function run(cmd) {
   console.log(`\n→ ${cmd}\n`);
-  execSync(cmd, { cwd: ROOT, stdio: 'inherit', env: process.env });
+  return execSync(cmd, { cwd: ROOT, stdio: 'inherit', env: process.env });
 }
 
-async function triggerGitDeployment(token) {
-  console.log(`→ POST ${API_URL}`);
-  console.log(`  branch: ${PRODUCTION_BRANCH}`);
+function runCapture(cmd) {
+  console.log(`\n→ ${cmd}\n`);
+  return execSync(cmd, { cwd: ROOT, encoding: 'utf8', env: process.env });
+}
 
-  const response = await fetch(API_URL, {
+async function triggerGitDeployment(token, projectName) {
+  const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/pages/projects/${projectName}/deployments`;
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -51,24 +79,33 @@ async function triggerGitDeployment(token) {
     body: JSON.stringify({ branch: PRODUCTION_BRANCH }),
   });
 
-  const payload = await response.json();
-  console.log(JSON.stringify(payload, null, 2));
-  return payload;
+  return response.json();
 }
 
-async function deployViaGitOpsFallback(token) {
-  console.warn(
-    '\n⚠ Git branch trigger unavailable (Direct Upload Pages project).',
-  );
-  console.warn('  Falling back: fetch GitHub main → build → wrangler pages deploy.\n');
+function deployWithWrangler({ project, distDir, domain, buildScript }) {
+  console.log(`\n${'='.repeat(60)}`);
+  console.log(`  ${project} → ${domain}`);
+  console.log(`${'='.repeat(60)}`);
 
-  run(`git fetch origin ${PRODUCTION_BRANCH}`);
-  run(`git checkout ${PRODUCTION_BRANCH}`);
-  run(`git pull --ff-only origin ${PRODUCTION_BRANCH}`);
-  run('npm run build:pdf');
-  run(
-    `npx wrangler pages deploy apps/pdf/dist --project-name=${PROJECT_NAME} --branch=${PRODUCTION_BRANCH}`,
+  run(`npm run ${buildScript}`);
+
+  const distPath = join(ROOT, distDir);
+  if (!existsSync(distPath)) {
+    throw new Error(`Build output missing: ${distDir}`);
+  }
+
+  const output = runCapture(
+    `npx wrangler pages deploy ${distDir} --project-name=${project} --branch=${PRODUCTION_BRANCH} --commit-dirty=true`,
   );
+
+  const urlMatch = output.match(/https:\/\/[a-f0-9]+\.[\w-]+\.pages\.dev/i);
+  const liveUrl = urlMatch?.[0] ?? `https://${domain}`;
+
+  console.log(`\n✓ ${project} deployed`);
+  console.log(`  Preview URL : ${liveUrl}`);
+  console.log(`  Production  : https://${domain}`);
+
+  return liveUrl;
 }
 
 async function forceDeploy() {
@@ -81,28 +118,47 @@ async function forceDeploy() {
 
   process.env.CLOUDFLARE_API_TOKEN = token;
 
-  console.log(`→ Force production deployment: ${PROJECT_NAME}`);
+  console.log('GramSeva Mitra — global force deploy');
+  console.log(`Branch: ${PRODUCTION_BRANCH} | Apps: ${TARGETS.length}\n`);
 
-  const payload = await triggerGitDeployment(token);
+  run(`git fetch origin ${PRODUCTION_BRANCH}`);
+  run(`git checkout ${PRODUCTION_BRANCH}`);
+  run(`git pull --ff-only origin ${PRODUCTION_BRANCH}`);
+  run('node scripts/sync-public.mjs');
+  run('node scripts/generate-pwa-icons.mjs');
 
-  if (payload.success) {
-    const deployment = payload.result;
-    console.log('\n✓ Cloudflare Git deployment initiated');
-    if (deployment?.id) console.log(`  ID: ${deployment.id}`);
-    if (deployment?.url) console.log(`  URL: ${deployment.url}`);
-    if (deployment?.environment) console.log(`  Environment: ${deployment.environment}`);
-    return;
+  const results = [];
+
+  for (const target of TARGETS) {
+    const apiPayload = await triggerGitDeployment(token, target.project);
+
+    if (apiPayload.success) {
+      console.log(`\n✓ ${target.project}: Cloudflare Git deployment initiated`);
+      if (apiPayload.result?.url) console.log(`  URL: ${apiPayload.result.url}`);
+      results.push({ project: target.project, url: apiPayload.result?.url, method: 'api' });
+      continue;
+    }
+
+    const needsDirectUpload = apiPayload.errors?.some((e) => e.code === 8000096);
+    if (!needsDirectUpload) {
+      const message =
+        apiPayload.errors?.map((e) => e.message).join('; ') || 'Unknown Cloudflare API error';
+      throw new Error(`${target.project}: ${message}`);
+    }
+
+    console.warn(`\n⚠ ${target.project}: Git webhook unavailable — wrangler direct upload fallback`);
+    const liveUrl = deployWithWrangler(target);
+    results.push({ project: target.project, url: liveUrl, method: 'wrangler' });
   }
 
-  const manifestRequired = payload.errors?.some((e) => e.code === 8000096);
-  if (manifestRequired) {
-    await deployViaGitOpsFallback(token);
-    console.log('\n✓ PDF production deployment uploaded via wrangler (GitOps fallback)');
-    return;
+  console.log(`\n${'='.repeat(60)}`);
+  console.log('  DEPLOYMENT SUMMARY');
+  console.log(`${'='.repeat(60)}`);
+  for (const { project, url, method } of results) {
+    console.log(`  ${project} (${method})`);
+    console.log(`    ${url ?? '—'}`);
   }
-
-  const message = payload.errors?.map((e) => e.message).join('; ') || 'Unknown Cloudflare API error';
-  throw new Error(`Cloudflare deployment trigger failed: ${message}`);
+  console.log('\n✓ All monorepo apps processed successfully.\n');
 }
 
 forceDeploy().catch((err) => {
