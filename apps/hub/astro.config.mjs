@@ -54,8 +54,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webmanifest,txt,mjs,map,json}'],
         globIgnores: ['**/data/babyNames.json'],
-        navigateFallback: '/404.html',
-        navigateFallbackDenylist: [/^\/api\//, /^\/404\.html$/],
+        navigateFallback: '/offline/index.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/404\.html$/, /^\/offline/],
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [

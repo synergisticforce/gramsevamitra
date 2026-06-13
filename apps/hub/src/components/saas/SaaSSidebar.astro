@@ -1,0 +1,114 @@
+---
+import { SITES, utilitiesHref } from '@shared/config/sites';
+import type { SaaSNavKey } from './saasNav.ts';
+
+interface Props {
+  active?: SaaSNavKey;
+}
+
+const { active = 'home' } = Astro.props;
+
+const mainLinks = [
+  { key: 'home' as const, label: 'Home', href: SITES.hub.url },
+  { key: 'utilities' as const, label: 'Utilities', href: utilitiesHref('/tools') },
+  { key: 'contact' as const, label: 'Contact', href: `${SITES.hub.url}/contact` },
+];
+
+const productLinks = [
+  { label: 'PDF Tools', href: SITES.pdf.url },
+  { label: 'Doc Optimizer', href: SITES.optimizer.url },
+  { label: 'Resume Scanner', href: SITES.resume.url },
+];
+
+const legalLinks = [
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'Terms', href: '/terms' },
+  { label: 'Disclaimer', href: '/disclaimer' },
+];
+
+const linkClass = (isActive: boolean) =>
+  `block rounded-lg px-3 py-2 text-sm font-medium transition ${
+    isActive
+      ? 'bg-slate-100 text-slate-900'
+      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+  }`;
+---
+
+<aside class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
+  <div class="border-b border-slate-200 px-5 py-5">
+    <a href={SITES.hub.url} class="group flex items-center gap-2.5">
+      <span
+        class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-xs font-bold text-white"
+        aria-hidden="true"
+      >
+        GS
+      </span>
+      <span class="text-base font-bold tracking-tight text-slate-900">
+        Gram<span class="text-emerald-600">Seva</span> Mitra
+      </span>
+    </a>
+  </div>
+
+  <nav class="flex-1 space-y-6 overflow-y-auto px-3 py-4" aria-label="Platform navigation">
+    <div>
+      <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Platform</p>
+      <ul class="mt-2 space-y-0.5">
+        {
+          mainLinks.map((link) => (
+            <li>
+              <a href={link.href} class={linkClass(active === link.key)}>
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div>
+      <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Products</p>
+      <ul class="mt-2 space-y-0.5">
+        {
+          productLinks.map((link) => (
+            <li>
+              <a href={link.href} class={linkClass(false)}>
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div>
+      <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Legal</p>
+      <ul class="mt-2 space-y-0.5">
+        {
+          legalLinks.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class={linkClass(active === 'legal' && Astro.url.pathname === link.href)}
+              >
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </nav>
+
+  <div class="border-t border-slate-200 px-4 py-4">
+    <button
+      type="button"
+      id="saas-cmdk-trigger"
+      class="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm text-slate-600 transition hover:border-slate-300 hover:bg-white"
+    >
+      <span>Quick tools</span>
+      <kbd class="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
+        ⌘K
+      </kbd>
+    </button>
+  </div>
+</aside>

@@ -1,0 +1,31 @@
+---
+interface Props {
+  title: string;
+  lastUpdated?: string;
+}
+
+const { title, lastUpdated = 'June 2026' } = Astro.props;
+---
+
+<article class="px-4 py-10 sm:px-6 sm:py-12">
+  <header class="mb-8">
+    <slot name="nav" />
+    <h1 class="mt-6 text-3xl font-bold tracking-tight text-slate-900">{title}</h1>
+    <p class="mt-2 text-sm text-slate-500">Last updated: {lastUpdated}</p>
+  </header>
+  <div class="saas-legal-content prose prose-slate max-w-none text-slate-700 prose-headings:text-slate-900 prose-a:text-emerald-700">
+    <slot />
+  </div>
+</article>
+
+<style>
+  .saas-legal-content :global(h2) {
+    @apply mt-6 text-xl font-semibold text-slate-900;
+  }
+  .saas-legal-content :global(p) {
+    @apply text-slate-700;
+  }
+  .saas-legal-content :global(strong) {
+    @apply text-slate-900;
+  }
+</style>

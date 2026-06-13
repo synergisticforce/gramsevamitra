@@ -3,18 +3,18 @@ import '@shared/styles/global.css';
 import SaaSLayout from '../layouts/SaaSLayout.astro';
 import SaaSLegalPage from '../components/saas/SaaSLegalPage.astro';
 import SegmentedControl from '../components/saas/SegmentedControl.astro';
-import PrivacyPolicyContent from '@shared/components/legal/PrivacyPolicyContent.astro';
+import DisclaimerContent from '@shared/components/legal/DisclaimerContent.astro';
 import { LEGAL_SEO } from '@shared/config/seo';
 import { LEGAL_SEGMENTS } from '../components/saas/saasNav.ts';
 ---
 
 <SaaSLayout
-  title={LEGAL_SEO.privacy.hub.title}
-  description={LEGAL_SEO.privacy.hub.description}
+  title={LEGAL_SEO.disclaimer.hub.title}
+  description={LEGAL_SEO.disclaimer.hub.description}
   activeNav="legal"
 >
-  <SaaSLegalPage title="Privacy Policy">
-    <SegmentedControl slot="nav" items={LEGAL_SEGMENTS} activeId="privacy" />
-    <PrivacyPolicyContent />
+  <SaaSLegalPage title="Disclaimer">
+    <SegmentedControl slot="nav" items={LEGAL_SEGMENTS} activeId="disclaimer" />
+    <DisclaimerContent />
   </SaaSLegalPage>
 </SaaSLayout>

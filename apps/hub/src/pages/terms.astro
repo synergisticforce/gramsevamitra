@@ -1,21 +1,20 @@
 ---
 import '@shared/styles/global.css';
-import BaseLayout from '@shared/layouts/BaseLayout.astro';
-import Header from '@shared/components/Header.astro';
-import Footer from '@shared/components/Footer.astro';
-import LegalPage from '@shared/components/LegalPage.astro';
+import SaaSLayout from '../layouts/SaaSLayout.astro';
+import SaaSLegalPage from '../components/saas/SaaSLegalPage.astro';
+import SegmentedControl from '../components/saas/SegmentedControl.astro';
 import TermsOfServiceContent from '@shared/components/legal/TermsOfServiceContent.astro';
 import { LEGAL_SEO } from '@shared/config/seo';
+import { LEGAL_SEGMENTS } from '../components/saas/saasNav.ts';
 ---
 
-<BaseLayout
+<SaaSLayout
   title={LEGAL_SEO.terms.hub.title}
   description={LEGAL_SEO.terms.hub.description}
-  site="hub"
+  activeNav="legal"
 >
-  <Header slot="header" active="hub" />
-  <LegalPage title="Terms of Service">
+  <SaaSLegalPage title="Terms of Service">
+    <SegmentedControl slot="nav" items={LEGAL_SEGMENTS} activeId="terms" />
     <TermsOfServiceContent />
-  </LegalPage>
-  <Footer slot="footer" />
-</BaseLayout>
+  </SaaSLegalPage>
+</SaaSLayout>

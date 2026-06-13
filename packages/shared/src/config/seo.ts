@@ -40,7 +40,7 @@ export const SITE_HOME_SEO: Record<SiteKey, PageSeo> = {
   },
 };
 
-export const LEGAL_SEO: Record<'privacy' | 'terms', Record<SiteKey, PageSeo>> = {
+export const LEGAL_SEO: Record<'privacy' | 'terms' | 'disclaimer', Record<SiteKey, PageSeo>> = {
   privacy: {
     hub: {
       title: 'Privacy Policy | GramSeva Mitra',
@@ -83,6 +83,28 @@ export const LEGAL_SEO: Record<'privacy' | 'terms', Record<SiteKey, PageSeo>> = 
       title: 'Terms of Service — PDF Tools | GramSeva Mitra',
       description:
         'PDF utilities are provided as-is without uptime guarantees. You are solely responsible for encrypted documents and files you process locally.',
+    },
+  },
+  disclaimer: {
+    hub: {
+      title: 'Disclaimer | GramSeva Mitra',
+      description:
+        'Limitation of liability for financial, health, legal, and AI-generated outputs on GramSeva Mitra free and Pro tools.',
+    },
+    optimizer: {
+      title: 'Disclaimer — Document Optimizer | GramSeva Mitra',
+      description:
+        'Exam photo and signature sizing results are indicative. Verify dimensions against official notification requirements.',
+    },
+    resume: {
+      title: 'Disclaimer — Resume Scanner | GramSeva Mitra',
+      description:
+        'ATS match scores are educational estimates only and do not guarantee hiring outcomes.',
+    },
+    pdf: {
+      title: 'Disclaimer — PDF Tools | GramSeva Mitra',
+      description:
+        'PDF editing and security tools are provided without warranty. Review every output before official submission.',
     },
   },
 };
