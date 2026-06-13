@@ -114,11 +114,8 @@ function deployWithWrangler({ project, distDir, domain, buildScript }) {
     throw new Error(`Build output missing: ${distDir}`);
   }
 
-  const functionsDir = join(ROOT, 'functions');
-  const functionsFlag = existsSync(functionsDir) ? ` --functions=${functionsDir}` : '';
-
   const output = runCapture(
-    `npx wrangler pages deploy ${distDir} --project-name=${project} --branch=${PRODUCTION_BRANCH} --commit-dirty=true${functionsFlag}`,
+    `npx wrangler pages deploy ${distDir} --project-name=${project} --branch=${PRODUCTION_BRANCH} --commit-dirty=true`,
   );
 
   const urlMatch = output.match(/https:\/\/[a-f0-9]+\.[\w-]+\.pages\.dev/i);
