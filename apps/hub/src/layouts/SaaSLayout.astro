@@ -56,7 +56,11 @@ const {
 <script>
   import { OMNI_SEARCH_OPEN_EVENT } from '../components/saas/OmniSearchPalette';
 
-  document.getElementById('saas-cmdk-trigger-mobile-header')?.addEventListener('click', () => {
+  function openOmniSearch() {
     window.dispatchEvent(new CustomEvent(OMNI_SEARCH_OPEN_EVENT));
-  });
+  }
+
+  document.getElementById('saas-cmdk-trigger-mobile-header')?.addEventListener('click', openOmniSearch);
+  document.getElementById('saas-cmdk-trigger')?.addEventListener('click', openOmniSearch);
+  document.getElementById('saas-mobile-search-trigger')?.addEventListener('click', openOmniSearch);
 </script>
