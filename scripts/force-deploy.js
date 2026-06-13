@@ -83,6 +83,12 @@ function configureHubContactSecrets(projectName) {
   putPagesSecret(projectName, 'RESEND_API_KEY', process.env.RESEND_API_KEY);
 }
 
+function configureHubAuthSecrets(projectName) {
+  putPagesSecret(projectName, 'BETTER_AUTH_SECRET', process.env.BETTER_AUTH_SECRET);
+  putPagesSecret(projectName, 'GOOGLE_CLIENT_ID', process.env.GOOGLE_CLIENT_ID);
+  putPagesSecret(projectName, 'GOOGLE_CLIENT_SECRET', process.env.GOOGLE_CLIENT_SECRET);
+}
+
 async function triggerGitDeployment(token, projectName) {
   const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/pages/projects/${projectName}/deployments`;
 
@@ -105,6 +111,7 @@ function deployWithWrangler({ project, distDir, domain, buildScript }) {
 
   if (project === 'gramsevamitra-hub') {
     configureHubContactSecrets(project);
+    configureHubAuthSecrets(project);
   }
 
   run(`npm run ${buildScript}`);
@@ -114,8 +121,10 @@ function deployWithWrangler({ project, distDir, domain, buildScript }) {
     throw new Error(`Build output missing: ${distDir}`);
   }
 
+  const configFlag = project === 'gramsevamitra-hub' ? ' --config wrangler.toml' : '';
+
   const output = runCapture(
-    `npx wrangler pages deploy ${distDir} --project-name=${project} --branch=${PRODUCTION_BRANCH} --commit-dirty=true`,
+    `npx wrangler pages deploy ${distDir} --project-name=${project} --branch=${PRODUCTION_BRANCH} --commit-dirty=true${configFlag}`,
   );
 
   const urlMatch = output.match(/https:\/\/[a-f0-9]+\.[\w-]+\.pages\.dev/i);

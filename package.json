@@ -39,7 +39,10 @@
     "production:release": "node scripts/production-release.mjs",
     "configure:routing": "node scripts/configure-routing.mjs",
     "cf:auth": "node scripts/cf-auth.mjs",
-    "cf:login": "node scripts/cf-auth.mjs --login"
+    "cf:login": "node scripts/cf-auth.mjs --login",
+    "db:create": "wrangler d1 create gramsevamitra-auth",
+    "db:migrate:local": "wrangler d1 execute gramsevamitra-auth --local --file=schema.sql",
+    "db:migrate:remote": "wrangler d1 execute gramsevamitra-auth --remote --file=schema.sql"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1",
