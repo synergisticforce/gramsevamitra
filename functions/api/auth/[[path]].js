@@ -1,4 +1,4 @@
-import { createAuth } from '../_lib/auth.mjs';
+import { createAuth } from '../../_lib/auth.mjs';
 
 export async function onRequest(context) {
   const auth = createAuth(context.env);

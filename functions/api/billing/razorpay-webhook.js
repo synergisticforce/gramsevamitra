@@ -16,7 +16,7 @@ export async function onRequestPost(context) {
   const signature = request.headers.get('X-Razorpay-Signature');
 
   try {
-    const valid = verifyRazorpayWebhookSignature(rawBody, signature, env.RAZORPAY_WEBHOOK_SECRET);
+    const valid = await verifyRazorpayWebhookSignature(rawBody, signature, env.RAZORPAY_WEBHOOK_SECRET);
     if (!valid) {
       return new Response('Invalid webhook signature', { status: 401 });
     }

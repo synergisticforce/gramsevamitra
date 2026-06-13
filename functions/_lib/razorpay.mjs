@@ -1,6 +1,4 @@
-import Razorpay from 'razorpay';
-
-/** Pro plan — ₹199/month (charged as a Razorpay Order in INR paise). */
+/** Pro plan — ₹199/month (Razorpay Order in INR paise). */
 export const PRO_ORDER_AMOUNT_PAISE = 19900;
 export const PRO_ORDER_CURRENCY = 'INR';
 
@@ -10,14 +8,21 @@ export const PRO_ORDER_CURRENCY = 'INR';
  *   RAZORPAY_KEY_SECRET: string;
  * }} env
  */
-export function createRazorpayClient(env) {
+function assertRazorpayKeys(env) {
   if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET) {
     throw new Error('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are not configured');
   }
-  return new Razorpay({
-    key_id: env.RAZORPAY_KEY_ID,
-    key_secret: env.RAZORPAY_KEY_SECRET,
-  });
+}
+
+/**
+ * @param {import('@gramsevamitra/auth').AuthEnv & {
+ *   RAZORPAY_KEY_ID: string;
+ *   RAZORPAY_KEY_SECRET: string;
+ * }} env
+ */
+function razorpayAuthHeader(env) {
+  assertRazorpayKeys(env);
+  return `Basic ${btoa(`${env.RAZORPAY_KEY_ID}:${env.RAZORPAY_KEY_SECRET}`)}`;
 }
 
 /**
@@ -28,35 +33,62 @@ export function createRazorpayClient(env) {
  * @param {{ userId: string; email?: string; feature?: string }} input
  */
 export async function createProOrder(env, input) {
-  const client = createRazorpayClient(env);
   const receipt = `pro${Date.now()}`.slice(0, 40);
 
-  return client.orders.create({
-    amount: PRO_ORDER_AMOUNT_PAISE,
-    currency: PRO_ORDER_CURRENCY,
-    receipt,
-    notes: {
-      userId: input.userId,
-      email: input.email ?? '',
-      feature: input.feature ?? 'pro_upgrade',
+  const response = await fetch('https://api.razorpay.com/v1/orders', {
+    method: 'POST',
+    headers: {
+      Authorization: razorpayAuthHeader(env),
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify({
+      amount: PRO_ORDER_AMOUNT_PAISE,
+      currency: PRO_ORDER_CURRENCY,
+      receipt,
+      notes: {
+        userId: input.userId,
+        email: input.email ?? '',
+        feature: input.feature ?? 'pro_upgrade',
+      },
+    }),
   });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`Razorpay order failed (${response.status}): ${detail}`);
+  }
+
+  return response.json();
 }
 
 /**
- * Verify Razorpay webhook HMAC (uses official SDK helper).
+ * Verify Razorpay webhook HMAC-SHA256 (edge-compatible Web Crypto).
  * @param {string} rawBody
  * @param {string | null} signature
  * @param {string} secret
  */
-export function verifyRazorpayWebhookSignature(rawBody, signature, secret) {
+export async function verifyRazorpayWebhookSignature(rawBody, signature, secret) {
   if (!signature) {
     throw new Error('Missing X-Razorpay-Signature header');
   }
   if (!secret) {
     throw new Error('RAZORPAY_WEBHOOK_SECRET is not configured');
   }
-  return Razorpay.validateWebhookSignature(rawBody, signature, secret);
+
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const digest = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody));
+  const expected = Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+
+  return expected === signature;
 }
 
 /**
@@ -67,8 +99,18 @@ export function verifyRazorpayWebhookSignature(rawBody, signature, secret) {
  * @param {string} orderId
  */
 export async function fetchRazorpayOrder(env, orderId) {
-  const client = createRazorpayClient(env);
-  return client.orders.fetch(orderId);
+  const response = await fetch(`https://api.razorpay.com/v1/orders/${encodeURIComponent(orderId)}`, {
+    headers: {
+      Authorization: razorpayAuthHeader(env),
+    },
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`Razorpay order fetch failed (${response.status}): ${detail}`);
+  }
+
+  return response.json();
 }
 
 /**
@@ -85,7 +127,6 @@ export async function setUserPlanPro(db, userId) {
 }
 
 /**
- * Resolve Better Auth user id from a payment.captured webhook payload.
  * @param {import('@gramsevamitra/auth').AuthEnv & {
  *   RAZORPAY_KEY_ID: string;
  *   RAZORPAY_KEY_SECRET: string;
