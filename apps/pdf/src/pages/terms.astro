@@ -1,21 +1,17 @@
 ---
-import '@shared/styles/global.css';
-import BaseLayout from '@shared/layouts/BaseLayout.astro';
-import Header from '@shared/components/Header.astro';
-import Footer from '@shared/components/Footer.astro';
+import PdfToolsLayout from '../layouts/PdfToolsLayout.astro';
 import LegalPage from '@shared/components/LegalPage.astro';
 import TermsOfServiceContent from '@shared/components/legal/TermsOfServiceContent.astro';
 import { LEGAL_SEO } from '@shared/config/seo';
 ---
 
-<BaseLayout
+<PdfToolsLayout
   title={LEGAL_SEO.terms.pdf.title}
   description={LEGAL_SEO.terms.pdf.description}
-  site="pdf"
+  activeNav="legal"
+  hideWorkspaceNav={true}
 >
-  <Header slot="header" active="pdf" />
   <LegalPage title="Terms of Service">
     <TermsOfServiceContent />
   </LegalPage>
-  <Footer slot="footer" />
-</BaseLayout>
+</PdfToolsLayout>

@@ -1,0 +1,48 @@
+---
+import '@shared/styles/global.css';
+import SaaSLayout from '@shared/layouts/SaaSLayout.astro';
+import PdfOmniSearchPalette from '../components/saas/PdfOmniSearchPalette.tsx';
+import PdfWorkspaceSegmentNav from '../components/saas/PdfWorkspaceSegmentNav.astro';
+import { resolvePdfSegmentId } from '../config/pdfWorkspaceSegments';
+import type { SaaSNavKey } from '@shared/components/saas/saasNav.ts';
+
+interface Props {
+  title: string;
+  description?: string;
+  activeNav?: SaaSNavKey;
+  segmentId?: string;
+  hideWorkspaceNav?: boolean;
+  wide?: boolean;
+}
+
+const {
+  title,
+  description = 'Free PDF merge, compress, split, watermark, and convert tools — 100% private, runs in your browser.',
+  activeNav = 'home',
+  segmentId,
+  hideWorkspaceNav = false,
+  wide = false,
+} = Astro.props;
+
+const activeSegmentId = segmentId ?? resolvePdfSegmentId(Astro.url.pathname);
+const isIndexPage = Astro.url.pathname === '/' || Astro.url.pathname === '/studio';
+const showWorkspaceNav = !hideWorkspaceNav && activeNav !== 'legal';
+---
+
+<SaaSLayout
+  site="pdf"
+  title={title}
+  description={description}
+  activeNav={activeNav}
+  wide={wide}
+>
+  <div class="px-4 py-6 sm:px-6 sm:py-8">
+    {
+      showWorkspaceNav && (
+        <PdfWorkspaceSegmentNav activeSegmentId={activeSegmentId} showBackLink={isIndexPage} />
+      )
+    }
+    <slot />
+  </div>
+  <PdfOmniSearchPalette client:load slot="footer" />
+</SaaSLayout>

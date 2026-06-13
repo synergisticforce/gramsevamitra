@@ -1,30 +1,48 @@
 ---
-import { SITES, utilitiesHref } from '@shared/config/sites';
-import type { SaaSNavKey } from './saasNav.ts';
+import { SITES, utilitiesHref } from '../../config/sites';
+import type { SaaSNavKey, SaaSSiteId } from './saasNav.ts';
 
 interface Props {
+  site: SaaSSiteId;
   active?: SaaSNavKey;
 }
 
-const { active = 'home' } = Astro.props;
+const { site, active = 'home' } = Astro.props;
 
-const mainLinks = [
+const hubMainLinks = [
   { key: 'home' as const, label: 'Home', href: SITES.hub.url },
   { key: 'utilities' as const, label: 'Utilities', href: utilitiesHref('/tools') },
   { key: 'contact' as const, label: 'Contact', href: `${SITES.hub.url}/contact` },
 ];
 
-const productLinks = [
-  { label: 'PDF Tools', href: SITES.pdf.url },
-  { label: 'Doc Optimizer', href: SITES.optimizer.url },
-  { label: 'Resume Scanner', href: SITES.resume.url },
+const pdfMainLinks = [
+  { key: 'home' as const, label: 'PDF Home', href: '/' },
+  { key: 'studio' as const, label: 'Full Studio', href: '/studio' },
+  { key: 'utilities' as const, label: 'Utilities Hub', href: utilitiesHref('/tools') },
 ];
 
-const legalLinks = [
+const mainLinks = site === 'pdf' ? pdfMainLinks : hubMainLinks;
+
+const productLinks = [
+  { label: 'PDF Tools', href: SITES.pdf.url, activeOnPdf: true },
+  { label: 'Doc Optimizer', href: SITES.optimizer.url, activeOnPdf: false },
+  { label: 'Resume Scanner', href: SITES.resume.url, activeOnPdf: false },
+];
+
+const hubLegalLinks = [
   { label: 'Privacy', href: '/privacy' },
   { label: 'Terms', href: '/terms' },
   { label: 'Disclaimer', href: '/disclaimer' },
 ];
+
+const pdfLegalLinks = [
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'Terms', href: '/terms' },
+];
+
+const legalLinks = site === 'pdf' ? pdfLegalLinks : hubLegalLinks;
+
+const brandHref = site === 'pdf' ? '/' : SITES.hub.url;
 
 const linkClass = (isActive: boolean) =>
   `block rounded-lg px-3 py-2 text-sm font-medium transition ${
@@ -36,7 +54,7 @@ const linkClass = (isActive: boolean) =>
 
 <aside class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
   <div class="border-b border-slate-200 px-5 py-5">
-    <a href={SITES.hub.url} class="group flex items-center gap-2.5">
+    <a href={brandHref} class="group flex items-center gap-2.5" data-astro-reload={site === 'pdf' ? true : undefined}>
       <span
         class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-xs font-bold text-white"
         aria-hidden="true"
@@ -56,7 +74,7 @@ const linkClass = (isActive: boolean) =>
         {
           mainLinks.map((link) => (
             <li>
-              <a href={link.href} class={linkClass(active === link.key)}>
+              <a href={link.href} class={linkClass(active === link.key)} data-astro-reload={site === 'pdf' ? true : undefined}>
                 {link.label}
               </a>
             </li>
@@ -71,7 +89,11 @@ const linkClass = (isActive: boolean) =>
         {
           productLinks.map((link) => (
             <li>
-              <a href={link.href} class={linkClass(false)}>
+              <a
+                href={link.href}
+                class={linkClass(site === 'pdf' && link.activeOnPdf && active === 'home')}
+                data-astro-reload={link.activeOnPdf ? true : undefined}
+              >
                 {link.label}
               </a>
             </li>
@@ -89,6 +111,7 @@ const linkClass = (isActive: boolean) =>
               <a
                 href={link.href}
                 class={linkClass(active === 'legal' && Astro.url.pathname === link.href)}
+                data-astro-reload={site === 'pdf' ? true : undefined}
               >
                 {link.label}
               </a>

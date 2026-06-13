@@ -1,18 +1,15 @@
 ---
-import '@shared/styles/global.css';
-import BaseLayout from '@shared/layouts/BaseLayout.astro';
-import Header from '@shared/components/Header.astro';
-import Footer from '@shared/components/Footer.astro';
+import PdfToolsLayout from '../layouts/PdfToolsLayout.astro';
 import NotFoundContent from '@shared/components/NotFoundContent.astro';
 import { SITES, utilitiesHref } from '@shared/config/sites';
 ---
 
-<BaseLayout
+<PdfToolsLayout
   title="Page Not Found | PDF Tools — GramSeva Mitra"
   description="The PDF tool page you requested could not be found."
-  site="pdf"
+  activeNav="home"
+  hideWorkspaceNav={true}
 >
-  <Header slot="header" active="pdf" />
   <NotFoundContent
     homeHref="/"
     homeLabel="PDF Tools Home"
@@ -23,5 +20,4 @@ import { SITES, utilitiesHref } from '@shared/config/sites';
       { href: SITES.hub.url, label: 'Main Hub' },
     ]}
   />
-  <Footer slot="footer" />
-</BaseLayout>
+</PdfToolsLayout>

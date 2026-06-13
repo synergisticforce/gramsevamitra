@@ -8,6 +8,7 @@ import {
   type ToolId,
   isToolId,
 } from '../config/toolsRegistry';
+import { isPdfTabId } from '../config/pdfWorkspaceSegments';
 import ToolWorkspaceShell from './workspaces/ToolWorkspaceShell';
 import { WorkspaceNavProvider } from './workspaces/WorkspaceNavContext';
 import { ToolProgressProvider } from './workspaces/ToolProgressContext';
@@ -85,6 +86,11 @@ export default function PdfUniverse() {
 
   useEffect(() => {
     syncFromHash();
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab && isPdfTabId(tab)) {
+      setActiveTab(tab);
+    }
     window.addEventListener('hashchange', syncFromHash);
     return () => window.removeEventListener('hashchange', syncFromHash);
   }, [syncFromHash]);

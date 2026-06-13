@@ -1,13 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { filterTools, TOOLS_REGISTRY, type ToolEntry } from '../../config/toolsRegistry';
-import { utilitiesHref } from '@shared/config/sites';
+import { filterOmniSearchTools, type OmniSearchTool } from './omniSearch';
+import { OMNI_SEARCH_OPEN_EVENT } from './saasNav';
 
-export const OMNI_SEARCH_OPEN_EVENT = 'gsm-omni-search-open';
+export { OMNI_SEARCH_OPEN_EVENT };
 
-function ResultRow({ tool, onNavigate }: { tool: ToolEntry; onNavigate: () => void }) {
+interface Props {
+  tools: OmniSearchTool[];
+  placeholder?: string;
+  hint?: string;
+  footerLabel?: string;
+  defaultCount?: number;
+  maxResults?: number;
+}
+
+function ResultRow({ tool, onNavigate }: { tool: OmniSearchTool; onNavigate: () => void }) {
   return (
     <a
-      href={utilitiesHref(tool.path)}
+      href={tool.href}
       onClick={onNavigate}
       className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-slate-100 focus:bg-slate-100 focus:outline-none"
       role="option"
@@ -21,16 +30,23 @@ function ResultRow({ tool, onNavigate }: { tool: ToolEntry; onNavigate: () => vo
   );
 }
 
-export default function OmniSearchPalette() {
+export default function OmniSearchPalette({
+  tools,
+  placeholder = 'Search tools…',
+  hint = 'Try EMI calculator, merge PDF, or QR code',
+  footerLabel = 'Quick Tools Drawer',
+  defaultCount = 8,
+  maxResults = 12,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const results = useMemo(() => {
     const q = query.trim();
-    if (!q) return TOOLS_REGISTRY.slice(0, 8);
-    return filterTools(q).slice(0, 12);
-  }, [query]);
+    if (!q) return tools.slice(0, defaultCount);
+    return filterOmniSearchTools(tools, q).slice(0, maxResults);
+  }, [query, tools, defaultCount, maxResults]);
 
   const close = useCallback(() => {
     setOpen(false);
@@ -112,14 +128,12 @@ export default function OmniSearchPalette() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={onInputKeyDown}
-              placeholder="Search 83+ free tools…"
+              placeholder={placeholder}
               autoComplete="off"
               className="w-full border-0 bg-transparent text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0"
             />
           </label>
-          <p className="mt-1 text-xs text-slate-500">
-            Try EMI calculator, QR code, baby names, or PDF tools
-          </p>
+          <p className="mt-1 text-xs text-slate-500">{hint}</p>
         </div>
 
         <ul className="max-h-[min(50vh,420px)] overflow-y-auto p-2" role="listbox">
@@ -135,7 +149,7 @@ export default function OmniSearchPalette() {
         </ul>
 
         <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-4 py-2 text-[11px] text-slate-500">
-          <span>Quick Tools Drawer</span>
+          <span>{footerLabel}</span>
           <span>
             <kbd className="rounded border border-slate-200 bg-white px-1">↵</kbd> open ·{' '}
             <kbd className="rounded border border-slate-200 bg-white px-1">esc</kbd> close
