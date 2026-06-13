@@ -1,6 +1,6 @@
 # GramSeva Mitra — Production Launch Checklist
 
-Use this list when configuring **Cloudflare Pages**, **D1**, **Google OAuth**, **Stripe**, and **CI** before going live. Values marked **Secret** must be stored as **Encrypted** Pages secrets (Production + Preview), not plain text in the repo.
+Use this list when configuring **Cloudflare Pages**, **D1**, **Google OAuth**, **Razorpay**, and **CI** before going live. Values marked **Secret** must be stored as **Encrypted** Pages secrets (Production + Preview), not plain text in the repo.
 
 ---
 
@@ -58,8 +58,8 @@ Set under **Pages → gramsevamitra-hub → Settings → Environment variables**
 | Variable | Production | Preview | Notes |
 |---|---|---|---|
 | `BETTER_AUTH_URL` | `https://gramsevamitra.com` | Same or preview URL | Must match the origin users sign in from |
-| `PUBLIC_PAYMENTS_ENABLED` | `true` | `true` | Legacy Razorpay/Instamojo gate (Stripe Pro uses server checkout) |
-| `PUBLIC_RAZORPAY_KEY_ID` | `disabled` or live key | `disabled` | Stub unless legacy optimizer/resume payments enabled |
+| `PUBLIC_PAYMENTS_ENABLED` | `true` | `true` | Legacy optimizer/resume payment UI gate |
+| `PUBLIC_RAZORPAY_KEY_ID` | `disabled` or live key | `disabled` | Optional — legacy optimizer/resume client checkout |
 | `PUBLIC_INSTAMOJO_PAYMENT_LINK` | `https://example.com/disabled` | Same | Stub unless legacy payments enabled |
 | `PUBLIC_OPTIMIZER_PRICE_PAISE` | `0` or live price | Same | Optimizer app |
 | `PUBLIC_RESUME_SINGLE_PRICE_PAISE` | `0` or live price | Same | Resume app |
@@ -83,9 +83,9 @@ npx wrangler pages secret put <NAME> --project-name=gramsevamitra-hub
 | `BETTER_AUTH_SECRET` | **Yes** | Better Auth session signing (`openssl rand -base64 32`) |
 | `GOOGLE_CLIENT_ID` | **Yes** | Google OAuth sign-in |
 | `GOOGLE_CLIENT_SECRET` | **Yes** | Google OAuth sign-in |
-| `STRIPE_SECRET_KEY` | **Yes** (Pro billing) | `POST /api/billing/checkout`, webhook |
-| `STRIPE_WEBHOOK_SECRET` | **Yes** (Pro billing) | `POST /api/billing/webhook` |
-| `STRIPE_PRICE_ID` | Optional | Pre-created Stripe Price; omit to use inline ₹199/mo INR |
+| `RAZORPAY_KEY_ID` | **Yes** (Pro billing) | `POST /api/billing/razorpay-order`, Checkout.js `key` |
+| `RAZORPAY_KEY_SECRET` | **Yes** (Pro billing) | Server-side order creation |
+| `RAZORPAY_WEBHOOK_SECRET` | **Yes** (Pro billing) | `POST /api/billing/razorpay-webhook` signature verification |
 | `TURNSTILE_SECRET_KEY` | **Yes** (contact form) | `POST /api/contact` bot verification |
 | `RESEND_API_KEY` | **Yes** (contact form) | Sends mail to `contact@gramsevamitra.com` |
 
@@ -108,18 +108,20 @@ Copy **Client ID** → `GOOGLE_CLIENT_ID`, **Client secret** → `GOOGLE_CLIENT_
 
 ---
 
-## 6. Stripe (Pro subscription — test or live)
+## 6. Razorpay (Pro billing — test or live)
 
 | Item | Value |
 |---|---|
-| Product | Pro subscription (₹199/month INR) |
-| `STRIPE_SECRET_KEY` | `sk_test_…` or `sk_live_…` |
-| `STRIPE_PRICE_ID` | Optional `price_…` for the Pro plan |
-| Webhook endpoint | `https://gramsevamitra.com/api/billing/webhook` |
-| Webhook events | `checkout.session.completed` (minimum) |
-| `STRIPE_WEBHOOK_SECRET` | Signing secret from the webhook (`whsec_…`) |
+| Product | Pro plan — ₹199/month (created as a Razorpay Order for ₹199) |
+| `RAZORPAY_KEY_ID` | `rzp_test_…` or `rzp_live_…` (Dashboard → Settings → API Keys) |
+| `RAZORPAY_KEY_SECRET` | Secret key paired with `RAZORPAY_KEY_ID` |
+| Webhook endpoint | `https://gramsevamitra.com/api/billing/razorpay-webhook` |
+| Webhook events | `payment.captured` (minimum) |
+| `RAZORPAY_WEBHOOK_SECRET` | Secret you set when creating the webhook in Razorpay Dashboard |
 
-After checkout, webhook sets `users.plan = 'pro'` in D1. Smart Router (`POST /api/pro/smart-router`) requires `plan === 'pro'`.
+**Checkout flow:** `ProUpgradeModal` calls `POST /api/billing/razorpay-order` → opens Razorpay Checkout.js with the returned `orderId`. On `payment.captured`, the webhook sets `users.plan = 'pro'` in D1. Smart Router (`POST /api/pro/smart-router`) requires `plan === 'pro'`.
+
+**Test cards:** Use Razorpay test mode cards/UPI from the [Razorpay test docs](https://razorpay.com/docs/payments/payments/test-card-details/).
 
 ---
 
@@ -189,7 +191,7 @@ Local `.env` (never commit): copy from `.env.example` and fill values for `force
 
 - [ ] Sign in with Google on `https://gramsevamitra.com`
 - [ ] Contact form submits (Turnstile + Resend)
-- [ ] Stripe checkout completes; D1 `users.plan` becomes `pro`
+- [ ] Razorpay checkout completes; D1 `users.plan` becomes `pro`
 - [ ] Pro ⚡ button opens upgrade modal (free user) or Smart Router (Pro user)
 - [ ] `POST /api/pro/smart-router` returns **403** for free users, **200** for Pro
 - [ ] All four domains serve with `X-Robots-Tag: index, follow` on production

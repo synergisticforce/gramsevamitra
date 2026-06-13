@@ -53,6 +53,6 @@
     "node": ">=18.17.0"
   },
   "dependencies": {
-    "stripe": "^22.2.1"
+    "razorpay": "^2.9.6"
   }
 }

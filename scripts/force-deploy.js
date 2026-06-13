@@ -89,12 +89,10 @@ function configureHubAuthSecrets(projectName) {
   putPagesSecret(projectName, 'GOOGLE_CLIENT_SECRET', process.env.GOOGLE_CLIENT_SECRET);
 }
 
-function configureHubStripeSecrets(projectName) {
-  putPagesSecret(projectName, 'STRIPE_SECRET_KEY', process.env.STRIPE_SECRET_KEY);
-  putPagesSecret(projectName, 'STRIPE_WEBHOOK_SECRET', process.env.STRIPE_WEBHOOK_SECRET);
-  if (process.env.STRIPE_PRICE_ID) {
-    putPagesSecret(projectName, 'STRIPE_PRICE_ID', process.env.STRIPE_PRICE_ID);
-  }
+function configureHubRazorpaySecrets(projectName) {
+  putPagesSecret(projectName, 'RAZORPAY_KEY_ID', process.env.RAZORPAY_KEY_ID);
+  putPagesSecret(projectName, 'RAZORPAY_KEY_SECRET', process.env.RAZORPAY_KEY_SECRET);
+  putPagesSecret(projectName, 'RAZORPAY_WEBHOOK_SECRET', process.env.RAZORPAY_WEBHOOK_SECRET);
 }
 
 async function triggerGitDeployment(token, projectName) {
@@ -120,7 +118,7 @@ function deployWithWrangler({ project, distDir, domain, buildScript }) {
   if (project === 'gramsevamitra-hub') {
     configureHubContactSecrets(project);
     configureHubAuthSecrets(project);
-    configureHubStripeSecrets(project);
+    configureHubRazorpaySecrets(project);
   }
 
   run(`npm run ${buildScript}`);

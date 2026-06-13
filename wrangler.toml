@@ -1,5 +1,6 @@
 name = "gramsevamitra-hub"
 compatibility_date = "2024-06-11"
+compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "apps/hub/dist"
 
 # Cloudflare D1 — Better Auth identity store (Phase 1)

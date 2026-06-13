@@ -11,7 +11,7 @@ const pageTitle = formatSeoTitle('Welcome to Pro', 'GramSeva Mitra');
     <p class="text-5xl" aria-hidden="true">⚡</p>
     <h1 class="mt-4 text-2xl font-bold text-slate-900 sm:text-3xl">Payment successful</h1>
     <p class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-600">
-      Thank you! Stripe confirmed your test payment. Your account will show Pro within a few seconds once our
+      Thank you! Razorpay confirmed your payment. Your account will show Pro within a few seconds once our
       webhook updates Cloudflare D1.
     </p>
     <p id="session-hint" class="mt-4 text-xs text-slate-400"></p>
@@ -35,9 +35,13 @@ const pageTitle = formatSeoTitle('Welcome to Pro', 'GramSeva Mitra');
 
 <script>
   const params = new URLSearchParams(window.location.search);
-  const sessionId = params.get('session_id');
+  const paymentId = params.get('payment_id');
+  const orderId = params.get('order_id');
   const hint = document.getElementById('session-hint');
-  if (hint && sessionId) {
-    hint.textContent = `Checkout session: ${sessionId.slice(0, 24)}…`;
+  if (hint && (paymentId || orderId)) {
+    const parts = [];
+    if (paymentId) parts.push(`Payment: ${paymentId.slice(0, 20)}…`);
+    if (orderId) parts.push(`Order: ${orderId.slice(0, 20)}…`);
+    hint.textContent = parts.join(' · ');
   }
 </script>

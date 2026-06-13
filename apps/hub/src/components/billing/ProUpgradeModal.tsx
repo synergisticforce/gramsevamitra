@@ -7,10 +7,63 @@ import {
 } from '@shared/lib/proUpgrade';
 import { authClient } from '@gramsevamitra/auth/client';
 
+const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
+
 const DEFAULT_DETAIL: ProUpgradeDetail = {
   featureName: 'Pro Feature',
   featureDescription: 'Unlock serverless AI tools — Smart Document Extractor, high-fidelity DOCX, and batch conversion.',
 };
+
+interface RazorpayOrderResponse {
+  keyId?: string;
+  orderId?: string;
+  amount?: number;
+  currency?: string;
+  userName?: string;
+  userEmail?: string;
+  error?: string;
+  alreadyPro?: boolean;
+}
+
+interface RazorpaySuccessResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => {
+      open: () => void;
+      on: (event: string, handler: () => void) => void;
+    };
+  }
+}
+
+function loadRazorpayCheckout(): Promise<void> {
+  if (window.Razorpay) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(`script[src="${RAZORPAY_CHECKOUT_SCRIPT}"]`);
+    if (existing) {
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', () => reject(new Error('Failed to load Razorpay Checkout.')), {
+        once: true,
+      });
+      if (window.Razorpay) resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = RAZORPAY_CHECKOUT_SCRIPT;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Razorpay Checkout.'));
+    document.body.appendChild(script);
+  });
+}
 
 export default function ProUpgradeModal() {
   const { data: session, isPending } = authClient.useSession();
@@ -68,7 +121,7 @@ export default function ProUpgradeModal() {
     setError(null);
     setLoading(true);
     try {
-      const response = await fetch('/api/billing/checkout', {
+      const response = await fetch('/api/billing/razorpay-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -77,11 +130,7 @@ export default function ProUpgradeModal() {
         }),
       });
 
-      const result = (await response.json()) as {
-        url?: string;
-        error?: string;
-        alreadyPro?: boolean;
-      };
+      const result = (await response.json()) as RazorpayOrderResponse;
 
       if (response.status === 401) {
         setError('Please sign in with Google first.');
@@ -89,22 +138,68 @@ export default function ProUpgradeModal() {
         return;
       }
 
-      if (response.ok && result.url) {
-        window.location.href = result.url;
+      if (response.status === 409 && result.alreadyPro) {
+        setError('You already have Pro active on this account.');
+        setLoading(false);
         return;
       }
 
-      setError(result.error ?? 'Unable to start checkout.');
+      if (!response.ok || !result.orderId || !result.keyId) {
+        setError(result.error ?? 'Unable to start checkout.');
+        setLoading(false);
+        return;
+      }
+
+      await loadRazorpayCheckout();
+
+      if (!window.Razorpay) {
+        setError('Razorpay Checkout could not be loaded. Check your connection.');
+        setLoading(false);
+        return;
+      }
+
+      const rzp = new window.Razorpay({
+        key: result.keyId,
+        amount: result.amount,
+        currency: result.currency ?? 'INR',
+        name: 'GramSeva Mitra',
+        description: `${detail.featureName} — Pro Plan`,
+        order_id: result.orderId,
+        prefill: {
+          name: result.userName ?? '',
+          email: result.userEmail ?? '',
+        },
+        theme: { color: '#0f172a' },
+        handler: (paymentResponse: RazorpaySuccessResponse) => {
+          const params = new URLSearchParams({
+            payment_id: paymentResponse.razorpay_payment_id,
+            order_id: paymentResponse.razorpay_order_id,
+          });
+          window.location.href = `/billing/success?${params.toString()}`;
+        },
+        modal: {
+          ondismiss: () => {
+            setLoading(false);
+          },
+        },
+      });
+
+      rzp.on('payment.failed', () => {
+        setError('Payment failed. Please try again or use another method.');
+        setLoading(false);
+      });
+
+      setLoading(false);
+      rzp.open();
     } catch {
       setError('Network error. Check your connection and try again.');
-    } finally {
       setLoading(false);
     }
   };
 
   if (!open) return null;
 
-  const user = session?.user as { email?: string; plan?: string } | undefined;
+  const user = session?.user as { email?: string; name?: string; plan?: string } | undefined;
   const isPro = user?.plan === 'pro';
   const signedIn = Boolean(user);
 
@@ -196,7 +291,7 @@ export default function ProUpgradeModal() {
                 disabled={loading || isPending}
                 className="inline-flex flex-1 items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
               >
-                {loading ? 'Redirecting…' : signedIn ? 'Upgrade with Stripe →' : 'Sign in & Upgrade →'}
+                {loading ? 'Opening checkout…' : signedIn ? 'Pay with Razorpay →' : 'Sign in & Upgrade →'}
               </button>
             ) : (
               <button
@@ -210,7 +305,7 @@ export default function ProUpgradeModal() {
           </div>
 
           <p className="text-center text-[11px] leading-relaxed text-slate-400">
-            Secure Stripe Checkout (test mode). Cancel anytime. Free tools stay 100% offline.
+            Secure Razorpay Checkout (UPI, cards, netbanking). Free tools stay 100% offline.
           </p>
         </div>
       </div>
