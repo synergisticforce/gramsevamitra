@@ -15,7 +15,7 @@ function navLabel(id: (typeof WORKSPACES)[number]['id']): string {
 }
 
 const navItems = [
-  { id: 'home' as const, label: 'Home', emoji: '🏠', path: '/', reload: true },
+  { id: 'home' as const, label: 'Home', emoji: '🏠', path: utilitiesHref('/tools'), reload: false },
   ...WORKSPACES.map((w) => ({
     id: w.id as 'money' | 'writing' | 'career' | 'life' | 'quick',
     label: navLabel(w.id),

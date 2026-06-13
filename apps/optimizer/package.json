@@ -10,9 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@gramsevamitra/shared": "*",
     "@astrojs/react": "^3.6.3",
+    "@astrojs/sitemap": "^3.6.0",
     "@astrojs/tailwind": "^5.1.4",
+    "@gramsevamitra/shared": "*",
     "astro": "^4.16.18",
     "browser-image-compression": "^2.0.2",
     "jszip": "^3.10.1",

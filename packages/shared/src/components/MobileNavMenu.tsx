@@ -4,7 +4,7 @@ import { SITES, utilitiesHref } from '../config/sites';
 type SiteKey = 'hub' | 'utilities' | 'optimizer' | 'resume' | 'pdf';
 
 const NAV_LINKS: { key: SiteKey; label: string; href: string }[] = [
-  { key: 'hub', label: 'Home', href: '/' },
+  { key: 'hub', label: 'Home', href: SITES.hub.url },
   { key: 'utilities', label: 'Utilities', href: utilitiesHref('/tools') },
   { key: 'optimizer', label: 'Doc Optimizer', href: SITES.optimizer.url },
   { key: 'resume', label: 'Resume Scanner', href: SITES.resume.url },

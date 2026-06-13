@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import react from '@astrojs/react';
+import sitemap from '@astrojs/sitemap';
 import AstroPWA from '@vite-pwa/astro';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -16,6 +17,7 @@ export default defineConfig({
   integrations: [
     tailwind({ configFile: '../../packages/shared/tailwind.config.mjs' }),
     react(),
+    sitemap(),
     AstroPWA({
       registerType: 'autoUpdate',
       injectRegister: null,
