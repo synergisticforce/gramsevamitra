@@ -1,6 +1,7 @@
 ---
 import SaaSLayout from '@shared/layouts/SaaSLayout.astro';
 import HubOmniSearchPalette from '../components/saas/HubOmniSearchPalette.tsx';
+import ProUpgradeModal from '../components/billing/ProUpgradeModal.tsx';
 import type { SaaSNavKey } from '@shared/components/saas/saasNav.ts';
 
 interface Props {
@@ -31,4 +32,5 @@ const {
   <slot name="head" slot="head" />
   <slot />
   <HubOmniSearchPalette client:load slot="footer" />
+  <ProUpgradeModal client:load slot="footer" />
 </SaaSLayout>

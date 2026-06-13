@@ -89,6 +89,14 @@ function configureHubAuthSecrets(projectName) {
   putPagesSecret(projectName, 'GOOGLE_CLIENT_SECRET', process.env.GOOGLE_CLIENT_SECRET);
 }
 
+function configureHubStripeSecrets(projectName) {
+  putPagesSecret(projectName, 'STRIPE_SECRET_KEY', process.env.STRIPE_SECRET_KEY);
+  putPagesSecret(projectName, 'STRIPE_WEBHOOK_SECRET', process.env.STRIPE_WEBHOOK_SECRET);
+  if (process.env.STRIPE_PRICE_ID) {
+    putPagesSecret(projectName, 'STRIPE_PRICE_ID', process.env.STRIPE_PRICE_ID);
+  }
+}
+
 async function triggerGitDeployment(token, projectName) {
   const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/pages/projects/${projectName}/deployments`;
 
@@ -112,6 +120,7 @@ function deployWithWrangler({ project, distDir, domain, buildScript }) {
   if (project === 'gramsevamitra-hub') {
     configureHubContactSecrets(project);
     configureHubAuthSecrets(project);
+    configureHubStripeSecrets(project);
   }
 
   run(`npm run ${buildScript}`);

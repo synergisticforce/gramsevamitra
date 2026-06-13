@@ -1,0 +1,22 @@
+---
+import SaaSLayout from '../../layouts/SaaSLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+import { utilitiesHref } from '@shared/config/sites';
+
+const pageTitle = formatSeoTitle('Checkout Cancelled', 'GramSeva Mitra');
+---
+
+<SaaSLayout title={pageTitle} description="Your Pro upgrade checkout was cancelled — no charge was made.">
+  <div class="px-4 py-12 text-center sm:px-6 sm:py-16">
+    <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">Checkout cancelled</h1>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-600">
+      No worries — you were not charged. All 83+ free tools remain fully available offline anytime.
+    </p>
+    <a
+      href={utilitiesHref('/tools')}
+      class="mt-8 inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+    >
+      Continue with free tools
+    </a>
+  </div>
+</SaaSLayout>

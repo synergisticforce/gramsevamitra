@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./config": "./src/auth.ts"
+    "./config": "./src/auth.ts",
+    "./client": "./src/client.ts"
   },
   "dependencies": {
     "better-auth": "^1.2.9"

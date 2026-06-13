@@ -13,6 +13,7 @@
     "@astrojs/react": "^3.6.3",
     "@astrojs/sitemap": "^3.6.0",
     "@astrojs/tailwind": "^5.1.4",
+    "@gramsevamitra/auth": "*",
     "@gramsevamitra/shared": "*",
     "@huggingface/transformers": "^3.8.1",
     "astro": "^4.16.18",

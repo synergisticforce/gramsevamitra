@@ -1,8 +1,10 @@
 ---
 import ToolsLayout from '../../layouts/ToolsLayout.astro';
 import IntentCard from '../../components/tools/IntentCard.astro';
+import ProFeatureTrigger from '../../components/billing/ProFeatureTrigger.astro';
 import { INTENT_WORKSPACES, WORKSPACES } from '../../config/toolsRegistry';
 import { formatSeoTitle } from '@shared/config/seo';
+import { PRO_PRICE_LABEL, PRO_PRICE_INTERVAL } from '@shared/lib/proUpgrade';
 import { SITES } from '@shared/config/sites';
 
 const lifeWorkspace = WORKSPACES.find((w) => w.id === 'life')!;
@@ -34,6 +36,24 @@ const quickWorkspace = WORKSPACES.find((w) => w.id === 'quick')!;
     <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Choose your workspace</h2>
     <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {INTENT_WORKSPACES.map((workspace) => <IntentCard workspace={workspace} />)}
+    </div>
+  </section>
+
+  <section class="mt-10 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm sm:p-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-amber-800">Serverless AI · Phase 4</p>
+        <h2 class="mt-1 text-lg font-bold text-slate-900">Smart Document Extractor</h2>
+        <p class="mt-1 max-w-xl text-sm text-slate-600">
+          Extract invoices and bank statements to CSV/JSON with vision-language models — Pro only, from {PRO_PRICE_LABEL}{PRO_PRICE_INTERVAL}.
+        </p>
+      </div>
+      <ProFeatureTrigger
+        featureId="smart-document-extractor"
+        featureName="Smart Document Extractor"
+        featureDescription="Route image PDFs through our serverless AI pipeline — PaddleOCR, GLM-4V layout mapping, and high-fidelity DOCX export."
+        class="shrink-0 self-start sm:self-center"
+      />
     </div>
   </section>
 
