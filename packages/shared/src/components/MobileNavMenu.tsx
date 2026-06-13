@@ -3,12 +3,13 @@ import { SITES, utilitiesHref } from '../config/sites';
 
 type SiteKey = 'hub' | 'utilities' | 'optimizer' | 'resume' | 'pdf';
 
-const NAV_LINKS: { key: SiteKey; label: string; href: string }[] = [
+const NAV_LINKS: { key: SiteKey | 'contact'; label: string; href: string }[] = [
   { key: 'hub', label: 'Home', href: SITES.hub.url },
   { key: 'utilities', label: 'Utilities', href: utilitiesHref('/tools') },
   { key: 'optimizer', label: 'Doc Optimizer', href: SITES.optimizer.url },
   { key: 'resume', label: 'Resume Scanner', href: SITES.resume.url },
   { key: 'pdf', label: 'PDF Tools', href: SITES.pdf.url },
+  { key: 'contact', label: 'Contact', href: `${SITES.hub.url}/contact` },
 ];
 
 interface Props {
@@ -111,7 +112,7 @@ export default function MobileNavMenu({ active = 'hub' }: Props) {
             <li key={key}>
               <a
                 href={href}
-                data-astro-reload={key === 'hub' || active !== key ? true : undefined}
+                data-astro-reload={key === 'hub' || key === 'contact' || active !== key ? true : undefined}
                 onClick={close}
                 className={`block px-4 py-3.5 text-sm transition hover:bg-slate-800 ${
                   active === key ? 'font-semibold text-emerald-400' : 'text-slate-200'

@@ -84,6 +84,15 @@ const { active = 'hub' } = Astro.props;
           PDF Tools
         </a>
       </li>
+      <li>
+        <a
+          href={`${SITES.hub.url}/contact`}
+          data-astro-reload={active !== 'hub' ? true : undefined}
+          class="text-slate-300 transition hover:text-emerald-400"
+        >
+          Contact
+        </a>
+      </li>
     </ul>
 
     <MobileNavMenu client:load active={active} />

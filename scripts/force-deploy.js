@@ -67,6 +67,22 @@ function runCapture(cmd) {
   return execSync(cmd, { cwd: ROOT, encoding: 'utf8', env: process.env });
 }
 
+function putPagesSecret(projectName, secretName, value) {
+  if (!value) return;
+  console.log(`\n→ wrangler pages secret put ${secretName} (${projectName})\n`);
+  execSync(`npx wrangler pages secret put ${secretName} --project-name=${projectName}`, {
+    cwd: ROOT,
+    input: value,
+    stdio: ['pipe', 'inherit', 'inherit'],
+    env: process.env,
+  });
+}
+
+function configureHubContactSecrets(projectName) {
+  putPagesSecret(projectName, 'TURNSTILE_SECRET_KEY', process.env.TURNSTILE_SECRET_KEY);
+  putPagesSecret(projectName, 'RESEND_API_KEY', process.env.RESEND_API_KEY);
+}
+
 async function triggerGitDeployment(token, projectName) {
   const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/pages/projects/${projectName}/deployments`;
 
@@ -87,6 +103,10 @@ function deployWithWrangler({ project, distDir, domain, buildScript }) {
   console.log(`  ${project} → ${domain}`);
   console.log(`${'='.repeat(60)}`);
 
+  if (project === 'gramsevamitra-hub') {
+    configureHubContactSecrets(project);
+  }
+
   run(`npm run ${buildScript}`);
 
   const distPath = join(ROOT, distDir);
@@ -94,8 +114,11 @@ function deployWithWrangler({ project, distDir, domain, buildScript }) {
     throw new Error(`Build output missing: ${distDir}`);
   }
 
+  const functionsDir = join(ROOT, 'functions');
+  const functionsFlag = existsSync(functionsDir) ? ` --functions=${functionsDir}` : '';
+
   const output = runCapture(
-    `npx wrangler pages deploy ${distDir} --project-name=${project} --branch=${PRODUCTION_BRANCH} --commit-dirty=true`,
+    `npx wrangler pages deploy ${distDir} --project-name=${project} --branch=${PRODUCTION_BRANCH} --commit-dirty=true${functionsFlag}`,
   );
 
   const urlMatch = output.match(/https:\/\/[a-f0-9]+\.[\w-]+\.pages\.dev/i);
