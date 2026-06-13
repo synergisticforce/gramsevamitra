@@ -79,7 +79,7 @@ export default function BabyNameFinderTool() {
       setLoading(true);
       setLoadError(null);
       try {
-        const res = await fetch(DATA_URL);
+        const res = await fetch(DATA_URL, { cache: 'no-store' });
         if (!res.ok) throw new Error(`Failed to load names (${res.status})`);
         const data = (await res.json()) as BabyNameEntry[];
         if (!cancelled) setNames(Array.isArray(data) ? data : []);
