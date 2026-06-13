@@ -2,17 +2,31 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export interface BabyNameEntry {
   name: string;
-  origin: string;
-  gender: 'Boy' | 'Girl' | 'Unisex';
+  origin: 'Indian' | 'Foreign';
+  gender: 'Male' | 'Female';
   syllables: number;
-  meaning: string;
 }
 
 const SHORTLIST_KEY = 'gsm-tools:baby-names-shortlist';
 const DATA_URL = '/data/babyNames.json';
 
+const ORIGIN_OPTIONS = ['All', 'Indian', 'Foreign'] as const;
+const GENDER_OPTIONS = ['All', 'Male', 'Female'] as const;
+const SYLLABLE_OPTIONS = ['All', '1 Syllable', '2 Syllables', '3+ Syllables'] as const;
+
+type OriginFilter = (typeof ORIGIN_OPTIONS)[number];
+type GenderFilter = (typeof GENDER_OPTIONS)[number];
+type SyllableFilter = (typeof SYLLABLE_OPTIONS)[number];
+
 function toggleInList(list: string[], value: string): string[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+}
+
+function matchesSyllableFilter(syllables: number, filter: SyllableFilter): boolean {
+  if (filter === 'All') return true;
+  if (filter === '1 Syllable') return syllables === 1;
+  if (filter === '2 Syllables') return syllables === 2;
+  return syllables >= 3;
 }
 
 function NamesSkeleton() {
@@ -25,7 +39,6 @@ function NamesSkeleton() {
         >
           <div className="h-4 w-24 rounded bg-slate-700" />
           <div className="mt-2 h-3 w-32 rounded bg-slate-800" />
-          <div className="mt-2 h-3 w-full rounded bg-slate-800" />
         </li>
       ))}
     </ul>
@@ -37,8 +50,9 @@ export default function BabyNameFinderTool() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [origins, setOrigins] = useState<string[]>([]);
-  const [genders, setGenders] = useState<string[]>([]);
+  const [originFilter, setOriginFilter] = useState<OriginFilter>('All');
+  const [genderFilter, setGenderFilter] = useState<GenderFilter>('All');
+  const [syllableFilter, setSyllableFilter] = useState<SyllableFilter>('All');
   const [letters, setLetters] = useState<string[]>([]);
   const [shortlist, setShortlist] = useState<string[]>(() => {
     try {
@@ -49,14 +63,6 @@ export default function BabyNameFinderTool() {
     }
   });
 
-  const availableOrigins = useMemo(
-    () => [...new Set(names.map((n) => n.origin).filter(Boolean))].sort(),
-    [names]
-  );
-  const availableGenders = useMemo(
-    () => [...new Set(names.map((n) => n.gender))].sort(),
-    [names]
-  );
   const availableLetters = useMemo(() => {
     const set = new Set<string>();
     for (const entry of names) {
@@ -114,20 +120,16 @@ export default function BabyNameFinderTool() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return names.filter((entry) => {
-      if (origins.length && !origins.includes(entry.origin)) return false;
-      if (genders.length && !genders.includes(entry.gender)) return false;
+      if (originFilter !== 'All' && entry.origin !== originFilter) return false;
+      if (genderFilter !== 'All' && entry.gender !== genderFilter) return false;
+      if (!matchesSyllableFilter(entry.syllables, syllableFilter)) return false;
       if (letters.length && !letters.includes(entry.name[0]?.toUpperCase() ?? '')) return false;
-      if (
-        q &&
-        !entry.name.toLowerCase().includes(q) &&
-        !entry.meaning.toLowerCase().includes(q) &&
-        !entry.origin.toLowerCase().includes(q)
-      ) {
+      if (q && !entry.name.toLowerCase().includes(q) && !entry.origin.toLowerCase().includes(q)) {
         return false;
       }
       return true;
     });
-  }, [names, search, origins, genders, letters]);
+  }, [names, search, originFilter, genderFilter, syllableFilter, letters]);
 
   const pillClass = (active: boolean) =>
     `rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
@@ -136,58 +138,84 @@ export default function BabyNameFinderTool() {
         : 'border-slate-700 bg-slate-950/60 text-slate-400 hover:border-slate-600'
     }`;
 
+  const hasActiveFilters =
+    originFilter !== 'All' ||
+    genderFilter !== 'All' ||
+    syllableFilter !== 'All' ||
+    letters.length > 0;
+
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Filter &amp; search</h2>
 
         <label className="mt-4 block">
-          <span className="mb-1 block text-sm font-medium text-slate-300">Search name or meaning</span>
+          <span className="mb-1 block text-sm font-medium text-slate-300">Search name</span>
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="e.g. light, Kai…"
+            placeholder="e.g. Aarav, Olivia…"
             disabled={loading}
             className="input-field w-full disabled:opacity-50"
           />
         </label>
 
-        {!loading && availableOrigins.length > 0 && (
-          <div className="mt-5">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Origin</p>
-            <div className="flex flex-wrap gap-2">
-              {availableOrigins.map((origin) => (
-                <button
-                  key={origin}
-                  type="button"
-                  onClick={() => setOrigins((prev) => toggleInList(prev, origin))}
-                  className={pillClass(origins.includes(origin))}
-                >
-                  {origin}
-                </button>
+        <div className="mt-5 grid gap-4 sm:grid-cols-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Origin
+            </span>
+            <select
+              value={originFilter}
+              onChange={(e) => setOriginFilter(e.target.value as OriginFilter)}
+              disabled={loading}
+              className="input-field w-full disabled:opacity-50"
+            >
+              {ORIGIN_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
               ))}
-            </div>
-          </div>
-        )}
+            </select>
+          </label>
 
-        {!loading && availableGenders.length > 0 && (
-          <div className="mt-5">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Gender</p>
-            <div className="flex flex-wrap gap-2">
-              {availableGenders.map((gender) => (
-                <button
-                  key={gender}
-                  type="button"
-                  onClick={() => setGenders((prev) => toggleInList(prev, gender))}
-                  className={pillClass(genders.includes(gender))}
-                >
-                  {gender}
-                </button>
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Gender
+            </span>
+            <select
+              value={genderFilter}
+              onChange={(e) => setGenderFilter(e.target.value as GenderFilter)}
+              disabled={loading}
+              className="input-field w-full disabled:opacity-50"
+            >
+              {GENDER_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
               ))}
-            </div>
-          </div>
-        )}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Syllables
+            </span>
+            <select
+              value={syllableFilter}
+              onChange={(e) => setSyllableFilter(e.target.value as SyllableFilter)}
+              disabled={loading}
+              className="input-field w-full disabled:opacity-50"
+            >
+              {SYLLABLE_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         {!loading && availableLetters.length > 0 && (
           <div className="mt-5">
@@ -208,12 +236,13 @@ export default function BabyNameFinderTool() {
           </div>
         )}
 
-        {(origins.length > 0 || genders.length > 0 || letters.length > 0) && (
+        {hasActiveFilters && (
           <button
             type="button"
             onClick={() => {
-              setOrigins([]);
-              setGenders([]);
+              setOriginFilter('All');
+              setGenderFilter('All');
+              setSyllableFilter('All');
               setLetters([]);
             }}
             className="btn-secondary mt-4 text-xs"
@@ -231,23 +260,22 @@ export default function BabyNameFinderTool() {
           {shortlist.length === 0 ? (
             <li className="text-xs text-slate-500">Tap ☆ on any name to add here.</li>
           ) : (
-            shortlist.map((name) => {
-              const entry = names.find((n) => n.name === name);
-              return (
-                <li key={name} className="inline-flex items-center gap-1 rounded-lg border border-emerald-800/60 bg-emerald-950/40 px-2.5 py-1 text-xs font-medium text-emerald-300">
-                  {name}
-                  <button
-                    type="button"
-                    onClick={() => toggleShortlist(name)}
-                    className="text-rose-400 hover:text-rose-300"
-                    aria-label={`Remove ${name}`}
-                  >
-                    ×
-                  </button>
-                  {entry && <span className="sr-only">{entry.meaning}</span>}
-                </li>
-              );
-            })
+            shortlist.map((name) => (
+              <li
+                key={name}
+                className="inline-flex items-center gap-1 rounded-lg border border-emerald-800/60 bg-emerald-950/40 px-2.5 py-1 text-xs font-medium text-emerald-300"
+              >
+                {name}
+                <button
+                  type="button"
+                  onClick={() => toggleShortlist(name)}
+                  className="text-rose-400 hover:text-rose-300"
+                  aria-label={`Remove ${name}`}
+                >
+                  ×
+                </button>
+              </li>
+            ))
           )}
         </ul>
       </section>
@@ -281,20 +309,20 @@ export default function BabyNameFinderTool() {
           <ul className="grid gap-3 sm:grid-cols-2">
             {filtered.map((entry) => {
               const starred = shortlist.includes(entry.name);
+              const syllableLabel = `${entry.syllables} syllable${entry.syllables === 1 ? '' : 's'}`;
               return (
                 <li
-                  key={entry.name}
+                  key={`${entry.origin}-${entry.gender}-${entry.name}`}
                   className="flex items-start justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 transition hover:border-slate-700"
                 >
                   <div>
-                    <p className="font-semibold text-white">{entry.name}</p>
-                    <p className="text-xs text-slate-500">
-                      {entry.gender} · {entry.origin} · {entry.syllables} syllable
-                      {entry.syllables === 1 ? '' : 's'}
+                    <p className="font-semibold text-white">
+                      {entry.name}
+                      <span className="ml-2 text-sm font-normal text-emerald-400/90">{syllableLabel}</span>
                     </p>
-                    {entry.meaning ? (
-                      <p className="mt-1 text-xs text-slate-400">{entry.meaning}</p>
-                    ) : null}
+                    <p className="text-xs text-slate-500">
+                      {entry.gender} · {entry.origin}
+                    </p>
                   </div>
                   <button
                     type="button"
