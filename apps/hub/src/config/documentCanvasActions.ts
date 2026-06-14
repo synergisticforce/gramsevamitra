@@ -80,6 +80,33 @@ export const DOCUMENT_CANVAS_ACTIONS: DocumentCanvasAction[] = [
     mimePatterns: ['application/pdf'],
   },
   {
+    id: 'image-to-pdf',
+    label: 'To PDF',
+    icon: '🖼️',
+    tier: 'free',
+    mimePatterns: ['image/'],
+  },
+  {
+    id: 'pdf-to-image',
+    label: 'To JPG/PNG',
+    icon: '📸',
+    tier: 'free',
+    mimePatterns: ['application/pdf'],
+  },
+  {
+    id: 'pdf-to-text',
+    label: 'Extract Text',
+    icon: '📝',
+    tier: 'free',
+    mimePatterns: ['application/pdf'],
+  },
+  {
+    id: 'type-save',
+    label: 'Type & Save',
+    icon: '✍️',
+    tier: 'free',
+  },
+  {
     id: 'smart-extract',
     label: 'Smart Extract',
     icon: '⚡',

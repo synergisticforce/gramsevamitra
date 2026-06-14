@@ -8,7 +8,7 @@ import {
   saveDocumentCanvasState,
   type StoredFileMeta,
 } from '../../lib/canvas/documentCanvasStorage';
-import { isPdfMimeOrName } from '../../lib/canvas/documentPdfTools';
+import { isImageMimeOrName, isPdfMimeOrName } from '../../lib/canvas/documentPdfTools';
 import { useDocumentActionHandler } from '../../lib/canvas/useDocumentActionHandler';
 import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
@@ -17,15 +17,19 @@ import MagicDropzone from './MagicDropzone';
 import CompressPdfModal from './CompressPdfModal';
 import CropPdfModal from './CropPdfModal';
 import DeskewPdfModal from './DeskewPdfModal';
+import ImageToPdfModal from './ImageToPdfModal';
 import MergePdfModal from './MergePdfModal';
 import PageNumbersPdfModal from './PageNumbersPdfModal';
+import PdfToImageModal from './PdfToImageModal';
+import PdfToTextModal from './PdfToTextModal';
 import ProtectPdfModal from './ProtectPdfModal';
 import RemovePagesPdfModal from './RemovePagesPdfModal';
 import SplitPdfModal from './SplitPdfModal';
+import TypeSavePdfModal from './TypeSavePdfModal';
 import UnlockPdfModal from './UnlockPdfModal';
 
 type CanvasPhase = 'empty' | 'active';
-type PdfToolModal =
+type ToolModal =
   | 'split'
   | 'merge'
   | 'compress'
@@ -35,6 +39,10 @@ type PdfToolModal =
   | 'remove-pages'
   | 'page-numbers'
   | 'crop'
+  | 'image-to-pdf'
+  | 'pdf-to-image'
+  | 'pdf-to-text'
+  | 'type-save'
   | null;
 
 interface ActiveFile {
@@ -55,7 +63,7 @@ export default function DocumentStudioCanvas() {
   const [activeFile, setActiveFile] = useState<ActiveFile | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [pdfModal, setPdfModal] = useState<PdfToolModal>(null);
+  const [pdfModal, setPdfModal] = useState<ToolModal>(null);
   const [processing, setProcessing] = useState<ProcessingState>({
     active: false,
     label: '',
@@ -78,6 +86,16 @@ export default function DocumentStudioCanvas() {
     if (!file) return null;
     if (!isPdfMimeOrName(activeFile!.meta.type, activeFile!.meta.name)) {
       setToastMessage('This action is available for PDF files only.');
+      return null;
+    }
+    return file;
+  }, [activeFile, requireCanvasFile]);
+
+  const requireImageCanvasFile = useCallback((): File | null => {
+    const file = requireCanvasFile();
+    if (!file) return null;
+    if (!isImageMimeOrName(activeFile!.meta.type, activeFile!.meta.name)) {
+      setToastMessage('This action is available for image files only.');
       return null;
     }
     return file;
@@ -192,9 +210,28 @@ export default function DocumentStudioCanvas() {
         setPdfModal('crop');
         return;
       }
+      if (action.id === 'image-to-pdf') {
+        if (!requireImageCanvasFile()) return;
+        setPdfModal('image-to-pdf');
+        return;
+      }
+      if (action.id === 'pdf-to-image') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('pdf-to-image');
+        return;
+      }
+      if (action.id === 'pdf-to-text') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('pdf-to-text');
+        return;
+      }
+      if (action.id === 'type-save') {
+        setPdfModal('type-save');
+        return;
+      }
       setToastMessage(`${action.label} is coming soon.`);
     },
-    [requirePdfCanvasFile]
+    [requireImageCanvasFile, requirePdfCanvasFile]
   );
 
   const { handleActionClick } = useDocumentActionHandler({ onFreeAction, onProAction });
@@ -247,6 +284,11 @@ export default function DocumentStudioCanvas() {
   }, [activeFile]);
 
   const canvasPdfFile = activeFile?.file ?? null;
+  const canvasImageFile =
+    activeFile?.file &&
+    isImageMimeOrName(activeFile.meta.type, activeFile.meta.name)
+      ? activeFile.file
+      : null;
 
   if (!hydrated) {
     return (
@@ -411,6 +453,41 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'crop' && canvasPdfFile && (
         <CropPdfModal
           file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'image-to-pdf' && canvasImageFile && (
+        <ImageToPdfModal
+          file={canvasImageFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'pdf-to-image' && canvasPdfFile && (
+        <PdfToImageModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'pdf-to-text' && canvasPdfFile && (
+        <PdfToTextModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'type-save' && (
+        <TypeSavePdfModal
           onClose={() => setPdfModal(null)}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}

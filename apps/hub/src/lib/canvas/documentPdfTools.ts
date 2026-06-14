@@ -9,13 +9,23 @@ import type {
 import { formatUnlockError } from '../pdf/pdfEncryption';
 import { parsePageRange } from '../pdf/pageRangeParser';
 import type { PdfWorkerProgress } from '../pdf/pdfWorkerClient';
+import { buildPageExportFilename, downloadBlob } from '@shared/utils/fileUtils';
 
 export function isPdfMimeOrName(type: string, name: string): boolean {
   return type === 'application/pdf' || name.toLowerCase().endsWith('.pdf');
 }
 
+export function isImageMimeOrName(type: string, name: string): boolean {
+  if (type.startsWith('image/')) return true;
+  return /\.(jpe?g|png|webp)$/i.test(name);
+}
+
 export function splitFilenameBase(name: string): string {
   return name.replace(/\.pdf$/i, '') || 'document';
+}
+
+export function splitImageFilenameBase(name: string): string {
+  return name.replace(/\.(jpe?g|png|webp)$/i, '') || 'photo';
 }
 
 export type CompressionPreset = 'high-quality' | 'balanced' | 'extreme';
@@ -233,8 +243,14 @@ export function triggerPdfDownload(
     | '_pages-removed'
     | '_numbered'
     | '_cropped'
+    | '_converted'
+    | '_typed'
 ): void {
   downloadPdfBytes(bytes, filename, toolSuffix);
+}
+
+export function triggerTextDownload(text: string, filename: string): void {
+  downloadBlob(new Blob([text], { type: 'text/plain;charset=utf-8' }), filename, '_extracted');
 }
 
 export async function deskewPdfInBrowser(
@@ -364,4 +380,130 @@ export async function getPdfPageSize(
   const viewport = page.getViewport({ scale: 1 });
   page.cleanup();
   return { width: viewport.width, height: viewport.height };
+}
+
+async function readImageForPdf(file: File): Promise<{ bytes: Uint8Array; kind: 'jpg' | 'png' }> {
+  if (file.type === 'image/png') {
+    return { bytes: new Uint8Array(await file.arrayBuffer()), kind: 'png' };
+  }
+  if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+    return { bytes: new Uint8Array(await file.arrayBuffer()), kind: 'jpg' };
+  }
+
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement('canvas');
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    bitmap.close();
+    throw new Error('Canvas not supported');
+  }
+  ctx.drawImage(bitmap, 0, 0);
+  bitmap.close();
+  const { canvasToPngBlob } = await import('../pdf/pdfRender');
+  const blob = await canvasToPngBlob(canvas);
+  return { bytes: new Uint8Array(await blob.arrayBuffer()), kind: 'png' };
+}
+
+export async function imageToPdfInBrowser(
+  file: File,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  onProgress?.({ current: 0, total: 1, label: 'Reading image…' });
+  const image = await readImageForPdf(file);
+  const { runPdfWorker } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorker<Uint8Array>('images-to-pdf', { images: [image] }, onProgress);
+  const baseName = splitImageFilenameBase(file.name);
+  return { bytes, downloadName: `${baseName}.pdf` };
+}
+
+export async function exportPdfToJpgInBrowser(
+  file: File,
+  scale = 2,
+  quality = 0.92,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ pageCount: number }> {
+  const { loadPdfDocument, renderPdfPageToCanvas, canvasToJpegBlob } = await import(
+    '../pdf/pdfRender'
+  );
+  const pdf = await loadPdfDocument(file);
+
+  for (let p = 1; p <= pdf.numPages; p++) {
+    onProgress?.({
+      current: p - 1,
+      total: pdf.numPages,
+      label: `Exporting page ${p} of ${pdf.numPages} as JPG…`,
+    });
+    const canvas = await renderPdfPageToCanvas(file, p, scale);
+    const blob = await canvasToJpegBlob(canvas, quality);
+    downloadBlob(blob, buildPageExportFilename(file.name, p, 'jpg'), '_converted');
+  }
+
+  return { pageCount: pdf.numPages };
+}
+
+export async function exportPdfToPngInBrowser(
+  file: File,
+  scale = 2,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ pageCount: number }> {
+  const { loadPdfDocument, renderPdfPageToCanvas, canvasToPngBlob } = await import(
+    '../pdf/pdfRender'
+  );
+  const pdf = await loadPdfDocument(file);
+
+  for (let p = 1; p <= pdf.numPages; p++) {
+    onProgress?.({
+      current: p - 1,
+      total: pdf.numPages,
+      label: `Exporting page ${p} of ${pdf.numPages} as PNG…`,
+    });
+    const canvas = await renderPdfPageToCanvas(file, p, scale);
+    const blob = await canvasToPngBlob(canvas);
+    downloadBlob(blob, buildPageExportFilename(file.name, p, 'png'), '_converted');
+  }
+
+  return { pageCount: pdf.numPages };
+}
+
+export async function extractPdfTextInBrowser(
+  file: File,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ text: string; pageCount: number }> {
+  const { loadPdfDocument } = await import('../pdf/pdfRender');
+  const pdf = await loadPdfDocument(file);
+  const parts: string[] = [];
+
+  for (let p = 1; p <= pdf.numPages; p++) {
+    onProgress?.({
+      current: p - 1,
+      total: pdf.numPages,
+      label: `Extracting text — page ${p} of ${pdf.numPages}…`,
+    });
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const pageText = content.items
+      .map((item) => ('str' in item ? item.str : ''))
+      .join(' ')
+      .trim();
+    parts.push(`--- Page ${p} ---\n${pageText || '(no text detected)'}`);
+    page.cleanup();
+  }
+
+  return { text: parts.join('\n\n'), pageCount: pdf.numPages };
+}
+
+export async function textToPdfInBrowser(
+  text: string,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    throw new Error('Type or paste some text before saving as PDF.');
+  }
+
+  const { runPdfWorker } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorker<Uint8Array>('text-to-pdf', { text: trimmed }, onProgress);
+  return { bytes, downloadName: 'typed-document.pdf' };
 }

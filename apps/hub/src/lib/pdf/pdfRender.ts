@@ -42,6 +42,15 @@ export async function canvasToJpegBlob(
   });
 }
 
+export async function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error('Canvas export failed'))),
+      'image/png'
+    );
+  });
+}
+
 export function rotateCanvas(canvas: HTMLCanvasElement, degrees: number): HTMLCanvasElement {
   const rad = (degrees * Math.PI) / 180;
   const sin = Math.abs(Math.sin(rad));

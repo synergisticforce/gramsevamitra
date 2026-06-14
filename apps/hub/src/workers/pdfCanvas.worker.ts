@@ -315,6 +315,48 @@ async function cropPdfPage(
   return doc.save({ useObjectStreams: true });
 }
 
+async function imagesToPdf(
+  id: string,
+  images: { bytes: Uint8Array; kind: 'jpg' | 'png' }[]
+) {
+  const doc = await PDFDocument.create();
+  for (let i = 0; i < images.length; i++) {
+    postProgress(id, i + 1, images.length, `Building page ${i + 1} of ${images.length}…`);
+    const { bytes, kind } = images[i];
+    const embedded = kind === 'png' ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+    const page = doc.addPage([embedded.width, embedded.height]);
+    page.drawImage(embedded, { x: 0, y: 0, width: embedded.width, height: embedded.height });
+    await yieldToGc();
+  }
+  postProgress(id, images.length, images.length, 'Saving PDF…');
+  return doc.save({ useObjectStreams: true });
+}
+
+async function textToPdf(id: string, text: string) {
+  postProgress(id, 1, 2, 'Formatting document…');
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const fontSize = 12;
+  const margin = 40;
+  const lineHeight = 18;
+  const maxChars = 100;
+
+  let page = doc.addPage();
+  let y = page.getHeight() - margin;
+
+  for (const rawLine of text.split('\n')) {
+    if (y < margin) {
+      page = doc.addPage();
+      y = page.getHeight() - margin;
+    }
+    page.drawText(rawLine.slice(0, maxChars), { x: margin, y, size: fontSize, font });
+    y -= lineHeight;
+  }
+
+  postProgress(id, 2, 2, 'Saving PDF…');
+  return doc.save({ useObjectStreams: true });
+}
+
 async function dispatchOperation(
   id: string,
   op: string,
@@ -361,6 +403,10 @@ async function dispatchOperation(
         payload.pageIndex as number,
         payload.crop as { x: number; y: number; width: number; height: number }
       );
+    case 'images-to-pdf':
+      return imagesToPdf(id, payload.images as { bytes: Uint8Array; kind: 'jpg' | 'png' }[]);
+    case 'text-to-pdf':
+      return textToPdf(id, payload.text as string);
     default:
       throw new Error(`Unknown worker operation: ${op}`);
   }
