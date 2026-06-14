@@ -1,5 +1,11 @@
 import { formatFileSize } from './documentCanvasStorage';
 import { downloadPdfBytes } from '../pdf/downloadPdf';
+import { normalizedCropToPdfBox, type NormalizedCropRect } from '../pdf/cropCoords';
+import type {
+  PageNumberFormat,
+  PageNumberHorizontal,
+  PageNumberVertical,
+} from '../pdf/pdfOverlay';
 import { formatUnlockError } from '../pdf/pdfEncryption';
 import { parsePageRange } from '../pdf/pageRangeParser';
 import type { PdfWorkerProgress } from '../pdf/pdfWorkerClient';
@@ -217,7 +223,145 @@ export async function unlockPdfInBrowser(
 export function triggerPdfDownload(
   bytes: Uint8Array,
   filename: string,
-  toolSuffix: '_merged' | '_extracted' | '_compressed' | '_protected' | '_unlocked'
+  toolSuffix:
+    | '_merged'
+    | '_extracted'
+    | '_compressed'
+    | '_protected'
+    | '_unlocked'
+    | '_straightened'
+    | '_pages-removed'
+    | '_numbered'
+    | '_cropped'
 ): void {
   downloadPdfBytes(bytes, filename, toolSuffix);
+}
+
+export async function deskewPdfInBrowser(
+  file: File,
+  degrees: number,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  if (degrees === 0) {
+    throw new Error('Adjust the rotation angle before straightening.');
+  }
+
+  const { loadPdfDocument, renderPdfPageToCanvas, canvasToJpegBlob, rotateCanvas } = await import(
+    '../pdf/pdfRender'
+  );
+  const { runPdfWorkerWithJpegPages } = await import('../pdf/pdfWorkerClient');
+
+  const pdf = await loadPdfDocument(file);
+  const bytes = await runPdfWorkerWithJpegPages<Uint8Array>(
+    pdf.numPages,
+    async (pageIndex) => {
+      const pageNum = pageIndex + 1;
+      onProgress?.({
+        current: pageIndex,
+        total: pdf.numPages,
+        label: `Straightening page ${pageNum} of ${pdf.numPages}…`,
+      });
+      const canvas = await renderPdfPageToCanvas(file, pageNum, 1.5);
+      const rotated = rotateCanvas(canvas, degrees);
+      const blob = await canvasToJpegBlob(rotated, 0.9);
+      return new Uint8Array(await blob.arrayBuffer());
+    },
+    onProgress
+  );
+
+  const baseName = splitFilenameBase(file.name);
+  return { bytes, downloadName: `${baseName}-straightened.pdf` };
+}
+
+export async function removePagesInBrowser(
+  file: File,
+  rangeInput: string,
+  pageCount: number,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string; removedCount: number }> {
+  const removeIndices = parsePageRange(rangeInput, pageCount);
+  if (removeIndices.length >= pageCount) {
+    throw new Error('Cannot remove every page — keep at least one.');
+  }
+
+  const { runPdfWorkerWithStreamedFile } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorkerWithStreamedFile<Uint8Array>(
+    'remove-pages',
+    file,
+    { removeIndices },
+    onProgress
+  );
+
+  const baseName = splitFilenameBase(file.name);
+  return {
+    bytes,
+    downloadName: `${baseName}-pages-removed.pdf`,
+    removedCount: removeIndices.length,
+  };
+}
+
+export interface PageNumbersOptions {
+  vertical: PageNumberVertical;
+  horizontal: PageNumberHorizontal;
+  format: PageNumberFormat;
+  fontSize: number;
+  color: string;
+  startNumber: number;
+}
+
+export async function addPageNumbersInBrowser(
+  file: File,
+  options: PageNumbersOptions,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  const { runPdfWorkerWithStreamedFile } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorkerWithStreamedFile<Uint8Array>(
+    'add-page-numbers',
+    file,
+    {
+      vertical: options.vertical,
+      horizontal: options.horizontal,
+      format: options.format,
+      fontSize: options.fontSize,
+      color: options.color,
+      startNumber: options.startNumber,
+    },
+    onProgress
+  );
+
+  const baseName = splitFilenameBase(file.name);
+  return { bytes, downloadName: `${baseName}-numbered.pdf` };
+}
+
+export async function cropPdfInBrowser(
+  file: File,
+  pageIndex: number,
+  crop: NormalizedCropRect,
+  pageWidth: number,
+  pageHeight: number,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  const pdfCrop = normalizedCropToPdfBox(crop, pageWidth, pageHeight);
+  const { runPdfWorkerWithStreamedFile } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorkerWithStreamedFile<Uint8Array>(
+    'crop-pdf',
+    file,
+    { pageIndex, crop: pdfCrop },
+    onProgress
+  );
+
+  const baseName = splitFilenameBase(file.name);
+  return { bytes, downloadName: `${baseName}-cropped.pdf` };
+}
+
+export async function getPdfPageSize(
+  file: File,
+  pageNumber: number
+): Promise<{ width: number; height: number }> {
+  const { loadPdfDocument } = await import('../pdf/pdfRender');
+  const pdf = await loadPdfDocument(file);
+  const page = await pdf.getPage(pageNumber);
+  const viewport = page.getViewport({ scale: 1 });
+  page.cleanup();
+  return { width: viewport.width, height: viewport.height };
 }

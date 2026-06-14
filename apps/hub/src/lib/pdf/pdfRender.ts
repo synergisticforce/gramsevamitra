@@ -41,3 +41,18 @@ export async function canvasToJpegBlob(
     );
   });
 }
+
+export function rotateCanvas(canvas: HTMLCanvasElement, degrees: number): HTMLCanvasElement {
+  const rad = (degrees * Math.PI) / 180;
+  const sin = Math.abs(Math.sin(rad));
+  const cos = Math.abs(Math.cos(rad));
+  const out = document.createElement('canvas');
+  out.width = canvas.width * cos + canvas.height * sin;
+  out.height = canvas.width * sin + canvas.height * cos;
+  const ctx = out.getContext('2d');
+  if (!ctx) throw new Error('Canvas not supported');
+  ctx.translate(out.width / 2, out.height / 2);
+  ctx.rotate(rad);
+  ctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+  return out;
+}

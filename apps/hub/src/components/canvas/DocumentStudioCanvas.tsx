@@ -15,13 +15,27 @@ import CanvasToast from './CanvasToast';
 import DocumentActionToolbar from './DocumentActionToolbar';
 import MagicDropzone from './MagicDropzone';
 import CompressPdfModal from './CompressPdfModal';
+import CropPdfModal from './CropPdfModal';
+import DeskewPdfModal from './DeskewPdfModal';
 import MergePdfModal from './MergePdfModal';
+import PageNumbersPdfModal from './PageNumbersPdfModal';
 import ProtectPdfModal from './ProtectPdfModal';
+import RemovePagesPdfModal from './RemovePagesPdfModal';
 import SplitPdfModal from './SplitPdfModal';
 import UnlockPdfModal from './UnlockPdfModal';
 
 type CanvasPhase = 'empty' | 'active';
-type PdfToolModal = 'split' | 'merge' | 'compress' | 'protect' | 'unlock' | null;
+type PdfToolModal =
+  | 'split'
+  | 'merge'
+  | 'compress'
+  | 'protect'
+  | 'unlock'
+  | 'deskew'
+  | 'remove-pages'
+  | 'page-numbers'
+  | 'crop'
+  | null;
 
 interface ActiveFile {
   file: File | null;
@@ -156,6 +170,26 @@ export default function DocumentStudioCanvas() {
       if (action.id === 'unlock') {
         if (!requirePdfCanvasFile()) return;
         setPdfModal('unlock');
+        return;
+      }
+      if (action.id === 'deskew') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('deskew');
+        return;
+      }
+      if (action.id === 'remove-pages') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('remove-pages');
+        return;
+      }
+      if (action.id === 'page-numbers') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('page-numbers');
+        return;
+      }
+      if (action.id === 'crop') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('crop');
         return;
       }
       setToastMessage(`${action.label} is coming soon.`);
@@ -343,6 +377,42 @@ export default function DocumentStudioCanvas() {
           onClose={() => setPdfModal(null)}
           onSuccess={setToastMessage}
           onError={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'deskew' && canvasPdfFile && (
+        <DeskewPdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'remove-pages' && canvasPdfFile && (
+        <RemovePagesPdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'page-numbers' && canvasPdfFile && (
+        <PageNumbersPdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'crop' && canvasPdfFile && (
+        <CropPdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
       )}

@@ -1,5 +1,13 @@
-import { PDFDocument, type PDFDocument as PDFDocumentType } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb, type PDFDocument as PDFDocumentType } from 'pdf-lib';
 import { sanitizePdfForExtremeCompression, TINY_JPEG } from '../lib/pdf/pdfByteSanitizer';
+import {
+  formatPageNumber,
+  hexToRgb01,
+  pageNumberPlacementToPdfCoords,
+  type PageNumberFormat,
+  type PageNumberHorizontal,
+  type PageNumberVertical,
+} from '../lib/pdf/pdfOverlay';
 import { assembleChunks } from '../lib/pdf/pdfStreamTransfer';
 
 type ProgressMsg = { type: 'progress'; id: string; current: number; total: number; label: string };
@@ -229,6 +237,84 @@ async function unlockPdf(id: string, buffer: ArrayBuffer, password: string) {
   return out.save({ useObjectStreams: true });
 }
 
+async function removePages(id: string, buffer: ArrayBuffer, removeIndices: number[]) {
+  postProgress(id, 1, 2, 'Removing selected pages…');
+  const source = await PDFDocument.load(buffer, { ignoreEncryption: true });
+  const total = source.getPageCount();
+  const removeSet = new Set(removeIndices);
+  const keep = [...Array(total).keys()].filter((i) => !removeSet.has(i));
+  if (keep.length === 0) {
+    throw new Error('Cannot remove every page — keep at least one.');
+  }
+  const out = await PDFDocument.create();
+  const copied = await out.copyPages(source, keep);
+  copied.forEach((page) => out.addPage(page));
+  postProgress(id, 2, 2, 'Saving cleaned PDF…');
+  return out.save({ useObjectStreams: true });
+}
+
+async function addPageNumbers(
+  id: string,
+  buffer: ArrayBuffer,
+  vertical: PageNumberVertical = 'bottom',
+  horizontal: PageNumberHorizontal = 'center',
+  options: {
+    format?: PageNumberFormat;
+    color?: string;
+    fontSize?: number;
+    startNumber?: number;
+  } = {}
+) {
+  const doc = await PDFDocument.load(buffer, { ignoreEncryption: true });
+  const size = options.fontSize ?? 11;
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const c = hexToRgb01(options.color ?? '#333333');
+  const pages = doc.getPages();
+  const total = pages.length;
+  const startAt = Math.max(1, options.startNumber ?? 1);
+
+  for (let i = 0; i < pages.length; i++) {
+    postProgress(id, i + 1, pages.length, `Numbering page ${i + 1} of ${pages.length}…`);
+    const page = pages[i];
+    const { width, height } = page.getSize();
+    const displayNum = startAt + i;
+    const label = formatPageNumber(options.format ?? 'plain', displayNum, startAt + total - 1);
+    const textWidth = font.widthOfTextAtSize(label, size);
+    const { x, y } = pageNumberPlacementToPdfCoords(
+      vertical,
+      horizontal,
+      width,
+      height,
+      textWidth,
+      size
+    );
+    page.drawText(label, {
+      x,
+      y,
+      size,
+      font,
+      color: rgb(c.r, c.g, c.b),
+    });
+  }
+  return doc.save({ useObjectStreams: true });
+}
+
+async function cropPdfPage(
+  id: string,
+  buffer: ArrayBuffer,
+  pageIndex: number,
+  crop: { x: number; y: number; width: number; height: number }
+) {
+  postProgress(id, 1, 1, 'Applying crop box…');
+  const doc = await PDFDocument.load(buffer, { ignoreEncryption: true });
+  const page = doc.getPages()[pageIndex];
+  if (!page) throw new Error('Page not found.');
+
+  page.setCropBox(crop.x, crop.y, crop.width, crop.height);
+  page.setMediaBox(crop.x, crop.y, crop.width, crop.height);
+  return doc.save({ useObjectStreams: true });
+}
+
 async function dispatchOperation(
   id: string,
   op: string,
@@ -253,6 +339,28 @@ async function dispatchOperation(
       );
     case 'unlock-pdf':
       return unlockPdf(id, payload.buffer as ArrayBuffer, payload.password as string);
+    case 'remove-pages':
+      return removePages(id, payload.buffer as ArrayBuffer, payload.removeIndices as number[]);
+    case 'add-page-numbers':
+      return addPageNumbers(
+        id,
+        payload.buffer as ArrayBuffer,
+        (payload.vertical as PageNumberVertical) ?? 'bottom',
+        (payload.horizontal as PageNumberHorizontal) ?? 'center',
+        {
+          format: payload.format as PageNumberFormat | undefined,
+          color: payload.color as string | undefined,
+          fontSize: payload.fontSize as number | undefined,
+          startNumber: payload.startNumber as number | undefined,
+        }
+      );
+    case 'crop-pdf':
+      return cropPdfPage(
+        id,
+        payload.buffer as ArrayBuffer,
+        payload.pageIndex as number,
+        payload.crop as { x: number; y: number; width: number; height: number }
+      );
     default:
       throw new Error(`Unknown worker operation: ${op}`);
   }
