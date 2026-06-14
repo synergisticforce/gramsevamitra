@@ -3,6 +3,7 @@ import '@shared/styles/global.css';
 import BaseLayout from '@shared/layouts/BaseLayout.astro';
 import AppSidebar from '../components/app/AppSidebar';
 import AppShellFooter from '../components/app/AppShellFooter';
+import FeedbackWidget from '../components/app/FeedbackWidget';
 import ProUpgradeModal from '../components/billing/ProUpgradeModal.tsx';
 import PwaRegister from '../components/tools/PwaRegister';
 import type { AppWorkspaceId } from '../config/appWorkspaces';
@@ -33,6 +34,7 @@ const currentPath = Astro.url.pathname;
     </main>
   </div>
 
+  <FeedbackWidget client:load />
   <ProUpgradeModal client:load slot="footer" />
   <PwaRegister client:load slot="footer" />
 </BaseLayout>
