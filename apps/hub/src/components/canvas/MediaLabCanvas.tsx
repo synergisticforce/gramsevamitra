@@ -29,7 +29,11 @@ interface ProcessingState {
   active: boolean;
   label: string;
   percent: number;
+  subtitle?: string;
 }
+
+const PRO_MEDIA_SUBTITLE =
+  'Pro GPU processing uses ephemeral Cloudflare R2 storage — deleted after transformation.';
 
 export default function MediaLabCanvas() {
   const [phase, setPhase] = useState<CanvasPhase>('empty');
@@ -37,6 +41,7 @@ export default function MediaLabCanvas() {
   const [hydrated, setHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [mediaModal, setMediaModal] = useState<MediaToolModal>(null);
+  const [proMediaBusy, setProMediaBusy] = useState(false);
   const [processing, setProcessing] = useState<ProcessingState>({
     active: false,
     label: '',
@@ -57,17 +62,71 @@ export default function MediaLabCanvas() {
     return activeFile.file;
   }, [activeFile]);
 
-  const onProcessingChange = useCallback((active: boolean, label: string, percent: number) => {
-    if (!active) {
-      setProcessing({ active: false, label: '', percent: 0 });
-      return;
-    }
-    setProcessing({ active: true, label, percent });
-  }, []);
+  const setProcessingProgress = useCallback(
+    (active: boolean, label: string, percent: number, subtitle?: string) => {
+      if (!active) {
+        setProcessing({ active: false, label: '', percent: 0 });
+        return;
+      }
+      setProcessing({ active: true, label, percent, subtitle });
+    },
+    []
+  );
 
-  const onProAction = useCallback((action: MediaCanvasAction) => {
-    setToastMessage(`${action.label} — serverless GPU processing ships in Phase 5.`);
-  }, []);
+  const onProcessingChange = useCallback(
+    (active: boolean, label: string, percent: number) => {
+      setProcessingProgress(active, label, percent);
+    },
+    [setProcessingProgress]
+  );
+
+  const onProAction = useCallback(
+    async (action: MediaCanvasAction) => {
+      if (proMediaBusy) return;
+
+      const file = requireCanvasFile();
+      if (!file) return;
+
+      const { resolveMediaProAction, runMediaProPipeline } = await import(
+        '../../lib/canvas/mediaProProcess'
+      );
+      const apiAction = resolveMediaProAction(action.id);
+      if (!apiAction) {
+        setToastMessage(`${action.label} is coming soon.`);
+        return;
+      }
+
+      setProMediaBusy(true);
+      setProcessingProgress(
+        true,
+        'Uploading image to secure transient storage…',
+        5,
+        PRO_MEDIA_SUBTITLE
+      );
+
+      try {
+        const result = await runMediaProPipeline(file, apiAction, ({ label, percent }) => {
+          setProcessingProgress(true, label, percent, PRO_MEDIA_SUBTITLE);
+        });
+        setProcessingProgress(false, '', 0);
+        const seconds =
+          result.processingMs != null ? Math.round(result.processingMs / 1000) : 3;
+        const actionLabel =
+          apiAction === 'remove-bg' ? 'Background removal' : '4× upscale';
+        setToastMessage(
+          `${actionLabel} complete — ${result.fileName} downloaded (${seconds}s mock GPU pipeline).`
+        );
+      } catch (err) {
+        setProcessingProgress(false, '', 0);
+        setToastMessage(
+          err instanceof Error ? err.message : 'Pro media processing failed. Please try again.'
+        );
+      } finally {
+        setProMediaBusy(false);
+      }
+    },
+    [proMediaBusy, requireCanvasFile, setProcessingProgress]
+  );
 
   const onFreeAction = useCallback(
     (action: MediaCanvasAction) => {
@@ -252,7 +311,11 @@ export default function MediaLabCanvas() {
       )}
 
       {processing.active && (
-        <CanvasProcessingOverlay label={processing.label} percent={processing.percent} />
+        <CanvasProcessingOverlay
+          label={processing.label}
+          percent={processing.percent}
+          subtitle={processing.subtitle}
+        />
       )}
 
       <CanvasToast message={toastMessage} onDismiss={dismissToast} />
