@@ -112,7 +112,7 @@ Copy **Client ID** → `GOOGLE_CLIENT_ID`, **Client secret** → `GOOGLE_CLIENT_
 
 | Item | Value |
 |---|---|
-| Product | Pro plan — ₹199/month (created as a Razorpay Order for ₹199) |
+| Product | Pro plan — ₹99/year (created as a Razorpay Order for ₹99) |
 | `RAZORPAY_KEY_ID` | `rzp_test_…` or `rzp_live_…` (Dashboard → Settings → API Keys) |
 | `RAZORPAY_KEY_SECRET` | Secret key paired with `RAZORPAY_KEY_ID` |
 | Webhook endpoint | `https://gramsevamitra.com/api/billing/razorpay-webhook` |

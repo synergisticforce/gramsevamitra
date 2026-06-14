@@ -15,7 +15,7 @@ export default function TermsOfService() {
         <p>
           GramSeva Mitra provides browser-based utilities for documents, media, career preparation,
           finance calculations, and everyday tools. A free tier runs primarily on your device. An optional
-          Pro subscription (currently ₹199/month or as displayed at checkout) unlocks server-assisted
+          Pro subscription (currently ₹99/year or as displayed at checkout) unlocks server-assisted
           features subject to availability.
         </p>
       </LegalSection>

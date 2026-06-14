@@ -1,7 +1,7 @@
 # GramSeva Mitra - Master App Architecture & Tech Stack Plan (Unified Canvas)
 
 ## 1. Project Objective
-Transition GramSeva Mitra from a static "Tool Directory" into a modern, unified "App Model" SaaS platform. The goal is to maximize user retention and organic upsells to the ₹199/month Pro tier by seamlessly integrating free tools and premium serverless features within a persistent, high-performance UI shell.
+Transition GramSeva Mitra from a static "Tool Directory" into a modern, unified "App Model" SaaS platform. The goal is to maximize user retention and organic upsells to the ₹99/year Pro tier by seamlessly integrating free tools and premium serverless features within a persistent, high-performance UI shell.
 
 **Status (Phases 1–8):** The App Shell and all five workspace MVPs are live. The platform is ready for the mass migration of remaining legacy tools into these canvases.
 

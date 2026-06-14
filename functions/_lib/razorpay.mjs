@@ -1,6 +1,9 @@
-/** Pro plan — ₹199/month (Razorpay Order in INR paise). */
-export const PRO_ORDER_AMOUNT_PAISE = 19900;
-export const PRO_ORDER_CURRENCY = 'INR';
+import {
+  PRO_ORDER_AMOUNT_PAISE,
+  PRO_ORDER_CURRENCY,
+} from '../../../packages/shared/src/lib/proBilling.mjs';
+
+export { PRO_ORDER_AMOUNT_PAISE, PRO_ORDER_CURRENCY };
 
 /**
  * @param {import('@gramsevamitra/auth').AuthEnv & {

@@ -6,8 +6,13 @@ export interface ProUpgradeDetail {
   featureDescription?: string;
 }
 
-export const PRO_PRICE_LABEL = '₹199';
-export const PRO_PRICE_INTERVAL = '/month';
+/** Pro plan billing — see packages/shared/src/lib/proBilling.mjs for canonical amounts. */
+export {
+  PRO_ORDER_AMOUNT_PAISE,
+  PRO_ORDER_CURRENCY,
+  PRO_PRICE_INTERVAL,
+  PRO_PRICE_LABEL,
+} from './proBilling.mjs';
 
 export function openProUpgrade(detail: ProUpgradeDetail): void {
   if (typeof window === 'undefined') return;
