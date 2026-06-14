@@ -4,6 +4,7 @@ import {
   actionsForCareerMime,
   isCareerDocumentMimeOrName,
 } from '../../config/careerCanvasActions';
+import { isDocxFile, isPdfFile } from '../../lib/canvas/careerPdfText';
 import {
   clearCareerCanvasState,
   formatFileSize,
@@ -12,11 +13,15 @@ import {
   type StoredFileMeta,
 } from '../../lib/canvas/careerCanvasStorage';
 import { useCareerActionHandler } from '../../lib/canvas/useCareerActionHandler';
+import AtsScannerModal from './AtsScannerModal';
+import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
 import CareerActionToolbar from './CareerActionToolbar';
 import CareerMagicDropzone from './CareerMagicDropzone';
+import CoverLetterModal from './CoverLetterModal';
 
 type CanvasPhase = 'empty' | 'active';
+type CareerToolModal = 'ats-scanner' | 'cover-letter' | null;
 
 interface ActiveFile {
   file: File | null;
@@ -24,11 +29,23 @@ interface ActiveFile {
   restoredFromSession: boolean;
 }
 
+interface ProcessingState {
+  active: boolean;
+  label: string;
+  percent: number;
+}
+
 export default function CareerPrepCanvas() {
   const [phase, setPhase] = useState<CanvasPhase>('empty');
   const [activeFile, setActiveFile] = useState<ActiveFile | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [careerModal, setCareerModal] = useState<CareerToolModal>(null);
+  const [processing, setProcessing] = useState<ProcessingState>({
+    active: false,
+    label: '',
+    percent: 0,
+  });
 
   const dismissToast = useCallback(() => setToastMessage(null), []);
 
@@ -44,17 +61,45 @@ export default function CareerPrepCanvas() {
     return activeFile.file;
   }, [activeFile]);
 
-  const onProAction = useCallback((action: CareerCanvasAction) => {
-    setToastMessage(`${action.label} — serverless AI processing ships in Phase 6.`);
+  const onProcessingChange = useCallback((active: boolean, label: string, percent: number) => {
+    if (!active) {
+      setProcessing({ active: false, label: '', percent: 0 });
+      return;
+    }
+    setProcessing({ active: true, label, percent });
   }, []);
 
   const onFreeAction = useCallback(
     (action: CareerCanvasAction) => {
-      if (!requireCanvasFile()) return;
-      setToastMessage(`${action.label} — processing logic ships in Phase 6.`);
+      if (action.id === 'ats-scanner') {
+        const file = requireCanvasFile();
+        if (!file) return;
+
+        if (isDocxFile(file.type, file.name) || (!isPdfFile(file.type, file.name) && !file.type)) {
+          setToastMessage(
+            'ATS Scanner currently supports PDF resumes only. Upload a PDF or use Cover Letter Templates for Word files.'
+          );
+          return;
+        }
+
+        setCareerModal('ats-scanner');
+        return;
+      }
+
+      if (action.id === 'cover-letter-templates') {
+        if (!activeFile) {
+          setToastMessage('Upload a document on the canvas first.');
+          return;
+        }
+        setCareerModal('cover-letter');
+      }
     },
-    [requireCanvasFile]
+    [activeFile, requireCanvasFile]
   );
+
+  const onProAction = useCallback((action: CareerCanvasAction) => {
+    setToastMessage(`${action.label} — serverless AI processing ships in Phase 6.`);
+  }, []);
 
   const { handleActionClick } = useCareerActionHandler({ onFreeAction, onProAction });
 
@@ -94,6 +139,7 @@ export default function CareerPrepCanvas() {
     clearCareerCanvasState();
     setActiveFile(null);
     setPhase('empty');
+    setCareerModal(null);
   }, []);
 
   const replaceFile = useCallback(
@@ -107,6 +153,11 @@ export default function CareerPrepCanvas() {
     if (!activeFile) return [];
     return actionsForCareerMime(activeFile.meta.type);
   }, [activeFile]);
+
+  const atsFile =
+    activeFile?.file && isPdfFile(activeFile.file.type, activeFile.file.name)
+      ? activeFile.file
+      : null;
 
   if (!hydrated) {
     return (
@@ -199,6 +250,30 @@ export default function CareerPrepCanvas() {
           </div>
         )}
       </div>
+
+      {careerModal === 'ats-scanner' && atsFile && (
+        <AtsScannerModal
+          file={atsFile}
+          onClose={() => setCareerModal(null)}
+          onSuccess={(message) => setToastMessage(message)}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {careerModal === 'cover-letter' && (
+        <CoverLetterModal
+          onClose={() => setCareerModal(null)}
+          onSuccess={(message) => setToastMessage(message)}
+        />
+      )}
+
+      {processing.active && (
+        <CanvasProcessingOverlay
+          label={processing.label}
+          percent={processing.percent}
+          subtitle="Your resume and job description never leave this device."
+        />
+      )}
 
       <CanvasToast message={toastMessage} onDismiss={dismissToast} />
     </section>
