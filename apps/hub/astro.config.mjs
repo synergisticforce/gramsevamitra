@@ -102,7 +102,7 @@ export default defineConfig({
       alias: { '@shared': sharedRoot },
     },
     optimizeDeps: {
-      include: ['browser-image-compression', '@huggingface/transformers'],
+      include: ['browser-image-compression', '@huggingface/transformers', 'pdf-lib'],
     },
     worker: {
       format: 'es',

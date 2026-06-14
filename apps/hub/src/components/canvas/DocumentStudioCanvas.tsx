@@ -8,12 +8,17 @@ import {
   saveDocumentCanvasState,
   type StoredFileMeta,
 } from '../../lib/canvas/documentCanvasStorage';
+import { isPdfMimeOrName } from '../../lib/canvas/documentPdfTools';
 import { useDocumentActionHandler } from '../../lib/canvas/useDocumentActionHandler';
+import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
 import DocumentActionToolbar from './DocumentActionToolbar';
 import MagicDropzone from './MagicDropzone';
+import MergePdfModal from './MergePdfModal';
+import SplitPdfModal from './SplitPdfModal';
 
 type CanvasPhase = 'empty' | 'active';
+type PdfToolModal = 'split' | 'merge' | null;
 
 interface ActiveFile {
   file: File | null;
@@ -21,21 +26,65 @@ interface ActiveFile {
   restoredFromSession: boolean;
 }
 
+interface ProcessingState {
+  active: boolean;
+  label: string;
+  percent: number;
+}
+
 export default function DocumentStudioCanvas() {
   const [phase, setPhase] = useState<CanvasPhase>('empty');
   const [activeFile, setActiveFile] = useState<ActiveFile | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [pdfModal, setPdfModal] = useState<PdfToolModal>(null);
+  const [processing, setProcessing] = useState<ProcessingState>({
+    active: false,
+    label: '',
+    percent: 0,
+  });
 
   const dismissToast = useCallback(() => setToastMessage(null), []);
+
+  const requireCanvasBlob = useCallback((): File | null => {
+    if (!activeFile?.file) {
+      setToastMessage('Re-upload your PDF on the canvas to run this action.');
+      return null;
+    }
+    if (!isPdfMimeOrName(activeFile.meta.type, activeFile.meta.name)) {
+      setToastMessage('Merge and Split are available for PDF files only.');
+      return null;
+    }
+    return activeFile.file;
+  }, [activeFile]);
+
+  const onProcessingChange = useCallback((active: boolean, label: string, percent: number) => {
+    setProcessing({ active, label, percent });
+    if (!active) {
+      setProcessing({ active: false, label: '', percent: 0 });
+    }
+  }, []);
 
   const onProAction = useCallback((_action: DocumentCanvasAction) => {
     setToastMessage('Initiating Serverless GPU processing…');
   }, []);
 
-  const onFreeAction = useCallback((action: DocumentCanvasAction) => {
-    setToastMessage(`${action.label} queued — processing logic ships in Phase 4.`);
-  }, []);
+  const onFreeAction = useCallback(
+    (action: DocumentCanvasAction) => {
+      if (action.id === 'split') {
+        if (!requireCanvasBlob()) return;
+        setPdfModal('split');
+        return;
+      }
+      if (action.id === 'merge') {
+        if (!requireCanvasBlob()) return;
+        setPdfModal('merge');
+        return;
+      }
+      setToastMessage(`${action.label} queued — processing logic ships in Phase 4.`);
+    },
+    [requireCanvasBlob]
+  );
 
   const { handleActionClick } = useDocumentActionHandler({ onFreeAction, onProAction });
 
@@ -71,19 +120,22 @@ export default function DocumentStudioCanvas() {
     clearDocumentCanvasState();
     setActiveFile(null);
     setPhase('empty');
+    setPdfModal(null);
   }, []);
 
   const replaceFile = useCallback(
     (file: File) => {
       activateFile(file);
     },
-    [activateFile],
+    [activateFile]
   );
 
   const toolbarActions = useMemo(() => {
     if (!activeFile) return [];
     return actionsForMimeType(activeFile.meta.type);
   }, [activeFile]);
+
+  const canvasPdfFile = activeFile?.file ?? null;
 
   if (!hydrated) {
     return (
@@ -171,6 +223,28 @@ export default function DocumentStudioCanvas() {
           </div>
         )}
       </div>
+
+      {pdfModal === 'split' && canvasPdfFile && (
+        <SplitPdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'merge' && canvasPdfFile && (
+        <MergePdfModal
+          canvasFile={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {processing.active && (
+        <CanvasProcessingOverlay label={processing.label} percent={processing.percent} />
+      )}
 
       <CanvasToast message={toastMessage} onDismiss={dismissToast} />
     </section>
