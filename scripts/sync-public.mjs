@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-import { cpSync, mkdirSync, readdirSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const sharedPublic = path.resolve(root, 'packages/shared/public');
+const rootRobots = path.resolve(root, 'robots.txt');
 const apps = ['hub', 'optimizer', 'resume', 'pdf'];
 
 for (const app of apps) {
@@ -13,6 +14,9 @@ for (const app of apps) {
   mkdirSync(dest, { recursive: true });
   for (const entry of readdirSync(sharedPublic)) {
     cpSync(path.join(sharedPublic, entry), path.join(dest, entry), { recursive: true });
+  }
+  if (existsSync(rootRobots)) {
+    cpSync(rootRobots, path.join(dest, 'robots.txt'));
   }
 }
 

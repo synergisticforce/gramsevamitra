@@ -1,3 +1,4 @@
+# GramSeva Mitra — production crawl rules (served from apps/hub/dist via sync-public)
 User-agent: *
 Allow: /
 

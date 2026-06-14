@@ -5,6 +5,12 @@ import tailwind from '@astrojs/tailwind';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import AstroPWA from '@vite-pwa/astro';
+import {
+  isIndexableRoute,
+  normalizeSitemapPath,
+  sitemapChangefreq,
+  sitemapPriority,
+} from './src/config/indexableRoutes.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sharedRoot = path.resolve(__dirname, '../../packages/shared/src');
@@ -17,7 +23,17 @@ export default defineConfig({
   integrations: [
     tailwind({ configFile: '../../packages/shared/tailwind.config.mjs' }),
     react(),
-    sitemap(),
+    sitemap({
+      filter: (page) => isIndexableRoute(page),
+      serialize(item) {
+        const path = normalizeSitemapPath(item.url);
+        return {
+          ...item,
+          priority: sitemapPriority(path),
+          changefreq: sitemapChangefreq(path),
+        };
+      },
+    }),
     AstroPWA({
       registerType: 'autoUpdate',
       injectRegister: null,
