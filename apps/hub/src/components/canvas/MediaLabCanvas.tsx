@@ -9,11 +9,15 @@ import {
   type StoredFileMeta,
 } from '../../lib/canvas/mediaCanvasStorage';
 import { useMediaActionHandler } from '../../lib/canvas/useMediaActionHandler';
+import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
+import ConvertFormatModal from './ConvertFormatModal';
 import MediaActionToolbar from './MediaActionToolbar';
 import MediaMagicDropzone from './MediaMagicDropzone';
+import ResizeCompressModal from './ResizeCompressModal';
 
 type CanvasPhase = 'empty' | 'active';
+type MediaToolModal = 'resize-compress' | 'convert-format' | null;
 
 interface ActiveFile {
   file: File | null;
@@ -21,11 +25,23 @@ interface ActiveFile {
   restoredFromSession: boolean;
 }
 
+interface ProcessingState {
+  active: boolean;
+  label: string;
+  percent: number;
+}
+
 export default function MediaLabCanvas() {
   const [phase, setPhase] = useState<CanvasPhase>('empty');
   const [activeFile, setActiveFile] = useState<ActiveFile | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [mediaModal, setMediaModal] = useState<MediaToolModal>(null);
+  const [processing, setProcessing] = useState<ProcessingState>({
+    active: false,
+    label: '',
+    percent: 0,
+  });
 
   const dismissToast = useCallback(() => setToastMessage(null), []);
 
@@ -41,14 +57,31 @@ export default function MediaLabCanvas() {
     return activeFile.file;
   }, [activeFile]);
 
+  const onProcessingChange = useCallback((active: boolean, label: string, percent: number) => {
+    if (!active) {
+      setProcessing({ active: false, label: '', percent: 0 });
+      return;
+    }
+    setProcessing({ active: true, label, percent });
+  }, []);
+
   const onProAction = useCallback((action: MediaCanvasAction) => {
     setToastMessage(`${action.label} — serverless GPU processing ships in Phase 5.`);
   }, []);
 
   const onFreeAction = useCallback(
     (action: MediaCanvasAction) => {
-      if (!requireCanvasFile()) return;
-      setToastMessage(`${action.label} — processing logic ships in Phase 5.`);
+      if (action.id === 'resize-compress') {
+        if (!requireCanvasFile()) return;
+        setMediaModal('resize-compress');
+        return;
+      }
+      if (action.id === 'convert-format') {
+        if (!requireCanvasFile()) return;
+        setMediaModal('convert-format');
+        return;
+      }
+      setToastMessage(`${action.label} is coming soon.`);
     },
     [requireCanvasFile]
   );
@@ -91,6 +124,7 @@ export default function MediaLabCanvas() {
     clearMediaCanvasState();
     setActiveFile(null);
     setPhase('empty');
+    setMediaModal(null);
   }, []);
 
   const replaceFile = useCallback(
@@ -104,6 +138,8 @@ export default function MediaLabCanvas() {
     if (!activeFile) return [];
     return actionsForImageMime(activeFile.meta.type);
   }, [activeFile]);
+
+  const canvasImageFile = activeFile?.file ?? null;
 
   if (!hydrated) {
     return (
@@ -196,6 +232,28 @@ export default function MediaLabCanvas() {
           </div>
         )}
       </div>
+
+      {mediaModal === 'resize-compress' && canvasImageFile && (
+        <ResizeCompressModal
+          file={canvasImageFile}
+          onClose={() => setMediaModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {mediaModal === 'convert-format' && canvasImageFile && (
+        <ConvertFormatModal
+          file={canvasImageFile}
+          onClose={() => setMediaModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {processing.active && (
+        <CanvasProcessingOverlay label={processing.label} percent={processing.percent} />
+      )}
 
       <CanvasToast message={toastMessage} onDismiss={dismissToast} />
     </section>
