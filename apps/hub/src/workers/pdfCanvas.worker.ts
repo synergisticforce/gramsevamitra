@@ -212,6 +212,23 @@ async function protectPdf(
   return doc.save({ useObjectStreams: true });
 }
 
+async function unlockPdf(id: string, buffer: ArrayBuffer, password: string) {
+  postProgress(id, 1, 3, 'Decrypting document…');
+  let source;
+  try {
+    source = await PDFDocument.load(buffer, { password });
+  } catch {
+    throw new Error('Incorrect password or unable to decrypt this document.');
+  }
+  postProgress(id, 2, 3, 'Stripping security envelope…');
+  const out = await PDFDocument.create();
+  const indices = source.getPageIndices();
+  const copied = await out.copyPages(source, indices);
+  copied.forEach((page) => out.addPage(page));
+  postProgress(id, 3, 3, 'Saving unlocked PDF…');
+  return out.save({ useObjectStreams: true });
+}
+
 async function dispatchOperation(
   id: string,
   op: string,
@@ -234,6 +251,8 @@ async function dispatchOperation(
         payload.ownerPassword as string,
         (payload.restrictions as ProtectRestrictions) ?? {}
       );
+    case 'unlock-pdf':
+      return unlockPdf(id, payload.buffer as ArrayBuffer, payload.password as string);
     default:
       throw new Error(`Unknown worker operation: ${op}`);
   }

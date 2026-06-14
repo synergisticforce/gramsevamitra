@@ -1,5 +1,6 @@
 import { formatFileSize } from './documentCanvasStorage';
 import { downloadPdfBytes } from '../pdf/downloadPdf';
+import { formatUnlockError } from '../pdf/pdfEncryption';
 import { parsePageRange } from '../pdf/pageRangeParser';
 import type { PdfWorkerProgress } from '../pdf/pdfWorkerClient';
 
@@ -192,10 +193,31 @@ export async function protectPdfInBrowser(
   return { bytes, downloadName: `${baseName}-protected.pdf` };
 }
 
+export async function unlockPdfInBrowser(
+  file: File,
+  password: string,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  const { runPdfWorkerWithStreamedFile } = await import('../pdf/pdfWorkerClient');
+
+  try {
+    const bytes = await runPdfWorkerWithStreamedFile<Uint8Array>(
+      'unlock-pdf',
+      file,
+      { password },
+      onProgress
+    );
+    const baseName = splitFilenameBase(file.name);
+    return { bytes, downloadName: `${baseName}-unlocked.pdf` };
+  } catch (err) {
+    throw new Error(formatUnlockError(err));
+  }
+}
+
 export function triggerPdfDownload(
   bytes: Uint8Array,
   filename: string,
-  toolSuffix: '_merged' | '_extracted' | '_compressed' | '_protected'
+  toolSuffix: '_merged' | '_extracted' | '_compressed' | '_protected' | '_unlocked'
 ): void {
   downloadPdfBytes(bytes, filename, toolSuffix);
 }

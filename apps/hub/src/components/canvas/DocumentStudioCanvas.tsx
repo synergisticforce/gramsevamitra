@@ -18,9 +18,10 @@ import CompressPdfModal from './CompressPdfModal';
 import MergePdfModal from './MergePdfModal';
 import ProtectPdfModal from './ProtectPdfModal';
 import SplitPdfModal from './SplitPdfModal';
+import UnlockPdfModal from './UnlockPdfModal';
 
 type CanvasPhase = 'empty' | 'active';
-type PdfToolModal = 'split' | 'merge' | 'compress' | 'protect' | null;
+type PdfToolModal = 'split' | 'merge' | 'compress' | 'protect' | 'unlock' | null;
 
 interface ActiveFile {
   file: File | null;
@@ -93,7 +94,12 @@ export default function DocumentStudioCanvas() {
         setPdfModal('protect');
         return;
       }
-      setToastMessage(`${action.label} queued — processing logic ships in Phase 4.`);
+      if (action.id === 'unlock') {
+        if (!requireCanvasBlob()) return;
+        setPdfModal('unlock');
+        return;
+      }
+      setToastMessage(`${action.label} is coming soon.`);
     },
     [requireCanvasBlob]
   );
@@ -268,6 +274,16 @@ export default function DocumentStudioCanvas() {
           file={canvasPdfFile}
           onClose={() => setPdfModal(null)}
           onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'unlock' && canvasPdfFile && (
+        <UnlockPdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onError={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
       )}
