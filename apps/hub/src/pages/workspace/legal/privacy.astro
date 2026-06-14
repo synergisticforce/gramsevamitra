@@ -1,0 +1,13 @@
+---
+import AppShellLayout from '../../../layouts/AppShellLayout.astro';
+import PrivacyPolicy from '../../../components/legal/PrivacyPolicy';
+import { formatSeoTitle } from '@shared/config/seo';
+---
+
+<AppShellLayout
+  title={formatSeoTitle('Privacy Policy', 'GramSeva Mitra')}
+  description="GramSeva Mitra privacy policy — how we handle data for free and Pro users in India."
+  activeWorkspace="documents"
+>
+  <PrivacyPolicy />
+</AppShellLayout>

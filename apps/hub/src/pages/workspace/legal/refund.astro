@@ -1,0 +1,13 @@
+---
+import AppShellLayout from '../../../layouts/AppShellLayout.astro';
+import RefundPolicy from '../../../components/legal/RefundPolicy';
+import { formatSeoTitle } from '@shared/config/seo';
+---
+
+<AppShellLayout
+  title={formatSeoTitle('Refund Policy', 'GramSeva Mitra')}
+  description="Refund and cancellation policy for GramSeva Mitra Pro subscriptions via Razorpay."
+  activeWorkspace="documents"
+>
+  <RefundPolicy />
+</AppShellLayout>

@@ -1,0 +1,13 @@
+---
+import AppShellLayout from '../../../layouts/AppShellLayout.astro';
+import TermsOfService from '../../../components/legal/TermsOfService';
+import { formatSeoTitle } from '@shared/config/seo';
+---
+
+<AppShellLayout
+  title={formatSeoTitle('Terms of Service', 'GramSeva Mitra')}
+  description="Terms of Service for GramSeva Mitra — Indian SaaS platform terms and Pro subscriptions."
+  activeWorkspace="documents"
+>
+  <TermsOfService />
+</AppShellLayout>
