@@ -371,6 +371,13 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
           </button>
         </div>
       </div>
+
+      <p
+        className="mt-4 text-center text-sm font-bold uppercase tracking-wide text-red-600"
+        data-build-version="DAY-ZERO-V4"
+      >
+        BUILD_VERSION: DAY-ZERO-V4 [₹99 ACTIVE]
+      </p>
     </div>
   );
 }

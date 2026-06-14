@@ -35,6 +35,12 @@ export default function AppShellFooter() {
           © {year} GramSeva Mitra · Pro payments via Razorpay
         </p>
       </div>
+      <p
+        className="mx-auto mt-3 max-w-5xl text-center text-sm font-bold uppercase tracking-wide text-red-600"
+        data-build-version="DAY-ZERO-V4"
+      >
+        BUILD_VERSION: DAY-ZERO-V4 [₹99 ACTIVE]
+      </p>
     </footer>
   );
 }
