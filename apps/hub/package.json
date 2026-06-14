@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev --port 4321",
-    "build": "astro build",
+    "build": "rm -rf dist node_modules/.astro node_modules/.vite && astro build --force",
     "preview": "astro preview --port 4321",
     "typecheck": "tsc --noEmit"
   },
