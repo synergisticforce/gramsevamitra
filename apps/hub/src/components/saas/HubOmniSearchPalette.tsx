@@ -1,15 +1,15 @@
 import OmniSearchPalette from '@shared/components/saas/OmniSearchPalette.tsx';
 import type { OmniSearchTool } from '@shared/components/saas/omniSearch';
-import { SITES, utilitiesHref } from '@shared/config/sites';
-import { TOOLS_REGISTRY } from '../../config/toolsRegistry';
+import { SITES } from '@shared/config/sites';
+import { APP_WORKSPACES } from '../../config/appWorkspaces';
 
-const hubTools: OmniSearchTool[] = TOOLS_REGISTRY.map((tool) => ({
-  id: tool.id,
-  name: tool.name,
-  description: tool.description,
-  href: utilitiesHref(tool.path),
-  keywords: tool.keywords,
-  aliases: tool.aliases,
+const workspaceTools: OmniSearchTool[] = APP_WORKSPACES.map((workspace) => ({
+  id: workspace.id,
+  name: workspace.label,
+  description: workspace.description,
+  href: workspace.href,
+  keywords: [workspace.id, workspace.label.toLowerCase(), 'workspace'],
+  aliases: [workspace.label],
 }));
 
 const crossAppTools: OmniSearchTool[] = [
@@ -23,15 +23,15 @@ const crossAppTools: OmniSearchTool[] = [
   },
 ];
 
-const ALL_TOOLS = [...hubTools, ...crossAppTools];
+const ALL_TOOLS = [...workspaceTools, ...crossAppTools];
 
 export default function HubOmniSearchPalette() {
   return (
     <OmniSearchPalette
       tools={ALL_TOOLS}
-      placeholder="Search 83+ free tools…"
-      hint="Try EMI calculator, QR code, baby names, or PDF tools"
-      footerLabel="Quick Tools Drawer"
+      placeholder="Search workspaces and tools…"
+      hint="Try Document Studio, Finance Hub, or PDF Tools"
+      footerLabel="App Workspaces"
     />
   );
 }

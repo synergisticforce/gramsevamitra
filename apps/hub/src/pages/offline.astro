@@ -1,7 +1,6 @@
 ---
 import '@shared/styles/global.css';
 import SaaSLayout from '../layouts/SaaSLayout.astro';
-import { utilitiesHref } from '@shared/config/sites';
 ---
 
 <SaaSLayout
@@ -32,10 +31,10 @@ import { utilitiesHref } from '@shared/config/sites';
           Try again
         </button>
         <a
-          href={utilitiesHref('/tools')}
+          href="/workspace/documents"
           class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
         >
-          Open offline tools
+          Open offline app
         </a>
       </div>
     </div>

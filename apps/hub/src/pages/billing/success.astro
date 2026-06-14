@@ -1,7 +1,7 @@
 ---
 import SaaSLayout from '../../layouts/SaaSLayout.astro';
 import { formatSeoTitle } from '@shared/config/seo';
-import { SITES, utilitiesHref } from '@shared/config/sites';
+import { SITES } from '@shared/config/sites';
 
 const pageTitle = formatSeoTitle('Welcome to Pro', 'GramSeva Mitra');
 ---
@@ -17,10 +17,10 @@ const pageTitle = formatSeoTitle('Welcome to Pro', 'GramSeva Mitra');
     <p id="session-hint" class="mt-4 text-xs text-slate-400"></p>
     <div class="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
       <a
-        href={utilitiesHref('/tools')}
+        href="/workspace/documents"
         class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
       >
-        Back to tools
+        Back to app
       </a>
       <a
         href={`${SITES.pdf.url}/studio`}

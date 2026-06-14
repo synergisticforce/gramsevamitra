@@ -1,0 +1,16 @@
+---
+import AppShellLayout from '../../layouts/AppShellLayout.astro';
+import WorkspaceEmptyState from '../../components/app/WorkspaceEmptyState.astro';
+import { APP_WORKSPACES } from '../../config/appWorkspaces';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const workspace = APP_WORKSPACES.find((ws) => ws.id === 'media')!;
+---
+
+<AppShellLayout
+  title={formatSeoTitle(workspace.label, 'GramSeva Mitra App')}
+  description={workspace.description}
+  activeWorkspace="media"
+>
+  <WorkspaceEmptyState workspace={workspace} />
+</AppShellLayout>

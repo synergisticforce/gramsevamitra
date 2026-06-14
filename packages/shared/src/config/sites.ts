@@ -32,8 +32,8 @@ export const SITES = {
 
 export type SiteKey = 'hub' | 'optimizer' | 'resume' | 'pdf';
 
-/** Absolute URL for a utilities super-app route (e.g. `/tools/money`). */
-export function utilitiesHref(path = '/tools'): string {
+/** Absolute URL for a hub app route (e.g. `/workspace/documents`). */
+export function utilitiesHref(path = '/workspace/documents'): string {
   return new URL(path, SITES.utilities.url).href;
 }
 

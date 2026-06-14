@@ -11,14 +11,14 @@ const { site, active = 'home' } = Astro.props;
 
 const hubMainLinks = [
   { key: 'home' as const, label: 'Home', href: SITES.hub.url },
-  { key: 'utilities' as const, label: 'Utilities', href: utilitiesHref('/tools') },
+  { key: 'utilities' as const, label: 'App', href: `${SITES.hub.url}/workspace/documents` },
   { key: 'contact' as const, label: 'Contact', href: `${SITES.hub.url}/contact` },
 ];
 
 const pdfMainLinks = [
   { key: 'home' as const, label: 'PDF Home', href: '/' },
   { key: 'studio' as const, label: 'Full Studio', href: '/studio' },
-  { key: 'utilities' as const, label: 'Utilities Hub', href: utilitiesHref('/tools') },
+  { key: 'utilities' as const, label: 'App', href: utilitiesHref('/workspace/documents') },
 ];
 
 const mainLinks = site === 'pdf' ? pdfMainLinks : hubMainLinks;

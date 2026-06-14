@@ -3,8 +3,10 @@ import '@shared/styles/global.css';
 import BaseLayout from '@shared/layouts/BaseLayout.astro';
 import Header from '@shared/components/Header.astro';
 import Footer from '@shared/components/Footer.astro';
-import { SITES, utilitiesHref } from '@shared/config/sites';
+import AppAuthRedirect from '../components/app/AppAuthRedirect';
+import { SITES } from '@shared/config/sites';
 import { SITE_HOME_SEO } from '@shared/config/seo';
+import { DEFAULT_APP_WORKSPACE } from '../config/appWorkspaces';
 ---
 
 <BaseLayout
@@ -12,6 +14,7 @@ import { SITE_HOME_SEO } from '@shared/config/seo';
   description={SITE_HOME_SEO.hub.description}
   site="hub"
 >
+  <AppAuthRedirect client:load />
   <Header slot="header" active="hub" />
 
   <section class="relative overflow-hidden">
@@ -31,21 +34,20 @@ import { SITE_HOME_SEO } from '@shared/config/seo';
 
       <div class="product-grid mt-12">
         <a
-          href={utilitiesHref('/tools')}
-          data-astro-reload
+          href={DEFAULT_APP_WORKSPACE.href}
           class="group card flex flex-col transition hover:border-emerald-700/60 hover:bg-slate-900"
         >
           <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/20 text-2xl">
             🧰
           </div>
           <h2 class="text-xl font-bold text-white group-hover:text-emerald-300">
-            Utilities Super-App
+            App Workspaces
           </h2>
           <p class="mt-3 flex-1 text-sm leading-relaxed text-slate-400">
-            40+ free offline tools for money, writing, career, wellness, and quick calculators — all in your browser.
+            Document Studio, Media Lab, Career Prep, Finance Hub, and Quick Tools — one unified app shell.
           </p>
           <span class="mt-6 inline-flex items-center text-sm font-semibold text-emerald-400">
-            Explore Tools Hub
+            Open Document Studio
             <svg class="ml-2 h-4 w-4 transition group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
