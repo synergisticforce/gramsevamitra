@@ -107,6 +107,27 @@ export const DOCUMENT_CANVAS_ACTIONS: DocumentCanvasAction[] = [
     tier: 'free',
   },
   {
+    id: 'rotate',
+    label: 'Rotate',
+    icon: '🔄',
+    tier: 'free',
+    mimePatterns: ['application/pdf'],
+  },
+  {
+    id: 'reorder',
+    label: 'Reorder',
+    icon: '↕️',
+    tier: 'free',
+    mimePatterns: ['application/pdf'],
+  },
+  {
+    id: 'watermark',
+    label: 'Watermark',
+    icon: '💧',
+    tier: 'free',
+    mimePatterns: ['application/pdf'],
+  },
+  {
     id: 'smart-extract',
     label: 'Smart Extract',
     icon: '⚡',
@@ -116,6 +137,17 @@ export const DOCUMENT_CANVAS_ACTIONS: DocumentCanvasAction[] = [
     featureName: 'Smart Document Extractor',
     featureDescription:
       'Extract invoices and bank statements to CSV/JSON, or high-fidelity DOCX — powered by our serverless Smart Router.',
+  },
+  {
+    id: 'hifi-convert',
+    label: 'Hi-Fi Convert',
+    icon: '⚡',
+    tier: 'pro',
+    mimePatterns: ['application/pdf'],
+    featureId: 'high-fidelity-converter',
+    featureName: 'High-Fidelity File Converter',
+    featureDescription:
+      'Convert PDFs to editable DOCX or PPTX with layout preservation — powered by our serverless Pro pipeline.',
   },
 ];
 

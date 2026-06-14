@@ -2,6 +2,7 @@ import { formatFileSize } from './documentCanvasStorage';
 import { downloadPdfBytes } from '../pdf/downloadPdf';
 import { normalizedCropToPdfBox, type NormalizedCropRect } from '../pdf/cropCoords';
 import type {
+  OverlayPosition,
   PageNumberFormat,
   PageNumberHorizontal,
   PageNumberVertical,
@@ -245,6 +246,9 @@ export function triggerPdfDownload(
     | '_cropped'
     | '_converted'
     | '_typed'
+    | '_rotated'
+    | '_reordered'
+    | '_watermarked'
 ): void {
   downloadPdfBytes(bytes, filename, toolSuffix);
 }
@@ -506,4 +510,85 @@ export async function textToPdfInBrowser(
   const { runPdfWorker } = await import('../pdf/pdfWorkerClient');
   const bytes = await runPdfWorker<Uint8Array>('text-to-pdf', { text: trimmed }, onProgress);
   return { bytes, downloadName: 'typed-document.pdf' };
+}
+
+export type PageRotationAngle = 0 | 90 | 180 | 270;
+
+export interface PageRotationSpec {
+  pageIndex: number;
+  angle: PageRotationAngle;
+}
+
+export async function rotatePdfPagesInBrowser(
+  file: File,
+  pageRotations: PageRotationSpec[],
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string; rotatedCount: number }> {
+  const active = pageRotations.filter((r) => r.angle > 0);
+  if (active.length === 0) {
+    throw new Error('Set a rotation angle for at least one page.');
+  }
+
+  const { runPdfWorkerWithStreamedFile } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorkerWithStreamedFile<Uint8Array>(
+    'rotate-pages',
+    file,
+    { pageRotations: active },
+    onProgress
+  );
+  const baseName = splitFilenameBase(file.name);
+  return { bytes, downloadName: `${baseName}-rotated.pdf`, rotatedCount: active.length };
+}
+
+export async function reorderPdfPagesInBrowser(
+  file: File,
+  order: number[],
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  const { runPdfWorkerWithStreamedFile } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorkerWithStreamedFile<Uint8Array>(
+    'reorder-pages',
+    file,
+    { order },
+    onProgress
+  );
+  const baseName = splitFilenameBase(file.name);
+  return { bytes, downloadName: `${baseName}-reordered.pdf` };
+}
+
+export interface WatermarkPdfOptions {
+  text: string;
+  color?: string;
+  fontSize?: number;
+  position?: OverlayPosition;
+  opacity?: number;
+  rotation?: number;
+}
+
+export async function watermarkPdfInBrowser(
+  file: File,
+  options: WatermarkPdfOptions,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  const text = options.text.trim();
+  if (!text) {
+    throw new Error('Enter watermark text.');
+  }
+
+  const { runPdfWorkerWithStreamedFile } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorkerWithStreamedFile<Uint8Array>(
+    'watermark-pdf',
+    file,
+    {
+      text,
+      color: options.color ?? '#064e3b',
+      fontSize: options.fontSize ?? 36,
+      position: options.position ?? 'center',
+      opacity: options.opacity ?? 0.2,
+      rotation: options.rotation ?? -30,
+    },
+    onProgress
+  );
+  const baseName = splitFilenameBase(file.name);
+  return { bytes, downloadName: `${baseName}-watermarked.pdf` };
 }

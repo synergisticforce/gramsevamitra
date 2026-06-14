@@ -1,9 +1,13 @@
-import { PDFDocument, StandardFonts, rgb, type PDFDocument as PDFDocumentType } from 'pdf-lib';
+import { PDFDocument, StandardFonts, degrees, rgb, type PDFDocument as PDFDocumentType, type PDFPage } from 'pdf-lib';
 import { sanitizePdfForExtremeCompression, TINY_JPEG } from '../lib/pdf/pdfByteSanitizer';
 import {
+  bottomLeftForCenterRotation,
+  cssRotationToPdfDegrees,
   formatPageNumber,
   hexToRgb01,
+  overlayPositionToPdfCoords,
   pageNumberPlacementToPdfCoords,
+  type OverlayPosition,
   type PageNumberFormat,
   type PageNumberHorizontal,
   type PageNumberVertical,
@@ -357,6 +361,88 @@ async function textToPdf(id: string, text: string) {
   return doc.save({ useObjectStreams: true });
 }
 
+async function rotatePages(
+  id: string,
+  buffer: ArrayBuffer,
+  pageRotations: { pageIndex: number; angle: 0 | 90 | 180 | 270 }[]
+) {
+  const doc = await PDFDocument.load(buffer, { ignoreEncryption: true });
+  const pages = doc.getPages();
+  const rotations = pageRotations.filter((r) => r.angle > 0);
+  for (let i = 0; i < rotations.length; i++) {
+    const { pageIndex, angle } = rotations[i];
+    postProgress(id, i + 1, rotations.length, `Rotating page ${pageIndex + 1}…`);
+    if (pages[pageIndex]) {
+      pages[pageIndex].setRotation(degrees(angle));
+    }
+    await yieldToGc();
+  }
+  postProgress(id, rotations.length, rotations.length, 'Saving rotated PDF…');
+  return doc.save({ useObjectStreams: true });
+}
+
+async function reorderPages(id: string, buffer: ArrayBuffer, order: number[]) {
+  postProgress(id, 1, 2, 'Reordering pages…');
+  const source = await PDFDocument.load(buffer, { ignoreEncryption: true });
+  const out = await PDFDocument.create();
+  const copied = await out.copyPages(source, order);
+  copied.forEach((p) => out.addPage(p));
+  postProgress(id, 2, 2, 'Saving reordered PDF…');
+  return out.save({ useObjectStreams: true });
+}
+
+interface TextWatermarkOptions {
+  text: string;
+  color?: string;
+  fontSize?: number;
+  position?: OverlayPosition;
+  offsetX?: number;
+  offsetY?: number;
+  rotation?: number;
+  opacity?: number;
+}
+
+async function drawTextWatermark(page: PDFPage, doc: PDFDocumentType, opts: TextWatermarkOptions) {
+  const text = opts.text;
+  const fontSize = opts.fontSize ?? 36;
+  const font = await doc.embedFont(StandardFonts.HelveticaBold);
+  const { width, height } = page.getSize();
+  const textWidth = font.widthOfTextAtSize(text, fontSize);
+  const { x: boxX, y: boxY } = overlayPositionToPdfCoords(
+    opts.position ?? 'center',
+    width,
+    height,
+    textWidth,
+    fontSize,
+    { offsetX: opts.offsetX, offsetY: opts.offsetY }
+  );
+  const cssRotation = opts.rotation ?? -30;
+  const cx = boxX + textWidth / 2;
+  const cy = boxY + fontSize / 2;
+  const { x, y } = bottomLeftForCenterRotation(cx, cy, textWidth, fontSize, cssRotation);
+  const c = hexToRgb01(opts.color ?? '#064e3b');
+  page.drawText(text, {
+    x,
+    y,
+    size: fontSize,
+    font,
+    color: rgb(c.r, c.g, c.b),
+    opacity: opts.opacity ?? 0.2,
+    rotate: degrees(cssRotationToPdfDegrees(cssRotation)),
+  });
+}
+
+async function watermarkPdf(id: string, buffer: ArrayBuffer, opts: TextWatermarkOptions) {
+  const doc = await PDFDocument.load(buffer, { ignoreEncryption: true });
+  const pages = doc.getPages();
+  for (let i = 0; i < pages.length; i++) {
+    postProgress(id, i + 1, pages.length, `Watermarking page ${i + 1} of ${pages.length}…`);
+    await drawTextWatermark(pages[i], doc, opts);
+    await yieldToGc();
+  }
+  return doc.save({ useObjectStreams: true });
+}
+
 async function dispatchOperation(
   id: string,
   op: string,
@@ -407,6 +493,25 @@ async function dispatchOperation(
       return imagesToPdf(id, payload.images as { bytes: Uint8Array; kind: 'jpg' | 'png' }[]);
     case 'text-to-pdf':
       return textToPdf(id, payload.text as string);
+    case 'rotate-pages':
+      return rotatePages(
+        id,
+        payload.buffer as ArrayBuffer,
+        payload.pageRotations as { pageIndex: number; angle: 0 | 90 | 180 | 270 }[]
+      );
+    case 'reorder-pages':
+      return reorderPages(id, payload.buffer as ArrayBuffer, payload.order as number[]);
+    case 'watermark-pdf':
+      return watermarkPdf(id, payload.buffer as ArrayBuffer, {
+        text: payload.text as string,
+        color: payload.color as string | undefined,
+        fontSize: payload.fontSize as number | undefined,
+        position: payload.position as OverlayPosition | undefined,
+        offsetX: payload.offsetX as number | undefined,
+        offsetY: payload.offsetY as number | undefined,
+        rotation: payload.rotation as number | undefined,
+        opacity: payload.opacity as number | undefined,
+      });
     default:
       throw new Error(`Unknown worker operation: ${op}`);
   }

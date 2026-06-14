@@ -17,6 +17,7 @@ import MagicDropzone from './MagicDropzone';
 import CompressPdfModal from './CompressPdfModal';
 import CropPdfModal from './CropPdfModal';
 import DeskewPdfModal from './DeskewPdfModal';
+import HiFiConverterModal from './HiFiConverterModal';
 import ImageToPdfModal from './ImageToPdfModal';
 import MergePdfModal from './MergePdfModal';
 import PageNumbersPdfModal from './PageNumbersPdfModal';
@@ -24,9 +25,12 @@ import PdfToImageModal from './PdfToImageModal';
 import PdfToTextModal from './PdfToTextModal';
 import ProtectPdfModal from './ProtectPdfModal';
 import RemovePagesPdfModal from './RemovePagesPdfModal';
+import ReorderPdfModal from './ReorderPdfModal';
+import RotatePdfModal from './RotatePdfModal';
 import SplitPdfModal from './SplitPdfModal';
 import TypeSavePdfModal from './TypeSavePdfModal';
 import UnlockPdfModal from './UnlockPdfModal';
+import WatermarkPdfModal from './WatermarkPdfModal';
 
 type CanvasPhase = 'empty' | 'active';
 type ToolModal =
@@ -43,6 +47,10 @@ type ToolModal =
   | 'pdf-to-image'
   | 'pdf-to-text'
   | 'type-save'
+  | 'rotate'
+  | 'reorder'
+  | 'watermark'
+  | 'hifi-convert'
   | null;
 
 interface ActiveFile {
@@ -121,6 +129,12 @@ export default function DocumentStudioCanvas() {
 
   const onProAction = useCallback(
     async (action: DocumentCanvasAction) => {
+      if (action.id === 'hifi-convert') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('hifi-convert');
+        return;
+      }
+
       if (action.id !== 'smart-extract') return;
       if (smartExtractBusy) return;
 
@@ -160,7 +174,7 @@ export default function DocumentStudioCanvas() {
         setSmartExtractBusy(false);
       }
     },
-    [requireCanvasFile, setProcessingProgress, smartExtractBusy]
+    [requireCanvasFile, requirePdfCanvasFile, setProcessingProgress, smartExtractBusy]
   );
 
   const onFreeAction = useCallback(
@@ -227,6 +241,21 @@ export default function DocumentStudioCanvas() {
       }
       if (action.id === 'type-save') {
         setPdfModal('type-save');
+        return;
+      }
+      if (action.id === 'rotate') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('rotate');
+        return;
+      }
+      if (action.id === 'reorder') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('reorder');
+        return;
+      }
+      if (action.id === 'watermark') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('watermark');
         return;
       }
       setToastMessage(`${action.label} is coming soon.`);
@@ -491,6 +520,42 @@ export default function DocumentStudioCanvas() {
           onClose={() => setPdfModal(null)}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'rotate' && canvasPdfFile && (
+        <RotatePdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'reorder' && canvasPdfFile && (
+        <ReorderPdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'watermark' && canvasPdfFile && (
+        <WatermarkPdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'hifi-convert' && canvasPdfFile && (
+        <HiFiConverterModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={setProcessingProgress}
         />
       )}
 
