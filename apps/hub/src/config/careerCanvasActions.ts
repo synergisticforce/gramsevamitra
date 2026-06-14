@@ -55,6 +55,24 @@ export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
     tier: 'free',
   },
   {
+    id: 'salary-benchmarking',
+    label: 'Salary Bench',
+    icon: '📊',
+    tier: 'free',
+  },
+  {
+    id: 'skill-gap-analyzer',
+    label: 'Skill Gap',
+    icon: '🎯',
+    tier: 'free',
+  },
+  {
+    id: 'legal-templates',
+    label: 'Legal Docs',
+    icon: '📜',
+    tier: 'free',
+  },
+  {
     id: 'ats-scanner',
     label: 'ATS Scanner',
     icon: '🔍',

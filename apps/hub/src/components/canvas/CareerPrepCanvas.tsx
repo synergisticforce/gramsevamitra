@@ -24,7 +24,10 @@ import CareerMagicDropzone from './CareerMagicDropzone';
 import ColdEmailModal from './ColdEmailModal';
 import CoverLetterModal from './CoverLetterModal';
 import JobTrackerModal from './JobTrackerModal';
+import LegalTemplatesModal from './LegalTemplatesModal';
+import SalaryBenchmarkModal from './SalaryBenchmarkModal';
 import SalaryCalculatorModal from './SalaryCalculatorModal';
+import SkillGapModal from './SkillGapModal';
 
 type CanvasPhase = 'empty' | 'active';
 type CareerToolModal =
@@ -32,6 +35,9 @@ type CareerToolModal =
   | 'salary-calculator'
   | 'cold-email'
   | 'business-card'
+  | 'salary-benchmarking'
+  | 'skill-gap-analyzer'
+  | 'legal-templates'
   | 'ats-scanner'
   | 'cover-letter'
   | null;
@@ -114,6 +120,18 @@ export default function CareerPrepCanvas() {
       }
       if (action.id === 'business-card') {
         setCareerModal('business-card');
+        return;
+      }
+      if (action.id === 'salary-benchmarking') {
+        setCareerModal('salary-benchmarking');
+        return;
+      }
+      if (action.id === 'skill-gap-analyzer') {
+        setCareerModal('skill-gap-analyzer');
+        return;
+      }
+      if (action.id === 'legal-templates') {
+        setCareerModal('legal-templates');
         return;
       }
       if (action.id === 'ats-scanner') {
@@ -377,6 +395,18 @@ export default function CareerPrepCanvas() {
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
+      )}
+
+      {careerModal === 'salary-benchmarking' && (
+        <SalaryBenchmarkModal onClose={() => setCareerModal(null)} onSuccess={setToastMessage} />
+      )}
+
+      {careerModal === 'skill-gap-analyzer' && (
+        <SkillGapModal onClose={() => setCareerModal(null)} onSuccess={setToastMessage} />
+      )}
+
+      {careerModal === 'legal-templates' && (
+        <LegalTemplatesModal onClose={() => setCareerModal(null)} onSuccess={setToastMessage} />
       )}
 
       {careerModal === 'ats-scanner' && atsFile && (

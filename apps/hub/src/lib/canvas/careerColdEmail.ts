@@ -9,9 +9,16 @@ export interface ColdEmailInput {
   keySkills: string;
   yearsExperience: string;
   highlight: string;
+  interviewerName: string;
+  interviewDate: string;
 }
 
-export type ColdEmailTemplateId = 'cover' | 'linkedin' | 'cold';
+export type ColdEmailTemplateId =
+  | 'cover'
+  | 'linkedin'
+  | 'cold'
+  | 'interview-followup'
+  | 'thank-you';
 
 export const DEFAULT_COLD_EMAIL_INPUT: ColdEmailInput = {
   userName: '',
@@ -20,6 +27,8 @@ export const DEFAULT_COLD_EMAIL_INPUT: ColdEmailInput = {
   keySkills: '',
   yearsExperience: '',
   highlight: '',
+  interviewerName: '',
+  interviewDate: '',
 };
 
 function val(raw: string, fallback: string): string {
@@ -51,6 +60,8 @@ export function buildColdEmailTemplates(state: ColdEmailInput): Record<ColdEmail
     state.highlight,
     'delivering measurable outcomes for cross-functional teams'
   );
+  const interviewer = val(state.interviewerName, 'Hiring Manager');
+  const interviewDate = val(state.interviewDate, '[Interview Date]');
 
   return {
     cover: `Dear Hiring Manager,
@@ -80,13 +91,39 @@ Would you be available for a brief call this week or next?
 
 Best regards,
 ${name}`,
+    'interview-followup': `Subject: Following up on ${role} interview — ${name}
+
+Dear ${interviewer},
+
+Thank you again for taking the time to speak with me on ${interviewDate} about the ${role} position at ${company}. I enjoyed learning more about the team and how ${skills} contribute to your goals.
+
+Since our conversation, I remain very interested in the role. A recent highlight from my background: ${highlight}. I would welcome the opportunity to discuss how I can add value in your next hiring stage.
+
+Please let me know if you need any additional information from my side.
+
+Best regards,
+${name}`,
+    'thank-you': `Subject: Thank you — ${role} interview at ${company}
+
+Dear ${interviewer},
+
+I wanted to express my sincere thanks for meeting with me on ${interviewDate} to discuss the ${role} opportunity at ${company}. I appreciated your insights into the team and the challenges you're solving.
+
+Our conversation reinforced my enthusiasm for the role, especially given my experience in ${skills} over ${years} years. I am excited about the possibility of contributing to ${company}'s work on ${highlight}.
+
+Thank you again for your time and consideration.
+
+Warm regards,
+${name}`,
   };
 }
 
 export const COLD_EMAIL_TEMPLATE_META: { id: ColdEmailTemplateId; title: string }[] = [
   { id: 'cover', title: 'Formal cover letter' },
-  { id: 'linkedin', title: 'LinkedIn connection note' },
-  { id: 'cold', title: 'Cold email to hiring manager' },
+  { id: 'linkedin', title: 'LinkedIn note' },
+  { id: 'cold', title: 'Cold email' },
+  { id: 'interview-followup', title: 'Interview follow-up' },
+  { id: 'thank-you', title: 'Thank you note' },
 ];
 
 export function loadColdEmailInput(): ColdEmailInput {

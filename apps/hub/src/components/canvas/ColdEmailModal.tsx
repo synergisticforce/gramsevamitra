@@ -64,7 +64,7 @@ export default function ColdEmailModal({ onClose, onSuccess }: Props) {
               ✉️ Cold Email Builder
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              Generate outreach templates — nothing leaves your device.
+              Outreach, interview follow-up &amp; thank-you templates — nothing leaves your device.
             </p>
           </div>
           <button
@@ -144,6 +144,28 @@ export default function ColdEmailModal({ onClose, onSuccess }: Props) {
                 onChange={(event) => update({ highlight: event.target.value })}
                 placeholder="Led a project that increased conversion by 18%…"
                 className="mt-1.5 w-full resize-y rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Interviewer name
+              </span>
+              <input
+                value={form.interviewerName}
+                onChange={(event) => update({ interviewerName: event.target.value })}
+                placeholder="e.g. Ananya Patel"
+                className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Interview date
+              </span>
+              <input
+                type="date"
+                value={form.interviewDate}
+                onChange={(event) => update({ interviewDate: event.target.value })}
+                className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
               />
             </label>
           </div>
