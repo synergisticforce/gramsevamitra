@@ -1,6 +1,6 @@
 ---
 import AppShellLayout from '../../layouts/AppShellLayout.astro';
-import WorkspaceEmptyState from '../../components/app/WorkspaceEmptyState.astro';
+import DocumentStudioCanvas from '../../components/canvas/DocumentStudioCanvas';
 import { APP_WORKSPACES } from '../../config/appWorkspaces';
 import { formatSeoTitle } from '@shared/config/seo';
 
@@ -12,5 +12,5 @@ const workspace = APP_WORKSPACES.find((ws) => ws.id === 'documents')!;
   description={workspace.description}
   activeWorkspace="documents"
 >
-  <WorkspaceEmptyState workspace={workspace} />
+  <DocumentStudioCanvas client:load />
 </AppShellLayout>
