@@ -1,11 +1,17 @@
 /** localStorage persistence for Finance Hub calculators (Phase 7.1). */
 
 import type { FinanceToolId } from '../../config/financeCanvasTools';
+import { isFinanceToolId } from '../../config/financeCanvasTools';
 
 export const FINANCE_STORAGE_KEYS = {
   sip: 'gsm-finance-sip',
   emi: 'gsm-finance-emi',
   gst: 'gsm-finance-gst',
+  discount: 'gsm-finance-discount',
+  loan: 'gsm-finance-loan',
+  tip: 'gsm-finance-tip',
+  meeting: 'gsm-finance-meeting',
+  tax: 'gsm-finance-tax',
   activeTool: 'gsm-finance-active',
 } as const;
 
@@ -34,7 +40,7 @@ export function loadFinanceActiveTool(): FinanceToolId | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(FINANCE_STORAGE_KEYS.activeTool);
-    if (raw === 'sip-calculator' || raw === 'emi-calculator' || raw === 'gst-calculator') {
+    if (raw && isFinanceToolId(raw)) {
       return raw;
     }
     return null;

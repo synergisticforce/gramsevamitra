@@ -5,9 +5,14 @@ import {
   loadFinanceActiveTool,
   saveFinanceActiveTool,
 } from '../../lib/canvas/financeCanvasStorage';
+import FinanceDiscountMarginCalculator from './FinanceDiscountMarginCalculator';
 import FinanceEmiCalculator from './FinanceEmiCalculator';
 import FinanceGstCalculator from './FinanceGstCalculator';
+import FinanceLoanRepaymentCalculator from './FinanceLoanRepaymentCalculator';
+import FinanceMeetingCostCalculator from './FinanceMeetingCostCalculator';
 import FinanceSipCalculator from './FinanceSipCalculator';
+import FinanceTaxDeductionCalculator from './FinanceTaxDeductionCalculator';
+import FinanceTipSplitCalculator from './FinanceTipSplitCalculator';
 import FinanceToolGrid from './FinanceToolGrid';
 
 type FinanceView = 'grid' | FinanceToolId;
@@ -20,6 +25,16 @@ function renderTool(toolId: FinanceToolId) {
       return <FinanceEmiCalculator />;
     case 'gst-calculator':
       return <FinanceGstCalculator />;
+    case 'discount-margin-calculator':
+      return <FinanceDiscountMarginCalculator />;
+    case 'loan-repayment-calculator':
+      return <FinanceLoanRepaymentCalculator />;
+    case 'tip-split-calculator':
+      return <FinanceTipSplitCalculator />;
+    case 'meeting-cost-calculator':
+      return <FinanceMeetingCostCalculator />;
+    case 'tax-deduction-calculator':
+      return <FinanceTaxDeductionCalculator />;
     default:
       return null;
   }
@@ -67,7 +82,7 @@ export default function FinanceHubCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Finance Hub</h1>
               <p className="mt-1 text-sm text-slate-600">
-                EMI, SIP, GST, and money calculators — all offline in your browser.
+                EMI, SIP, GST, discounts, tax estimates, and everyday money tools — all offline.
               </p>
             </div>
           </div>

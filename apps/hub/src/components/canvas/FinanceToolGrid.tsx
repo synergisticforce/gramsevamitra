@@ -9,7 +9,13 @@ interface Props {
   onSelectTool: (toolId: FinanceToolId) => void;
 }
 
-const CATEGORY_ORDER: FinanceToolCategory[] = ['investment', 'loans', 'taxes'];
+const CATEGORY_ORDER: FinanceToolCategory[] = [
+  'investment',
+  'loans',
+  'taxes',
+  'business',
+  'everyday',
+];
 
 export default function FinanceToolGrid({ onSelectTool }: Props) {
   const grouped = toolsByCategory();
