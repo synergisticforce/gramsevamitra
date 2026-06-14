@@ -2,7 +2,6 @@ import type { DocumentCanvasAction } from '../../config/documentCanvasActions';
 
 interface Props {
   actions: DocumentCanvasAction[];
-  /** UI-only phase — clicks are no-ops until Phase 3/4 wiring. */
   onActionClick?: (actionId: string) => void;
 }
 
@@ -22,7 +21,7 @@ export default function DocumentActionToolbar({ actions, onActionClick }: Props)
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Actions</p>
           <p className="mt-0.5 text-sm font-medium text-slate-800">Choose what to do with this file</p>
         </div>
-        <span className="hidden text-xs text-slate-400 sm:inline">Processing wiring — Phase 4</span>
+        <span className="hidden text-xs text-slate-400 sm:inline">Free tools run locally · Pro uses serverless AI</span>
       </div>
 
       <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">

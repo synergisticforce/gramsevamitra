@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { DocumentCanvasAction } from '../../config/documentCanvasActions';
 import { actionsForMimeType } from '../../config/documentCanvasActions';
 import {
   clearDocumentCanvasState,
@@ -7,6 +8,8 @@ import {
   saveDocumentCanvasState,
   type StoredFileMeta,
 } from '../../lib/canvas/documentCanvasStorage';
+import { useDocumentActionHandler } from '../../lib/canvas/useDocumentActionHandler';
+import CanvasToast from './CanvasToast';
 import DocumentActionToolbar from './DocumentActionToolbar';
 import MagicDropzone from './MagicDropzone';
 
@@ -22,6 +25,19 @@ export default function DocumentStudioCanvas() {
   const [phase, setPhase] = useState<CanvasPhase>('empty');
   const [activeFile, setActiveFile] = useState<ActiveFile | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const dismissToast = useCallback(() => setToastMessage(null), []);
+
+  const onProAction = useCallback((_action: DocumentCanvasAction) => {
+    setToastMessage('Initiating Serverless GPU processing…');
+  }, []);
+
+  const onFreeAction = useCallback((action: DocumentCanvasAction) => {
+    setToastMessage(`${action.label} queued — processing logic ships in Phase 4.`);
+  }, []);
+
+  const { handleActionClick } = useDocumentActionHandler({ onFreeAction, onProAction });
 
   useEffect(() => {
     const stored = loadDocumentCanvasState();
@@ -151,10 +167,12 @@ export default function DocumentStudioCanvas() {
               </div>
             </div>
 
-            <DocumentActionToolbar actions={toolbarActions} />
+            <DocumentActionToolbar actions={toolbarActions} onActionClick={handleActionClick} />
           </div>
         )}
       </div>
+
+      <CanvasToast message={toastMessage} onDismiss={dismissToast} />
     </section>
   );
 }

@@ -9,6 +9,10 @@ export interface DocumentCanvasAction {
   tier: DocumentActionTier;
   /** When set, action only appears for matching MIME types (supports `image/*` prefix). */
   mimePatterns?: string[];
+  /** Pro upgrade modal copy (Component D). */
+  featureId?: string;
+  featureName?: string;
+  featureDescription?: string;
 }
 
 export const DOCUMENT_CANVAS_ACTIONS: DocumentCanvasAction[] = [
@@ -53,6 +57,10 @@ export const DOCUMENT_CANVAS_ACTIONS: DocumentCanvasAction[] = [
     icon: '⚡',
     tier: 'pro',
     mimePatterns: ['application/pdf', 'image/'],
+    featureId: 'smart-document-extractor',
+    featureName: 'Smart Document Extractor',
+    featureDescription:
+      'Extract invoices and bank statements to CSV/JSON, or high-fidelity DOCX — powered by our serverless Smart Router.',
   },
 ];
 
@@ -68,6 +76,10 @@ export function actionsForMimeType(mimeType: string): DocumentCanvasAction[] {
     if (!action.mimePatterns?.length) return true;
     return action.mimePatterns.some((pattern) => mimeMatchesPattern(mimeType, pattern));
   });
+}
+
+export function getDocumentCanvasAction(actionId: string): DocumentCanvasAction | undefined {
+  return DOCUMENT_CANVAS_ACTIONS.find((action) => action.id === actionId);
 }
 
 export const DOCUMENT_ACCEPT =
