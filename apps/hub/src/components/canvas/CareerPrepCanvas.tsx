@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CareerCanvasAction } from '../../config/careerCanvasActions';
 import {
   careerToolbarActions,
@@ -14,6 +14,11 @@ import {
   type StoredFileMeta,
 } from '../../lib/canvas/careerCanvasStorage';
 import { useCareerActionHandler } from '../../lib/canvas/useCareerActionHandler';
+import type { OmniHandoffPayload } from '../../lib/omni/handoff';
+import { resolveCareerOmniModal } from '../../lib/omni/omniDispatch';
+import { useOmniWorkspaceHandoff } from '../../lib/omni/useOmniWorkspaceHandoff';
+import { useProCreditConfirm } from '../../lib/auth/useProCreditConfirm';
+import OmniHandoffLoading from '../omni/OmniHandoffLoading';
 import CareerAiResultModal from './CareerAiResultModal';
 import AtsScannerModal from './AtsScannerModal';
 import BusinessCardModal from './BusinessCardModal';
@@ -71,6 +76,8 @@ export default function CareerPrepCanvas() {
     label: '',
     percent: 0,
   });
+  const pendingOmniIntentRef = useRef<string | null>(null);
+  const { requestProConfirm, proCreditModal } = useProCreditConfirm();
 
   const dismissToast = useCallback(() => setToastMessage(null), []);
 
@@ -160,7 +167,92 @@ export default function CareerPrepCanvas() {
     [activeFile, requireCanvasFile]
   );
 
-  const onProAction = useCallback(
+  const activateFile = useCallback((file: File) => {
+    if (!isCareerDocumentMimeOrName(file.type, file.name)) {
+      setToastMessage('Please upload a PDF or Word (DOCX) document.');
+      return;
+    }
+    saveCareerCanvasState(file);
+    setActiveFile({
+      file,
+      meta: {
+        name: file.name,
+        size: file.size,
+        type: file.type || 'application/octet-stream',
+        lastModified: file.lastModified,
+      },
+      restoredFromSession: false,
+    });
+    setPhase('active');
+  }, []);
+
+  useEffect(() => {
+    const stored = loadCareerCanvasState();
+    if (stored) {
+      setActiveFile({
+        file: null,
+        meta: stored.file,
+        restoredFromSession: true,
+      });
+      setPhase('active');
+    }
+    setHydrated(true);
+  }, []);
+
+  const applyOmniIntent = useCallback(
+    (intentId: string) => {
+      const modal = resolveCareerOmniModal(intentId);
+      if (!modal) {
+        setToastMessage(`The "${intentId}" action is not wired yet. Pick a tool from the toolbar.`);
+        return;
+      }
+
+      if (modal === 'ats-scanner') {
+        const file = activeFile?.file;
+        if (!file) {
+          setToastMessage('Re-upload your document on the canvas to run ATS Scan.');
+          return;
+        }
+        if (isDocxFile(file.type, file.name) || (!isPdfFile(file.type, file.name) && !file.type)) {
+          setToastMessage(
+            'ATS Scanner currently supports PDF resumes only. Upload a PDF from the Omni-Router.',
+          );
+          return;
+        }
+      }
+
+      setCareerModal(modal);
+    },
+    [activeFile],
+  );
+
+  const onOmniHandoff = useCallback(
+    ({ file, intentId }: OmniHandoffPayload) => {
+      if (!isCareerDocumentMimeOrName(file.type, file.name)) {
+        setToastMessage('Career Prep accepts PDF or Word (DOCX) documents from the Omni-Router.');
+        return;
+      }
+      pendingOmniIntentRef.current = intentId;
+      activateFile(file);
+    },
+    [activateFile],
+  );
+
+  const omniHandoffStatus = useOmniWorkspaceHandoff({
+    workspaceId: 'career',
+    enabled: hydrated,
+    onHandoff: onOmniHandoff,
+    onError: setToastMessage,
+  });
+
+  useEffect(() => {
+    if (!activeFile?.file || !pendingOmniIntentRef.current) return;
+    const intentId = pendingOmniIntentRef.current;
+    pendingOmniIntentRef.current = null;
+    applyOmniIntent(intentId);
+  }, [activeFile?.file, applyOmniIntent]);
+
+  const runCareerProJob = useCallback(
     async (action: CareerCanvasAction) => {
       if (proAiBusy) return;
 
@@ -169,7 +261,7 @@ export default function CareerPrepCanvas() {
 
       if (isDocxFile(file.type, file.name) || (!isPdfFile(file.type, file.name) && !file.type)) {
         setToastMessage(
-          'Pro AI tools currently support PDF resumes only. Upload a PDF to use AI Resume Rewriter or AI Cover Letter.'
+          'Pro AI tools currently support PDF resumes only. Upload a PDF to use AI Resume Rewriter or AI Cover Letter.',
         );
         return;
       }
@@ -188,7 +280,7 @@ export default function CareerPrepCanvas() {
         true,
         'Extracting text from your resume PDF…',
         8,
-        PRO_CAREER_SUBTITLE
+        PRO_CAREER_SUBTITLE,
       );
 
       try {
@@ -198,7 +290,7 @@ export default function CareerPrepCanvas() {
             true,
             `Extracting text — page ${current} of ${total}…`,
             percent,
-            PRO_CAREER_SUBTITLE
+            PRO_CAREER_SUBTITLE,
           );
         });
 
@@ -218,42 +310,19 @@ export default function CareerPrepCanvas() {
         setProAiBusy(false);
       }
     },
-    [proAiBusy, requireCanvasFile, setProcessingProgress]
+    [proAiBusy, requireCanvasFile, setProcessingProgress],
+  );
+
+  const onProAction = useCallback(
+    async (action: CareerCanvasAction) => {
+      if (proAiBusy) return;
+      if (!requireCanvasFile()) return;
+      void requestProConfirm('career-ai', action.label, () => runCareerProJob(action));
+    },
+    [proAiBusy, requireCanvasFile, requestProConfirm, runCareerProJob],
   );
 
   const { handleActionClick } = useCareerActionHandler({ onFreeAction, onProAction });
-
-  useEffect(() => {
-    const stored = loadCareerCanvasState();
-    if (stored) {
-      setActiveFile({
-        file: null,
-        meta: stored.file,
-        restoredFromSession: true,
-      });
-      setPhase('active');
-    }
-    setHydrated(true);
-  }, []);
-
-  const activateFile = useCallback((file: File) => {
-    if (!isCareerDocumentMimeOrName(file.type, file.name)) {
-      setToastMessage('Please upload a PDF or Word (DOCX) document.');
-      return;
-    }
-    saveCareerCanvasState(file);
-    setActiveFile({
-      file,
-      meta: {
-        name: file.name,
-        size: file.size,
-        type: file.type || 'application/octet-stream',
-        lastModified: file.lastModified,
-      },
-      restoredFromSession: false,
-    });
-    setPhase('active');
-  }, []);
 
   const clearCanvas = useCallback(() => {
     clearCareerCanvasState();
@@ -281,12 +350,8 @@ export default function CareerPrepCanvas() {
       ? activeFile.file
       : null;
 
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-[280px] items-center justify-center px-4 py-12">
-        <p className="text-sm text-slate-500">Loading canvas…</p>
-      </div>
-    );
+  if (!hydrated || omniHandoffStatus === 'loading') {
+    return <OmniHandoffLoading />;
   }
 
   return (
@@ -442,6 +507,7 @@ export default function CareerPrepCanvas() {
       )}
 
       <CanvasToast message={toastMessage} onDismiss={dismissToast} />
+      {proCreditModal}
     </section>
   );
 }

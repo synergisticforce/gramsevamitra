@@ -22,9 +22,7 @@ export function resolveCareerProAction(actionId: string): CareerProAiAction | nu
   return TOOLBAR_TO_API[actionId] ?? null;
 }
 
-function parseJsonError(payload: { message?: string; error?: string }, fallback: string): string {
-  return payload.message ?? payload.error ?? fallback;
-}
+import { parseCreditApiError } from '../auth/creditCheck';
 
 function startAiProgressTicker(
   action: CareerProAiAction,
@@ -85,12 +83,12 @@ export async function runCareerProAiPipeline(
     throw new Error('Pro AI processing failed — invalid server response.');
   }
 
-  if (response.status === 401 || response.status === 403) {
-    throw new Error(parseJsonError(payload, 'Pro subscription required.'));
+  if (response.status === 401 || response.status === 403 || response.status === 402) {
+    throw new Error(parseCreditApiError(response.status, payload, 'Pro subscription required.'));
   }
 
   if (!response.ok || !payload.success || !payload.text) {
-    throw new Error(parseJsonError(payload, 'Pro AI processing failed.'));
+    throw new Error(parseCreditApiError(response.status, payload, 'Pro AI processing failed.'));
   }
 
   onProgress({ label: 'Preparing results…', percent: 98 });

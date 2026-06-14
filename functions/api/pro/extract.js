@@ -2,10 +2,11 @@ import { jsonResponse } from '../../_lib/json.mjs';
 import { deductOperationCredits, requireProCredits } from '../../_lib/creditEconomy.mjs';
 import { runSmartExtractJob } from '../../_lib/smartExtractHandler.mjs';
 
+/** Tier 2 Smart Extract — accepts R2 objectKey or client-side extractedText (RAM Shield). */
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const gate = await requireProCredits(request, env, 'smart-extract');
+  const gate = await requireProCredits(request, env, 'extract');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);
   }
@@ -27,7 +28,7 @@ export async function onRequestPost(context) {
     return jsonResponse(result.body, result.status);
   }
 
-  const remainingCredits = await deductOperationCredits(env, gate.user.id, 'smart-extract');
+  const remainingCredits = await deductOperationCredits(env, gate.user.id, 'extract');
   if (remainingCredits === null) {
     return jsonResponse(
       {

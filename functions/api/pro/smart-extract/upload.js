@@ -1,14 +1,14 @@
-import { jsonResponse } from '../../_lib/json.mjs';
-import { requireProUser } from '../../_lib/proGate.mjs';
+import { jsonResponse } from '../../../_lib/json.mjs';
+import { requireProCredits } from '../../../_lib/creditEconomy.mjs';
 import {
   buildProObjectKey,
   PRO_UPLOAD_MAX_BYTES,
-} from '../../_lib/proTransientStorage.mjs';
+} from '../../../_lib/proTransientStorage.mjs';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const gate = await requireProUser(request, env);
+  const gate = await requireProCredits(request, env, 'smart-extract');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);
   }
@@ -65,6 +65,7 @@ export async function onRequestPost(context) {
     fileName: file.name,
     size: file.size,
     contentType,
+    remainingCredits: gate.remainingCredits,
   });
 }
 

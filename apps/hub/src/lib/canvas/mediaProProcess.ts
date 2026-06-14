@@ -25,9 +25,7 @@ export function resolveMediaProAction(actionId: string): MediaProAction | null {
   return TOOLBAR_TO_API[actionId] ?? null;
 }
 
-function parseJsonError(payload: { message?: string; error?: string }, fallback: string): string {
-  return payload.message ?? payload.error ?? fallback;
-}
+import { parseCreditApiError } from '../auth/creditCheck';
 
 function outputFilenameForAction(file: File, action: MediaProAction): string {
   const base = splitImageBaseName(file.name);
@@ -96,12 +94,12 @@ export async function runMediaProPipeline(
     throw new Error('Failed to upload image for processing.');
   }
 
-  if (uploadResponse.status === 401 || uploadResponse.status === 403) {
-    throw new Error(parseJsonError(uploadPayload, 'Pro subscription required.'));
+  if (uploadResponse.status === 401 || uploadResponse.status === 403 || uploadResponse.status === 402) {
+    throw new Error(parseCreditApiError(uploadResponse.status, uploadPayload, 'Pro subscription required.'));
   }
 
   if (!uploadResponse.ok || !uploadPayload.success || !uploadPayload.objectKey) {
-    throw new Error(parseJsonError(uploadPayload, 'Failed to upload image for processing.'));
+    throw new Error(parseCreditApiError(uploadResponse.status, uploadPayload, 'Failed to upload image for processing.'));
   }
 
   onProgress({ label: 'Upload complete — initiating GPU processing…', percent: 38 });
@@ -124,14 +122,14 @@ export async function runMediaProPipeline(
     stopTicker();
   }
 
-  if (processResponse.status === 401 || processResponse.status === 403) {
-    let payload: { message?: string; error?: string } = {};
+  if (processResponse.status === 401 || processResponse.status === 403 || processResponse.status === 402) {
+    let payload: { message?: string; error?: string; requiredCredits?: number; remainingCredits?: number } = {};
     try {
       payload = (await processResponse.json()) as typeof payload;
     } catch {
       /* binary error unlikely */
     }
-    throw new Error(parseJsonError(payload, 'Pro subscription required.'));
+    throw new Error(parseCreditApiError(processResponse.status, payload, 'Pro subscription required.'));
   }
 
   if (!processResponse.ok) {
@@ -141,7 +139,7 @@ export async function runMediaProPipeline(
     } catch {
       /* ignore */
     }
-    throw new Error(parseJsonError(payload, 'Media processing failed.'));
+    throw new Error(parseCreditApiError(processResponse.status, payload, 'Media processing failed.'));
   }
 
   onProgress({ label: 'Preparing download…', percent: 96 });

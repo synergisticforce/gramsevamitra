@@ -1,11 +1,11 @@
-import { jsonResponse } from '../../../_lib/json.mjs';
-import { requireProUser } from '../../../_lib/proGate.mjs';
+import { jsonResponse } from '../../_lib/json.mjs';
+import { deductOperationCredits, requireProCredits } from '../../_lib/creditEconomy.mjs';
 import {
   assertProMediaObjectKeyForUser,
   MEDIA_PRO_ACTIONS,
   MOCK_MEDIA_DELAY_MS,
   sanitizeProFilename,
-} from '../../../_lib/proTransientStorage.mjs';
+} from '../../_lib/proTransientStorage.mjs';
 
 function mockOutputFilename(sourceName, action) {
   const base = sanitizeProFilename(sourceName).replace(/\.[^.]+$/i, '') || 'image';
@@ -31,7 +31,7 @@ function mockOutputContentType(action, sourceContentType) {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const gate = await requireProUser(request, env);
+  const gate = await requireProCredits(request, env, 'media-process');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);
   }
@@ -99,6 +99,18 @@ export async function onRequestPost(context) {
     console.warn('Failed to delete transient media object after processing:', objectKey, err);
   }
 
+  const remainingCredits = await deductOperationCredits(env, gate.user.id, 'media-process');
+  if (remainingCredits === null) {
+    return jsonResponse(
+      {
+        error: 'Payment Required',
+        message: 'Credit deduction failed after processing.',
+        requiredCredits: gate.cost,
+      },
+      402,
+    );
+  }
+
   return new Response(imageBytes, {
     status: 200,
     headers: {
@@ -110,6 +122,8 @@ export async function onRequestPost(context) {
       'X-GSM-Action': action,
       'X-GSM-File-Name': outputFileName,
       'X-GSM-Processing-Ms': String(processingMs),
+      'X-GSM-Credits-Used': String(gate.cost),
+      'X-GSM-Remaining-Credits': String(remainingCredits),
     },
   });
 }

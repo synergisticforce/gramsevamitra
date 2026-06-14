@@ -3,6 +3,7 @@ import {
   runFileConverterPipeline,
   type HiFiOutputFormat,
 } from '../../lib/canvas/documentFileConverter';
+import { useProCreditConfirm } from '../../lib/auth/useProCreditConfirm';
 
 interface Props {
   file: File;
@@ -28,6 +29,7 @@ export default function HiFiConverterModal({
   const [format, setFormat] = useState<HiFiOutputFormat>('docx');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { requestProConfirm, proCreditModal } = useProCreditConfirm();
 
   const proSubtitle =
     'Pro conversion uses ephemeral Cloudflare R2 storage — deleted after processing.';
@@ -55,6 +57,10 @@ export default function HiFiConverterModal({
       setBusy(false);
     }
   }, [file, format, onClose, onProcessingChange, onSuccess]);
+
+  const handleConvertClick = useCallback(() => {
+    void requestProConfirm('file-converter', 'High-Fidelity Converter', () => handleConvert());
+  }, [handleConvert, requestProConfirm]);
 
   return (
     <div
@@ -132,14 +138,15 @@ export default function HiFiConverterModal({
           </button>
           <button
             type="button"
-            onClick={() => void handleConvert()}
+            onClick={handleConvertClick}
             disabled={busy}
             className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {busy ? 'Converting…' : 'Convert & download'}
+            {busy ? 'Converting…' : 'Review credits & convert'}
           </button>
         </div>
       </div>
+      {proCreditModal}
     </div>
   );
 }

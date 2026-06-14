@@ -14,9 +14,7 @@ export interface FileConverterResult {
   processingMs?: number;
 }
 
-function parseApiError(payload: { message?: string; error?: string }, fallback: string): string {
-  return payload.message ?? payload.error ?? fallback;
-}
+import { parseCreditApiError } from '../auth/creditCheck';
 
 function startConverterProgressTicker(
   onProgress: (progress: FileConverterProgress) => void
@@ -67,12 +65,12 @@ export async function runFileConverterPipeline(
     error?: string;
   };
 
-  if (uploadResponse.status === 401 || uploadResponse.status === 403) {
-    throw new Error(parseApiError(uploadPayload, 'Pro subscription required.'));
+  if (uploadResponse.status === 401 || uploadResponse.status === 403 || uploadResponse.status === 402) {
+    throw new Error(parseCreditApiError(uploadResponse.status, uploadPayload, 'Pro subscription required.'));
   }
 
   if (!uploadResponse.ok || !uploadPayload.success || !uploadPayload.objectKey) {
-    throw new Error(parseApiError(uploadPayload, 'Failed to upload document for conversion.'));
+    throw new Error(parseCreditApiError(uploadResponse.status, uploadPayload, 'Failed to upload document for conversion.'));
   }
 
   onProgress({ label: 'Upload complete — initiating conversion…', percent: 38 });
@@ -106,8 +104,8 @@ export async function runFileConverterPipeline(
     error?: string;
   };
 
-  if (convertResponse.status === 401 || convertResponse.status === 403) {
-    throw new Error(parseApiError(convertPayload, 'Pro subscription required.'));
+  if (convertResponse.status === 401 || convertResponse.status === 403 || convertResponse.status === 402) {
+    throw new Error(parseCreditApiError(convertResponse.status, convertPayload, 'Pro subscription required.'));
   }
 
   if (
@@ -116,7 +114,7 @@ export async function runFileConverterPipeline(
     !convertPayload.fileBase64 ||
     !convertPayload.fileName
   ) {
-    throw new Error(parseApiError(convertPayload, 'High-fidelity conversion failed.'));
+    throw new Error(parseCreditApiError(convertResponse.status, convertPayload, 'High-fidelity conversion failed.'));
   }
 
   onProgress({ label: 'Preparing download…', percent: 98 });

@@ -1,5 +1,5 @@
-import { jsonResponse } from '../../../_lib/json.mjs';
-import { requireProUser } from '../../../_lib/proGate.mjs';
+import { jsonResponse } from '../../_lib/json.mjs';
+import { deductOperationCredits, requireProCredits } from '../../_lib/creditEconomy.mjs';
 import {
   buildMockCareerAiResponse,
   CAREER_AI_ACTIONS,
@@ -7,12 +7,12 @@ import {
   outputFilenameForAction,
   sanitizeResumeText,
   titleForAction,
-} from '../../../_lib/careerAiMock.mjs';
+} from '../../_lib/careerAiMock.mjs';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const gate = await requireProUser(request, env);
+  const gate = await requireProCredits(request, env, 'career-ai');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);
   }
@@ -49,6 +49,18 @@ export async function onRequestPost(context) {
   const text = buildMockCareerAiResponse(action, resumeText);
   const processingMs = Date.now() - started;
 
+  const remainingCredits = await deductOperationCredits(env, gate.user.id, 'career-ai');
+  if (remainingCredits === null) {
+    return jsonResponse(
+      {
+        error: 'Payment Required',
+        message: 'Credit deduction failed after processing.',
+        requiredCredits: gate.cost,
+      },
+      402,
+    );
+  }
+
   return jsonResponse({
     success: true,
     action,
@@ -57,6 +69,8 @@ export async function onRequestPost(context) {
     fileName: outputFilenameForAction(action),
     sourceFile: sourceFileName,
     processingMs,
+    creditsUsed: gate.cost,
+    remainingCredits,
     mock: true,
   });
 }

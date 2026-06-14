@@ -4,6 +4,7 @@ import BaseLayout from '@shared/layouts/BaseLayout.astro';
 import Header from '@shared/components/Header.astro';
 import Footer from '@shared/components/Footer.astro';
 import AppAuthRedirect from '../components/app/AppAuthRedirect';
+import OmniDropzone from '../components/omni/OmniDropzone';
 import { SITES } from '@shared/config/sites';
 import { SITE_HOME_SEO } from '@shared/config/seo';
 import { DEFAULT_APP_WORKSPACE } from '../config/appWorkspaces';
@@ -30,6 +31,10 @@ import { DEFAULT_APP_WORKSPACE } from '../config/appWorkspaces';
         <p class="mt-6 text-lg leading-relaxed text-slate-400 sm:text-xl">
           Your Free Global Document &amp; Productivity Toolkit. No Sign-Up, Works Offline.
         </p>
+      </div>
+
+      <div class="mx-auto mt-10 max-w-3xl">
+        <OmniDropzone client:load variant="dark" />
       </div>
 
       <div class="product-grid mt-12">

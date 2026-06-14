@@ -5,6 +5,8 @@ import {
   stagesForOutputFormat,
   type SmartRouterResponse,
 } from '@shared/lib/proTaskStages';
+import { parseCreditApiError } from '../../lib/auth/creditCheck';
+import { useProCreditConfirm } from '../../lib/auth/useProCreditConfirm';
 import ProTaskLoader from './ProTaskLoader';
 
 type OutputFormat = 'json' | 'csv' | 'docx';
@@ -19,9 +21,61 @@ export default function SmartDocumentExtractorTool() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SmartRouterResponse | null>(null);
+  const { requestProConfirm, proCreditModal } = useProCreditConfirm();
 
   const userPlan = (session?.user as { plan?: string } | undefined)?.plan;
   const isPro = userPlan === 'pro';
+
+  const executeExtraction = useCallback(async () => {
+    setError(null);
+    setResult(null);
+    setLoading(true);
+    try {
+      const response = await fetch('/api/pro/smart-router', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          outputFormat,
+          documentType,
+          fileName,
+          forceFailsafe,
+        }),
+      });
+
+      const payload = (await response.json()) as SmartRouterResponse & {
+        message?: string;
+        error?: string;
+        requiredCredits?: number;
+        remainingCredits?: number;
+      };
+
+      if (response.status === 403 || response.status === 401) {
+        openProUpgrade({
+          featureId: 'smart-document-extractor',
+          featureName: 'Smart Document Extractor',
+          featureDescription: payload.message ?? 'Pro subscription required.',
+        });
+        return;
+      }
+
+      if (response.status === 402) {
+        setError(parseCreditApiError(response.status, payload, 'Insufficient AI Credits.'));
+        return;
+      }
+
+      if (!response.ok || !payload.success) {
+        setError(payload.message ?? payload.error ?? 'Smart Router request failed.');
+        return;
+      }
+
+      setResult(payload);
+    } catch {
+      setError('Network error while contacting the Smart Router.');
+    } finally {
+      setLoading(false);
+    }
+  }, [documentType, fileName, forceFailsafe, outputFormat]);
 
   const runExtraction = useCallback(async () => {
     setError(null);
@@ -37,43 +91,8 @@ export default function SmartDocumentExtractorTool() {
       return;
     }
 
-    setLoading(true);
-    try {
-      const response = await fetch('/api/pro/smart-router', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          outputFormat,
-          documentType,
-          fileName,
-          forceFailsafe,
-        }),
-      });
-
-      const payload = (await response.json()) as SmartRouterResponse;
-
-      if (response.status === 403 || response.status === 401) {
-        openProUpgrade({
-          featureId: 'smart-document-extractor',
-          featureName: 'Smart Document Extractor',
-          featureDescription: payload.message ?? 'Pro subscription required.',
-        });
-        return;
-      }
-
-      if (!response.ok || !payload.success) {
-        setError(payload.message ?? payload.error ?? 'Smart Router request failed.');
-        return;
-      }
-
-      setResult(payload);
-    } catch {
-      setError('Network error while contacting the Smart Router.');
-    } finally {
-      setLoading(false);
-    }
-  }, [documentType, fileName, forceFailsafe, isPro, outputFormat]);
+    void requestProConfirm('smart-router', 'Smart Document Extractor', () => executeExtraction());
+  }, [executeExtraction, isPro, requestProConfirm]);
 
   const stages = stagesForOutputFormat(outputFormat);
 
@@ -153,9 +172,11 @@ export default function SmartDocumentExtractorTool() {
           disabled={loading || isPending}
           className="mt-4 inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
         >
-          {loading ? 'Processing…' : isPro ? 'Run Smart Router ⚡' : 'Upgrade to Pro ⚡'}
+          {loading ? 'Processing…' : isPro ? 'Review credits & run ⚡' : 'Upgrade to Pro ⚡'}
         </button>
       </div>
+
+      {proCreditModal}
 
       {loading && <ProTaskLoader active stages={stages} />}
 

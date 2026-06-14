@@ -113,6 +113,8 @@ export async function fetchRazorpayOrder(env, orderId) {
   return response.json();
 }
 
+import { PRO_MONTHLY_CREDIT_FUP } from '../../../packages/shared/src/lib/aiCredits.mjs';
+
 /**
  * @param {D1Database} db
  * @param {string} userId
@@ -120,8 +122,8 @@ export async function fetchRazorpayOrder(env, orderId) {
 export async function setUserPlanPro(db, userId) {
   const now = new Date().toISOString();
   const result = await db
-    .prepare(`UPDATE users SET plan = 'pro', updatedAt = ? WHERE id = ?`)
-    .bind(now, userId)
+    .prepare(`UPDATE users SET plan = 'pro', credits = ?, updatedAt = ? WHERE id = ?`)
+    .bind(PRO_MONTHLY_CREDIT_FUP, now, userId)
     .run();
   return result.success;
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MediaCanvasAction } from '../../config/mediaCanvasActions';
 import { actionsForImageMime, isImageMimeOrName } from '../../config/mediaCanvasActions';
 import {
@@ -9,6 +9,14 @@ import {
   type StoredFileMeta,
 } from '../../lib/canvas/mediaCanvasStorage';
 import { useMediaActionHandler } from '../../lib/canvas/useMediaActionHandler';
+import type { OmniHandoffPayload } from '../../lib/omni/handoff';
+import {
+  resolveMediaOmniAction,
+  resolveMediaOmniModal,
+} from '../../lib/omni/omniDispatch';
+import { useOmniWorkspaceHandoff } from '../../lib/omni/useOmniWorkspaceHandoff';
+import { useProCreditConfirm } from '../../lib/auth/useProCreditConfirm';
+import OmniHandoffLoading from '../omni/OmniHandoffLoading';
 import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
 import ConvertFormatModal from './ConvertFormatModal';
@@ -48,6 +56,9 @@ export default function MediaLabCanvas() {
     label: '',
     percent: 0,
   });
+  const pendingOmniIntentRef = useRef<string | null>(null);
+  const handleActionClickRef = useRef<(actionId: string) => void>(() => {});
+  const { requestProConfirm, proCreditModal } = useProCreditConfirm();
 
   const dismissToast = useCallback(() => setToastMessage(null), []);
 
@@ -81,7 +92,7 @@ export default function MediaLabCanvas() {
     [setProcessingProgress]
   );
 
-  const onProAction = useCallback(
+  const runMediaProJob = useCallback(
     async (action: MediaCanvasAction) => {
       if (proMediaBusy) return;
 
@@ -102,7 +113,7 @@ export default function MediaLabCanvas() {
         true,
         'Uploading image to secure transient storage…',
         5,
-        PRO_MEDIA_SUBTITLE
+        PRO_MEDIA_SUBTITLE,
       );
 
       try {
@@ -119,18 +130,27 @@ export default function MediaLabCanvas() {
               ? 'AI photo restoration'
               : '4× upscale';
         setToastMessage(
-          `${actionLabel} complete — ${result.fileName} downloaded (${seconds}s mock GPU pipeline).`
+          `${actionLabel} complete — ${result.fileName} downloaded (${seconds}s mock GPU pipeline).`,
         );
       } catch (err) {
         setProcessingProgress(false, '', 0);
         setToastMessage(
-          err instanceof Error ? err.message : 'Pro media processing failed. Please try again.'
+          err instanceof Error ? err.message : 'Pro media processing failed. Please try again.',
         );
       } finally {
         setProMediaBusy(false);
       }
     },
-    [proMediaBusy, requireCanvasFile, setProcessingProgress]
+    [proMediaBusy, requireCanvasFile, setProcessingProgress],
+  );
+
+  const onProAction = useCallback(
+    async (action: MediaCanvasAction) => {
+      if (proMediaBusy) return;
+      if (!requireCanvasFile()) return;
+      void requestProConfirm('media-process', action.label, () => runMediaProJob(action));
+    },
+    [proMediaBusy, requireCanvasFile, requestProConfirm, runMediaProJob],
   );
 
   const onFreeAction = useCallback(
@@ -155,21 +175,6 @@ export default function MediaLabCanvas() {
     [requireCanvasFile]
   );
 
-  const { handleActionClick } = useMediaActionHandler({ onFreeAction, onProAction });
-
-  useEffect(() => {
-    const stored = loadMediaCanvasState();
-    if (stored) {
-      setActiveFile({
-        file: null,
-        meta: stored.file,
-        restoredFromSession: true,
-      });
-      setPhase('active');
-    }
-    setHydrated(true);
-  }, []);
-
   const activateFile = useCallback((file: File) => {
     if (!isImageMimeOrName(file.type, file.name)) {
       setToastMessage('Please upload a JPG, PNG, or WebP image.');
@@ -188,6 +193,64 @@ export default function MediaLabCanvas() {
     });
     setPhase('active');
   }, []);
+
+  useEffect(() => {
+    const stored = loadMediaCanvasState();
+    if (stored) {
+      setActiveFile({
+        file: null,
+        meta: stored.file,
+        restoredFromSession: true,
+      });
+      setPhase('active');
+    }
+    setHydrated(true);
+  }, []);
+
+  const { handleActionClick } = useMediaActionHandler({ onFreeAction, onProAction });
+  handleActionClickRef.current = handleActionClick;
+
+  const applyOmniIntent = useCallback((intentId: string) => {
+    const actionId = resolveMediaOmniAction(intentId);
+    if (actionId) {
+      handleActionClickRef.current(actionId);
+      return;
+    }
+
+    const modal = resolveMediaOmniModal(intentId);
+    if (!modal) {
+      setToastMessage(`The "${intentId}" action is not wired yet. Pick a tool from the toolbar.`);
+      return;
+    }
+
+    setMediaModal(modal);
+  }, []);
+
+  const onOmniHandoff = useCallback(
+    ({ file, intentId }: OmniHandoffPayload) => {
+      if (!isImageMimeOrName(file.type, file.name)) {
+        setToastMessage('Media Lab accepts JPG, PNG, and WebP images from the Omni-Router.');
+        return;
+      }
+      pendingOmniIntentRef.current = intentId;
+      activateFile(file);
+    },
+    [activateFile],
+  );
+
+  const omniHandoffStatus = useOmniWorkspaceHandoff({
+    workspaceId: 'media',
+    enabled: hydrated,
+    onHandoff: onOmniHandoff,
+    onError: setToastMessage,
+  });
+
+  useEffect(() => {
+    if (!activeFile?.file || !pendingOmniIntentRef.current) return;
+    const intentId = pendingOmniIntentRef.current;
+    pendingOmniIntentRef.current = null;
+    applyOmniIntent(intentId);
+  }, [activeFile?.file, applyOmniIntent]);
 
   const clearCanvas = useCallback(() => {
     clearMediaCanvasState();
@@ -210,12 +273,8 @@ export default function MediaLabCanvas() {
 
   const canvasImageFile = activeFile?.file ?? null;
 
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-[280px] items-center justify-center px-4 py-12">
-        <p className="text-sm text-slate-500">Loading canvas…</p>
-      </div>
-    );
+  if (!hydrated || omniHandoffStatus === 'loading') {
+    return <OmniHandoffLoading />;
   }
 
   return (
@@ -338,6 +397,7 @@ export default function MediaLabCanvas() {
       )}
 
       <CanvasToast message={toastMessage} onDismiss={dismissToast} />
+      {proCreditModal}
     </section>
   );
 }

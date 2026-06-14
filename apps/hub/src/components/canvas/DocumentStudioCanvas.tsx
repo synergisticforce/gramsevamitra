@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DocumentCanvasAction } from '../../config/documentCanvasActions';
 import { actionsForMimeType } from '../../config/documentCanvasActions';
 import {
@@ -10,6 +10,15 @@ import {
 } from '../../lib/canvas/documentCanvasStorage';
 import { isImageMimeOrName, isPdfMimeOrName } from '../../lib/canvas/documentPdfTools';
 import { useDocumentActionHandler } from '../../lib/canvas/useDocumentActionHandler';
+import type { OmniHandoffPayload } from '../../lib/omni/handoff';
+import {
+  DOCUMENT_PDF_ONLY_MODALS,
+  resolveDocumentOmniAction,
+  resolveDocumentOmniModal,
+} from '../../lib/omni/omniDispatch';
+import { useOmniWorkspaceHandoff } from '../../lib/omni/useOmniWorkspaceHandoff';
+import { useProCreditConfirm } from '../../lib/auth/useProCreditConfirm';
+import OmniHandoffLoading from '../omni/OmniHandoffLoading';
 import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
 import DocumentActionToolbar from './DocumentActionToolbar';
@@ -78,6 +87,9 @@ export default function DocumentStudioCanvas() {
     percent: 0,
   });
   const [smartExtractBusy, setSmartExtractBusy] = useState(false);
+  const { requestProConfirm, proCreditModal } = useProCreditConfirm();
+  const pendingOmniIntentRef = useRef<string | null>(null);
+  const handleActionClickRef = useRef<(actionId: string) => void>(() => {});
 
   const dismissToast = useCallback(() => setToastMessage(null), []);
 
@@ -127,6 +139,46 @@ export default function DocumentStudioCanvas() {
     [setProcessingProgress]
   );
 
+  const runSmartExtractJob = useCallback(
+    async (file: File) => {
+      setSmartExtractBusy(true);
+      setProcessingProgress(
+        true,
+        'Preparing Smart Extract…',
+        5,
+        'Pro processing uses ephemeral Cloudflare R2 storage — deleted after extraction.',
+      );
+
+      try {
+        const { runSmartExtractPipeline } = await import('../../lib/canvas/documentSmartExtract');
+        const result = await runSmartExtractPipeline(file, ({ label, percent }) => {
+          setProcessingProgress(
+            true,
+            label,
+            percent,
+            'Pro processing uses ephemeral Cloudflare R2 storage — deleted after extraction.',
+          );
+        });
+        setProcessingProgress(false, '', 0);
+        const seconds =
+          result.processingMs != null ? Math.round(result.processingMs / 1000) : 3;
+        const creditsNote =
+          result.remainingCredits != null ? ` · ${result.remainingCredits} AI Credits left` : '';
+        setToastMessage(
+          `Smart Extract complete — ${result.fileName} downloaded (${seconds}s)${creditsNote}.`,
+        );
+      } catch (err) {
+        setProcessingProgress(false, '', 0);
+        setToastMessage(
+          err instanceof Error ? err.message : 'Smart Extract failed. Please try again.',
+        );
+      } finally {
+        setSmartExtractBusy(false);
+      }
+    },
+    [setProcessingProgress],
+  );
+
   const onProAction = useCallback(
     async (action: DocumentCanvasAction) => {
       if (action.id === 'hifi-convert') {
@@ -141,40 +193,9 @@ export default function DocumentStudioCanvas() {
       const file = requireCanvasFile();
       if (!file) return;
 
-      setSmartExtractBusy(true);
-      setProcessingProgress(
-        true,
-        'Uploading document to secure transient storage…',
-        5,
-        'Pro processing uses ephemeral Cloudflare R2 storage — deleted after extraction.'
-      );
-
-      try {
-        const { runSmartExtractPipeline } = await import('../../lib/canvas/documentSmartExtract');
-        const result = await runSmartExtractPipeline(file, ({ label, percent }) => {
-          setProcessingProgress(
-            true,
-            label,
-            percent,
-            'Pro processing uses ephemeral Cloudflare R2 storage — deleted after extraction.'
-          );
-        });
-        setProcessingProgress(false, '', 0);
-        const seconds =
-          result.processingMs != null ? Math.round(result.processingMs / 1000) : 3;
-        setToastMessage(
-          `Smart Extract complete — ${result.fileName} downloaded (${seconds}s mock GPU pipeline).`
-        );
-      } catch (err) {
-        setProcessingProgress(false, '', 0);
-        setToastMessage(
-          err instanceof Error ? err.message : 'Smart Extract failed. Please try again.'
-        );
-      } finally {
-        setSmartExtractBusy(false);
-      }
+      void requestProConfirm('smart-extract', action.label, () => runSmartExtractJob(file));
     },
-    [requireCanvasFile, requirePdfCanvasFile, setProcessingProgress, smartExtractBusy]
+    [requireCanvasFile, requirePdfCanvasFile, requestProConfirm, runSmartExtractJob, smartExtractBusy],
   );
 
   const onFreeAction = useCallback(
@@ -263,21 +284,6 @@ export default function DocumentStudioCanvas() {
     [requireImageCanvasFile, requirePdfCanvasFile]
   );
 
-  const { handleActionClick } = useDocumentActionHandler({ onFreeAction, onProAction });
-
-  useEffect(() => {
-    const stored = loadDocumentCanvasState();
-    if (stored) {
-      setActiveFile({
-        file: null,
-        meta: stored.file,
-        restoredFromSession: true,
-      });
-      setPhase('active');
-    }
-    setHydrated(true);
-  }, []);
-
   const activateFile = useCallback((file: File) => {
     saveDocumentCanvasState(file);
     setActiveFile({
@@ -292,6 +298,70 @@ export default function DocumentStudioCanvas() {
     });
     setPhase('active');
   }, []);
+
+  useEffect(() => {
+    const stored = loadDocumentCanvasState();
+    if (stored) {
+      setActiveFile({
+        file: null,
+        meta: stored.file,
+        restoredFromSession: true,
+      });
+      setPhase('active');
+    }
+    setHydrated(true);
+  }, []);
+
+  const { handleActionClick } = useDocumentActionHandler({ onFreeAction, onProAction });
+  handleActionClickRef.current = handleActionClick;
+
+  const applyOmniIntent = useCallback(
+    (intentId: string) => {
+      const actionId = resolveDocumentOmniAction(intentId);
+      if (actionId) {
+        handleActionClickRef.current(actionId);
+        return;
+      }
+
+      const modal = resolveDocumentOmniModal(intentId);
+      if (!modal) {
+        setToastMessage(`The "${intentId}" action is not wired yet. Pick a tool from the toolbar.`);
+        return;
+      }
+
+      if (DOCUMENT_PDF_ONLY_MODALS.has(modal)) {
+        if (!activeFile?.file || !isPdfMimeOrName(activeFile.meta.type, activeFile.meta.name)) {
+          setToastMessage('This Omni action requires a PDF file.');
+          return;
+        }
+      }
+
+      setPdfModal(modal);
+    },
+    [activeFile],
+  );
+
+  const onOmniHandoff = useCallback(
+    ({ file, intentId }: OmniHandoffPayload) => {
+      pendingOmniIntentRef.current = intentId;
+      activateFile(file);
+    },
+    [activateFile],
+  );
+
+  const omniHandoffStatus = useOmniWorkspaceHandoff({
+    workspaceId: 'documents',
+    enabled: hydrated,
+    onHandoff: onOmniHandoff,
+    onError: setToastMessage,
+  });
+
+  useEffect(() => {
+    if (!activeFile?.file || !pendingOmniIntentRef.current) return;
+    const intentId = pendingOmniIntentRef.current;
+    pendingOmniIntentRef.current = null;
+    applyOmniIntent(intentId);
+  }, [activeFile?.file, applyOmniIntent]);
 
   const clearCanvas = useCallback(() => {
     clearDocumentCanvasState();
@@ -319,12 +389,8 @@ export default function DocumentStudioCanvas() {
       ? activeFile.file
       : null;
 
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-[280px] items-center justify-center px-4 py-12">
-        <p className="text-sm text-slate-500">Loading canvas…</p>
-      </div>
-    );
+  if (!hydrated || omniHandoffStatus === 'loading') {
+    return <OmniHandoffLoading />;
   }
 
   return (
@@ -568,6 +634,7 @@ export default function DocumentStudioCanvas() {
       )}
 
       <CanvasToast message={toastMessage} onDismiss={dismissToast} />
+      {proCreditModal}
     </section>
   );
 }

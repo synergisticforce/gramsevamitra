@@ -1,5 +1,5 @@
 import { jsonResponse } from '../../_lib/json.mjs';
-import { requireProUser } from '../../_lib/proGate.mjs';
+import { deductOperationCredits, requireProCredits } from '../../_lib/creditEconomy.mjs';
 import { runSmartRouter } from '../../_lib/smartRouter.mjs';
 
 const ALLOWED_FORMATS = new Set(['json', 'csv', 'docx']);
@@ -8,7 +8,7 @@ const ALLOWED_DOC_TYPES = new Set(['invoice', 'bank_statement', 'general']);
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const gate = await requireProUser(request, env);
+  const gate = await requireProCredits(request, env, 'smart-router');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);
   }
@@ -44,9 +44,23 @@ export async function onRequestPost(context) {
       forceFailsafe,
     });
 
+    const remainingCredits = await deductOperationCredits(env, gate.user.id, 'smart-router');
+    if (remainingCredits === null) {
+      return jsonResponse(
+        {
+          error: 'Payment Required',
+          message: 'Credit deduction failed after processing.',
+          requiredCredits: gate.cost,
+        },
+        402,
+      );
+    }
+
     return jsonResponse({
       success: true,
       userId: gate.user.id,
+      creditsUsed: gate.cost,
+      remainingCredits,
       ...result,
     });
   } catch (err) {

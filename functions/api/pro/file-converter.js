@@ -1,18 +1,18 @@
-import { jsonResponse } from '../../../_lib/json.mjs';
-import { requireProUser } from '../../../_lib/proGate.mjs';
+import { jsonResponse } from '../../_lib/json.mjs';
+import { deductOperationCredits, requireProCredits } from '../../_lib/creditEconomy.mjs';
 import {
   assertProObjectKeyForUser,
   MOCK_CONVERTER_DELAY_MS,
   MOCK_DOCX_BASE64,
   MOCK_PPTX_BASE64,
-} from '../../../_lib/proTransientStorage.mjs';
+} from '../../_lib/proTransientStorage.mjs';
 
 const SUPPORTED_FORMATS = new Set(['docx', 'pptx']);
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const gate = await requireProUser(request, env);
+  const gate = await requireProCredits(request, env, 'file-converter');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);
   }
@@ -75,6 +75,18 @@ export async function onRequestPost(context) {
       ? 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
       : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
+  const remainingCredits = await deductOperationCredits(env, gate.user.id, 'file-converter');
+  if (remainingCredits === null) {
+    return jsonResponse(
+      {
+        error: 'Payment Required',
+        message: 'Credit deduction failed after processing.',
+        requiredCredits: gate.cost,
+      },
+      402,
+    );
+  }
+
   return jsonResponse({
     success: true,
     format,
@@ -84,6 +96,8 @@ export async function onRequestPost(context) {
     sourceFile: fileName,
     objectKey,
     processingMs: Date.now() - started,
+    creditsUsed: gate.cost,
+    remainingCredits,
     mock: true,
   });
 }
