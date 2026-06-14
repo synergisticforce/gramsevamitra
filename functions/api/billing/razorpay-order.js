@@ -1,10 +1,7 @@
 import { jsonResponse } from '../../_lib/json.mjs';
 import { getSessionUser } from '../../_lib/session.mjs';
-import {
-  PRO_ORDER_AMOUNT_PAISE,
-  PRO_ORDER_CURRENCY,
-  createProOrder,
-} from '../../_lib/razorpay.mjs';
+import { PRO_ORDER_AMOUNT_PAISE, PRO_ORDER_CURRENCY } from '../../_lib/proBilling.mjs';
+import { createProOrder } from '../../_lib/razorpay.mjs';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -38,10 +35,17 @@ export async function onRequestPost(context) {
       feature,
     });
 
+    const orderAmount = Number(order.amount);
+    if (orderAmount !== PRO_ORDER_AMOUNT_PAISE) {
+      console.error(
+        `Razorpay order amount mismatch: expected ${PRO_ORDER_AMOUNT_PAISE}, got ${orderAmount} (order ${order.id})`,
+      );
+    }
+
     return jsonResponse({
       keyId: env.RAZORPAY_KEY_ID,
       orderId: order.id,
-      amount: order.amount ?? PRO_ORDER_AMOUNT_PAISE,
+      amount: PRO_ORDER_AMOUNT_PAISE,
       currency: order.currency ?? PRO_ORDER_CURRENCY,
       userName: user.name ?? '',
       userEmail: user.email,

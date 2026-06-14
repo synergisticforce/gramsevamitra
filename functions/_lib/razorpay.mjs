@@ -1,7 +1,7 @@
 import {
   PRO_ORDER_AMOUNT_PAISE,
   PRO_ORDER_CURRENCY,
-} from '../../../packages/shared/src/lib/proBilling.mjs';
+} from './proBilling.mjs';
 
 export { PRO_ORDER_AMOUNT_PAISE, PRO_ORDER_CURRENCY };
 
@@ -116,7 +116,7 @@ export async function fetchRazorpayOrder(env, orderId) {
   return response.json();
 }
 
-import { PRO_MONTHLY_CREDIT_FUP } from '../../../packages/shared/src/lib/aiCredits.mjs';
+import { PRO_MONTHLY_CREDIT_FUP } from '../../packages/shared/src/lib/aiCredits.mjs';
 
 /**
  * @param {D1Database} db

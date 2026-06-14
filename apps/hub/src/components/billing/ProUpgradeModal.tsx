@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  PRO_ORDER_AMOUNT_PAISE,
   PRO_PRICE_INTERVAL,
   PRO_PRICE_LABEL,
   PRO_UPGRADE_OPEN_EVENT,
@@ -150,6 +151,15 @@ export default function ProUpgradeModal() {
         return;
       }
 
+      if (result.amount !== PRO_ORDER_AMOUNT_PAISE) {
+        console.error(
+          `Checkout amount mismatch: expected ${PRO_ORDER_AMOUNT_PAISE} paise, API returned ${result.amount}`,
+        );
+        setError('Billing configuration error. Please contact support or try again later.');
+        setLoading(false);
+        return;
+      }
+
       await loadRazorpayCheckout();
 
       if (!window.Razorpay) {
@@ -160,7 +170,7 @@ export default function ProUpgradeModal() {
 
       const rzp = new window.Razorpay({
         key: result.keyId,
-        amount: result.amount,
+        amount: PRO_ORDER_AMOUNT_PAISE,
         currency: result.currency ?? 'INR',
         name: 'GramSeva Mitra',
         description: `${detail.featureName} — Pro Plan`,
