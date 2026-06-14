@@ -1,7 +1,7 @@
 import { downloadBlob } from '@shared/utils/fileUtils';
 import { splitImageBaseName } from './mediaImageTools';
 
-export type MediaProAction = 'remove-bg' | 'upscale';
+export type MediaProAction = 'remove-bg' | 'upscale' | 'restore';
 
 export interface MediaProProgress {
   label: string;
@@ -18,6 +18,7 @@ export interface MediaProResult {
 const TOOLBAR_TO_API: Record<string, MediaProAction> = {
   'remove-background': 'remove-bg',
   'upscale-4x': 'upscale',
+  'photo-restore': 'restore',
 };
 
 export function resolveMediaProAction(actionId: string): MediaProAction | null {
@@ -33,11 +34,16 @@ function outputFilenameForAction(file: File, action: MediaProAction): string {
   if (action === 'remove-bg') {
     return `${base}_no_bg.png`;
   }
+  if (action === 'restore') {
+    return `${base}_restored.jpg`;
+  }
   return `${base}_upscaled.png`;
 }
 
-function toolSuffixForAction(action: MediaProAction): '_no_bg' | '_upscaled' {
-  return action === 'remove-bg' ? '_no_bg' : '_upscaled';
+function toolSuffixForAction(action: MediaProAction): '_no_bg' | '_upscaled' | '_restored' {
+  if (action === 'remove-bg') return '_no_bg';
+  if (action === 'restore') return '_restored';
+  return '_upscaled';
 }
 
 function startGpuProgressTicker(
@@ -47,7 +53,9 @@ function startGpuProgressTicker(
   const label =
     action === 'remove-bg'
       ? 'Running serverless background removal…'
-      : 'Running serverless 4× upscale…';
+      : action === 'restore'
+        ? 'Running AI photo restoration…'
+        : 'Running serverless 4× upscale…';
   let percent = 55;
   onProgress({ label, percent });
   const timer = window.setInterval(() => {

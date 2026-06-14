@@ -12,12 +12,18 @@ function mockOutputFilename(sourceName, action) {
   if (action === 'remove-bg') {
     return `${base}_no_bg.png`;
   }
+  if (action === 'restore') {
+    return `${base}_restored.jpg`;
+  }
   return `${base}_upscaled.png`;
 }
 
 function mockOutputContentType(action, sourceContentType) {
   if (action === 'remove-bg') {
     return 'image/png';
+  }
+  if (action === 'restore') {
+    return 'image/jpeg';
   }
   return sourceContentType?.startsWith('image/') ? sourceContentType : 'image/png';
 }
@@ -43,7 +49,7 @@ export async function onRequestPost(context) {
 
   if (!MEDIA_PRO_ACTIONS.has(action)) {
     return jsonResponse(
-      { error: 'Bad Request', message: 'action must be remove-bg or upscale.' },
+      { error: 'Bad Request', message: 'action must be remove-bg, upscale, or restore.' },
       400,
     );
   }

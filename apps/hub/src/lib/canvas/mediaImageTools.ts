@@ -251,7 +251,7 @@ export async function convertImageFormatInBrowser(
 export function triggerImageDownload(
   blob: Blob,
   filename: string,
-  toolSuffix: '_optimized' | '_converted'
+  toolSuffix: '_optimized' | '_converted' | '_scanned' | '_restored'
 ): void {
   downloadBlob(blob, filename, toolSuffix);
 }

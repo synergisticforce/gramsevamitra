@@ -12,12 +12,13 @@ import { useMediaActionHandler } from '../../lib/canvas/useMediaActionHandler';
 import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
 import ConvertFormatModal from './ConvertFormatModal';
+import ExamPhotoOptimizerModal from './ExamPhotoOptimizerModal';
 import MediaActionToolbar from './MediaActionToolbar';
 import MediaMagicDropzone from './MediaMagicDropzone';
 import ResizeCompressModal from './ResizeCompressModal';
 
 type CanvasPhase = 'empty' | 'active';
-type MediaToolModal = 'resize-compress' | 'convert-format' | null;
+type MediaToolModal = 'exam-photo-optimizer' | 'resize-compress' | 'convert-format' | null;
 
 interface ActiveFile {
   file: File | null;
@@ -112,7 +113,11 @@ export default function MediaLabCanvas() {
         const seconds =
           result.processingMs != null ? Math.round(result.processingMs / 1000) : 3;
         const actionLabel =
-          apiAction === 'remove-bg' ? 'Background removal' : '4× upscale';
+          apiAction === 'remove-bg'
+            ? 'Background removal'
+            : apiAction === 'restore'
+              ? 'AI photo restoration'
+              : '4× upscale';
         setToastMessage(
           `${actionLabel} complete — ${result.fileName} downloaded (${seconds}s mock GPU pipeline).`
         );
@@ -130,6 +135,11 @@ export default function MediaLabCanvas() {
 
   const onFreeAction = useCallback(
     (action: MediaCanvasAction) => {
+      if (action.id === 'exam-photo-optimizer') {
+        if (!requireCanvasFile()) return;
+        setMediaModal('exam-photo-optimizer');
+        return;
+      }
       if (action.id === 'resize-compress') {
         if (!requireCanvasFile()) return;
         setMediaModal('resize-compress');
@@ -291,6 +301,15 @@ export default function MediaLabCanvas() {
           </div>
         )}
       </div>
+
+      {mediaModal === 'exam-photo-optimizer' && canvasImageFile && (
+        <ExamPhotoOptimizerModal
+          file={canvasImageFile}
+          onClose={() => setMediaModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
 
       {mediaModal === 'resize-compress' && canvasImageFile && (
         <ResizeCompressModal

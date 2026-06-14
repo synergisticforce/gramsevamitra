@@ -26,6 +26,13 @@ export function isImageMimeOrName(type: string, name: string): boolean {
 
 export const MEDIA_CANVAS_ACTIONS: MediaCanvasAction[] = [
   {
+    id: 'exam-photo-optimizer',
+    label: 'Exam Photo',
+    icon: '📋',
+    tier: 'free',
+    mimePatterns: ['image/jpeg', 'image/png', 'image/webp'],
+  },
+  {
     id: 'resize-compress',
     label: 'Resize & Compress',
     icon: '🖼️',
@@ -60,6 +67,17 @@ export const MEDIA_CANVAS_ACTIONS: MediaCanvasAction[] = [
     featureName: '4× AI Upscale',
     featureDescription:
       'Enhance low-resolution scans up to 4× with serverless GPU super-resolution — Pro only.',
+  },
+  {
+    id: 'photo-restore',
+    label: 'AI Restore',
+    icon: '⚡',
+    tier: 'pro',
+    mimePatterns: ['image/jpeg', 'image/png', 'image/webp'],
+    featureId: 'photo-restore',
+    featureName: 'AI Photo Restoration',
+    featureDescription:
+      'Colorize and repair old or damaged photos with serverless AI — powered by GramSeva Mitra Pro.',
   },
 ];
 
