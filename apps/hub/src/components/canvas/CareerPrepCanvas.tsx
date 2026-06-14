@@ -4,7 +4,8 @@ import {
   actionsForCareerMime,
   isCareerDocumentMimeOrName,
 } from '../../config/careerCanvasActions';
-import { isDocxFile, isPdfFile } from '../../lib/canvas/careerPdfText';
+import { extractTextFromPdfFile, isDocxFile, isPdfFile } from '../../lib/canvas/careerPdfText';
+import type { CareerProAiResult } from '../../lib/canvas/careerProAi';
 import {
   clearCareerCanvasState,
   formatFileSize,
@@ -13,6 +14,7 @@ import {
   type StoredFileMeta,
 } from '../../lib/canvas/careerCanvasStorage';
 import { useCareerActionHandler } from '../../lib/canvas/useCareerActionHandler';
+import CareerAiResultModal from './CareerAiResultModal';
 import AtsScannerModal from './AtsScannerModal';
 import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
@@ -33,7 +35,11 @@ interface ProcessingState {
   active: boolean;
   label: string;
   percent: number;
+  subtitle?: string;
 }
+
+const PRO_CAREER_SUBTITLE =
+  'Pro AI runs on Cloudflare edge — only extracted resume text is sent, never your file.';
 
 export default function CareerPrepCanvas() {
   const [phase, setPhase] = useState<CanvasPhase>('empty');
@@ -41,6 +47,8 @@ export default function CareerPrepCanvas() {
   const [hydrated, setHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [careerModal, setCareerModal] = useState<CareerToolModal>(null);
+  const [aiResult, setAiResult] = useState<CareerProAiResult | null>(null);
+  const [proAiBusy, setProAiBusy] = useState(false);
   const [processing, setProcessing] = useState<ProcessingState>({
     active: false,
     label: '',
@@ -61,13 +69,23 @@ export default function CareerPrepCanvas() {
     return activeFile.file;
   }, [activeFile]);
 
-  const onProcessingChange = useCallback((active: boolean, label: string, percent: number) => {
-    if (!active) {
-      setProcessing({ active: false, label: '', percent: 0 });
-      return;
-    }
-    setProcessing({ active: true, label, percent });
-  }, []);
+  const onProcessingChange = useCallback(
+    (active: boolean, label: string, percent: number, subtitle?: string) => {
+      if (!active) {
+        setProcessing({ active: false, label: '', percent: 0 });
+        return;
+      }
+      setProcessing({ active: true, label, percent, subtitle });
+    },
+    []
+  );
+
+  const setProcessingProgress = useCallback(
+    (active: boolean, label: string, percent: number, subtitle?: string) => {
+      onProcessingChange(active, label, percent, subtitle);
+    },
+    [onProcessingChange]
+  );
 
   const onFreeAction = useCallback(
     (action: CareerCanvasAction) => {
@@ -97,9 +115,66 @@ export default function CareerPrepCanvas() {
     [activeFile, requireCanvasFile]
   );
 
-  const onProAction = useCallback((action: CareerCanvasAction) => {
-    setToastMessage(`${action.label} — serverless AI processing ships in Phase 6.`);
-  }, []);
+  const onProAction = useCallback(
+    async (action: CareerCanvasAction) => {
+      if (proAiBusy) return;
+
+      const file = requireCanvasFile();
+      if (!file) return;
+
+      if (isDocxFile(file.type, file.name) || (!isPdfFile(file.type, file.name) && !file.type)) {
+        setToastMessage(
+          'Pro AI tools currently support PDF resumes only. Upload a PDF to use AI Resume Rewriter or AI Cover Letter.'
+        );
+        return;
+      }
+
+      const { resolveCareerProAction, runCareerProAiPipeline } = await import(
+        '../../lib/canvas/careerProAi'
+      );
+      const apiAction = resolveCareerProAction(action.id);
+      if (!apiAction) {
+        setToastMessage(`${action.label} is coming soon.`);
+        return;
+      }
+
+      setProAiBusy(true);
+      setProcessingProgress(
+        true,
+        'Extracting text from your resume PDF…',
+        8,
+        PRO_CAREER_SUBTITLE
+      );
+
+      try {
+        const resumeText = await extractTextFromPdfFile(file, (current, total) => {
+          const percent = 8 + Math.round((current / total) * 22);
+          setProcessingProgress(
+            true,
+            `Extracting text — page ${current} of ${total}…`,
+            percent,
+            PRO_CAREER_SUBTITLE
+          );
+        });
+
+        const result = await runCareerProAiPipeline(resumeText, file.name, apiAction, ({ label, percent }) => {
+          setProcessingProgress(true, label, percent, PRO_CAREER_SUBTITLE);
+        });
+
+        setProcessingProgress(false, '', 0);
+        setAiResult(result);
+        const seconds =
+          result.processingMs != null ? Math.round(result.processingMs / 1000) : 3;
+        setToastMessage(`${result.title} complete — mock Pro AI (${seconds}s).`);
+      } catch (err) {
+        setProcessingProgress(false, '', 0);
+        setToastMessage(err instanceof Error ? err.message : 'Pro AI processing failed.');
+      } finally {
+        setProAiBusy(false);
+      }
+    },
+    [proAiBusy, requireCanvasFile, setProcessingProgress]
+  );
 
   const { handleActionClick } = useCareerActionHandler({ onFreeAction, onProAction });
 
@@ -140,6 +215,7 @@ export default function CareerPrepCanvas() {
     setActiveFile(null);
     setPhase('empty');
     setCareerModal(null);
+    setAiResult(null);
   }, []);
 
   const replaceFile = useCallback(
@@ -267,11 +343,19 @@ export default function CareerPrepCanvas() {
         />
       )}
 
+      {aiResult && (
+        <CareerAiResultModal
+          result={aiResult}
+          onClose={() => setAiResult(null)}
+          onSuccess={(message) => setToastMessage(message)}
+        />
+      )}
+
       {processing.active && (
         <CanvasProcessingOverlay
           label={processing.label}
           percent={processing.percent}
-          subtitle="Your resume and job description never leave this device."
+          subtitle={processing.subtitle ?? 'Your resume and job description never leave this device.'}
         />
       )}
 
