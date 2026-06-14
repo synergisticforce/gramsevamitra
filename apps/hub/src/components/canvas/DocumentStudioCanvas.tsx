@@ -14,11 +14,13 @@ import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
 import DocumentActionToolbar from './DocumentActionToolbar';
 import MagicDropzone from './MagicDropzone';
+import CompressPdfModal from './CompressPdfModal';
 import MergePdfModal from './MergePdfModal';
+import ProtectPdfModal from './ProtectPdfModal';
 import SplitPdfModal from './SplitPdfModal';
 
 type CanvasPhase = 'empty' | 'active';
-type PdfToolModal = 'split' | 'merge' | null;
+type PdfToolModal = 'split' | 'merge' | 'compress' | 'protect' | null;
 
 interface ActiveFile {
   file: File | null;
@@ -52,7 +54,7 @@ export default function DocumentStudioCanvas() {
       return null;
     }
     if (!isPdfMimeOrName(activeFile.meta.type, activeFile.meta.name)) {
-      setToastMessage('Merge and Split are available for PDF files only.');
+      setToastMessage('This action is available for PDF files only.');
       return null;
     }
     return activeFile.file;
@@ -79,6 +81,16 @@ export default function DocumentStudioCanvas() {
       if (action.id === 'merge') {
         if (!requireCanvasBlob()) return;
         setPdfModal('merge');
+        return;
+      }
+      if (action.id === 'compress') {
+        if (!requireCanvasBlob()) return;
+        setPdfModal('compress');
+        return;
+      }
+      if (action.id === 'protect') {
+        if (!requireCanvasBlob()) return;
+        setPdfModal('protect');
         return;
       }
       setToastMessage(`${action.label} queued — processing logic ships in Phase 4.`);
@@ -236,6 +248,24 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'merge' && canvasPdfFile && (
         <MergePdfModal
           canvasFile={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'compress' && canvasPdfFile && (
+        <CompressPdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'protect' && canvasPdfFile && (
+        <ProtectPdfModal
+          file={canvasPdfFile}
           onClose={() => setPdfModal(null)}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}

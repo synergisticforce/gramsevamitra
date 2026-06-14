@@ -99,10 +99,13 @@ export default defineConfig({
   ],
   vite: {
     resolve: {
-      alias: { '@shared': sharedRoot },
+      alias: {
+        '@shared': sharedRoot,
+        'pdf-lib': '@cantoo/pdf-lib',
+      },
     },
     optimizeDeps: {
-      include: ['browser-image-compression', '@huggingface/transformers', 'pdf-lib'],
+      include: ['browser-image-compression', '@huggingface/transformers', '@cantoo/pdf-lib', 'pdfjs-dist'],
     },
     worker: {
       format: 'es',

@@ -120,3 +120,38 @@ export async function getPdfPageCountFromFile(file: File | Blob): Promise<number
   const result = await runPdfWorkerWithStreamedFile<{ pageCount: number }>('page-count', file);
   return result.pageCount;
 }
+
+/** Stream JPEG pages one at a time — only one page buffer lives in memory per step. */
+export async function runPdfWorkerWithJpegPages<T = Uint8Array>(
+  totalPages: number,
+  pageProducer: (pageIndex: number) => Promise<Uint8Array>,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<T> {
+  const id = crypto.randomUUID();
+  const w = getWorker();
+  const promise = attachWorkerPromise<T>(w, id, onProgress);
+
+  w.postMessage({ id, op: 'compress-init', payload: { totalPages } });
+
+  for (let i = 0; i < totalPages; i++) {
+    onProgress?.({
+      current: i,
+      total: totalPages,
+      label: `Sending page ${i + 1} of ${totalPages}…`,
+    });
+
+    let jpegBytes = await pageProducer(i);
+    const transferable = jpegBytes.buffer.slice(
+      jpegBytes.byteOffset,
+      jpegBytes.byteOffset + jpegBytes.byteLength
+    );
+    w.postMessage(
+      { id, op: 'compress-page', payload: { pageIndex: i, jpeg: transferable } },
+      [transferable]
+    );
+    jpegBytes = new Uint8Array(0);
+  }
+
+  w.postMessage({ id, op: 'compress-finalize', payload: {} });
+  return promise;
+}

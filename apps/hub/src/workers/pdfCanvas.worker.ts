@@ -1,4 +1,5 @@
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, type PDFDocument as PDFDocumentType } from 'pdf-lib';
+import { sanitizePdfForExtremeCompression, TINY_JPEG } from '../lib/pdf/pdfByteSanitizer';
 import { assembleChunks } from '../lib/pdf/pdfStreamTransfer';
 
 type ProgressMsg = { type: 'progress'; id: string; current: number; total: number; label: string };
@@ -13,7 +14,21 @@ interface StreamAssembly {
   received: number;
 }
 
+interface CompressSession {
+  doc: PDFDocumentType;
+  totalPages: number;
+  receivedPages: number;
+}
+
+interface ProtectRestrictions {
+  disablePrinting?: boolean;
+  disableCopying?: boolean;
+  disableModifying?: boolean;
+  disableAnnotating?: boolean;
+}
+
 const streamAssemblies = new Map<string, StreamAssembly>();
+const compressSessions = new Map<string, CompressSession>();
 
 function postProgress(id: string, current: number, total: number, label: string) {
   const msg: ProgressMsg = { type: 'progress', id, current, total, label };
@@ -34,11 +49,23 @@ async function yieldToGc(): Promise<void> {
   await new Promise<void>((resolve) => setTimeout(resolve, 0));
 }
 
+async function savePdfWithCompressionFallback(doc: PDFDocumentType): Promise<Uint8Array> {
+  try {
+    return await doc.save({ useObjectStreams: false });
+  } catch {
+    return await doc.save();
+  }
+}
+
 function purgeStreamAssembly(id: string): void {
   const assembly = streamAssemblies.get(id);
   if (!assembly) return;
   assembly.chunks.length = 0;
   streamAssemblies.delete(id);
+}
+
+function purgeCompressSession(id: string): void {
+  compressSessions.delete(id);
 }
 
 async function mergePdfs(id: string, buffers: ArrayBuffer[]) {
@@ -87,6 +114,104 @@ async function pageCountFromBuffer(buffer: ArrayBuffer): Promise<{ pageCount: nu
   return { pageCount: doc.getPageCount() };
 }
 
+async function docEmbedJpgSafe(doc: PDFDocumentType, bytes: Uint8Array) {
+  try {
+    return await doc.embedJpg(bytes);
+  } catch {
+    return await doc.embedJpg(TINY_JPEG);
+  }
+}
+
+async function initCompressSession(id: string, totalPages: number): Promise<void> {
+  compressSessions.set(id, {
+    doc: await PDFDocument.create(),
+    totalPages,
+    receivedPages: 0,
+  });
+}
+
+async function appendCompressPage(id: string, jpegBuffer: ArrayBuffer): Promise<void> {
+  const session = compressSessions.get(id);
+  if (!session) throw new Error('Compression session not found');
+
+  let jpegBytes: Uint8Array | null = new Uint8Array(jpegBuffer);
+  const embedded = await docEmbedJpgSafe(session.doc, jpegBytes);
+  jpegBytes = null;
+
+  const page = session.doc.addPage([embedded.width, embedded.height]);
+  page.drawImage(embedded, { x: 0, y: 0, width: embedded.width, height: embedded.height });
+  session.receivedPages += 1;
+
+  postProgress(
+    id,
+    session.receivedPages,
+    session.totalPages,
+    `Optimizing page ${session.receivedPages} of ${session.totalPages}…`
+  );
+  await yieldToGc();
+}
+
+async function finalizeCompressSession(id: string): Promise<Uint8Array> {
+  const session = compressSessions.get(id);
+  if (!session) throw new Error('Compression session not found');
+
+  compressSessions.delete(id);
+  postProgress(id, session.totalPages, session.totalPages, 'Finalizing compressed PDF…');
+  const output = await savePdfWithCompressionFallback(session.doc);
+  await yieldToGc();
+  return output;
+}
+
+async function stripPdfMetadata(id: string, buffer: ArrayBuffer) {
+  postProgress(id, 1, 3, 'Reading document…');
+  const source = await PDFDocument.load(buffer, { ignoreEncryption: true });
+
+  postProgress(id, 2, 3, 'Rebuilding without metadata…');
+  const out = await PDFDocument.create();
+  const indices = source.getPageIndices();
+  const copied = await out.copyPages(source, indices);
+  copied.forEach((page) => out.addPage(page));
+
+  out.setTitle('');
+  out.setAuthor('');
+  out.setSubject('');
+  out.setKeywords([]);
+  out.setCreator('');
+  out.setProducer('');
+
+  postProgress(id, 3, 3, 'Sanitizing hidden document fields…');
+  let bytes = await out.save({ useObjectStreams: true });
+  bytes = sanitizePdfForExtremeCompression(bytes);
+  await yieldToGc();
+  return bytes;
+}
+
+async function protectPdf(
+  id: string,
+  buffer: ArrayBuffer,
+  userPassword: string,
+  ownerPassword: string,
+  restrictions: ProtectRestrictions = {}
+) {
+  postProgress(id, 1, 2, 'Loading document…');
+  const doc = await PDFDocument.load(buffer, { ignoreEncryption: true });
+  postProgress(id, 2, 2, 'Applying AES encryption…');
+  doc.encrypt({
+    userPassword,
+    ownerPassword: ownerPassword || userPassword,
+    permissions: {
+      printing: restrictions.disablePrinting ? undefined : 'highResolution',
+      modifying: restrictions.disableModifying !== false ? false : true,
+      copying: restrictions.disableCopying !== false ? false : true,
+      annotating: restrictions.disableAnnotating !== false ? false : true,
+      fillingForms: false,
+      contentAccessibility: false,
+      documentAssembly: false,
+    },
+  });
+  return doc.save({ useObjectStreams: true });
+}
+
 async function dispatchOperation(
   id: string,
   op: string,
@@ -99,6 +224,16 @@ async function dispatchOperation(
       return extractPages(id, payload.buffer as ArrayBuffer, payload.pageIndices as number[]);
     case 'page-count':
       return pageCountFromBuffer(payload.buffer as ArrayBuffer);
+    case 'strip-metadata':
+      return stripPdfMetadata(id, payload.buffer as ArrayBuffer);
+    case 'protect-pdf':
+      return protectPdf(
+        id,
+        payload.buffer as ArrayBuffer,
+        payload.userPassword as string,
+        payload.ownerPassword as string,
+        (payload.restrictions as ProtectRestrictions) ?? {}
+      );
     default:
       throw new Error(`Unknown worker operation: ${op}`);
   }
@@ -155,10 +290,29 @@ self.onmessage = async (event: MessageEvent) => {
     }
 
     const op = msg.op as string;
+
+    if (op === 'compress-init') {
+      await initCompressSession(id, (msg.payload as { totalPages: number }).totalPages);
+      return;
+    }
+
+    if (op === 'compress-page') {
+      const { jpeg } = msg.payload as { jpeg: ArrayBuffer };
+      await appendCompressPage(id, jpeg);
+      return;
+    }
+
+    if (op === 'compress-finalize') {
+      const result = await finalizeCompressSession(id);
+      postDone(id, result);
+      return;
+    }
+
     const result = await dispatchOperation(id, op, (msg.payload as Record<string, unknown>) ?? {});
     postDone(id, result);
   } catch (err) {
     purgeStreamAssembly(id);
+    purgeCompressSession(id);
     postError(id, err instanceof Error ? err.message : 'Worker processing failed');
   }
 };
