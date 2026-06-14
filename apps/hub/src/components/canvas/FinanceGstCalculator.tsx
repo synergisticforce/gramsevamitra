@@ -1,0 +1,239 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { Chart } from 'chart.js';
+import { destroyChart, gsmTooltipOptions, renderChart } from '../../lib/charts/chartHelper';
+import {
+  FINANCE_STORAGE_KEYS,
+  loadPersistedJson,
+  savePersistedJson,
+} from '../../lib/canvas/financeCanvasStorage';
+import { formatInr } from '../../lib/finance/formatInr';
+import {
+  calculateGst,
+  GST_SLABS,
+  type GstMode,
+  type GstSupplyType,
+} from '../../lib/finance/gstEngine';
+
+interface GstFormState {
+  amount: number;
+  rate: number;
+  mode: GstMode;
+  supplyType: GstSupplyType;
+}
+
+const DEFAULTS: GstFormState = {
+  amount: 10_000,
+  rate: 18,
+  mode: 'exclusive',
+  supplyType: 'intrastate',
+};
+
+const LIGHT_LEGEND = {
+  labels: { color: '#64748b', boxWidth: 12, padding: 12, font: { size: 11 } },
+};
+
+function pillClass(active: boolean): string {
+  return `rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+    active
+      ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
+      : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-300'
+  }`;
+}
+
+export default function FinanceGstCalculator() {
+  const initial = useMemo(
+    () => loadPersistedJson<GstFormState>(FINANCE_STORAGE_KEYS.gst, DEFAULTS),
+    []
+  );
+  const [amount, setAmount] = useState(initial.amount);
+  const [rate, setRate] = useState(initial.rate);
+  const [mode, setMode] = useState<GstMode>(initial.mode);
+  const [supplyType, setSupplyType] = useState<GstSupplyType>(initial.supplyType);
+
+  const chartRef = useRef<HTMLCanvasElement>(null);
+  const chart = useRef<Chart | null>(null);
+
+  const result = useMemo(
+    () => calculateGst(amount, rate, mode, supplyType),
+    [amount, rate, mode, supplyType]
+  );
+
+  useEffect(() => {
+    savePersistedJson(FINANCE_STORAGE_KEYS.gst, { amount, rate, mode, supplyType });
+  }, [amount, rate, mode, supplyType]);
+
+  useEffect(() => {
+    const canvas = chartRef.current;
+    if (!canvas) return;
+
+    if (!result) {
+      chart.current = destroyChart(chart.current);
+      return;
+    }
+
+    const labels =
+      supplyType === 'interstate'
+        ? ['Net (taxable)', 'IGST']
+        : ['Net (taxable)', 'CGST', 'SGST'];
+
+    const data =
+      supplyType === 'interstate'
+        ? [Math.round(result.net), Math.round(result.igst)]
+        : [Math.round(result.net), Math.round(result.cgst), Math.round(result.sgst)];
+
+    const colors =
+      supplyType === 'interstate'
+        ? ['#059669', '#d97706']
+        : ['#059669', '#0284c7', '#d97706'];
+
+    void (async () => {
+      chart.current = await renderChart(canvas, chart.current, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{ data, backgroundColor: colors, borderWidth: 0 }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '58%',
+          plugins: {
+            legend: { ...LIGHT_LEGEND, position: 'bottom' },
+            tooltip: gsmTooltipOptions((v) => formatInr(v, 2)),
+          },
+        },
+      });
+    })();
+
+    return () => {
+      chart.current = destroyChart(chart.current);
+    };
+  }, [result, supplyType]);
+
+  const inputClass =
+    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 tabular-nums';
+
+  const halfRate = rate / 2;
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Amount &amp; slab</h2>
+        <div className="mt-4 space-y-5">
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              {mode === 'exclusive' ? 'Net price (pre-tax) ₹' : 'Gross price (inclusive) ₹'}
+            </span>
+            <input
+              type="number"
+              min={0}
+              value={amount}
+              onChange={(e) => setAmount(Math.max(0, Number(e.target.value) || 0))}
+              className={inputClass}
+            />
+          </label>
+
+          <fieldset>
+            <legend className="mb-2 text-sm font-medium text-slate-700">GST rate</legend>
+            <div className="flex flex-wrap gap-2">
+              {GST_SLABS.map((slab) => (
+                <button
+                  key={slab}
+                  type="button"
+                  onClick={() => setRate(slab)}
+                  className={pillClass(rate === slab)}
+                >
+                  {slab}%
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend className="mb-2 text-sm font-medium text-slate-700">Mode</legend>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => setMode('exclusive')} className={pillClass(mode === 'exclusive')}>
+                Tax exclusive
+              </button>
+              <button type="button" onClick={() => setMode('inclusive')} className={pillClass(mode === 'inclusive')}>
+                Tax inclusive
+              </button>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend className="mb-2 text-sm font-medium text-slate-700">Supply type</legend>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setSupplyType('intrastate')}
+                className={pillClass(supplyType === 'intrastate')}
+              >
+                CGST + SGST
+              </button>
+              <button
+                type="button"
+                onClick={() => setSupplyType('interstate')}
+                className={pillClass(supplyType === 'interstate')}
+              >
+                IGST
+              </button>
+            </div>
+          </fieldset>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-sm">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-700">GST breakdown</h2>
+
+        <dl className="mt-4 space-y-2 text-sm">
+          <div className="flex justify-between gap-3">
+            <dt className="text-slate-500">Net (taxable value)</dt>
+            <dd className="font-semibold tabular-nums text-slate-900">
+              {result ? formatInr(result.net, 2) : '₹0.00'}
+            </dd>
+          </div>
+          {supplyType === 'intrastate' ? (
+            <>
+              <div className="flex justify-between gap-3">
+                <dt className="text-slate-500">CGST ({halfRate}%)</dt>
+                <dd className="font-semibold tabular-nums text-sky-700">
+                  {result ? formatInr(result.cgst, 2) : '₹0.00'}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-slate-500">SGST ({halfRate}%)</dt>
+                <dd className="font-semibold tabular-nums text-amber-700">
+                  {result ? formatInr(result.sgst, 2) : '₹0.00'}
+                </dd>
+              </div>
+            </>
+          ) : (
+            <div className="flex justify-between gap-3">
+              <dt className="text-slate-500">IGST ({rate}%)</dt>
+              <dd className="font-semibold tabular-nums text-amber-700">
+                {result ? formatInr(result.igst, 2) : '₹0.00'}
+              </dd>
+            </div>
+          )}
+          <div className="flex justify-between gap-3 border-t border-emerald-100 pt-2">
+            <dt className="font-medium text-slate-700">Total GST</dt>
+            <dd className="font-semibold tabular-nums text-amber-800">
+              {result ? formatInr(result.gstTotal, 2) : '₹0.00'}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-3 rounded-lg border border-emerald-200 bg-white px-3 py-2">
+            <dt className="font-medium text-emerald-800">Gross valuation</dt>
+            <dd className="text-lg font-bold tabular-nums text-emerald-700">
+              {result ? formatInr(result.gross, 2) : '₹0.00'}
+            </dd>
+          </div>
+        </dl>
+
+        <div className="relative mt-5 h-52 rounded-xl border border-slate-100 bg-white p-3">
+          <canvas ref={chartRef} aria-label="Net vs GST components" />
+        </div>
+      </section>
+    </div>
+  );
+}

@@ -1,6 +1,6 @@
 ---
 import AppShellLayout from '../../layouts/AppShellLayout.astro';
-import WorkspaceEmptyState from '../../components/app/WorkspaceEmptyState.astro';
+import FinanceHubCanvas from '../../components/canvas/FinanceHubCanvas';
 import { APP_WORKSPACES } from '../../config/appWorkspaces';
 import { formatSeoTitle } from '@shared/config/seo';
 
@@ -12,5 +12,5 @@ const workspace = APP_WORKSPACES.find((ws) => ws.id === 'finance')!;
   description={workspace.description}
   activeWorkspace="finance"
 >
-  <WorkspaceEmptyState workspace={workspace} />
+  <FinanceHubCanvas client:load />
 </AppShellLayout>
