@@ -6,10 +6,15 @@ import {
   saveQuickActiveTool,
 } from '../../lib/canvas/quickToolsCanvasStorage';
 import CanvasToast from './CanvasToast';
+import QuickBase64Tool from './QuickBase64Tool';
+import QuickHashGenerator from './QuickHashGenerator';
 import QuickPasswordGenerator from './QuickPasswordGenerator';
+import QuickPercentageCalculator from './QuickPercentageCalculator';
 import QuickQrGenerator from './QuickQrGenerator';
+import QuickScientificCalculator from './QuickScientificCalculator';
 import QuickToolsToolGrid from './QuickToolsToolGrid';
 import QuickUnitConverter from './QuickUnitConverter';
+import QuickUrlEncoder from './QuickUrlEncoder';
 
 type QuickView = 'grid' | QuickToolId;
 
@@ -21,6 +26,16 @@ function renderTool(toolId: QuickToolId, onToast: (message: string) => void) {
       return <QuickPasswordGenerator onToast={onToast} />;
     case 'unit-converter':
       return <QuickUnitConverter />;
+    case 'percentage-calculator':
+      return <QuickPercentageCalculator />;
+    case 'scientific-calculator':
+      return <QuickScientificCalculator />;
+    case 'base64-encoder':
+      return <QuickBase64Tool onToast={onToast} />;
+    case 'url-encoder':
+      return <QuickUrlEncoder onToast={onToast} />;
+    case 'hash-generator':
+      return <QuickHashGenerator onToast={onToast} />;
     default:
       return null;
   }
@@ -71,7 +86,7 @@ export default function QuickToolsHubCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Quick Tools</h1>
               <p className="mt-1 text-sm text-slate-600">
-                QR codes, passwords, converters, and instant utilities — all offline.
+                QR codes, calculators, encoders, and hash tools — 8 instant utilities, all offline.
               </p>
             </div>
           </div>

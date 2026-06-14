@@ -1,23 +1,25 @@
 /** Persistence helpers for Quick Tools workspace (Phase 8.1). */
 
 import type { QuickToolId } from '../../config/quickToolsCanvasTools';
+import { isQuickToolId } from '../../config/quickToolsCanvasTools';
 
 export const QUICK_TOOLS_STORAGE_KEYS = {
   activeTool: 'gsm-quick-tools-active',
   qrText: 'gsm-quick-tools-qr',
   password: 'gsm-quick-tools-password',
   unitConverter: 'gsm-quick-tools-unit',
+  percentage: 'gsm-quick-tools-percentage',
+  scientific: 'gsm-quick-tools-scientific',
+  base64: 'gsm-quick-tools-base64',
+  url: 'gsm-quick-tools-url',
+  hash: 'gsm-quick-tools-hash',
 } as const;
 
 export function loadQuickActiveTool(): QuickToolId | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(QUICK_TOOLS_STORAGE_KEYS.activeTool);
-    if (
-      raw === 'qr-generator' ||
-      raw === 'password-generator' ||
-      raw === 'unit-converter'
-    ) {
+    if (raw && isQuickToolId(raw)) {
       return raw;
     }
     return null;

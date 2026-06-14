@@ -1,8 +1,20 @@
-/** Quick Tools workspace registry (Phase 8.1). */
+/** Quick Tools workspace registry (Phase 8.1 + Phase 4 migration). */
 
-export type QuickToolCategory = 'generators' | 'converters' | 'calculators';
+export type QuickToolCategory =
+  | 'generators'
+  | 'converters'
+  | 'math'
+  | 'developer';
 
-export type QuickToolId = 'qr-generator' | 'password-generator' | 'unit-converter';
+export type QuickToolId =
+  | 'qr-generator'
+  | 'password-generator'
+  | 'unit-converter'
+  | 'percentage-calculator'
+  | 'scientific-calculator'
+  | 'base64-encoder'
+  | 'url-encoder'
+  | 'hash-generator';
 
 export interface QuickCanvasTool {
   id: QuickToolId;
@@ -24,9 +36,13 @@ export const QUICK_CATEGORY_META: Record<
     label: 'Converters',
     description: 'Convert between common units without leaving the page.',
   },
-  calculators: {
-    label: 'Calculators',
-    description: 'Quick math utilities — more tools shipping soon.',
+  math: {
+    label: 'Math',
+    description: 'Percentage math and a full scientific calculator keypad.',
+  },
+  developer: {
+    label: 'Developer',
+    description: 'Base64, URL encoding, and cryptographic hash digests.',
   },
 };
 
@@ -52,6 +68,41 @@ export const QUICK_CANVAS_TOOLS: QuickCanvasTool[] = [
     category: 'converters',
     description: 'Two-way conversion for length, weight, and temperature.',
   },
+  {
+    id: 'percentage-calculator',
+    label: 'Percentage Calculator',
+    icon: '％',
+    category: 'math',
+    description: 'Find X% of Y, compare values, and calculate percent change.',
+  },
+  {
+    id: 'scientific-calculator',
+    label: 'Scientific Calculator',
+    icon: '🧮',
+    category: 'math',
+    description: 'Trig, powers, and expression history with a responsive keypad.',
+  },
+  {
+    id: 'base64-encoder',
+    label: 'Base64 Encoder',
+    icon: '🔤',
+    category: 'developer',
+    description: 'Encode or decode UTF-8 text to Base64 instantly.',
+  },
+  {
+    id: 'url-encoder',
+    label: 'URL Encoder',
+    icon: '🌐',
+    category: 'developer',
+    description: 'Encode or decode URI components with live output.',
+  },
+  {
+    id: 'hash-generator',
+    label: 'Hash Generator',
+    icon: '#️⃣',
+    category: 'developer',
+    description: 'Compute MD5 and SHA-256 digests locally as you type.',
+  },
 ];
 
 export function getQuickTool(id: QuickToolId): QuickCanvasTool | undefined {
@@ -62,10 +113,17 @@ export function quickToolsByCategory(): Record<QuickToolCategory, QuickCanvasToo
   const grouped: Record<QuickToolCategory, QuickCanvasTool[]> = {
     generators: [],
     converters: [],
-    calculators: [],
+    math: [],
+    developer: [],
   };
   for (const tool of QUICK_CANVAS_TOOLS) {
     grouped[tool.category].push(tool);
   }
   return grouped;
+}
+
+export const QUICK_TOOL_IDS: QuickToolId[] = QUICK_CANVAS_TOOLS.map((t) => t.id);
+
+export function isQuickToolId(value: string): value is QuickToolId {
+  return QUICK_TOOL_IDS.includes(value as QuickToolId);
 }
