@@ -1,6 +1,6 @@
 ---
 import AppShellLayout from '../../layouts/AppShellLayout.astro';
-import WorkspaceEmptyState from '../../components/app/WorkspaceEmptyState.astro';
+import QuickToolsHubCanvas from '../../components/canvas/QuickToolsHubCanvas';
 import { APP_WORKSPACES } from '../../config/appWorkspaces';
 import { formatSeoTitle } from '@shared/config/seo';
 
@@ -12,5 +12,5 @@ const workspace = APP_WORKSPACES.find((ws) => ws.id === 'quick-tools')!;
   description={workspace.description}
   activeWorkspace="quick-tools"
 >
-  <WorkspaceEmptyState workspace={workspace} />
+  <QuickToolsHubCanvas client:load />
 </AppShellLayout>
