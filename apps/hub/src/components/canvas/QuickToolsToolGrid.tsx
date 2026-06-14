@@ -9,7 +9,15 @@ interface Props {
   onSelectTool: (toolId: QuickToolId) => void;
 }
 
-const CATEGORY_ORDER: QuickToolCategory[] = ['generators', 'converters', 'math', 'developer'];
+const CATEGORY_ORDER: QuickToolCategory[] = [
+  'generators',
+  'converters',
+  'math',
+  'developer',
+  'design',
+  'web',
+  'lifestyle',
+];
 
 export default function QuickToolsToolGrid({ onSelectTool }: Props) {
   const grouped = quickToolsByCategory();

@@ -11,6 +11,14 @@ export interface ColorSwatch {
 
 export type HarmonyMode = 'monochromatic' | 'complementary' | 'triadic';
 
+export type PaletteHarmony = 'complementary' | 'analogous' | 'triadic';
+
+function normalizeHexInput(hex: string): string | null {
+  const cleaned = hex.trim().replace(/^#/, '');
+  if (!/^[0-9a-f]{6}$/i.test(cleaned)) return null;
+  return `#${cleaned.toUpperCase()}`;
+}
+
 export function rgbToHex(r: number, g: number, b: number): string {
   const toHex = (n: number) => Math.round(Math.max(0, Math.min(255, n))).toString(16).padStart(2, '0');
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
@@ -166,6 +174,41 @@ export function generateHarmonizedPalette(mode: HarmonyMode, baseHue = randomHue
     const norm = ((h % 360) + 360) % 360;
     return toSwatch(hslToRgb(norm, sats[i], lights[i]));
   });
+}
+
+/** Build a 5-swatch palette from a base hex using complementary, analogous, or triadic harmony. */
+export function generatePaletteFromHex(hex: string, mode: PaletteHarmony): ColorSwatch[] {
+  const normalized = normalizeHexInput(hex);
+  if (!normalized) return [];
+  const rgb = hexToRgb(normalized.replace('#', ''));
+  if (!rgb) return [];
+  const { h, s, l } = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  const sat = Math.min(100, Math.max(28, s));
+  const baseL = Math.min(82, Math.max(18, l));
+
+  let hues: number[];
+  if (mode === 'complementary') {
+    hues = [h, h + 180, h, h + 180, h + 180];
+  } else if (mode === 'analogous') {
+    hues = [h - 30, h - 15, h, h + 15, h + 30];
+  } else {
+    hues = [h, h + 120, h + 240, h + 60, h + 180];
+  }
+
+  const lights = [baseL, baseL + 12, baseL - 10, baseL + 20, baseL - 6];
+  return hues.map((hue, i) => {
+    const norm = ((hue % 360) + 360) % 360;
+    const lightness = Math.max(10, Math.min(90, lights[i]));
+    return toSwatch(hslToRgb(norm, sat, lightness));
+  });
+}
+
+export function generateAllHarmoniesFromHex(hex: string): Record<PaletteHarmony, ColorSwatch[]> {
+  return {
+    complementary: generatePaletteFromHex(hex, 'complementary'),
+    analogous: generatePaletteFromHex(hex, 'analogous'),
+    triadic: generatePaletteFromHex(hex, 'triadic'),
+  };
 }
 
 export async function loadImageToCanvas(

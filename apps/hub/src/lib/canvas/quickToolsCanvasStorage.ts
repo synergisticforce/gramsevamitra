@@ -13,6 +13,11 @@ export const QUICK_TOOLS_STORAGE_KEYS = {
   base64: 'gsm-quick-tools-base64',
   url: 'gsm-quick-tools-url',
   hash: 'gsm-quick-tools-hash',
+  colorPalette: 'gsm-quick-tools-color-palette',
+  decisionWheel: 'gsm-quick-tools-decision-wheel',
+  seoMeta: 'gsm-quick-tools-seo-meta',
+  recipeScaler: 'gsm-quick-tools-recipe-scaler',
+  babyNames: 'gsm-quick-tools-baby-names',
 } as const;
 
 export function loadQuickActiveTool(): QuickToolId | null {

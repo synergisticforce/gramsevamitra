@@ -4,7 +4,10 @@ export type QuickToolCategory =
   | 'generators'
   | 'converters'
   | 'math'
-  | 'developer';
+  | 'developer'
+  | 'design'
+  | 'web'
+  | 'lifestyle';
 
 export type QuickToolId =
   | 'qr-generator'
@@ -14,7 +17,12 @@ export type QuickToolId =
   | 'scientific-calculator'
   | 'base64-encoder'
   | 'url-encoder'
-  | 'hash-generator';
+  | 'hash-generator'
+  | 'color-palette'
+  | 'decision-wheel'
+  | 'seo-meta-generator'
+  | 'recipe-scaler'
+  | 'baby-name-generator';
 
 export interface QuickCanvasTool {
   id: QuickToolId;
@@ -43,6 +51,18 @@ export const QUICK_CATEGORY_META: Record<
   developer: {
     label: 'Developer',
     description: 'Base64, URL encoding, and cryptographic hash digests.',
+  },
+  design: {
+    label: 'Design',
+    description: 'Color harmonies and visual creative utilities.',
+  },
+  web: {
+    label: 'Web',
+    description: 'SEO snippets and shareable meta tag generators.',
+  },
+  lifestyle: {
+    label: 'Lifestyle',
+    description: 'Recipes, baby names, and fun everyday decision tools.',
   },
 };
 
@@ -103,6 +123,41 @@ export const QUICK_CANVAS_TOOLS: QuickCanvasTool[] = [
     category: 'developer',
     description: 'Compute MD5 and SHA-256 digests locally as you type.',
   },
+  {
+    id: 'color-palette',
+    label: 'Color Palette',
+    icon: '🎨',
+    category: 'design',
+    description: 'Generate complementary, analogous, and triadic swatches from a base hex.',
+  },
+  {
+    id: 'decision-wheel',
+    label: 'Decision Wheel',
+    icon: '🎡',
+    category: 'lifestyle',
+    description: 'Spin a canvas wheel to pick randomly from your custom options.',
+  },
+  {
+    id: 'seo-meta-generator',
+    label: 'SEO Meta Tags',
+    icon: '🔍',
+    category: 'web',
+    description: 'Preview Google snippets and copy ready-to-paste meta tags.',
+  },
+  {
+    id: 'recipe-scaler',
+    label: 'Recipe Scaler',
+    icon: '🍳',
+    category: 'lifestyle',
+    description: 'Scale ingredient lists up or down with a serving-size slider.',
+  },
+  {
+    id: 'baby-name-generator',
+    label: 'Baby Name Generator',
+    icon: '👶',
+    category: 'lifestyle',
+    description: 'Browse and shortlist Indian and international baby names offline.',
+  },
 ];
 
 export function getQuickTool(id: QuickToolId): QuickCanvasTool | undefined {
@@ -115,6 +170,9 @@ export function quickToolsByCategory(): Record<QuickToolCategory, QuickCanvasToo
     converters: [],
     math: [],
     developer: [],
+    design: [],
+    web: [],
+    lifestyle: [],
   };
   for (const tool of QUICK_CANVAS_TOOLS) {
     grouped[tool.category].push(tool);
