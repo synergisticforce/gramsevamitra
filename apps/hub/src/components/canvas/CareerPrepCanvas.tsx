@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CareerCanvasAction } from '../../config/careerCanvasActions';
 import {
-  actionsForCareerMime,
+  careerToolbarActions,
   isCareerDocumentMimeOrName,
 } from '../../config/careerCanvasActions';
 import { extractTextFromPdfFile, isDocxFile, isPdfFile } from '../../lib/canvas/careerPdfText';
@@ -16,14 +16,25 @@ import {
 import { useCareerActionHandler } from '../../lib/canvas/useCareerActionHandler';
 import CareerAiResultModal from './CareerAiResultModal';
 import AtsScannerModal from './AtsScannerModal';
+import BusinessCardModal from './BusinessCardModal';
 import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
 import CareerActionToolbar from './CareerActionToolbar';
 import CareerMagicDropzone from './CareerMagicDropzone';
+import ColdEmailModal from './ColdEmailModal';
 import CoverLetterModal from './CoverLetterModal';
+import JobTrackerModal from './JobTrackerModal';
+import SalaryCalculatorModal from './SalaryCalculatorModal';
 
 type CanvasPhase = 'empty' | 'active';
-type CareerToolModal = 'ats-scanner' | 'cover-letter' | null;
+type CareerToolModal =
+  | 'job-tracker'
+  | 'salary-calculator'
+  | 'cold-email'
+  | 'business-card'
+  | 'ats-scanner'
+  | 'cover-letter'
+  | null;
 
 interface ActiveFile {
   file: File | null;
@@ -89,6 +100,22 @@ export default function CareerPrepCanvas() {
 
   const onFreeAction = useCallback(
     (action: CareerCanvasAction) => {
+      if (action.id === 'job-tracker') {
+        setCareerModal('job-tracker');
+        return;
+      }
+      if (action.id === 'salary-calculator') {
+        setCareerModal('salary-calculator');
+        return;
+      }
+      if (action.id === 'cold-email-builder') {
+        setCareerModal('cold-email');
+        return;
+      }
+      if (action.id === 'business-card') {
+        setCareerModal('business-card');
+        return;
+      }
       if (action.id === 'ats-scanner') {
         const file = requireCanvasFile();
         if (!file) return;
@@ -226,8 +253,9 @@ export default function CareerPrepCanvas() {
   );
 
   const toolbarActions = useMemo(() => {
-    if (!activeFile) return [];
-    return actionsForCareerMime(activeFile.meta.type);
+    const hasDocument = Boolean(activeFile);
+    const mimeType = activeFile?.meta.type ?? '';
+    return careerToolbarActions(hasDocument, mimeType);
   }, [activeFile]);
 
   const atsFile =
@@ -255,17 +283,21 @@ export default function CareerPrepCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Career Prep</h1>
               <p className="mt-1 text-sm text-slate-600">
-                ATS scanning, cover letters, and AI resume tools — drop a document to begin.
+                Job tracking, salary tools, ATS scanning, and AI resume helpers — drop a document or
+                pick a tool below.
               </p>
             </div>
           </div>
         </header>
 
         {phase === 'empty' && (
-          <CareerMagicDropzone
-            onFileSelect={activateFile}
-            onInvalidFile={() => setToastMessage('Please upload a PDF or Word (DOCX) document.')}
-          />
+          <div className="space-y-4">
+            <CareerMagicDropzone
+              onFileSelect={activateFile}
+              onInvalidFile={() => setToastMessage('Please upload a PDF or Word (DOCX) document.')}
+            />
+            <CareerActionToolbar actions={toolbarActions} onActionClick={handleActionClick} />
+          </div>
         )}
 
         {phase === 'active' && activeFile && (
@@ -326,6 +358,26 @@ export default function CareerPrepCanvas() {
           </div>
         )}
       </div>
+
+      {careerModal === 'job-tracker' && (
+        <JobTrackerModal onClose={() => setCareerModal(null)} onSuccess={setToastMessage} />
+      )}
+
+      {careerModal === 'salary-calculator' && (
+        <SalaryCalculatorModal onClose={() => setCareerModal(null)} onSuccess={setToastMessage} />
+      )}
+
+      {careerModal === 'cold-email' && (
+        <ColdEmailModal onClose={() => setCareerModal(null)} onSuccess={setToastMessage} />
+      )}
+
+      {careerModal === 'business-card' && (
+        <BusinessCardModal
+          onClose={() => setCareerModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
 
       {careerModal === 'ats-scanner' && atsFile && (
         <AtsScannerModal

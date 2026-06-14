@@ -1,4 +1,4 @@
-/** Contextual toolbar actions for Career Prep (Phase 6.1). */
+/** Contextual toolbar actions for Career Prep (Phase 6.1 + Phase 4 migration). */
 
 export type CareerActionTier = 'free' | 'pro';
 
@@ -7,6 +7,8 @@ export interface CareerCanvasAction {
   label: string;
   icon: string;
   tier: CareerActionTier;
+  /** When true, user must have a document on the canvas before opening this tool. */
+  requiresDocument?: boolean;
   mimePatterns?: string[];
   featureId?: string;
   featureName?: string;
@@ -29,10 +31,35 @@ export function isCareerDocumentMimeOrName(type: string, name: string): boolean 
 
 export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
   {
+    id: 'job-tracker',
+    label: 'Job Tracker',
+    icon: '📋',
+    tier: 'free',
+  },
+  {
+    id: 'salary-calculator',
+    label: 'Salary Calc',
+    icon: '💰',
+    tier: 'free',
+  },
+  {
+    id: 'cold-email-builder',
+    label: 'Cold Email',
+    icon: '✉️',
+    tier: 'free',
+  },
+  {
+    id: 'business-card',
+    label: 'Biz Card',
+    icon: '🪪',
+    tier: 'free',
+  },
+  {
     id: 'ats-scanner',
     label: 'ATS Scanner',
     icon: '🔍',
     tier: 'free',
+    requiresDocument: true,
     mimePatterns: [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -44,6 +71,7 @@ export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
     label: 'Cover Letter Templates',
     icon: '📄',
     tier: 'free',
+    requiresDocument: true,
     mimePatterns: [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -55,6 +83,7 @@ export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
     label: 'AI Resume Rewriter',
     icon: '⚡',
     tier: 'pro',
+    requiresDocument: true,
     mimePatterns: [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -70,6 +99,7 @@ export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
     label: 'AI Cover Letter',
     icon: '⚡',
     tier: 'pro',
+    requiresDocument: true,
     mimePatterns: [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -89,11 +119,19 @@ export function mimeMatchesPattern(mimeType: string, pattern: string): boolean {
   return mimeType === pattern;
 }
 
-export function actionsForCareerMime(mimeType: string): CareerCanvasAction[] {
+export function careerToolbarActions(hasDocument: boolean, mimeType = ''): CareerCanvasAction[] {
   return CAREER_CANVAS_ACTIONS.filter((action) => {
-    if (!action.mimePatterns?.length) return true;
+    const needsDoc = action.requiresDocument ?? false;
+    if (needsDoc && !hasDocument) return false;
+    if (!needsDoc) return true;
+    if (!action.mimePatterns?.length) return hasDocument;
     return action.mimePatterns.some((pattern) => mimeMatchesPattern(mimeType, pattern));
   });
+}
+
+/** @deprecated Use careerToolbarActions */
+export function actionsForCareerMime(mimeType: string): CareerCanvasAction[] {
+  return careerToolbarActions(true, mimeType);
 }
 
 export function getCareerCanvasAction(actionId: string): CareerCanvasAction | undefined {
