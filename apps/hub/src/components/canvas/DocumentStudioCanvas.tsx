@@ -33,6 +33,7 @@ interface ProcessingState {
   active: boolean;
   label: string;
   percent: number;
+  subtitle?: string;
 }
 
 export default function DocumentStudioCanvas() {
@@ -46,62 +47,120 @@ export default function DocumentStudioCanvas() {
     label: '',
     percent: 0,
   });
+  const [smartExtractBusy, setSmartExtractBusy] = useState(false);
 
   const dismissToast = useCallback(() => setToastMessage(null), []);
 
-  const requireCanvasBlob = useCallback((): File | null => {
+  const requireCanvasFile = useCallback((): File | null => {
     if (!activeFile?.file) {
-      setToastMessage('Re-upload your PDF on the canvas to run this action.');
-      return null;
-    }
-    if (!isPdfMimeOrName(activeFile.meta.type, activeFile.meta.name)) {
-      setToastMessage('This action is available for PDF files only.');
+      setToastMessage('Re-upload your file on the canvas to run this action.');
       return null;
     }
     return activeFile.file;
   }, [activeFile]);
 
-  const onProcessingChange = useCallback((active: boolean, label: string, percent: number) => {
-    setProcessing({ active, label, percent });
-    if (!active) {
-      setProcessing({ active: false, label: '', percent: 0 });
+  const requirePdfCanvasFile = useCallback((): File | null => {
+    const file = requireCanvasFile();
+    if (!file) return null;
+    if (!isPdfMimeOrName(activeFile!.meta.type, activeFile!.meta.name)) {
+      setToastMessage('This action is available for PDF files only.');
+      return null;
     }
-  }, []);
+    return file;
+  }, [activeFile, requireCanvasFile]);
 
-  const onProAction = useCallback((_action: DocumentCanvasAction) => {
-    setToastMessage('Initiating Serverless GPU processing…');
-  }, []);
+  const setProcessingProgress = useCallback(
+    (active: boolean, label: string, percent: number, subtitle?: string) => {
+      if (!active) {
+        setProcessing({ active: false, label: '', percent: 0 });
+        return;
+      }
+      setProcessing({ active: true, label, percent, subtitle });
+    },
+    []
+  );
+
+  const onProcessingChange = useCallback(
+    (active: boolean, label: string, percent: number) => {
+      setProcessingProgress(active, label, percent);
+    },
+    [setProcessingProgress]
+  );
+
+  const onProAction = useCallback(
+    async (action: DocumentCanvasAction) => {
+      if (action.id !== 'smart-extract') return;
+      if (smartExtractBusy) return;
+
+      const file = requireCanvasFile();
+      if (!file) return;
+
+      setSmartExtractBusy(true);
+      setProcessingProgress(
+        true,
+        'Uploading document to secure transient storage…',
+        5,
+        'Pro processing uses ephemeral Cloudflare R2 storage — deleted after extraction.'
+      );
+
+      try {
+        const { runSmartExtractPipeline } = await import('../../lib/canvas/documentSmartExtract');
+        const result = await runSmartExtractPipeline(file, ({ label, percent }) => {
+          setProcessingProgress(
+            true,
+            label,
+            percent,
+            'Pro processing uses ephemeral Cloudflare R2 storage — deleted after extraction.'
+          );
+        });
+        setProcessingProgress(false, '', 0);
+        const seconds =
+          result.processingMs != null ? Math.round(result.processingMs / 1000) : 3;
+        setToastMessage(
+          `Smart Extract complete — ${result.fileName} downloaded (${seconds}s mock GPU pipeline).`
+        );
+      } catch (err) {
+        setProcessingProgress(false, '', 0);
+        setToastMessage(
+          err instanceof Error ? err.message : 'Smart Extract failed. Please try again.'
+        );
+      } finally {
+        setSmartExtractBusy(false);
+      }
+    },
+    [requireCanvasFile, setProcessingProgress, smartExtractBusy]
+  );
 
   const onFreeAction = useCallback(
     (action: DocumentCanvasAction) => {
       if (action.id === 'split') {
-        if (!requireCanvasBlob()) return;
+        if (!requirePdfCanvasFile()) return;
         setPdfModal('split');
         return;
       }
       if (action.id === 'merge') {
-        if (!requireCanvasBlob()) return;
+        if (!requirePdfCanvasFile()) return;
         setPdfModal('merge');
         return;
       }
       if (action.id === 'compress') {
-        if (!requireCanvasBlob()) return;
+        if (!requirePdfCanvasFile()) return;
         setPdfModal('compress');
         return;
       }
       if (action.id === 'protect') {
-        if (!requireCanvasBlob()) return;
+        if (!requirePdfCanvasFile()) return;
         setPdfModal('protect');
         return;
       }
       if (action.id === 'unlock') {
-        if (!requireCanvasBlob()) return;
+        if (!requirePdfCanvasFile()) return;
         setPdfModal('unlock');
         return;
       }
       setToastMessage(`${action.label} is coming soon.`);
     },
-    [requireCanvasBlob]
+    [requirePdfCanvasFile]
   );
 
   const { handleActionClick } = useDocumentActionHandler({ onFreeAction, onProAction });
@@ -289,7 +348,11 @@ export default function DocumentStudioCanvas() {
       )}
 
       {processing.active && (
-        <CanvasProcessingOverlay label={processing.label} percent={processing.percent} />
+        <CanvasProcessingOverlay
+          label={processing.label}
+          percent={processing.percent}
+          subtitle={processing.subtitle}
+        />
       )}
 
       <CanvasToast message={toastMessage} onDismiss={dismissToast} />
