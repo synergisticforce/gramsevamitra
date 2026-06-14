@@ -12,6 +12,12 @@ export const FINANCE_STORAGE_KEYS = {
   tip: 'gsm-finance-tip',
   meeting: 'gsm-finance-meeting',
   tax: 'gsm-finance-tax',
+  currency: 'gsm-finance-currency',
+  invoice: 'gsm-finance-invoice',
+  paystub: 'gsm-finance-paystub',
+  crypto: 'gsm-finance-crypto',
+  envelope: 'gsm-finance-envelope',
+  gig: 'gsm-finance-gig',
   activeTool: 'gsm-finance-active',
 } as const;
 

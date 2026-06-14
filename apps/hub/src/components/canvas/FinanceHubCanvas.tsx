@@ -5,11 +5,17 @@ import {
   loadFinanceActiveTool,
   saveFinanceActiveTool,
 } from '../../lib/canvas/financeCanvasStorage';
+import FinanceCryptoGainsCalculator from './FinanceCryptoGainsCalculator';
+import FinanceCurrencyConverter from './FinanceCurrencyConverter';
 import FinanceDiscountMarginCalculator from './FinanceDiscountMarginCalculator';
 import FinanceEmiCalculator from './FinanceEmiCalculator';
+import FinanceEnvelopeBudgetPlanner from './FinanceEnvelopeBudgetPlanner';
+import FinanceGigIncomeTracker from './FinanceGigIncomeTracker';
 import FinanceGstCalculator from './FinanceGstCalculator';
+import FinanceInvoiceBuilder from './FinanceInvoiceBuilder';
 import FinanceLoanRepaymentCalculator from './FinanceLoanRepaymentCalculator';
 import FinanceMeetingCostCalculator from './FinanceMeetingCostCalculator';
+import FinancePayStubGenerator from './FinancePayStubGenerator';
 import FinanceSipCalculator from './FinanceSipCalculator';
 import FinanceTaxDeductionCalculator from './FinanceTaxDeductionCalculator';
 import FinanceTipSplitCalculator from './FinanceTipSplitCalculator';
@@ -35,6 +41,18 @@ function renderTool(toolId: FinanceToolId) {
       return <FinanceMeetingCostCalculator />;
     case 'tax-deduction-calculator':
       return <FinanceTaxDeductionCalculator />;
+    case 'currency-converter':
+      return <FinanceCurrencyConverter />;
+    case 'invoice-builder':
+      return <FinanceInvoiceBuilder />;
+    case 'pay-stub-generator':
+      return <FinancePayStubGenerator />;
+    case 'crypto-gains-calculator':
+      return <FinanceCryptoGainsCalculator />;
+    case 'envelope-budget-planner':
+      return <FinanceEnvelopeBudgetPlanner />;
+    case 'gig-income-tracker':
+      return <FinanceGigIncomeTracker />;
     default:
       return null;
   }
@@ -82,7 +100,7 @@ export default function FinanceHubCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Finance Hub</h1>
               <p className="mt-1 text-sm text-slate-600">
-                EMI, SIP, GST, discounts, tax estimates, and everyday money tools — all offline.
+                EMI, SIP, GST, invoices, crypto gains, budgeting, and 14 client-side money tools.
               </p>
             </div>
           </div>

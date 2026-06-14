@@ -11,10 +11,12 @@ interface Props {
 
 const CATEGORY_ORDER: FinanceToolCategory[] = [
   'investment',
+  'planning',
   'loans',
   'taxes',
   'business',
   'everyday',
+  'international',
 ];
 
 export default function FinanceToolGrid({ onSelectTool }: Props) {

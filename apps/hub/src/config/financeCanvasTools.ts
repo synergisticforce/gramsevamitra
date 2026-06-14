@@ -1,6 +1,13 @@
 /** Finance Hub workspace tool registry (Phase 7.1 + Phase 4 migration). */
 
-export type FinanceToolCategory = 'investment' | 'loans' | 'taxes' | 'business' | 'everyday';
+export type FinanceToolCategory =
+  | 'investment'
+  | 'loans'
+  | 'taxes'
+  | 'business'
+  | 'everyday'
+  | 'international'
+  | 'planning';
 
 export type FinanceToolId =
   | 'sip-calculator'
@@ -10,7 +17,13 @@ export type FinanceToolId =
   | 'loan-repayment-calculator'
   | 'tip-split-calculator'
   | 'meeting-cost-calculator'
-  | 'tax-deduction-calculator';
+  | 'tax-deduction-calculator'
+  | 'currency-converter'
+  | 'invoice-builder'
+  | 'pay-stub-generator'
+  | 'crypto-gains-calculator'
+  | 'envelope-budget-planner'
+  | 'gig-income-tracker';
 
 export interface FinanceCanvasTool {
   id: FinanceToolId;
@@ -43,6 +56,14 @@ export const FINANCE_CATEGORY_META: Record<
   everyday: {
     label: 'Everyday',
     description: 'Tips, splits, and quick money math for daily use.',
+  },
+  international: {
+    label: 'International',
+    description: 'Live currency conversion with offline rate cache.',
+  },
+  planning: {
+    label: 'Planning',
+    description: 'Budget envelopes, gig income, and crypto portfolio tracking.',
   },
 };
 
@@ -103,6 +124,48 @@ export const FINANCE_CANVAS_TOOLS: FinanceCanvasTool[] = [
     category: 'everyday',
     description: 'Split restaurant bills with adjustable tip percentages.',
   },
+  {
+    id: 'currency-converter',
+    label: 'Currency Converter',
+    icon: '💱',
+    category: 'international',
+    description: 'Convert 160+ currencies with live rates and offline cache.',
+  },
+  {
+    id: 'invoice-builder',
+    label: 'Invoice Builder',
+    icon: '📄',
+    category: 'business',
+    description: 'Build invoices with live preview and export a clean PDF.',
+  },
+  {
+    id: 'pay-stub-generator',
+    label: 'Pay Stub Generator',
+    icon: '💼',
+    category: 'business',
+    description: 'Generate pay stubs with earnings, deductions, and PDF export.',
+  },
+  {
+    id: 'crypto-gains-calculator',
+    label: 'Crypto Gains',
+    icon: '₿',
+    category: 'investment',
+    description: 'Track trades with FIFO capital gains and portfolio charts.',
+  },
+  {
+    id: 'envelope-budget-planner',
+    label: 'Envelope Budget',
+    icon: '✉️',
+    category: 'planning',
+    description: 'Zero-based envelope budgeting with budget vs. actual charts.',
+  },
+  {
+    id: 'gig-income-tracker',
+    label: 'Gig Income Tracker',
+    icon: '🛵',
+    category: 'planning',
+    description: 'Log freelance income with monthly and category breakdowns.',
+  },
 ];
 
 export function getFinanceTool(id: FinanceToolId): FinanceCanvasTool | undefined {
@@ -116,6 +179,8 @@ export function toolsByCategory(): Record<FinanceToolCategory, FinanceCanvasTool
     taxes: [],
     business: [],
     everyday: [],
+    international: [],
+    planning: [],
   };
   for (const tool of FINANCE_CANVAS_TOOLS) {
     grouped[tool.category].push(tool);
