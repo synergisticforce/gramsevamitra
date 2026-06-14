@@ -9,12 +9,16 @@ import CanvasToast from './CanvasToast';
 import QuickBabyNameGenerator from './QuickBabyNameGenerator';
 import QuickBase64Tool from './QuickBase64Tool';
 import QuickColorPalette from './QuickColorPalette';
+import QuickConstructionEstimator from './QuickConstructionEstimator';
 import QuickDecisionWheel from './QuickDecisionWheel';
+import QuickGardenPlantingPlanner from './QuickGardenPlantingPlanner';
 import QuickHashGenerator from './QuickHashGenerator';
 import QuickPasswordGenerator from './QuickPasswordGenerator';
 import QuickPercentageCalculator from './QuickPercentageCalculator';
+import QuickPetCareScheduler from './QuickPetCareScheduler';
 import QuickQrGenerator from './QuickQrGenerator';
 import QuickRecipeScaler from './QuickRecipeScaler';
+import QuickRenovationBudgeter from './QuickRenovationBudgeter';
 import QuickScientificCalculator from './QuickScientificCalculator';
 import QuickSeoMetaGenerator from './QuickSeoMetaGenerator';
 import QuickToolsToolGrid from './QuickToolsToolGrid';
@@ -51,6 +55,14 @@ function renderTool(toolId: QuickToolId, onToast: (message: string) => void) {
       return <QuickRecipeScaler />;
     case 'baby-name-generator':
       return <QuickBabyNameGenerator />;
+    case 'pet-care-scheduler':
+      return <QuickPetCareScheduler />;
+    case 'garden-planting-planner':
+      return <QuickGardenPlantingPlanner />;
+    case 'construction-estimator':
+      return <QuickConstructionEstimator />;
+    case 'renovation-budgeter':
+      return <QuickRenovationBudgeter />;
     default:
       return null;
   }
@@ -101,7 +113,7 @@ export default function QuickToolsHubCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Quick Tools</h1>
               <p className="mt-1 text-sm text-slate-600">
-                Calculators, encoders, color palettes, SEO tags, and 13 instant utilities — all offline.
+                17 client-side utilities — calculators, planners, encoders, and home DIY tools, all offline.
               </p>
             </div>
           </div>

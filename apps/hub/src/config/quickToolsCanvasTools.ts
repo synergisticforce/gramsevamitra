@@ -7,7 +7,8 @@ export type QuickToolCategory =
   | 'developer'
   | 'design'
   | 'web'
-  | 'lifestyle';
+  | 'lifestyle'
+  | 'home-diy';
 
 export type QuickToolId =
   | 'qr-generator'
@@ -22,7 +23,11 @@ export type QuickToolId =
   | 'decision-wheel'
   | 'seo-meta-generator'
   | 'recipe-scaler'
-  | 'baby-name-generator';
+  | 'baby-name-generator'
+  | 'pet-care-scheduler'
+  | 'garden-planting-planner'
+  | 'construction-estimator'
+  | 'renovation-budgeter';
 
 export interface QuickCanvasTool {
   id: QuickToolId;
@@ -62,7 +67,11 @@ export const QUICK_CATEGORY_META: Record<
   },
   lifestyle: {
     label: 'Lifestyle',
-    description: 'Recipes, baby names, and fun everyday decision tools.',
+    description: 'Pets, gardens, recipes, baby names, and everyday planning tools.',
+  },
+  'home-diy': {
+    label: 'Home & DIY',
+    description: 'Construction estimates and room-by-room renovation budgets.',
   },
 };
 
@@ -158,6 +167,34 @@ export const QUICK_CANVAS_TOOLS: QuickCanvasTool[] = [
     category: 'lifestyle',
     description: 'Browse and shortlist Indian and international baby names offline.',
   },
+  {
+    id: 'pet-care-scheduler',
+    label: 'Pet Care Scheduler',
+    icon: '🐾',
+    category: 'lifestyle',
+    description: 'Track daily and weekly feeding, walks, and grooming tasks.',
+  },
+  {
+    id: 'garden-planting-planner',
+    label: 'Garden Planner',
+    icon: '🌱',
+    category: 'lifestyle',
+    description: 'Log sow dates, watering schedules, and planting notes.',
+  },
+  {
+    id: 'construction-estimator',
+    label: 'Construction Estimator',
+    icon: '🧱',
+    category: 'home-diy',
+    description: 'Estimate cement, bricks, labor, and material costs with charts.',
+  },
+  {
+    id: 'renovation-budgeter',
+    label: 'Renovation Budget',
+    icon: '🏠',
+    category: 'home-diy',
+    description: 'Plan room-by-room renovation line items and expense breakdowns.',
+  },
 ];
 
 export function getQuickTool(id: QuickToolId): QuickCanvasTool | undefined {
@@ -173,6 +210,7 @@ export function quickToolsByCategory(): Record<QuickToolCategory, QuickCanvasToo
     design: [],
     web: [],
     lifestyle: [],
+    'home-diy': [],
   };
   for (const tool of QUICK_CANVAS_TOOLS) {
     grouped[tool.category].push(tool);

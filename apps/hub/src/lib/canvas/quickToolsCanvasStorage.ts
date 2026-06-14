@@ -18,6 +18,10 @@ export const QUICK_TOOLS_STORAGE_KEYS = {
   seoMeta: 'gsm-quick-tools-seo-meta',
   recipeScaler: 'gsm-quick-tools-recipe-scaler',
   babyNames: 'gsm-quick-tools-baby-names',
+  petCare: 'gsm-quick-tools-pet-care',
+  garden: 'gsm-quick-tools-garden',
+  construction: 'gsm-quick-tools-construction',
+  renovation: 'gsm-quick-tools-renovation',
 } as const;
 
 export function loadQuickActiveTool(): QuickToolId | null {
