@@ -30,7 +30,7 @@ export default function CanvasToast({ message, onDismiss, durationMs = 4200 }: P
       role="status"
       aria-live="polite"
     >
-      <div className="rounded-xl border border-slate-200 bg-slate-900 px-4 py-3 text-center text-sm font-medium text-white shadow-lg">
+      <div className="rounded-xl border border-canvas-border bg-canvas-accent-muted px-4 py-3 text-center text-sm font-medium text-canvas-text shadow-none">
         {message}
       </div>
     </div>

@@ -57,7 +57,7 @@ export default function ConvertFormatModal({
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="convert-format-title"
@@ -65,13 +65,13 @@ export default function ConvertFormatModal({
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="convert-format-title" className="text-lg font-bold text-slate-900">
+            <h2 id="convert-format-title" className="text-lg font-bold text-canvas-text">
               Convert Format
             </h2>
-            <p className="mt-1 text-xs text-slate-500 truncate">
+            <p className="mt-1 text-xs text-canvas-subtle truncate">
               {file.name} · {formatFileSize(file.size)}
             </p>
           </div>
@@ -79,14 +79,14 @@ export default function ConvertFormatModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted disabled:opacity-50"
             aria-label="Close"
           >
             ✕
           </button>
         </div>
 
-        <p className="mt-4 text-sm text-slate-600">
+        <p className="mt-4 text-sm text-canvas-muted">
           Redraws your image on an HTML5 canvas and exports locally — no server upload.
         </p>
 
@@ -98,8 +98,8 @@ export default function ConvertFormatModal({
                 key={item.id}
                 className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition ${
                   selected
-                    ? 'border-violet-400 bg-violet-50'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
+                    ? 'border-violet-400 bg-canvas-accent-soft'
+                    : 'border-canvas-border bg-canvas-surface hover:border-canvas-border'
                 }`}
               >
                 <input
@@ -112,8 +112,8 @@ export default function ConvertFormatModal({
                   className="mt-1 accent-violet-600"
                 />
                 <span>
-                  <span className="block text-sm font-semibold text-slate-900">{item.label}</span>
-                  <span className="mt-0.5 block text-xs text-slate-500">{item.description}</span>
+                  <span className="block text-sm font-semibold text-canvas-text">{item.label}</span>
+                  <span className="mt-0.5 block text-xs text-canvas-subtle">{item.description}</span>
                 </span>
               </label>
             );
@@ -131,7 +131,7 @@ export default function ConvertFormatModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-50"
           >
             Cancel
           </button>
@@ -139,7 +139,7 @@ export default function ConvertFormatModal({
             type="button"
             onClick={() => void handleConvert()}
             disabled={busy}
-            className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? 'Converting…' : 'Convert & download'}
           </button>

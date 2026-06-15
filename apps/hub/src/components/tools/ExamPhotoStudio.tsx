@@ -203,11 +203,11 @@ export default function ExamPhotoStudio() {
   return (
     <div className="exam-photo-studio space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Upload &amp; preset</h2>
+        <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Upload &amp; preset</h2>
 
           <label className="mt-5 block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Exam preset</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Exam preset</span>
             <select
               value={presetId}
               onChange={(e) => setPresetId(e.target.value)}
@@ -219,7 +219,7 @@ export default function ExamPhotoStudio() {
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-xs text-slate-500">{preset.description}</p>
+            <p className="mt-1 text-xs text-canvas-subtle">{preset.description}</p>
           </label>
 
           <div className="mt-4 flex gap-2">
@@ -233,8 +233,8 @@ export default function ExamPhotoStudio() {
                   onClick={() => setDocType(type)}
                   className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
                     docType === type
-                      ? 'border-emerald-500 bg-emerald-950/50 text-emerald-300'
-                      : 'border-slate-700 bg-slate-950/40 text-slate-400 hover:border-slate-600 disabled:opacity-40'
+                      ? 'border-canvas-accent bg-canvas-accent-soft/50 text-canvas-accent'
+                      : 'border-canvas-border bg-slate-950/40 text-canvas-subtle hover:border-canvas-border disabled:opacity-40'
                   }`}
                 >
                   {type === 'photo' ? 'Passport photo' : 'Signature'}
@@ -244,28 +244,28 @@ export default function ExamPhotoStudio() {
           </div>
 
           {spec && (
-            <p className="mt-3 rounded-lg border border-emerald-900/40 bg-emerald-950/20 px-3 py-2 text-xs text-emerald-200/90">
+            <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-accent-soft/20 px-3 py-2 text-xs text-canvas-muted/90">
               Target: {spec.widthCm}×{spec.heightCm} cm · compress to under{' '}
               <strong>{maxKb} KB</strong> ({targetPixels.width}×{targetPixels.height}px @ {preset.dpi} DPI)
             </p>
           )}
 
           <label className="mt-5 block">
-            <span className="mb-2 block text-sm font-medium text-slate-300">Upload image (JPG / PNG)</span>
+            <span className="mb-2 block text-sm font-medium text-canvas-muted">Upload image (JPG / PNG)</span>
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
               onChange={handleFileChange}
-              className="block w-full text-sm text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-500"
+              className="block w-full text-sm text-canvas-subtle file:mr-3 file:rounded-lg file:border-0 file:bg-canvas-accent-muted file:px-4 file:py-2 file:text-sm file:font-semibold file:text-canvas-text hover:file:bg-canvas-accent-soft0"
             />
           </label>
 
           {image && cropPreviewUrl && (
             <div className="mt-4">
-              <p className="mb-2 text-xs font-medium text-slate-500">Drag inside the frame to reposition crop</p>
+              <p className="mb-2 text-xs font-medium text-canvas-subtle">Drag inside the frame to reposition crop</p>
               <div
                 ref={cropFrameRef}
-                className="relative mx-auto w-full max-w-xs touch-none overflow-hidden rounded-xl border-2 border-emerald-500/60 bg-slate-950"
+                className="relative mx-auto w-full max-w-xs touch-none overflow-hidden rounded-xl border-2 border-canvas-accent/60 bg-slate-950"
                 style={{ aspectRatio: `${aspectRatio}` }}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
@@ -304,11 +304,11 @@ export default function ExamPhotoStudio() {
           )}
         </section>
 
-        <section className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">Output</h2>
+        <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-none sm:p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Output</h2>
 
           {!result ? (
-            <div className="mt-8 flex flex-col items-center justify-center text-center text-sm text-slate-500">
+            <div className="mt-8 flex flex-col items-center justify-center text-center text-sm text-canvas-subtle">
               <span className="mb-3 text-4xl" aria-hidden="true">
                 📷
               </span>
@@ -318,10 +318,10 @@ export default function ExamPhotoStudio() {
           ) : (
             <div className="mt-5 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span className="text-slate-400">File size</span>
+                <span className="text-canvas-subtle">File size</span>
                 <span
                   className={`font-bold tabular-nums ${
-                    result.sizeBytes <= targetPixels.maxBytes ? 'text-emerald-400' : 'text-amber-400'
+                    result.sizeBytes <= targetPixels.maxBytes ? 'text-canvas-accent' : 'text-amber-400'
                   }`}
                 >
                   {formatFileSize(result.sizeBytes)}
@@ -329,14 +329,14 @@ export default function ExamPhotoStudio() {
                 </span>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span className="text-slate-400">Dimensions</span>
-                <span className="font-semibold tabular-nums text-white">
+                <span className="text-canvas-subtle">Dimensions</span>
+                <span className="font-semibold tabular-nums text-canvas-text">
                   {result.width}×{result.height}px
                 </span>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span className="text-slate-400">Quality</span>
-                <span className="font-semibold tabular-nums text-white">{Math.round(result.quality * 100)}%</span>
+                <span className="text-canvas-subtle">Quality</span>
+                <span className="font-semibold tabular-nums text-canvas-text">{Math.round(result.quality * 100)}%</span>
               </div>
 
               {previewUrl && (

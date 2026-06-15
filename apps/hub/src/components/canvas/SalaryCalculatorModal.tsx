@@ -48,7 +48,7 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="salary-calc-title"
@@ -56,20 +56,20 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="salary-calc-title" className="text-lg font-bold text-slate-900">
+            <h2 id="salary-calc-title" className="text-lg font-bold text-canvas-text">
               💰 Salary &amp; Take-Home Calculator
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-canvas-subtle">
               Estimate in-hand pay from CTC with standard EPF — computed locally.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted"
             aria-label="Close"
           >
             ✕
@@ -78,7 +78,7 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
 
         <div className="mt-4 space-y-4">
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
               Annual CTC (₹ lakhs): {annualCtcLakhs.toFixed(1)}
             </span>
             <input
@@ -93,7 +93,7 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
           </label>
 
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
               Basic salary (% of CTC): {basicPercent}%
             </span>
             <input
@@ -108,7 +108,7 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
           </label>
 
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
               Professional tax (₹/month)
             </span>
             <input
@@ -117,11 +117,11 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
               max={2500}
               value={professionalTaxMonthly}
               onChange={(event) => setProfessionalTaxMonthly(Number(event.target.value))}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+              className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
             />
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-slate-700">
+          <label className="flex items-center gap-2 text-sm text-canvas-muted">
             <input
               type="checkbox"
               checked={pfEnabled}
@@ -131,7 +131,7 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
             Include employee EPF (12%, capped)
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-slate-700">
+          <label className="flex items-center gap-2 text-sm text-canvas-muted">
             <input
               type="checkbox"
               checked={includeTaxEstimate}
@@ -151,7 +151,7 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
                   className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
                     taxRegime === regime
                       ? 'border-sky-400 bg-sky-50 text-sky-800'
-                      : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                      : 'border-canvas-border text-canvas-muted hover:bg-canvas-elevated'
                   }`}
                 >
                   {regime === 'new' ? 'New regime' : 'Old regime'}
@@ -169,11 +169,11 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
           </p>
         </div>
 
-        <ul className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <ul className="mt-4 space-y-2 rounded-xl border border-canvas-border bg-canvas-elevated p-3">
           {rows.map((row) => (
             <li key={row.label} className="flex items-center justify-between gap-2 text-sm">
-              <span className="text-slate-500">{row.label}</span>
-              <span className="font-semibold text-slate-800">{row.value}</span>
+              <span className="text-canvas-subtle">{row.label}</span>
+              <span className="font-semibold text-canvas-text">{row.value}</span>
             </li>
           ))}
         </ul>
@@ -185,7 +185,7 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
               onSuccess(`Take-home estimate: ${formatInr(breakdown.inHandMonthly)}/month.`);
               onClose();
             }}
-            className="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
+            className="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-sky-700"
           >
             Done
           </button>

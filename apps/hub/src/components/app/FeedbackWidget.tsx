@@ -66,7 +66,7 @@ export default function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-20 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-violet-200 bg-white text-violet-700 shadow-lg shadow-violet-900/10 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 sm:bottom-6"
+        className="fixed bottom-20 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-canvas-border bg-canvas-surface text-canvas-accent shadow-none shadow-violet-900/10 transition hover:border-violet-300 hover:bg-canvas-accent-soft hover:text-violet-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 sm:bottom-6"
         aria-label="Send feedback"
         title="Send feedback"
       >
@@ -75,12 +75,12 @@ export default function FeedbackWidget() {
 
       {open && (
         <div
-          className="fixed inset-0 z-[55] flex items-end justify-center bg-slate-900/40 p-4 backdrop-blur-sm sm:items-center"
+          className="fixed inset-0 z-[55] flex items-end justify-center bg-canvas-accent-muted/40 p-4 backdrop-blur-sm sm:items-center"
           role="presentation"
           onClick={close}
         >
           <div
-            className="w-full max-w-sm overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+            className="w-full max-w-sm overflow-hidden rounded-2xl border border-canvas-border bg-canvas-surface shadow-2xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="feedback-widget-title"
@@ -88,17 +88,17 @@ export default function FeedbackWidget() {
           >
             <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4">
               <div>
-                <h2 id="feedback-widget-title" className="text-base font-semibold text-slate-900">
+                <h2 id="feedback-widget-title" className="text-base font-semibold text-canvas-text">
                   Send feedback
                 </h2>
-                <p className="mt-0.5 text-xs text-slate-500">
+                <p className="mt-0.5 text-xs text-canvas-subtle">
                   Tell us what&apos;s working or what we should improve.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={close}
-                className="rounded-lg border border-slate-200 px-2 py-1 text-sm text-slate-500 transition hover:bg-slate-50"
+                className="rounded-lg border border-canvas-border px-2 py-1 text-sm text-canvas-subtle transition hover:bg-canvas-elevated"
                 aria-label="Close feedback form"
               >
                 ✕
@@ -116,16 +116,16 @@ export default function FeedbackWidget() {
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
                 placeholder="Share a bug, idea, or quick note…"
-                className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-200"
+                className="w-full resize-y rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 text-sm text-canvas-text placeholder:text-canvas-subtle focus:border-violet-400 focus:bg-canvas-surface focus:outline-none focus:ring-2 focus:ring-violet-200"
               />
-              <p className="text-[11px] leading-relaxed text-slate-500">
+              <p className="text-[11px] leading-relaxed text-canvas-subtle">
                 Submit opens your email app with a pre-filled message to{' '}
-                <span className="font-medium text-slate-600">{SUPPORT_EMAIL}</span>.
+                <span className="font-medium text-canvas-muted">{SUPPORT_EMAIL}</span>.
               </p>
               <button
                 type="button"
                 onClick={submit}
-                className="w-full rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"
+                className="w-full rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"
               >
                 Submit
               </button>

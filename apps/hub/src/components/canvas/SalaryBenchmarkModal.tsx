@@ -45,7 +45,7 @@ export default function SalaryBenchmarkModal({ onClose, onSuccess }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="salary-benchmark-title"
@@ -53,20 +53,20 @@ export default function SalaryBenchmarkModal({ onClose, onSuccess }: Props) {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="salary-benchmark-title" className="text-lg font-bold text-slate-900">
+            <h2 id="salary-benchmark-title" className="text-lg font-bold text-canvas-text">
               📊 Salary Benchmarking
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-canvas-subtle">
               Indicative CTC ranges by role, experience, and region — offline static data.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted"
             aria-label="Close"
           >
             ✕
@@ -75,14 +75,14 @@ export default function SalaryBenchmarkModal({ onClose, onSuccess }: Props) {
 
         <div className="mt-4 space-y-4">
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Role</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">Role</span>
             <select
               value={roleId}
               onChange={(event) => {
                 setRoleId(event.target.value);
                 persist({ roleId: event.target.value });
               }}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+              className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
             >
               {BENCHMARK_ROLES.map((entry) => (
                 <option key={entry.id} value={entry.id}>
@@ -93,7 +93,7 @@ export default function SalaryBenchmarkModal({ onClose, onSuccess }: Props) {
           </label>
 
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
               Experience tier
             </span>
             <select
@@ -103,7 +103,7 @@ export default function SalaryBenchmarkModal({ onClose, onSuccess }: Props) {
                 setExperience(value);
                 persist({ experience: value });
               }}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+              className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
             >
               {EXPERIENCE_OPTIONS.map((opt) => (
                 <option key={opt.id} value={opt.id}>
@@ -114,7 +114,7 @@ export default function SalaryBenchmarkModal({ onClose, onSuccess }: Props) {
           </label>
 
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
               Geographic region
             </span>
             <select
@@ -124,7 +124,7 @@ export default function SalaryBenchmarkModal({ onClose, onSuccess }: Props) {
                 setRegion(value);
                 persist({ region: value });
               }}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+              className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
             >
               {REGION_OPTIONS.map((opt) => (
                 <option key={opt.id} value={opt.id}>
@@ -132,7 +132,7 @@ export default function SalaryBenchmarkModal({ onClose, onSuccess }: Props) {
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-[11px] text-slate-400">
+            <p className="mt-1 text-[11px] text-canvas-subtle">
               {REGION_OPTIONS.find((r) => r.id === region)?.cities}
             </p>
           </label>
@@ -145,17 +145,17 @@ export default function SalaryBenchmarkModal({ onClose, onSuccess }: Props) {
               {result.experienceLabel} · {result.regionLabel}
             </p>
             <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-lg border border-sky-100 bg-white px-2 py-3">
-                <p className="text-[10px] uppercase text-slate-500">Min</p>
-                <p className="mt-1 text-base font-bold text-slate-700">{formatLpa(result.min)}</p>
+              <div className="rounded-lg border border-sky-100 bg-canvas-surface px-2 py-3">
+                <p className="text-[10px] uppercase text-canvas-subtle">Min</p>
+                <p className="mt-1 text-base font-bold text-canvas-muted">{formatLpa(result.min)}</p>
               </div>
-              <div className="rounded-lg border border-sky-300 bg-white px-2 py-3">
+              <div className="rounded-lg border border-sky-300 bg-canvas-surface px-2 py-3">
                 <p className="text-[10px] uppercase text-sky-600">Mid</p>
                 <p className="mt-1 text-base font-bold text-sky-800">{formatLpa(result.mid)}</p>
               </div>
-              <div className="rounded-lg border border-sky-100 bg-white px-2 py-3">
-                <p className="text-[10px] uppercase text-slate-500">Max</p>
-                <p className="mt-1 text-base font-bold text-slate-700">{formatLpa(result.max)}</p>
+              <div className="rounded-lg border border-sky-100 bg-canvas-surface px-2 py-3">
+                <p className="text-[10px] uppercase text-canvas-subtle">Max</p>
+                <p className="mt-1 text-base font-bold text-canvas-muted">{formatLpa(result.max)}</p>
               </div>
             </div>
             <p className="mt-3 text-[11px] text-sky-700">
@@ -175,7 +175,7 @@ export default function SalaryBenchmarkModal({ onClose, onSuccess }: Props) {
               }
               onClose();
             }}
-            className="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
+            className="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-sky-700"
           >
             Done
           </button>

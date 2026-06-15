@@ -110,7 +110,7 @@ export default function MergePdfModal({
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="merge-pdf-title"
@@ -118,13 +118,13 @@ export default function MergePdfModal({
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="w-full max-w-lg rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="merge-pdf-title" className="text-lg font-bold text-slate-900">
+            <h2 id="merge-pdf-title" className="text-lg font-bold text-canvas-text">
               Merge PDF
             </h2>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-canvas-subtle">
               Canvas file is first; add PDFs to append after it.
             </p>
           </div>
@@ -132,33 +132,33 @@ export default function MergePdfModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted disabled:opacity-50"
             aria-label="Close"
           >
             ✕
           </button>
         </div>
 
-        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
+        <div className="mt-4 rounded-xl border border-emerald-200 bg-canvas-accent-soft px-3 py-2.5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-canvas-accent">
             Canvas file (first)
           </p>
-          <p className="mt-0.5 truncate text-sm font-medium text-slate-900">{canvasFile.name}</p>
-          <p className="text-xs text-slate-500">{formatFileSize(canvasFile.size)}</p>
+          <p className="mt-0.5 truncate text-sm font-medium text-canvas-text">{canvasFile.name}</p>
+          <p className="text-xs text-canvas-subtle">{formatFileSize(canvasFile.size)}</p>
         </div>
 
         <div className="mt-3 space-y-2">
           {additional.map((item, index) => (
             <div
               key={item.id}
-              className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2.5"
+              className="flex items-center gap-3 rounded-xl border border-canvas-border px-3 py-2.5"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-600">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-canvas-elevated text-xs font-bold text-canvas-muted">
                 {index + 2}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-slate-900">{item.file.name}</p>
-                <p className="text-xs text-slate-500">
+                <p className="truncate text-sm font-medium text-canvas-text">{item.file.name}</p>
+                <p className="text-xs text-canvas-subtle">
                   {item.pageCount} page{item.pageCount === 1 ? '' : 's'} ·{' '}
                   {formatFileSize(item.file.size)}
                 </p>
@@ -175,11 +175,11 @@ export default function MergePdfModal({
           ))}
         </div>
 
-        <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 px-4 py-5 text-center transition hover:border-emerald-300 hover:bg-emerald-50/50">
-          <span className="text-sm font-semibold text-slate-700">
+        <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-canvas-border px-4 py-5 text-center transition hover:border-emerald-300 hover:bg-canvas-accent-soft/50">
+          <span className="text-sm font-semibold text-canvas-muted">
             {adding ? 'Reading PDFs…' : 'Tap to add PDFs to append'}
           </span>
-          <span className="mt-1 text-xs text-slate-500">Processed locally — nothing uploaded</span>
+          <span className="mt-1 text-xs text-canvas-subtle">Processed locally — nothing uploaded</span>
           <input
             type="file"
             accept="application/pdf,.pdf"
@@ -204,7 +204,7 @@ export default function MergePdfModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-50"
           >
             Cancel
           </button>
@@ -212,7 +212,7 @@ export default function MergePdfModal({
             type="button"
             onClick={() => void handleMerge()}
             disabled={busy || additional.length < 1}
-            className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? 'Merging…' : `Merge & download (${1 + additional.length} PDFs)`}
           </button>

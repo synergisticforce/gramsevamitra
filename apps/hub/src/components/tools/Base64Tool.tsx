@@ -75,17 +75,17 @@ export default function Base64Tool() {
   }, [output]);
 
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
+    <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Input &amp; output</h2>
-        <div className="inline-flex rounded-lg border border-slate-700 bg-slate-950/60 p-0.5" role="group" aria-label="Encode or decode">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Input &amp; output</h2>
+        <div className="inline-flex rounded-lg border border-canvas-border bg-slate-950/60 p-0.5" role="group" aria-label="Encode or decode">
           {(['encode', 'decode'] as Mode[]).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => setMode(m)}
               className={`rounded-md px-4 py-1.5 text-xs font-semibold capitalize ${
-                mode === m ? 'bg-emerald-950/60 text-emerald-300' : 'text-slate-400'
+                mode === m ? 'bg-emerald-950/60 text-canvas-accent' : 'text-canvas-subtle'
               }`}
             >
               {m}
@@ -95,7 +95,7 @@ export default function Base64Tool() {
       </div>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-slate-300">{mode === 'encode' ? 'Plain text' : 'Base64'}</span>
+        <span className="mb-1 block text-sm font-medium text-canvas-muted">{mode === 'encode' ? 'Plain text' : 'Base64'}</span>
         <textarea
           rows={6}
           value={input}
@@ -107,12 +107,12 @@ export default function Base64Tool() {
       </label>
 
       <label className="mt-5 block">
-        <span className="mb-1 block text-sm font-medium text-emerald-400/90">Result</span>
+        <span className="mb-1 block text-sm font-medium text-canvas-accent/90">Result</span>
         <textarea
           rows={6}
           readOnly
           value={output}
-          className="input-field w-full resize-y font-mono text-sm text-slate-300"
+          className="input-field w-full resize-y font-mono text-sm text-canvas-muted"
           placeholder="Result appears here…"
           spellCheck={false}
         />

@@ -44,9 +44,9 @@ export default function FlashcardGeneratorTool() {
   return (
     <div className="space-y-6">
       <label className="block">
-        <span className="mb-2 block text-sm font-medium text-slate-300">
-          Paste notes — one card per line, separated by <code className="text-emerald-400">-</code> or{' '}
-          <code className="text-emerald-400">:</code>
+        <span className="mb-2 block text-sm font-medium text-canvas-muted">
+          Paste notes — one card per line, separated by <code className="text-canvas-accent">-</code> or{' '}
+          <code className="text-canvas-accent">:</code>
         </span>
         <textarea
           value={raw}
@@ -61,7 +61,7 @@ export default function FlashcardGeneratorTool() {
         />
       </label>
 
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-canvas-subtle">
         {cards.length} card{cards.length === 1 ? '' : 's'} parsed
       </p>
 
@@ -70,13 +70,13 @@ export default function FlashcardGeneratorTool() {
           <button
             type="button"
             onClick={() => setFlipped((f) => !f)}
-            className="group relative mx-auto flex min-h-[200px] w-full max-w-lg flex-col items-center justify-center rounded-2xl border border-emerald-800/50 bg-gradient-to-br from-slate-900 to-emerald-950/40 p-8 text-center transition hover:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="group relative mx-auto flex min-h-[200px] w-full max-w-lg flex-col items-center justify-center rounded-2xl border border-canvas-border bg-gradient-to-br from-slate-900 to-emerald-950/40 p-8 text-center transition hover:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             aria-pressed={flipped}
           >
-            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400/80">
+            <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent/80">
               {flipped ? 'Answer' : 'Question'} · tap to flip
             </p>
-            <p className="mt-4 text-lg font-semibold leading-relaxed text-white">
+            <p className="mt-4 text-lg font-semibold leading-relaxed text-canvas-text">
               {flipped ? current.answer : current.question}
             </p>
           </button>
@@ -85,7 +85,7 @@ export default function FlashcardGeneratorTool() {
             <button type="button" onClick={() => go(-1)} className="btn-secondary px-4 py-2 text-sm">
               Previous
             </button>
-            <span className="text-sm tabular-nums text-slate-400">
+            <span className="text-sm tabular-nums text-canvas-subtle">
               {index + 1} / {cards.length}
             </span>
             <button type="button" onClick={() => go(1)} className="btn-primary px-4 py-2 text-sm">
@@ -94,7 +94,7 @@ export default function FlashcardGeneratorTool() {
           </div>
         </>
       ) : (
-        <p className="rounded-xl border border-dashed border-slate-700 px-4 py-8 text-center text-sm text-slate-500">
+        <p className="rounded-xl border border-dashed border-canvas-border px-4 py-8 text-center text-sm text-canvas-subtle">
           Add at least one valid line to start studying.
         </p>
       )}

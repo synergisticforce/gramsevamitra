@@ -37,13 +37,13 @@ export default function PasswordGeneratorTool() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Options</h2>
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Options</h2>
         <div className="mt-5 space-y-6">
           <label className="block">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-300">Length</span>
-              <span className="text-sm font-bold tabular-nums text-emerald-400">{length}</span>
+              <span className="text-sm font-medium text-canvas-muted">Length</span>
+              <span className="text-sm font-bold tabular-nums text-canvas-accent">{length}</span>
             </div>
             <input
               type="range"
@@ -55,14 +55,14 @@ export default function PasswordGeneratorTool() {
               }}
               className="w-full accent-emerald-500"
             />
-            <div className="mt-1 flex justify-between text-[10px] text-slate-500">
+            <div className="mt-1 flex justify-between text-[10px] text-canvas-subtle">
               <span>8</span>
               <span>128</span>
             </div>
           </label>
 
           <fieldset className="space-y-3">
-            <legend className="text-sm font-medium text-slate-300">Character sets</legend>
+            <legend className="text-sm font-medium text-canvas-muted">Character sets</legend>
             {[
               { id: 'upper', label: 'Uppercase (A–Z)', checked: upper, set: setUpper },
               { id: 'lower', label: 'Lowercase (a–z)', checked: lower, set: setLower },
@@ -76,7 +76,7 @@ export default function PasswordGeneratorTool() {
                   onChange={(e) => item.set(e.target.checked)}
                   className="h-4 w-4 accent-emerald-500"
                 />
-                <span className="text-sm text-slate-300">{item.label}</span>
+                <span className="text-sm text-canvas-muted">{item.label}</span>
               </label>
             ))}
           </fieldset>
@@ -93,16 +93,16 @@ export default function PasswordGeneratorTool() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">Your password</h2>
+      <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-none sm:p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Your password</h2>
         <div className="mt-5">
           <div
-            className="break-all rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-4 font-mono text-sm leading-relaxed text-white sm:text-base"
+            className="break-all rounded-xl border border-canvas-border bg-slate-950/80 px-4 py-4 font-mono text-sm leading-relaxed text-canvas-text sm:text-base"
             aria-live="polite"
           >
             {password || '—'}
           </div>
-          <p className="mt-2 min-h-[1rem] text-center text-xs text-emerald-400" role="status">
+          <p className="mt-2 min-h-[1rem] text-center text-xs text-canvas-accent" role="status">
             {feedback}
           </p>
           <button type="button" onClick={copyPassword} disabled={!password} className="btn-primary mt-4 w-full">

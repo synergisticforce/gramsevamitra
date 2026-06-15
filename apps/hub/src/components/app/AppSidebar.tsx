@@ -9,8 +9,8 @@ interface Props {
 function linkClass(isActive: boolean): string {
   return `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
     isActive
-      ? 'bg-slate-200/80 text-slate-800 ring-1 ring-slate-300'
-      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+      ? 'bg-canvas-elevated text-canvas-text ring-1 ring-canvas-border'
+      : 'text-canvas-muted hover:bg-canvas-elevated hover:text-canvas-text'
   }`;
 }
 
@@ -59,13 +59,13 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
   return (
     <>
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
-        <a href="/workspace/documents" className="text-sm font-bold text-slate-900">
-          Gram<span className="text-emerald-600">Seva</span> Mitra
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-canvas-border bg-canvas-surface px-4 py-3 lg:hidden">
+        <a href="/workspace/documents" className="text-sm font-bold text-canvas-text">
+          Gram<span className="text-canvas-accent">Seva</span> Mitra
         </a>
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-canvas-border text-canvas-muted"
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={mobileOpen}
           onClick={() => setMobileOpen((open) => !open)}
@@ -88,15 +88,15 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
         <div className="fixed inset-0 z-50 lg:hidden" role="presentation">
           <button
             type="button"
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-canvas-bg/80 backdrop-blur-sm"
             aria-label="Close menu"
             onClick={closeMobile}
           />
-          <aside className="absolute left-0 top-0 flex h-full w-72 max-w-[85vw] flex-col border-r border-slate-200 bg-white shadow-xl">
-            <div className="border-b border-slate-200 px-5 py-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Workspaces</p>
-              <p className="mt-1 text-base font-bold text-slate-900">
-                Gram<span className="text-emerald-600">Seva</span> Mitra
+          <aside className="absolute left-0 top-0 flex h-full w-72 max-w-[85vw] flex-col border-r border-canvas-border bg-canvas-surface shadow-none">
+            <div className="border-b border-canvas-border px-5 py-5">
+              <p className="text-xs font-semibold uppercase tracking-wider text-canvas-subtle">Workspaces</p>
+              <p className="mt-1 text-base font-bold text-canvas-text">
+                Gram<span className="text-canvas-accent">Seva</span> Mitra
               </p>
             </div>
             <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Workspace navigation">
@@ -107,28 +107,28 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
       )}
 
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
-        <div className="border-b border-slate-200 px-5 py-5">
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-canvas-border bg-canvas-surface lg:flex">
+        <div className="border-b border-canvas-border px-5 py-5">
           <a href="/workspace/documents" className="group flex items-center gap-2.5">
             <span
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-xs font-bold text-white"
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-canvas-accent-muted text-xs font-bold text-canvas-text"
               aria-hidden="true"
             >
               GS
             </span>
-            <span className="text-base font-bold tracking-tight text-slate-900">
-              Gram<span className="text-emerald-600">Seva</span> Mitra
+            <span className="text-base font-bold tracking-tight text-canvas-text">
+              Gram<span className="text-canvas-accent">Seva</span> Mitra
             </span>
           </a>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Workspace navigation">
-          <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Workspaces</p>
+          <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-canvas-subtle">Workspaces</p>
           <div className="mt-2">{navLinks}</div>
         </nav>
 
-        <div className="border-t border-slate-200 px-4 py-4 text-xs text-slate-500">
-          <a href="/contact" className="font-medium text-slate-700 hover:text-emerald-800">
+        <div className="border-t border-canvas-border px-4 py-4 text-xs text-canvas-subtle">
+          <a href="/contact" className="font-medium text-canvas-muted hover:text-canvas-accent">
             Contact &amp; support →
           </a>
         </div>

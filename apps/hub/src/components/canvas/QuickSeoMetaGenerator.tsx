@@ -80,29 +80,29 @@ export default function QuickSeoMetaGenerator({ onToast }: Props) {
   }, [metaTags, onToast]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
 
   const meterColor = (status: 'ok' | 'warn' | 'error') =>
-    status === 'error' ? 'bg-rose-500' : status === 'warn' ? 'bg-amber-400' : 'bg-emerald-500';
+    status === 'error' ? 'bg-rose-500' : status === 'warn' ? 'bg-amber-400' : 'bg-canvas-accent-soft0';
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">SEO inputs</h2>
-        <label className="block text-sm font-medium text-slate-700">
+      <section className="space-y-4 rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">SEO inputs</h2>
+        <label className="block text-sm font-medium text-canvas-muted">
           Title
           <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className={`${inputClass} mt-1.5`} />
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-canvas-elevated">
             <div
               className={`h-full ${meterColor(titleMetrics.charStatus)}`}
               style={{ width: `${Math.min(100, (titleMetrics.chars / titleMetrics.charLimit) * 100)}%` }}
             />
           </div>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-canvas-subtle">
             {titleMetrics.chars}/{titleMetrics.charLimit} characters
           </p>
         </label>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-canvas-muted">
           Meta description
           <textarea
             rows={3}
@@ -110,46 +110,46 @@ export default function QuickSeoMetaGenerator({ onToast }: Props) {
             onChange={(e) => setDescription(e.target.value)}
             className={`${inputClass} mt-1.5 resize-none`}
           />
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-canvas-elevated">
             <div
               className={`h-full ${meterColor(descMetrics.charStatus)}`}
               style={{ width: `${Math.min(100, (descMetrics.chars / descMetrics.charLimit) * 100)}%` }}
             />
           </div>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-canvas-subtle">
             {descMetrics.chars}/{descMetrics.charLimit} characters
           </p>
         </label>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-canvas-muted">
           Open Graph image URL
           <input type="url" value={ogImage} onChange={(e) => setOgImage(e.target.value)} className={`${inputClass} mt-1.5`} placeholder="https://example.com/og-image.jpg" />
         </label>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-canvas-muted">
           Canonical URL
           <input type="url" value={canonicalUrl} onChange={(e) => setCanonicalUrl(e.target.value)} className={`${inputClass} mt-1.5`} />
         </label>
       </section>
 
       <section className="space-y-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-violet-700">Google preview</h2>
-          <div className="mt-4 rounded-xl border border-slate-100 bg-white p-4 shadow-inner">
+        <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Google preview</h2>
+          <div className="mt-4 rounded-xl border border-slate-100 bg-canvas-surface p-4 shadow-inner">
             <p className="truncate font-sans text-xl text-[#1a0dab]">{serpTitle}</p>
             <p className="mt-0.5 truncate font-sans text-sm text-[#006621]">{displayUrl}</p>
             <p className="mt-1 line-clamp-2 font-sans text-sm leading-snug text-[#545454]">{serpDesc}</p>
           </div>
         </div>
         {ogImage && (
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-canvas-border bg-canvas-surface shadow-none">
             <img src={ogImage} alt="" className="aspect-[1.91/1] w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           </div>
         )}
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none lg:col-span-2">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Generated meta tags</h2>
-          <button type="button" onClick={() => void copyTags()} className="rounded-xl bg-violet-600 px-4 py-2 text-xs font-semibold text-white hover:bg-violet-700">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Generated meta tags</h2>
+          <button type="button" onClick={() => void copyTags()} className="rounded-xl bg-canvas-accent-muted px-4 py-2 text-xs font-semibold text-canvas-text hover:bg-canvas-accent/40">
             Copy all tags
           </button>
         </div>
@@ -157,7 +157,7 @@ export default function QuickSeoMetaGenerator({ onToast }: Props) {
           readOnly
           rows={12}
           value={metaTags}
-          className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-mono text-xs text-slate-800 outline-none"
+          className="w-full resize-y rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 font-mono text-xs text-canvas-text outline-none"
           spellCheck={false}
         />
       </section>

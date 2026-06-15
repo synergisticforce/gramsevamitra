@@ -229,11 +229,11 @@ export default function MultiCurrencyConverterTool() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Convert</h2>
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Convert</h2>
 
         {loadingRates && (
-          <p className="mt-3 text-sm text-emerald-300" role="status">
+          <p className="mt-3 text-sm text-canvas-accent" role="status">
             Loading live rates…
           </p>
         )}
@@ -243,14 +243,14 @@ export default function MultiCurrencyConverterTool() {
           </p>
         )}
         {!loadingRates && !ratesError && ratesUpdatedAt && (
-          <p className="mt-3 text-xs text-slate-400" role="status">
+          <p className="mt-3 text-xs text-canvas-subtle" role="status">
             Rates updated: {ratesUpdatedAt} — Sourced from public markets.
           </p>
         )}
 
         <div className="mt-5 space-y-5">
           <label className="block">
-            <span className="mb-2 block text-sm font-medium text-slate-300">Amount</span>
+            <span className="mb-2 block text-sm font-medium text-canvas-muted">Amount</span>
             <input
               type="number"
               min={0}
@@ -265,7 +265,7 @@ export default function MultiCurrencyConverterTool() {
 
           <div className="grid grid-cols-2 gap-3">
             <label className="min-w-0">
-              <span className="mb-2 block text-sm font-medium text-slate-300">From</span>
+              <span className="mb-2 block text-sm font-medium text-canvas-muted">From</span>
               <select
                 value={from}
                 onChange={(e) => handleFrom(e.target.value)}
@@ -280,7 +280,7 @@ export default function MultiCurrencyConverterTool() {
               </select>
             </label>
             <label className="min-w-0">
-              <span className="mb-2 block text-sm font-medium text-slate-300">To</span>
+              <span className="mb-2 block text-sm font-medium text-canvas-muted">To</span>
               <select
                 value={to}
                 onChange={(e) => handleTo(e.target.value)}
@@ -306,41 +306,41 @@ export default function MultiCurrencyConverterTool() {
         </button>
       </section>
 
-      <section className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">Result</h2>
+      <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-none sm:p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Result</h2>
 
         <div className="mt-5 space-y-4">
-          <div className="rounded-xl border border-emerald-800/40 bg-slate-950/50 px-4 py-5 text-center">
-            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+          <div className="rounded-xl border border-canvas-border bg-slate-950/50 px-4 py-5 text-center">
+            <p className="text-xs font-medium uppercase tracking-wider text-canvas-subtle">
               {amountNum > 0 ? `${amountNum} ${from} equals` : 'Converted amount'}
             </p>
-            <p className="mt-1 text-3xl font-extrabold tabular-nums text-emerald-400 sm:text-4xl">
+            <p className="mt-1 text-3xl font-extrabold tabular-nums text-canvas-accent sm:text-4xl">
               {result ? formatAmount(result.converted, to) : '—'}
             </p>
           </div>
 
           <div className="rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Rate used</p>
-            <p className="mt-1 text-sm font-semibold tabular-nums text-white">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-canvas-subtle">Rate used</p>
+            <p className="mt-1 text-sm font-semibold tabular-nums text-canvas-text">
               {result ? `1 ${from} = ${formatRate(result.rate)} ${to}` : '—'}
             </p>
-            <p className="mt-1 text-xs tabular-nums text-slate-500">
+            <p className="mt-1 text-xs tabular-nums text-canvas-subtle">
               {result ? `1 ${to} = ${formatRate(result.inverseRate)} ${from}` : '—'}
             </p>
           </div>
 
           {usdRates?.INR && (
             <div className="rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4">
-              <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-slate-500">
+              <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-canvas-subtle">
                 Popular rates (1 unit → INR)
               </p>
               <ul className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                 {POPULAR_INR_REFS.filter((code) => usdRates[code]).map((code) => {
                   const inInr = usdRates.INR / usdRates[code];
                   return (
-                    <li key={code} className="flex justify-between tabular-nums text-slate-400">
+                    <li key={code} className="flex justify-between tabular-nums text-canvas-subtle">
                       <span>{code}</span>
-                      <span className="font-medium text-slate-300">
+                      <span className="font-medium text-canvas-muted">
                         {new Intl.NumberFormat('en-IN', {
                           style: 'currency',
                           currency: 'INR',

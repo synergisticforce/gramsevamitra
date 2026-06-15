@@ -101,7 +101,7 @@ export default function BusinessCardModal({
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="biz-card-title"
@@ -109,13 +109,13 @@ export default function BusinessCardModal({
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="biz-card-title" className="text-lg font-bold text-slate-900">
+            <h2 id="biz-card-title" className="text-lg font-bold text-canvas-text">
               🪪 Business Card Generator
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-canvas-subtle">
               Standard 3.5×2 in card — export PNG or PDF locally via Canvas.
             </p>
           </div>
@@ -123,7 +123,7 @@ export default function BusinessCardModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted disabled:opacity-50"
             aria-label="Close"
           >
             ✕
@@ -143,41 +143,41 @@ export default function BusinessCardModal({
               ] as const
             ).map(([key, label, placeholder]) => (
               <label key={key} className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
                   {label}
                 </span>
                 <input
                   value={form[key]}
                   onChange={(event) => update({ [key]: event.target.value })}
                   placeholder={placeholder}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                  className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
                 />
               </label>
             ))}
             <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
                 Accent color
               </span>
               <input
                 type="color"
                 value={form.accentColor}
                 onChange={(event) => update({ accentColor: event.target.value })}
-                className="mt-1.5 h-10 w-full cursor-pointer rounded-xl border border-slate-200"
+                className="mt-1.5 h-10 w-full cursor-pointer rounded-xl border border-canvas-border"
               />
             </label>
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Preview</p>
-            <div className="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 p-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">Preview</p>
+            <div className="mt-2 overflow-hidden rounded-xl border border-canvas-border bg-canvas-elevated p-3">
               {previewUrl ? (
                 <img
                   src={previewUrl}
                   alt="Business card preview"
-                  className="mx-auto w-full max-w-md rounded shadow-sm"
+                  className="mx-auto w-full max-w-md rounded shadow-none"
                 />
               ) : (
-                <p className="py-16 text-center text-sm text-slate-500">Generating preview…</p>
+                <p className="py-16 text-center text-sm text-canvas-subtle">Generating preview…</p>
               )}
             </div>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -185,7 +185,7 @@ export default function BusinessCardModal({
                 type="button"
                 disabled={busy}
                 onClick={() => void handlePng()}
-                className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                className="flex-1 rounded-xl border border-canvas-border bg-canvas-surface px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-50"
               >
                 Download PNG
               </button>
@@ -193,7 +193,7 @@ export default function BusinessCardModal({
                 type="button"
                 disabled={busy}
                 onClick={() => void handlePdf()}
-                className="flex-1 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:opacity-50"
+                className="flex-1 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-sky-700 disabled:opacity-50"
               >
                 Download PDF
               </button>
@@ -212,7 +212,7 @@ export default function BusinessCardModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-50"
           >
             Done
           </button>

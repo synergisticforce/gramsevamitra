@@ -61,7 +61,7 @@ export default function SkillGapModal({ onClose, onSuccess }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="skill-gap-title"
@@ -69,20 +69,20 @@ export default function SkillGapModal({ onClose, onSuccess }: Props) {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="skill-gap-title" className="text-lg font-bold text-slate-900">
+            <h2 id="skill-gap-title" className="text-lg font-bold text-canvas-text">
               🎯 Skill Gap Analyzer
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-canvas-subtle">
               Core competencies vs. learning resources — progress saved locally.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted"
             aria-label="Close"
           >
             ✕
@@ -90,13 +90,13 @@ export default function SkillGapModal({ onClose, onSuccess }: Props) {
         </div>
 
         <label className="mt-4 block">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
             Target role
           </span>
           <select
             value={roleId}
             onChange={(event) => handleRoleChange(event.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+            className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
           >
             {TARGET_ROLE_PROFILES.map((role) => (
               <option key={role.id} value={role.id}>
@@ -106,7 +106,7 @@ export default function SkillGapModal({ onClose, onSuccess }: Props) {
           </select>
         </label>
 
-        <p className="mt-3 text-sm text-slate-600">{profile.summary}</p>
+        <p className="mt-3 text-sm text-canvas-muted">{profile.summary}</p>
 
         <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3">
           <div className="flex items-center justify-between gap-2">
@@ -130,7 +130,7 @@ export default function SkillGapModal({ onClose, onSuccess }: Props) {
               <li
                 key={item.id}
                 className={`rounded-xl border px-3 py-3 transition ${
-                  done ? 'border-emerald-200 bg-emerald-50/50' : 'border-slate-200 bg-slate-50'
+                  done ? 'border-emerald-200 bg-canvas-accent-soft/50' : 'border-canvas-border bg-canvas-elevated'
                 }`}
               >
                 <label className="flex cursor-pointer items-start gap-3">
@@ -142,11 +142,11 @@ export default function SkillGapModal({ onClose, onSuccess }: Props) {
                   />
                   <span className="min-w-0 flex-1">
                     <span
-                      className={`block text-sm font-semibold ${done ? 'text-emerald-900 line-through opacity-80' : 'text-slate-900'}`}
+                      className={`block text-sm font-semibold ${done ? 'text-emerald-900 line-through opacity-80' : 'text-canvas-text'}`}
                     >
                       {item.label}
                     </span>
-                    <span className="mt-0.5 block text-xs text-slate-500">
+                    <span className="mt-0.5 block text-xs text-canvas-subtle">
                       Resource: {item.resource}
                     </span>
                   </span>
@@ -165,7 +165,7 @@ export default function SkillGapModal({ onClose, onSuccess }: Props) {
               );
               onClose();
             }}
-            className="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
+            className="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-sky-700"
           >
             Done
           </button>

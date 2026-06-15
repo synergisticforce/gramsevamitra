@@ -33,7 +33,7 @@ export default function RefundPolicy() {
           If you believe a <strong>billing error</strong> occurred — such as duplicate charges, incorrect
           amounts, or charges after a confirmed cancellation — contact us within <strong>7 days</strong>{' '}
           of the transaction at{' '}
-          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-violet-700 underline">
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-canvas-accent underline">
             {SUPPORT_EMAIL}
           </a>{' '}
           with your registered email, payment date, and Razorpay payment ID. Verified billing errors will
@@ -53,7 +53,7 @@ export default function RefundPolicy() {
       <LegalSection title="5. Cancellation">
         <p>
           You may cancel auto-renewal through account settings or by emailing{' '}
-          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-violet-700 underline">
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-canvas-accent underline">
             {SUPPORT_EMAIL}
           </a>
           . Cancellation takes effect at the end of the current paid billing cycle. No partial refunds are
@@ -72,7 +72,7 @@ export default function RefundPolicy() {
       <LegalSection title="7. Contact">
         <p>
           Refund and billing inquiries:{' '}
-          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-violet-700 underline">
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-canvas-accent underline">
             {SUPPORT_EMAIL}
           </a>
           . We aim to respond within 2 business days.

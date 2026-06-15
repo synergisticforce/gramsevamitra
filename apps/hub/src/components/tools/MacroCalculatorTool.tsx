@@ -61,9 +61,9 @@ export default function MacroCalculatorTool() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+      <div className="space-y-4 rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-slate-300">Age</span>
+          <span className="mb-1 block text-sm font-medium text-canvas-muted">Age</span>
           <input
             type="number"
             min={10}
@@ -75,7 +75,7 @@ export default function MacroCalculatorTool() {
         </label>
 
         <fieldset>
-          <legend className="mb-2 text-sm font-medium text-slate-300">Gender</legend>
+          <legend className="mb-2 text-sm font-medium text-canvas-muted">Gender</legend>
           <div className="flex gap-2">
             {(['male', 'female'] as Gender[]).map((g) => (
               <button
@@ -84,8 +84,8 @@ export default function MacroCalculatorTool() {
                 onClick={() => setGender(g)}
                 className={`flex-1 rounded-xl border py-2 text-sm font-semibold capitalize ${
                   gender === g
-                    ? 'border-emerald-500 bg-emerald-950/50 text-emerald-300'
-                    : 'border-slate-700 text-slate-400'
+                    ? 'border-canvas-accent bg-canvas-accent-soft/50 text-canvas-accent'
+                    : 'border-canvas-border text-canvas-subtle'
                 }`}
               >
                 {g}
@@ -96,7 +96,7 @@ export default function MacroCalculatorTool() {
 
         <div className="grid grid-cols-[1fr_auto] gap-2">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Weight</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Weight</span>
             <input
               type="number"
               min={1}
@@ -112,7 +112,7 @@ export default function MacroCalculatorTool() {
                 type="button"
                 onClick={() => setWeightUnit(u)}
                 className={`rounded-lg border px-3 py-1 text-xs font-semibold uppercase ${
-                  weightUnit === u ? 'border-emerald-500 text-emerald-300' : 'border-slate-700 text-slate-500'
+                  weightUnit === u ? 'border-canvas-accent text-canvas-accent' : 'border-canvas-border text-canvas-subtle'
                 }`}
               >
                 {u}
@@ -123,7 +123,7 @@ export default function MacroCalculatorTool() {
 
         <div className="grid grid-cols-[1fr_auto] gap-2">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Height</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Height</span>
             <input
               type="number"
               min={1}
@@ -139,7 +139,7 @@ export default function MacroCalculatorTool() {
                 type="button"
                 onClick={() => setHeightUnit(u)}
                 className={`rounded-lg border px-3 py-1 text-xs font-semibold uppercase ${
-                  heightUnit === u ? 'border-emerald-500 text-emerald-300' : 'border-slate-700 text-slate-500'
+                  heightUnit === u ? 'border-canvas-accent text-canvas-accent' : 'border-canvas-border text-canvas-subtle'
                 }`}
               >
                 {u}
@@ -149,7 +149,7 @@ export default function MacroCalculatorTool() {
         </div>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-slate-300">Activity level</span>
+          <span className="mb-1 block text-sm font-medium text-canvas-muted">Activity level</span>
           <select
             value={activity}
             onChange={(e) => setActivity(e.target.value as (typeof ACTIVITY)[number]['id'])}
@@ -164,7 +164,7 @@ export default function MacroCalculatorTool() {
         </label>
 
         <fieldset>
-          <legend className="mb-2 text-sm font-medium text-slate-300">Goal</legend>
+          <legend className="mb-2 text-sm font-medium text-canvas-muted">Goal</legend>
           <div className="flex flex-wrap gap-2">
             {(
               [
@@ -179,8 +179,8 @@ export default function MacroCalculatorTool() {
                 onClick={() => setGoal(g.id)}
                 className={`rounded-xl border px-4 py-2 text-sm font-semibold ${
                   goal === g.id
-                    ? 'border-emerald-500 bg-emerald-950/50 text-emerald-300'
-                    : 'border-slate-700 text-slate-400'
+                    ? 'border-canvas-accent bg-canvas-accent-soft/50 text-canvas-accent'
+                    : 'border-canvas-border text-canvas-subtle'
                 }`}
               >
                 {g.label}
@@ -191,12 +191,12 @@ export default function MacroCalculatorTool() {
       </div>
 
       <div className="space-y-4">
-        <div className="rounded-2xl border border-emerald-800/40 bg-emerald-950/30 p-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400/80">Daily calories</p>
-          <p className="mt-2 text-4xl font-extrabold tabular-nums text-white">
+        <div className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/30 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent/80">Daily calories</p>
+          <p className="mt-2 text-4xl font-extrabold tabular-nums text-canvas-text">
             {result ? result.calories.toLocaleString() : '—'}
           </p>
-          {result && <p className="mt-1 text-sm text-slate-400">BMR: {result.bmr.toLocaleString()} kcal</p>}
+          {result && <p className="mt-1 text-sm text-canvas-subtle">BMR: {result.bmr.toLocaleString()} kcal</p>}
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
@@ -207,14 +207,14 @@ export default function MacroCalculatorTool() {
           ].map((m) => (
             <div
               key={m.label}
-              className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-center"
+              className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-4 text-center"
             >
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{m.label}</p>
-              <p className="mt-2 text-2xl font-bold tabular-nums text-white">
+              <p className="text-xs font-semibold uppercase tracking-wider text-canvas-subtle">{m.label}</p>
+              <p className="mt-2 text-2xl font-bold tabular-nums text-canvas-text">
                 {m.value ?? '—'}
-                <span className="ml-0.5 text-sm font-medium text-slate-400">{m.unit}</span>
+                <span className="ml-0.5 text-sm font-medium text-canvas-subtle">{m.unit}</span>
               </p>
-              <p className="mt-1 text-xs text-slate-500">{m.hint}</p>
+              <p className="mt-1 text-xs text-canvas-subtle">{m.hint}</p>
             </div>
           ))}
         </div>

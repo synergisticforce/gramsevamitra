@@ -160,16 +160,16 @@ export default function FinanceSipCalculator() {
   }, [result, yearly]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 tabular-nums';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 tabular-nums';
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">SIP details</h2>
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">SIP details</h2>
         <div className="mt-4 space-y-5">
           <div>
             <div className="mb-2 flex items-center justify-between gap-2">
-              <label className="text-sm font-medium text-slate-700">Monthly investment (₹)</label>
+              <label className="text-sm font-medium text-canvas-muted">Monthly investment (₹)</label>
               <input
                 type="number"
                 min={500}
@@ -191,7 +191,7 @@ export default function FinanceSipCalculator() {
 
           <div>
             <div className="mb-2 flex items-center justify-between gap-2">
-              <label className="text-sm font-medium text-slate-700">Expected return (% p.a.)</label>
+              <label className="text-sm font-medium text-canvas-muted">Expected return (% p.a.)</label>
               <input
                 type="number"
                 min={0}
@@ -215,7 +215,7 @@ export default function FinanceSipCalculator() {
 
           <div>
             <div className="mb-2 flex items-center justify-between gap-2">
-              <label className="text-sm font-medium text-slate-700">Time horizon (years)</label>
+              <label className="text-sm font-medium text-canvas-muted">Time horizon (years)</label>
               <input
                 type="number"
                 min={1}
@@ -238,34 +238,34 @@ export default function FinanceSipCalculator() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-700">Wealth forecast</h2>
+      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Wealth forecast</h2>
         <dl className="mt-4 space-y-3">
           <div className="flex items-baseline justify-between gap-3">
-            <dt className="text-slate-600">Maturity value</dt>
-            <dd className="text-2xl font-bold tabular-nums text-emerald-700">
+            <dt className="text-canvas-muted">Maturity value</dt>
+            <dd className="text-2xl font-bold tabular-nums text-canvas-accent">
               {result ? formatInr(Math.round(result.totalValue)) : '₹0'}
             </dd>
           </div>
           <div className="flex justify-between gap-3 text-sm">
-            <dt className="text-slate-500">Total invested</dt>
-            <dd className="font-semibold tabular-nums text-slate-900">
+            <dt className="text-canvas-subtle">Total invested</dt>
+            <dd className="font-semibold tabular-nums text-canvas-text">
               {result ? formatInr(Math.round(result.totalInvested)) : '₹0'}
             </dd>
           </div>
           <div className="flex justify-between gap-3 text-sm">
-            <dt className="text-slate-500">Wealth generated</dt>
-            <dd className="font-semibold tabular-nums text-amber-700">
+            <dt className="text-canvas-subtle">Wealth generated</dt>
+            <dd className="font-semibold tabular-nums text-canvas-muted">
               {result ? formatInr(Math.round(result.estimatedReturns)) : '₹0'}
             </dd>
           </div>
         </dl>
 
         <div className="mt-5 grid h-48 grid-cols-2 gap-3">
-          <div className="relative min-h-0 rounded-xl border border-slate-100 bg-white p-2">
+          <div className="relative min-h-0 rounded-xl border border-slate-100 bg-canvas-surface p-2">
             <canvas ref={doughnutRef} aria-label="Invested vs wealth generated" />
           </div>
-          <div className="relative min-h-0 rounded-xl border border-slate-100 bg-white p-2">
+          <div className="relative min-h-0 rounded-xl border border-slate-100 bg-canvas-surface p-2">
             <canvas ref={lineRef} aria-label="Year-wise SIP growth" />
           </div>
         </div>

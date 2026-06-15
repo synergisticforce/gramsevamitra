@@ -215,7 +215,7 @@ export default function FinanceDiscountMarginCalculator() {
   }, [tab, discountResult, marginModel]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 tabular-nums';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 tabular-nums';
 
   return (
     <div className="space-y-4">
@@ -227,8 +227,8 @@ export default function FinanceDiscountMarginCalculator() {
             onClick={() => setTab(t)}
             className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
               tab === t
-                ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
-                : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-300'
+                ? 'border-canvas-accent bg-canvas-accent-soft text-canvas-accent'
+                : 'border-canvas-border bg-canvas-surface text-canvas-muted hover:border-emerald-300'
             }`}
           >
             {t === 'discount' ? 'Discount & tax' : 'Margin & markup'}
@@ -237,12 +237,12 @@ export default function FinanceDiscountMarginCalculator() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
           {tab === 'discount' ? (
             <>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Discount</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Discount</h2>
               <div className="mt-4 space-y-4">
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-canvas-muted">
                   Original price (₹)
                   <input
                     type="number"
@@ -252,7 +252,7 @@ export default function FinanceDiscountMarginCalculator() {
                     className={`${inputClass} mt-1.5`}
                   />
                 </label>
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-canvas-muted">
                   Discount ({discountPercent}%)
                   <input
                     type="range"
@@ -263,7 +263,7 @@ export default function FinanceDiscountMarginCalculator() {
                     className="mt-2 w-full accent-emerald-600"
                   />
                 </label>
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-canvas-muted">
                   Flat discount (₹)
                   <input
                     type="number"
@@ -273,7 +273,7 @@ export default function FinanceDiscountMarginCalculator() {
                     className={`${inputClass} mt-1.5`}
                   />
                 </label>
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-canvas-muted">
                   Sales tax / GST ({taxPercent}%)
                   <input
                     type="range"
@@ -289,8 +289,8 @@ export default function FinanceDiscountMarginCalculator() {
             </>
           ) : (
             <>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Margin matrix</h2>
-              <p className="mt-1 text-xs text-slate-500">Edit any two fields — the rest resolve automatically.</p>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Margin matrix</h2>
+              <p className="mt-1 text-xs text-canvas-subtle">Edit any two fields — the rest resolve automatically.</p>
               <div className="mt-4 space-y-3">
                 {(
                   [
@@ -301,7 +301,7 @@ export default function FinanceDiscountMarginCalculator() {
                     ['marginPct', 'Margin (%)'],
                   ] as const
                 ).map(([field, label]) => (
-                  <label key={field} className="block text-sm font-medium text-slate-700">
+                  <label key={field} className="block text-sm font-medium text-canvas-muted">
                     {label}
                     <input
                       type="number"
@@ -316,20 +316,20 @@ export default function FinanceDiscountMarginCalculator() {
           )}
         </section>
 
-        <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-sm">
+        <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-none">
           {tab === 'discount' && discountResult ? (
             <>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-700">Final price</h2>
-              <p className="mt-3 text-3xl font-bold tabular-nums text-emerald-800">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Final price</h2>
+              <p className="mt-3 text-3xl font-bold tabular-nums text-canvas-accent">
                 {formatInr(Math.round(discountResult.finalPrice))}
               </p>
               <dl className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <dt className="text-slate-500">After discount</dt>
+                  <dt className="text-canvas-subtle">After discount</dt>
                   <dd className="font-semibold">{formatInr(Math.round(discountResult.priceAfterDiscount))}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-slate-500">Total savings</dt>
+                  <dt className="text-canvas-subtle">Total savings</dt>
                   <dd className="font-semibold text-indigo-700">
                     {formatInr(Math.round(discountResult.discountAmount))} (
                     {discountResult.savingsPercent.toFixed(1)}%)
@@ -339,22 +339,22 @@ export default function FinanceDiscountMarginCalculator() {
             </>
           ) : (
             <>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-700">Profit summary</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Profit summary</h2>
               <dl className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <dt className="text-slate-500">Margin</dt>
-                  <dd className="font-bold text-emerald-800">
+                  <dt className="text-canvas-subtle">Margin</dt>
+                  <dd className="font-bold text-canvas-accent">
                     {marginModel.marginPct !== null ? `${marginModel.marginPct.toFixed(2)}%` : '—'}
                   </dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-slate-500">Markup</dt>
+                  <dt className="text-canvas-subtle">Markup</dt>
                   <dd className="font-semibold">
                     {marginModel.markupPct !== null ? `${marginModel.markupPct.toFixed(2)}%` : '—'}
                   </dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-slate-500">Gross profit</dt>
+                  <dt className="text-canvas-subtle">Gross profit</dt>
                   <dd className="font-semibold">
                     {marginModel.grossProfit !== null ? formatInr(marginModel.grossProfit, 2) : '—'}
                   </dd>
@@ -362,7 +362,7 @@ export default function FinanceDiscountMarginCalculator() {
               </dl>
             </>
           )}
-          <div className="relative mt-5 h-48 rounded-xl border border-slate-100 bg-white p-2">
+          <div className="relative mt-5 h-48 rounded-xl border border-slate-100 bg-canvas-surface p-2">
             <canvas ref={chartRef} aria-label="Discount or margin chart" />
           </div>
         </section>

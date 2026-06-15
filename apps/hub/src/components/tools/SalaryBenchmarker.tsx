@@ -92,7 +92,7 @@ export default function SalaryBenchmarker() {
   }, []);
 
   if (loading) {
-    return <p className="text-sm text-emerald-200">Loading salary benchmarks…</p>;
+    return <p className="text-sm text-canvas-muted">Loading salary benchmarks…</p>;
   }
 
   if (error) {
@@ -101,10 +101,10 @@ export default function SalaryBenchmarker() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl">
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none">
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Search role</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Search role</span>
             <input
               type="search"
               value={search}
@@ -117,7 +117,7 @@ export default function SalaryBenchmarker() {
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Experience level</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Experience level</span>
             <select
               value={experienceKey}
               onChange={(e) => {
@@ -135,31 +135,31 @@ export default function SalaryBenchmarker() {
       </section>
 
       {selected && activeBand && (
-        <section className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-5 shadow-lg">
-          <p className="text-lg font-bold text-white">{selected.role}</p>
-          <p className="mt-1 text-sm text-slate-400">{activeBand.label} · indicative annual CTC (₹ lakhs)</p>
+        <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-5 shadow-none">
+          <p className="text-lg font-bold text-canvas-text">{selected.role}</p>
+          <p className="mt-1 text-sm text-canvas-subtle">{activeBand.label} · indicative annual CTC (₹ lakhs)</p>
           <div className="mt-4 grid grid-cols-3 gap-3 text-center">
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 px-2 py-3">
-              <p className="text-xs uppercase text-slate-500">Min</p>
-              <p className="mt-1 text-xl font-bold text-slate-300">₹{activeBand.min.toFixed(1)}</p>
+              <p className="text-xs uppercase text-canvas-subtle">Min</p>
+              <p className="mt-1 text-xl font-bold text-canvas-muted">₹{activeBand.min.toFixed(1)}</p>
             </div>
-            <div className="rounded-xl border border-emerald-800/50 bg-emerald-950/30 px-2 py-3">
-              <p className="text-xs uppercase text-emerald-500">Mid</p>
-              <p className="mt-1 text-xl font-bold text-emerald-400">₹{activeBand.mid.toFixed(1)}</p>
+            <div className="rounded-xl border border-canvas-border bg-canvas-accent-soft/30 px-2 py-3">
+              <p className="text-xs uppercase text-canvas-accent">Mid</p>
+              <p className="mt-1 text-xl font-bold text-canvas-accent">₹{activeBand.mid.toFixed(1)}</p>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 px-2 py-3">
-              <p className="text-xs uppercase text-slate-500">Max</p>
-              <p className="mt-1 text-xl font-bold text-slate-300">₹{activeBand.max.toFixed(1)}</p>
+              <p className="text-xs uppercase text-canvas-subtle">Max</p>
+              <p className="mt-1 text-xl font-bold text-canvas-muted">₹{activeBand.max.toFixed(1)}</p>
             </div>
           </div>
         </section>
       )}
 
       <section>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">All roles</h2>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-canvas-subtle">All roles</h2>
         <div className="overflow-x-auto rounded-2xl border border-slate-800">
           <table className="w-full min-w-[480px] text-left text-sm">
-            <thead className="bg-slate-900/80 text-xs uppercase tracking-wider text-slate-500">
+            <thead className="bg-canvas-accent-muted/80 text-xs uppercase tracking-wider text-canvas-subtle">
               <tr>
                 <th className="px-4 py-3">Role</th>
                 <th className="px-4 py-3">Min (LPA)</th>
@@ -167,7 +167,7 @@ export default function SalaryBenchmarker() {
                 <th className="px-4 py-3">Max (LPA)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800 bg-slate-900/40">
+            <tbody className="divide-y divide-slate-800 bg-canvas-accent-muted/40">
               {filteredRoles.map((entry) => {
                 const band = entry.bands[experienceKey];
                 if (!band) return null;
@@ -175,16 +175,16 @@ export default function SalaryBenchmarker() {
                 return (
                   <tr
                     key={entry.role}
-                    className={`cursor-pointer transition hover:bg-emerald-950/30 ${isSelected ? 'bg-emerald-950/40 ring-1 ring-inset ring-emerald-700/50' : ''}`}
+                    className={`cursor-pointer transition hover:bg-canvas-accent-soft/30 ${isSelected ? 'bg-canvas-accent-soft/40 ring-1 ring-inset ring-canvas-accent/30' : ''}`}
                     onClick={() => {
                       setSelectedRole(entry.role);
                       persist({ selectedRole: entry.role });
                     }}
                   >
-                    <td className="px-4 py-3 font-medium text-white">{entry.role}</td>
-                    <td className="px-4 py-3 text-slate-400">{band.min.toFixed(1)}</td>
-                    <td className="px-4 py-3 text-emerald-400">{band.mid.toFixed(1)}</td>
-                    <td className="px-4 py-3 text-slate-400">{band.max.toFixed(1)}</td>
+                    <td className="px-4 py-3 font-medium text-canvas-text">{entry.role}</td>
+                    <td className="px-4 py-3 text-canvas-subtle">{band.min.toFixed(1)}</td>
+                    <td className="px-4 py-3 text-canvas-accent">{band.mid.toFixed(1)}</td>
+                    <td className="px-4 py-3 text-canvas-subtle">{band.max.toFixed(1)}</td>
                   </tr>
                 );
               })}
@@ -192,7 +192,7 @@ export default function SalaryBenchmarker() {
           </table>
         </div>
         {filteredRoles.length === 0 && (
-          <p className="mt-3 text-center text-sm text-slate-500">No roles match your search.</p>
+          <p className="mt-3 text-center text-sm text-canvas-subtle">No roles match your search.</p>
         )}
       </section>
     </div>

@@ -71,7 +71,7 @@ export default function QuickGardenPlantingPlanner() {
   const wateredToday = useMemo(() => plants.filter((p) => p.lastWatered === todayKey()).length, [plants]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
+    'w-full rounded-xl border border-canvas-border px-3 py-2 text-sm outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
 
   const addPlant = () => {
     setPlants((prev) => [
@@ -106,28 +106,28 @@ export default function QuickGardenPlantingPlanner() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
-          <p className="text-xs font-semibold uppercase text-emerald-700">Plants tracked</p>
+        <div className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/80 p-4">
+          <p className="text-xs font-semibold uppercase text-canvas-accent">Plants tracked</p>
           <p className="mt-1 text-2xl font-bold text-emerald-900">{plants.length}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">Watered today</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">{wateredToday}</p>
+        <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-4">
+          <p className="text-xs font-semibold uppercase text-canvas-subtle">Watered today</p>
+          <p className="mt-1 text-2xl font-bold text-canvas-text">{wateredToday}</p>
         </div>
       </div>
 
       <div className="flex justify-end">
-        <button type="button" onClick={addPlant} className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700">
+        <button type="button" onClick={addPlant} className="rounded-xl bg-canvas-accent-muted px-4 py-2 text-sm font-semibold text-canvas-text hover:bg-canvas-accent/40">
           + Add plant
         </button>
       </div>
 
       <ul className="space-y-3">
         {plants.map((plant, index) => (
-          <li key={plant.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <li key={plant.id} className="rounded-xl border border-canvas-border bg-canvas-surface p-4 shadow-none">
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <input value={plant.name} onChange={(e) => updatePlant(index, { name: e.target.value })} placeholder="Plant name" className={inputClass} />
-              <label className="text-xs text-slate-500">
+              <label className="text-xs text-canvas-subtle">
                 Sown
                 <input type="date" value={plant.sowDate} onChange={(e) => updatePlant(index, { sowDate: e.target.value })} className={`${inputClass} mt-1`} />
               </label>
@@ -139,7 +139,7 @@ export default function QuickGardenPlantingPlanner() {
                 ))}
               </select>
               <div className="flex gap-2">
-                <button type="button" onClick={() => markWatered(index)} className="flex-1 rounded-xl border border-emerald-300 bg-emerald-50 px-2 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100">
+                <button type="button" onClick={() => markWatered(index)} className="flex-1 rounded-xl border border-emerald-300 bg-canvas-accent-soft px-2 py-2 text-xs font-semibold text-canvas-accent hover:bg-canvas-accent-soft">
                   💧 Watered
                 </button>
                 <button type="button" onClick={() => removePlant(index)} className="rounded-xl border border-rose-200 px-2 py-2 text-xs font-semibold text-rose-600">
@@ -149,7 +149,7 @@ export default function QuickGardenPlantingPlanner() {
             </div>
             <input value={plant.notes} onChange={(e) => updatePlant(index, { notes: e.target.value })} placeholder="Growing notes…" className={`${inputClass} mt-2`} />
             {plant.lastWatered && (
-              <p className="mt-2 text-xs text-slate-500">Last watered: {plant.lastWatered}</p>
+              <p className="mt-2 text-xs text-canvas-subtle">Last watered: {plant.lastWatered}</p>
             )}
           </li>
         ))}

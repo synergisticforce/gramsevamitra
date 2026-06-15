@@ -12,11 +12,11 @@ export default function OmniHandoffLoading({
       aria-live="polite"
     >
       <div
-        className="h-10 w-10 animate-spin rounded-full border-[3px] border-violet-200 border-t-violet-600"
+        className="h-10 w-10 animate-spin rounded-full border-[3px] border-canvas-border border-t-violet-600"
         aria-hidden="true"
       />
-      <p className="max-w-sm text-center text-sm font-medium text-slate-600">{label}</p>
-      <p className="max-w-sm text-center text-xs text-slate-500">
+      <p className="max-w-sm text-center text-sm font-medium text-canvas-muted">{label}</p>
+      <p className="max-w-sm text-center text-xs text-canvas-subtle">
         Your file stays in browser memory — nothing is uploaded to our servers.
       </p>
     </div>

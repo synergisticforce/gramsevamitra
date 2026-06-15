@@ -35,8 +35,8 @@ const LIGHT_LEGEND = {
 function pillClass(active: boolean): string {
   return `rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
     active
-      ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
-      : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-300'
+      ? 'border-canvas-accent bg-canvas-accent-soft text-canvas-accent'
+      : 'border-canvas-border bg-canvas-surface text-canvas-muted hover:border-emerald-300'
   }`;
 }
 
@@ -111,17 +111,17 @@ export default function FinanceGstCalculator() {
   }, [result, supplyType]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 tabular-nums';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 tabular-nums';
 
   const halfRate = rate / 2;
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Amount &amp; slab</h2>
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Amount &amp; slab</h2>
         <div className="mt-4 space-y-5">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">
               {mode === 'exclusive' ? 'Net price (pre-tax) ₹' : 'Gross price (inclusive) ₹'}
             </span>
             <input
@@ -134,7 +134,7 @@ export default function FinanceGstCalculator() {
           </label>
 
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-slate-700">GST rate</legend>
+            <legend className="mb-2 text-sm font-medium text-canvas-muted">GST rate</legend>
             <div className="flex flex-wrap gap-2">
               {GST_SLABS.map((slab) => (
                 <button
@@ -150,7 +150,7 @@ export default function FinanceGstCalculator() {
           </fieldset>
 
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-slate-700">Mode</legend>
+            <legend className="mb-2 text-sm font-medium text-canvas-muted">Mode</legend>
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => setMode('exclusive')} className={pillClass(mode === 'exclusive')}>
                 Tax exclusive
@@ -162,7 +162,7 @@ export default function FinanceGstCalculator() {
           </fieldset>
 
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-slate-700">Supply type</legend>
+            <legend className="mb-2 text-sm font-medium text-canvas-muted">Supply type</legend>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -183,54 +183,54 @@ export default function FinanceGstCalculator() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-700">GST breakdown</h2>
+      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">GST breakdown</h2>
 
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between gap-3">
-            <dt className="text-slate-500">Net (taxable value)</dt>
-            <dd className="font-semibold tabular-nums text-slate-900">
+            <dt className="text-canvas-subtle">Net (taxable value)</dt>
+            <dd className="font-semibold tabular-nums text-canvas-text">
               {result ? formatInr(result.net, 2) : '₹0.00'}
             </dd>
           </div>
           {supplyType === 'intrastate' ? (
             <>
               <div className="flex justify-between gap-3">
-                <dt className="text-slate-500">CGST ({halfRate}%)</dt>
+                <dt className="text-canvas-subtle">CGST ({halfRate}%)</dt>
                 <dd className="font-semibold tabular-nums text-sky-700">
                   {result ? formatInr(result.cgst, 2) : '₹0.00'}
                 </dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-slate-500">SGST ({halfRate}%)</dt>
-                <dd className="font-semibold tabular-nums text-amber-700">
+                <dt className="text-canvas-subtle">SGST ({halfRate}%)</dt>
+                <dd className="font-semibold tabular-nums text-canvas-muted">
                   {result ? formatInr(result.sgst, 2) : '₹0.00'}
                 </dd>
               </div>
             </>
           ) : (
             <div className="flex justify-between gap-3">
-              <dt className="text-slate-500">IGST ({rate}%)</dt>
-              <dd className="font-semibold tabular-nums text-amber-700">
+              <dt className="text-canvas-subtle">IGST ({rate}%)</dt>
+              <dd className="font-semibold tabular-nums text-canvas-muted">
                 {result ? formatInr(result.igst, 2) : '₹0.00'}
               </dd>
             </div>
           )}
           <div className="flex justify-between gap-3 border-t border-emerald-100 pt-2">
-            <dt className="font-medium text-slate-700">Total GST</dt>
+            <dt className="font-medium text-canvas-muted">Total GST</dt>
             <dd className="font-semibold tabular-nums text-amber-800">
               {result ? formatInr(result.gstTotal, 2) : '₹0.00'}
             </dd>
           </div>
-          <div className="flex justify-between gap-3 rounded-lg border border-emerald-200 bg-white px-3 py-2">
-            <dt className="font-medium text-emerald-800">Gross valuation</dt>
-            <dd className="text-lg font-bold tabular-nums text-emerald-700">
+          <div className="flex justify-between gap-3 rounded-lg border border-emerald-200 bg-canvas-surface px-3 py-2">
+            <dt className="font-medium text-canvas-accent">Gross valuation</dt>
+            <dd className="text-lg font-bold tabular-nums text-canvas-accent">
               {result ? formatInr(result.gross, 2) : '₹0.00'}
             </dd>
           </div>
         </dl>
 
-        <div className="relative mt-5 h-52 rounded-xl border border-slate-100 bg-white p-3">
+        <div className="relative mt-5 h-52 rounded-xl border border-slate-100 bg-canvas-surface p-3">
           <canvas ref={chartRef} aria-label="Net vs GST components" />
         </div>
       </section>

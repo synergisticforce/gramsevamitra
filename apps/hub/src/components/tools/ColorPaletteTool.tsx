@@ -108,8 +108,8 @@ export default function ColorPaletteTool() {
           onClick={() => setMode('extract')}
           className={`rounded-xl border px-4 py-2 text-sm font-semibold ${
             mode === 'extract'
-              ? 'border-emerald-500 bg-emerald-950/50 text-emerald-300'
-              : 'border-slate-700 text-slate-400'
+              ? 'border-canvas-accent bg-canvas-accent-soft/50 text-canvas-accent'
+              : 'border-canvas-border text-canvas-subtle'
           }`}
         >
           Image extractor
@@ -119,8 +119,8 @@ export default function ColorPaletteTool() {
           onClick={() => setMode('randomizer')}
           className={`rounded-xl border px-4 py-2 text-sm font-semibold ${
             mode === 'randomizer'
-              ? 'border-emerald-500 bg-emerald-950/50 text-emerald-300'
-              : 'border-slate-700 text-slate-400'
+              ? 'border-canvas-accent bg-canvas-accent-soft/50 text-canvas-accent'
+              : 'border-canvas-border text-canvas-subtle'
           }`}
         >
           Randomizer matrix
@@ -130,7 +130,7 @@ export default function ColorPaletteTool() {
       {mode === 'extract' ? (
         <section
           className={`rounded-2xl border-2 border-dashed p-8 text-center transition ${
-            isDragging ? 'border-emerald-500 bg-emerald-950/30' : 'border-slate-700 bg-slate-900/60'
+            isDragging ? 'border-canvas-accent bg-canvas-accent-soft/30' : 'border-canvas-border bg-canvas-accent-muted/60'
           }`}
           onDragOver={(e) => {
             e.preventDefault();
@@ -139,8 +139,8 @@ export default function ColorPaletteTool() {
           onDragLeave={() => setIsDragging(false)}
           onDrop={onDrop}
         >
-          <p className="text-sm text-slate-300">Drag &amp; drop an image here</p>
-          <p className="mt-1 text-xs text-slate-500">Processed locally via HTML5 Canvas — never uploaded</p>
+          <p className="text-sm text-canvas-muted">Drag &amp; drop an image here</p>
+          <p className="mt-1 text-xs text-canvas-subtle">Processed locally via HTML5 Canvas — never uploaded</p>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -150,14 +150,14 @@ export default function ColorPaletteTool() {
           </button>
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
           {previewUrl && (
-            <canvas ref={previewCanvasRef} className="mx-auto mt-4 max-h-40 rounded-lg border border-slate-700" />
+            <canvas ref={previewCanvasRef} className="mx-auto mt-4 max-h-40 rounded-lg border border-canvas-border" />
           )}
         </section>
       ) : (
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+        <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <fieldset>
-              <legend className="mb-2 text-sm font-medium text-slate-300">Harmony mode</legend>
+              <legend className="mb-2 text-sm font-medium text-canvas-muted">Harmony mode</legend>
               <div className="flex flex-wrap gap-2">
                 {HARMONY_MODES.map((h) => (
                   <button
@@ -166,8 +166,8 @@ export default function ColorPaletteTool() {
                     onClick={() => setHarmony(h.id)}
                     className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
                       harmony === h.id
-                        ? 'border-emerald-500 bg-emerald-950/50 text-emerald-300'
-                        : 'border-slate-700 text-slate-400'
+                        ? 'border-canvas-accent bg-canvas-accent-soft/50 text-canvas-accent'
+                        : 'border-canvas-border text-canvas-subtle'
                     }`}
                   >
                     {h.label}
@@ -179,11 +179,11 @@ export default function ColorPaletteTool() {
               Generate (Space)
             </button>
           </div>
-          <p className="mt-2 text-xs text-slate-500">Press Space or click to shuffle a harmonized 5-color palette.</p>
+          <p className="mt-2 text-xs text-canvas-subtle">Press Space or click to shuffle a harmonized 5-color palette.</p>
         </section>
       )}
 
-      <p className="min-h-[1.25rem] text-center text-xs text-emerald-400" role="status">
+      <p className="min-h-[1.25rem] text-center text-xs text-canvas-accent" role="status">
         {feedback}
       </p>
 
@@ -193,13 +193,13 @@ export default function ColorPaletteTool() {
             key={`${swatch.hex}-${idx}`}
             type="button"
             onClick={() => copyHex(swatch.hex)}
-            className="swatch-card group flex min-h-[140px] flex-col justify-end overflow-hidden rounded-2xl border border-slate-700/80 shadow-lg transition hover:scale-[1.02] hover:border-emerald-500/50 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="swatch-card group flex min-h-[140px] flex-col justify-end overflow-hidden rounded-2xl border border-canvas-border/80 shadow-none transition hover:scale-[1.02] hover:border-canvas-accent/50 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             style={{ backgroundColor: swatch.hex }}
             title={`Copy ${swatch.hex}`}
           >
             <div className="bg-black/50 px-3 py-2 text-left backdrop-blur-sm">
-              <p className="font-mono text-xs font-bold uppercase text-white">{swatch.hex}</p>
-              <p className="font-mono text-[10px] text-slate-300">
+              <p className="font-mono text-xs font-bold uppercase text-canvas-text">{swatch.hex}</p>
+              <p className="font-mono text-[10px] text-canvas-muted">
                 rgb({swatch.rgb.r}, {swatch.rgb.g}, {swatch.rgb.b})
               </p>
             </div>

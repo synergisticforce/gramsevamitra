@@ -47,8 +47,8 @@ export default function MagicDropzone({ onFileSelect, disabled = false }: Props)
   const dropzoneClass = [
     'relative flex min-h-[320px] flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-12 text-center transition sm:min-h-[380px]',
     isDragging
-      ? 'border-emerald-500 bg-emerald-50/80 shadow-inner'
-      : 'border-slate-300 bg-white hover:border-emerald-400 hover:bg-emerald-50/30',
+      ? 'border-canvas-accent bg-canvas-accent-soft/80 shadow-inner'
+      : 'border-canvas-border bg-canvas-surface hover:border-canvas-accent hover:bg-canvas-accent-soft/50',
     disabled ? 'pointer-events-none opacity-60' : 'cursor-pointer',
   ].join(' ');
 
@@ -88,29 +88,29 @@ export default function MagicDropzone({ onFileSelect, disabled = false }: Props)
         <span className="text-5xl" aria-hidden="true">
           {isDragging ? '📥' : '📄'}
         </span>
-        <p className="mt-4 text-lg font-semibold text-slate-900">
+        <p className="mt-4 text-lg font-semibold text-canvas-text">
           {isDragging ? 'Release to load your document' : 'Drop your document here'}
         </p>
-        <p className="mt-2 max-w-md text-sm text-slate-500">
+        <p className="mt-2 max-w-md text-sm text-canvas-subtle">
           PDF, Word, or image files — processed locally in your browser. Or click to browse.
         </p>
       </div>
 
       {/* Mobile: native tap-to-upload (replaces unreliable drag-and-drop) */}
       <div className="md:hidden">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+        <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-6 text-center shadow-none">
           <span className="text-5xl" aria-hidden="true">
             📄
           </span>
-          <p className="mt-4 text-lg font-semibold text-slate-900">Add a document</p>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-4 text-lg font-semibold text-canvas-text">Add a document</p>
+          <p className="mt-2 text-sm text-canvas-subtle">
             Tap below to pick a PDF, Word file, or image from your device.
           </p>
           <button
             type="button"
             disabled={disabled}
             onClick={() => inputRef.current?.click()}
-            className="mt-6 inline-flex w-full max-w-sm items-center justify-center rounded-xl bg-slate-900 px-6 py-4 text-base font-semibold text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-60"
+            className="mt-6 inline-flex w-full max-w-sm items-center justify-center rounded-xl bg-canvas-accent-muted px-6 py-4 text-base font-semibold text-canvas-text shadow-none transition hover:bg-canvas-elevated active:scale-[0.98] disabled:opacity-60"
           >
             Tap to Upload
           </button>

@@ -45,7 +45,7 @@ export default function PrivacyPolicy() {
         </p>
         <p>
           <strong>Local storage:</strong> Free-tier workspace tools may save preferences and form inputs
-          in your browser&apos;s <code className="rounded bg-slate-100 px-1">localStorage</code> on your
+          in your browser&apos;s <code className="rounded bg-canvas-elevated px-1">localStorage</code> on your
           device only. You may clear this data at any time through browser settings.
         </p>
       </LegalSection>
@@ -72,7 +72,7 @@ export default function PrivacyPolicy() {
       <LegalSection title="5. Your Rights">
         <p>
           You may request access, correction, or deletion of account data we hold by contacting us at{' '}
-          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-violet-700 underline">
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-canvas-accent underline">
             {SUPPORT_EMAIL}
           </a>
           . We will respond within a reasonable timeframe as required by applicable law.
@@ -98,7 +98,7 @@ export default function PrivacyPolicy() {
       <LegalSection title="8. Contact">
         <p>
           For privacy-related questions, email{' '}
-          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-violet-700 underline">
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-canvas-accent underline">
             {SUPPORT_EMAIL}
           </a>
           .

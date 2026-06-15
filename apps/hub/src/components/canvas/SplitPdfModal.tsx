@@ -87,7 +87,7 @@ export default function SplitPdfModal({ file, onClose, onSuccess, onProcessingCh
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="split-pdf-title"
@@ -95,19 +95,19 @@ export default function SplitPdfModal({ file, onClose, onSuccess, onProcessingCh
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="split-pdf-title" className="text-lg font-bold text-slate-900">
+            <h2 id="split-pdf-title" className="text-lg font-bold text-canvas-text">
               Split PDF
             </h2>
-            <p className="mt-1 text-xs text-slate-500 truncate">{file.name}</p>
+            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted disabled:opacity-50"
             aria-label="Close"
           >
             ✕
@@ -115,15 +115,15 @@ export default function SplitPdfModal({ file, onClose, onSuccess, onProcessingCh
         </div>
 
         {loadingMeta ? (
-          <p className="mt-4 text-sm text-slate-500">Reading page count…</p>
+          <p className="mt-4 text-sm text-canvas-subtle">Reading page count…</p>
         ) : (
           <>
-            <p className="mt-4 text-sm text-slate-600">
-              This PDF has <span className="font-semibold text-slate-900">{pageCount}</span>{' '}
+            <p className="mt-4 text-sm text-canvas-muted">
+              This PDF has <span className="font-semibold text-canvas-text">{pageCount}</span>{' '}
               page{pageCount === 1 ? '' : 's'}. Enter pages to extract (1-based).
             </p>
             <label className="mt-3 block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
                 Page range
               </span>
               <input
@@ -132,10 +132,10 @@ export default function SplitPdfModal({ file, onClose, onSuccess, onProcessingCh
                 onChange={(event) => setRangeInput(event.target.value)}
                 placeholder="e.g. 1-3, 5"
                 disabled={busy}
-                className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 disabled:bg-slate-50"
+                className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 disabled:bg-canvas-elevated"
               />
             </label>
-            <p className="mt-1.5 text-xs text-slate-400">Examples: 1-3, 5, 2-4, 7</p>
+            <p className="mt-1.5 text-xs text-canvas-subtle">Examples: 1-3, 5, 2-4, 7</p>
           </>
         )}
 
@@ -150,7 +150,7 @@ export default function SplitPdfModal({ file, onClose, onSuccess, onProcessingCh
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-50"
           >
             Cancel
           </button>
@@ -158,7 +158,7 @@ export default function SplitPdfModal({ file, onClose, onSuccess, onProcessingCh
             type="button"
             onClick={() => void handleExtract()}
             disabled={busy || loadingMeta || pageCount < 1}
-            className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? 'Extracting…' : 'Extract & download'}
           </button>

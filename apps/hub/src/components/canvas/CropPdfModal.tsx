@@ -98,7 +98,7 @@ export default function CropPdfModal({ file, onClose, onSuccess, onProcessingCha
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="crop-pdf-title"
@@ -106,19 +106,19 @@ export default function CropPdfModal({ file, onClose, onSuccess, onProcessingCha
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="crop-pdf-title" className="text-lg font-bold text-slate-900">
+            <h2 id="crop-pdf-title" className="text-lg font-bold text-canvas-text">
               Crop PDF Page
             </h2>
-            <p className="mt-1 text-xs text-slate-500 truncate">{file.name}</p>
+            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted disabled:opacity-50"
             aria-label="Close"
           >
             ✕
@@ -126,11 +126,11 @@ export default function CropPdfModal({ file, onClose, onSuccess, onProcessingCha
         </div>
 
         {loadingMeta ? (
-          <p className="mt-4 text-sm text-slate-500">Reading document…</p>
+          <p className="mt-4 text-sm text-canvas-subtle">Reading document…</p>
         ) : (
           <>
             <label className="mt-4 block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
                 Page to crop (1-based)
               </span>
               <input
@@ -144,17 +144,17 @@ export default function CropPdfModal({ file, onClose, onSuccess, onProcessingCha
                   setPageIndex(n - 1);
                   setCrop(defaultCropRect());
                 }}
-                className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 tabular-nums disabled:bg-slate-50"
+                className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 tabular-nums disabled:bg-canvas-elevated"
               />
             </label>
 
-            <p className="mt-4 text-sm text-slate-600">
+            <p className="mt-4 text-sm text-canvas-muted">
               Adjust the crop area as percentages of the page (top-left origin).
             </p>
 
             {(['x', 'y', 'w', 'h'] as const).map((key) => (
               <label key={key} className="mt-3 block">
-                <div className="mb-1 flex justify-between text-xs text-slate-600">
+                <div className="mb-1 flex justify-between text-xs text-canvas-muted">
                   <span className="font-medium uppercase">{key === 'w' ? 'Width' : key === 'h' ? 'Height' : key === 'x' ? 'Left offset' : 'Top offset'}</span>
                   <span className="tabular-nums">{Math.round(crop[key] * 100)}%</span>
                 </div>
@@ -183,7 +183,7 @@ export default function CropPdfModal({ file, onClose, onSuccess, onProcessingCha
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-50"
           >
             Cancel
           </button>
@@ -191,7 +191,7 @@ export default function CropPdfModal({ file, onClose, onSuccess, onProcessingCha
             type="button"
             onClick={() => void handleApply()}
             disabled={busy || loadingMeta || pageCount < 1}
-            className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? 'Cropping…' : 'Apply & download'}
           </button>

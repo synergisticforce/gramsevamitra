@@ -33,10 +33,10 @@ export default function QuickToolsToolGrid({ onSelectTool }: Props) {
         return (
           <section key={category}>
             <div className="mb-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-violet-700">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">
                 {meta.label}
               </h2>
-              <p className="mt-0.5 text-sm text-slate-600">{meta.description}</p>
+              <p className="mt-0.5 text-sm text-canvas-muted">{meta.description}</p>
             </div>
 
             <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -45,18 +45,18 @@ export default function QuickToolsToolGrid({ onSelectTool }: Props) {
                   <button
                     type="button"
                     onClick={() => onSelectTool(tool.id)}
-                    className="group flex h-full w-full flex-col items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-violet-300 hover:shadow-md active:scale-[0.98] sm:p-5"
+                    className="group flex h-full w-full flex-col items-start gap-3 rounded-2xl border border-canvas-border bg-canvas-surface p-4 text-left shadow-none transition hover:border-violet-300 hover:shadow-md active:scale-[0.98] sm:p-5"
                   >
                     <span className="text-3xl leading-none" aria-hidden="true">
                       {tool.icon}
                     </span>
                     <div>
-                      <p className="text-base font-semibold text-slate-900 group-hover:text-violet-800">
+                      <p className="text-base font-semibold text-canvas-text group-hover:text-violet-800">
                         {tool.label}
                       </p>
-                      <p className="mt-1 text-sm text-slate-500">{tool.description}</p>
+                      <p className="mt-1 text-sm text-canvas-subtle">{tool.description}</p>
                     </div>
-                    <span className="mt-auto text-xs font-semibold text-violet-600">Open tool →</span>
+                    <span className="mt-auto text-xs font-semibold text-canvas-accent">Open tool →</span>
                   </button>
                 </li>
               ))}
@@ -65,7 +65,7 @@ export default function QuickToolsToolGrid({ onSelectTool }: Props) {
         );
       })}
 
-      <p className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">
+      <p className="rounded-xl border border-slate-100 bg-canvas-elevated px-4 py-3 text-center text-xs text-canvas-subtle">
         {QUICK_CANVAS_TOOLS.length} utilities · 100% client-side · instant, offline responses
       </p>
     </div>

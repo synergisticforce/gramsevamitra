@@ -99,13 +99,13 @@ export default function FinanceTaxDeductionCalculator() {
   }, [result]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 tabular-nums';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 tabular-nums';
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Income & deductions</h2>
-        <label className="mt-4 block text-sm font-medium text-slate-700">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Income & deductions</h2>
+        <label className="mt-4 block text-sm font-medium text-canvas-muted">
           Gross annual income (₹)
           <input
             type="number"
@@ -124,8 +124,8 @@ export default function FinanceTaxDeductionCalculator() {
               onClick={() => setRegime(r)}
               className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
                 regime === r
-                  ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
-                  : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                  ? 'border-canvas-accent bg-canvas-accent-soft text-canvas-accent'
+                  : 'border-canvas-border text-canvas-muted hover:bg-canvas-elevated'
               }`}
             >
               {r === 'new' ? 'New regime' : 'Old regime'}
@@ -136,8 +136,8 @@ export default function FinanceTaxDeductionCalculator() {
         <div className="mt-5 space-y-3">
           {DEDUCTION_CATEGORIES.map((cat) => (
             <label key={cat.id} className="block">
-              <span className="text-sm font-medium text-slate-700">{cat.label}</span>
-              <span className="block text-[11px] text-slate-400">{cat.hint}</span>
+              <span className="text-sm font-medium text-canvas-muted">{cat.label}</span>
+              <span className="block text-[11px] text-canvas-subtle">{cat.hint}</span>
               <input
                 type="number"
                 min={0}
@@ -155,32 +155,32 @@ export default function FinanceTaxDeductionCalculator() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-700">Tax savings</h2>
-        <p className="mt-3 text-3xl font-bold tabular-nums text-emerald-800">
+      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Tax savings</h2>
+        <p className="mt-3 text-3xl font-bold tabular-nums text-canvas-accent">
           {formatInr(Math.round(result.estimatedSavings))}
         </p>
-        <p className="mt-1 text-sm text-slate-500">Estimated annual tax saved</p>
+        <p className="mt-1 text-sm text-canvas-subtle">Estimated annual tax saved</p>
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between">
-            <dt className="text-slate-500">Tax without extras</dt>
+            <dt className="text-canvas-subtle">Tax without extras</dt>
             <dd className="font-semibold">{formatInr(Math.round(result.taxWithoutExtras))}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-500">Tax with deductions</dt>
-            <dd className="font-semibold text-emerald-800">
+            <dt className="text-canvas-subtle">Tax with deductions</dt>
+            <dd className="font-semibold text-canvas-accent">
               {formatInr(Math.round(result.taxWithExtras))}
             </dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-500">Total deductions applied</dt>
+            <dt className="text-canvas-subtle">Total deductions applied</dt>
             <dd className="font-semibold">{formatInr(Math.round(result.totalDeductions))}</dd>
           </div>
         </dl>
-        <div className="relative mt-5 h-56 rounded-xl border border-slate-100 bg-white p-2">
+        <div className="relative mt-5 h-56 rounded-xl border border-slate-100 bg-canvas-surface p-2">
           <canvas ref={chartRef} aria-label="Tax comparison chart" />
         </div>
-        <p className="mt-2 text-center text-xs text-slate-500">
+        <p className="mt-2 text-center text-xs text-canvas-subtle">
           Simplified Indian income-tax estimate · not professional tax advice
         </p>
       </section>

@@ -125,25 +125,25 @@ export default function OcrExtractor() {
   return (
     <div className="ocr-extractor space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Image input</h2>
+        <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Image input</h2>
 
-          <p className="mt-2 text-xs text-slate-500">
-            Powered by <strong className="text-emerald-400/90">Transformers.js</strong> + ONNX Runtime WASM
+          <p className="mt-2 text-xs text-canvas-subtle">
+            Powered by <strong className="text-canvas-accent/90">Transformers.js</strong> + ONNX Runtime WASM
             (TrOCR). Preprocessing runs on Canvas before inference in a Web Worker.
           </p>
 
           <label className="mt-4 block">
-            <span className="mb-2 block text-sm font-medium text-slate-300">Upload image (JPG / PNG)</span>
+            <span className="mb-2 block text-sm font-medium text-canvas-muted">Upload image (JPG / PNG)</span>
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
               onChange={handleFile}
-              className="block w-full text-sm text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-500"
+              className="block w-full text-sm text-canvas-subtle file:mr-3 file:rounded-lg file:border-0 file:bg-canvas-accent-muted file:px-4 file:py-2 file:text-sm file:font-semibold file:text-canvas-text hover:file:bg-canvas-accent-soft0"
             />
           </label>
 
-          <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+          <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-canvas-muted">
             <input
               type="checkbox"
               checked={multiLine}
@@ -153,7 +153,7 @@ export default function OcrExtractor() {
             Split into text lines (better for documents)
           </label>
 
-          <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-xs text-slate-400">
+          <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-xs text-canvas-subtle">
             {modelProgress}
           </div>
 
@@ -181,22 +181,22 @@ export default function OcrExtractor() {
           {previewUrl && processedPreview && (
             <div className="mt-4 grid grid-cols-2 gap-2">
               <div>
-                <p className="mb-1 text-[10px] font-medium uppercase text-slate-500">Original</p>
+                <p className="mb-1 text-[10px] font-medium uppercase text-canvas-subtle">Original</p>
                 <img src={previewUrl} alt="Original upload" className="max-h-40 w-full rounded-lg border border-slate-800 object-contain" />
               </div>
               <div>
-                <p className="mb-1 text-[10px] font-medium uppercase text-slate-500">Preprocessed</p>
+                <p className="mb-1 text-[10px] font-medium uppercase text-canvas-subtle">Preprocessed</p>
                 <img src={processedPreview} alt="Preprocessed for OCR" className="max-h-40 w-full rounded-lg border border-slate-800 object-contain" />
               </div>
             </div>
           )}
         </section>
 
-        <section className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6">
+        <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-none sm:p-6">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">Extracted text</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Extracted text</h2>
             {result && (
-              <button type="button" onClick={copyResult} className="rounded-lg border border-emerald-700/60 px-3 py-1 text-xs font-semibold text-emerald-400 hover:border-emerald-500">
+              <button type="button" onClick={copyResult} className="rounded-lg border border-emerald-700/60 px-3 py-1 text-xs font-semibold text-canvas-accent hover:border-canvas-accent">
                 Copy
               </button>
             )}

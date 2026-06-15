@@ -60,31 +60,31 @@ export default function WordCounterTool() {
   return (
     <div className="space-y-4">
       <section
-        className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/40 to-slate-900/60 p-4 shadow-lg sm:p-5"
+        className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/40 to-slate-900/60 p-4 shadow-none sm:p-5"
         aria-label="Live text statistics"
         aria-live="polite"
       >
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[
-            { label: 'Words', value: stats.words, className: 'text-emerald-400' },
-            { label: 'Characters', value: stats.chars, className: 'text-white' },
-            { label: 'No spaces', value: stats.charsNoSpace, className: 'text-slate-300' },
+            { label: 'Words', value: stats.words, className: 'text-canvas-accent' },
+            { label: 'Characters', value: stats.chars, className: 'text-canvas-text' },
+            { label: 'No spaces', value: stats.charsNoSpace, className: 'text-canvas-muted' },
             { label: 'Sentences', value: stats.sentences, className: 'text-amber-400' },
             { label: 'Paragraphs', value: stats.paragraphs, className: 'text-amber-400' },
-            { label: 'Read time', value: stats.readingLabel, className: 'text-emerald-300 text-lg sm:text-xl' },
+            { label: 'Read time', value: stats.readingLabel, className: 'text-canvas-accent text-lg sm:text-xl' },
           ].map((item) => (
             <div key={item.label} className="rounded-xl border border-slate-800/80 bg-slate-950/50 px-3 py-3 text-center">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{item.label}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-canvas-subtle">{item.label}</p>
               <p className={`mt-1 text-2xl font-bold tabular-nums ${item.className}`}>{item.value}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-xl sm:p-5">
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-4 shadow-none sm:p-5">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Your text</h2>
-          <p className="min-h-[1rem] text-xs text-emerald-400" role="status">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Your text</h2>
+          <p className="min-h-[1rem] text-xs text-canvas-accent" role="status">
             {feedback}
           </p>
         </div>

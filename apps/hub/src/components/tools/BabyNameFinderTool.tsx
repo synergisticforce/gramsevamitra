@@ -35,10 +35,10 @@ function NamesSkeleton() {
       {Array.from({ length: 8 }, (_, i) => (
         <li
           key={i}
-          className="animate-pulse rounded-xl border border-slate-800 bg-slate-900/50 p-3"
+          className="animate-pulse rounded-xl border border-slate-800 bg-canvas-accent-muted/50 p-3"
         >
-          <div className="h-4 w-24 rounded bg-slate-700" />
-          <div className="mt-2 h-3 w-32 rounded bg-slate-800" />
+          <div className="h-4 w-24 rounded bg-canvas-accent-muted" />
+          <div className="mt-2 h-3 w-32 rounded bg-canvas-elevated" />
         </li>
       ))}
     </ul>
@@ -134,8 +134,8 @@ export default function BabyNameFinderTool() {
   const pillClass = (active: boolean) =>
     `rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
       active
-        ? 'border-emerald-600 bg-emerald-950/50 text-emerald-300'
-        : 'border-slate-700 bg-slate-950/60 text-slate-400 hover:border-slate-600'
+        ? 'border-emerald-600 bg-canvas-accent-soft/50 text-canvas-accent'
+        : 'border-canvas-border bg-slate-950/60 text-canvas-subtle hover:border-canvas-border'
     }`;
 
   const hasActiveFilters =
@@ -146,11 +146,11 @@ export default function BabyNameFinderTool() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Filter &amp; search</h2>
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Filter &amp; search</h2>
 
         <label className="mt-4 block">
-          <span className="mb-1 block text-sm font-medium text-slate-300">Search name</span>
+          <span className="mb-1 block text-sm font-medium text-canvas-muted">Search name</span>
           <input
             type="search"
             value={search}
@@ -163,7 +163,7 @@ export default function BabyNameFinderTool() {
 
         <div className="mt-5 grid gap-4 sm:grid-cols-3">
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-canvas-subtle">
               Origin
             </span>
             <select
@@ -181,7 +181,7 @@ export default function BabyNameFinderTool() {
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-canvas-subtle">
               Gender
             </span>
             <select
@@ -199,7 +199,7 @@ export default function BabyNameFinderTool() {
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-canvas-subtle">
               Syllables
             </span>
             <select
@@ -219,7 +219,7 @@ export default function BabyNameFinderTool() {
 
         {!loading && availableLetters.length > 0 && (
           <div className="mt-5">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Starting letter</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-canvas-subtle">Starting letter</p>
             <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-9 md:grid-cols-[repeat(13,minmax(0,1fr))]">
               {availableLetters.map((letter) => (
                 <button
@@ -253,17 +253,17 @@ export default function BabyNameFinderTool() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
-          Shortlist <span className="text-slate-500">({shortlist.length})</span>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">
+          Shortlist <span className="text-canvas-subtle">({shortlist.length})</span>
         </h2>
-        <ul className="flex min-h-[48px] flex-wrap gap-2 rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-3">
+        <ul className="flex min-h-[48px] flex-wrap gap-2 rounded-xl border border-dashed border-canvas-border bg-canvas-accent-muted/30 p-3">
           {shortlist.length === 0 ? (
-            <li className="text-xs text-slate-500">Tap ☆ on any name to add here.</li>
+            <li className="text-xs text-canvas-subtle">Tap ☆ on any name to add here.</li>
           ) : (
             shortlist.map((name) => (
               <li
                 key={name}
-                className="inline-flex items-center gap-1 rounded-lg border border-emerald-800/60 bg-emerald-950/40 px-2.5 py-1 text-xs font-medium text-emerald-300"
+                className="inline-flex items-center gap-1 rounded-lg border border-emerald-800/60 bg-canvas-accent-soft/40 px-2.5 py-1 text-xs font-medium text-canvas-accent"
               >
                 {name}
                 <button
@@ -281,16 +281,16 @@ export default function BabyNameFinderTool() {
       </section>
 
       <section>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-canvas-subtle">
           Names{' '}
-          <span className="text-slate-600">
+          <span className="text-canvas-muted">
             ({loading ? '…' : filtered.length.toLocaleString()})
           </span>
         </h2>
 
         {loading && (
-          <div className="mb-4 flex items-center gap-2 text-sm text-emerald-300" role="status">
-            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
+          <div className="mb-4 flex items-center gap-2 text-sm text-canvas-accent" role="status">
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-canvas-accent border-t-transparent" />
             Loading name database…
           </div>
         )}
@@ -302,7 +302,7 @@ export default function BabyNameFinderTool() {
         )}
 
         {!loading && !loadError && filtered.length === 0 ? (
-          <p className="text-center text-sm text-slate-500">No names match your filters.</p>
+          <p className="text-center text-sm text-canvas-subtle">No names match your filters.</p>
         ) : loading ? (
           <NamesSkeleton />
         ) : (
@@ -313,14 +313,14 @@ export default function BabyNameFinderTool() {
               return (
                 <li
                   key={`${entry.origin}-${entry.gender}-${entry.name}`}
-                  className="flex items-start justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 transition hover:border-slate-700"
+                  className="flex items-start justify-between gap-2 rounded-xl border border-slate-800 bg-canvas-accent-muted/50 p-3 transition hover:border-canvas-border"
                 >
                   <div>
-                    <p className="font-semibold text-white">
+                    <p className="font-semibold text-canvas-text">
                       {entry.name}
-                      <span className="ml-2 text-sm font-normal text-emerald-400/90">{syllableLabel}</span>
+                      <span className="ml-2 text-sm font-normal text-canvas-accent/90">{syllableLabel}</span>
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-canvas-subtle">
                       {entry.gender} · {entry.origin}
                     </p>
                   </div>
@@ -330,7 +330,7 @@ export default function BabyNameFinderTool() {
                     className={`shrink-0 rounded-lg border px-2 py-1 text-sm transition ${
                       starred
                         ? 'border-amber-600 bg-amber-950/40 text-amber-400'
-                        : 'border-slate-700 text-slate-500 hover:border-amber-600 hover:text-amber-400'
+                        : 'border-canvas-border text-canvas-subtle hover:border-amber-600 hover:text-amber-400'
                     }`}
                     aria-label={starred ? 'Remove from shortlist' : 'Add to shortlist'}
                   >

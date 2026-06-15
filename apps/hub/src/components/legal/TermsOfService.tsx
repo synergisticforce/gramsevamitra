@@ -95,7 +95,7 @@ export default function TermsOfService() {
       <LegalSection title="10. Contact">
         <p>
           Questions about these Terms:{' '}
-          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-violet-700 underline">
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-canvas-accent underline">
             {SUPPORT_EMAIL}
           </a>
           .

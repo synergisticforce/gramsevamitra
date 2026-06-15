@@ -119,11 +119,11 @@ export default function QrGeneratorTool() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Content &amp; style</h2>
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Content &amp; style</h2>
         <div className="mt-5 space-y-4">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Text or URL</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Text or URL</span>
             <textarea
               rows={5}
               value={text}
@@ -136,17 +136,17 @@ export default function QrGeneratorTool() {
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-300">Foreground</span>
-              <input type="color" value={fgColor} onChange={(e) => setFgColor(e.target.value)} className="h-10 w-full cursor-pointer rounded-lg border border-slate-700 bg-slate-950" />
+              <span className="mb-1 block text-sm font-medium text-canvas-muted">Foreground</span>
+              <input type="color" value={fgColor} onChange={(e) => setFgColor(e.target.value)} className="h-10 w-full cursor-pointer rounded-lg border border-canvas-border bg-slate-950" />
             </label>
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-300">Background</span>
-              <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)} className="h-10 w-full cursor-pointer rounded-lg border border-slate-700 bg-slate-950" />
+              <span className="mb-1 block text-sm font-medium text-canvas-muted">Background</span>
+              <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)} className="h-10 w-full cursor-pointer rounded-lg border border-canvas-border bg-slate-950" />
             </label>
           </div>
 
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-slate-300">Error correction</legend>
+            <legend className="mb-2 text-sm font-medium text-canvas-muted">Error correction</legend>
             <div className="flex flex-wrap gap-2">
               {ERROR_LEVELS.map((lvl) => (
                 <button
@@ -155,11 +155,11 @@ export default function QrGeneratorTool() {
                   onClick={() => setErrorLevel(lvl.id)}
                   className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
                     errorLevel === lvl.id
-                      ? 'border-emerald-500 bg-emerald-950/50 text-emerald-300'
-                      : 'border-slate-700 text-slate-400'
+                      ? 'border-canvas-accent bg-canvas-accent-soft/50 text-canvas-accent'
+                      : 'border-canvas-border text-canvas-subtle'
                   }`}
                 >
-                  {lvl.label} <span className="text-slate-500">{lvl.pct}</span>
+                  {lvl.label} <span className="text-canvas-subtle">{lvl.pct}</span>
                 </button>
               ))}
             </div>
@@ -183,7 +183,7 @@ export default function QrGeneratorTool() {
                 setHasQr(false);
                 setStatus('');
               }}
-              className="preset-btn border-slate-700 text-slate-400"
+              className="preset-btn border-canvas-border text-canvas-subtle"
             >
               Clear
             </button>
@@ -191,15 +191,15 @@ export default function QrGeneratorTool() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6" aria-live="polite">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">QR preview</h2>
+      <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-none sm:p-6" aria-live="polite">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">QR preview</h2>
         <div className="mt-5 flex flex-col items-center">
           <div
-            className="flex min-h-[280px] w-full max-w-[340px] items-center justify-center rounded-2xl border border-slate-700 p-4 shadow-inner"
+            className="flex min-h-[280px] w-full max-w-[340px] items-center justify-center rounded-2xl border border-canvas-border p-4 shadow-inner"
             style={{ backgroundColor: bgColor }}
           >
             {!hasQr && (
-              <p className="px-4 text-center text-sm text-slate-500">Enter text to generate your QR code</p>
+              <p className="px-4 text-center text-sm text-canvas-subtle">Enter text to generate your QR code</p>
             )}
             <canvas
               ref={canvasRef}
@@ -209,7 +209,7 @@ export default function QrGeneratorTool() {
               aria-label="QR code preview"
             />
           </div>
-          <p className="mt-3 min-h-[1.25rem] text-center text-xs text-slate-400">{status}</p>
+          <p className="mt-3 min-h-[1.25rem] text-center text-xs text-canvas-subtle">{status}</p>
           <button type="button" onClick={downloadPng} disabled={!hasQr} className="btn-primary mt-5 w-full max-w-[340px]">
             Download high-res PNG
           </button>

@@ -194,12 +194,12 @@ export default function SipCalculatorTool() {
   return (
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">SIP details</h2>
+        <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">SIP details</h2>
           <div className="mt-5 space-y-5">
             <div>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <label className="text-sm font-medium text-slate-300">Monthly investment (₹)</label>
+                <label className="text-sm font-medium text-canvas-muted">Monthly investment (₹)</label>
                 <input
                   type="number"
                   min={500}
@@ -221,7 +221,7 @@ export default function SipCalculatorTool() {
 
             <div>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <label className="text-sm font-medium text-slate-300">Expected return (% p.a.)</label>
+                <label className="text-sm font-medium text-canvas-muted">Expected return (% p.a.)</label>
                 <input
                   type="number"
                   min={0}
@@ -245,7 +245,7 @@ export default function SipCalculatorTool() {
 
             <div>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <label className="text-sm font-medium text-slate-300">Time horizon (years)</label>
+                <label className="text-sm font-medium text-canvas-muted">Time horizon (years)</label>
                 <input
                   type="number"
                   min={1}
@@ -267,7 +267,7 @@ export default function SipCalculatorTool() {
             </div>
 
             <fieldset>
-              <legend className="mb-2 text-sm font-medium text-slate-300">Annual step-up</legend>
+              <legend className="mb-2 text-sm font-medium text-canvas-muted">Annual step-up</legend>
               <div className="mb-3 flex gap-2">
                 {(['percent', 'amount'] as StepUpMode[]).map((m) => (
                   <button
@@ -276,8 +276,8 @@ export default function SipCalculatorTool() {
                     onClick={() => setStepUpMode(m)}
                     className={`flex-1 rounded-xl border py-2 text-xs font-semibold ${
                       stepUpMode === m
-                        ? 'border-emerald-500 bg-emerald-950/50 text-emerald-300'
-                        : 'border-slate-700 text-slate-400'
+                        ? 'border-canvas-accent bg-canvas-accent-soft/50 text-canvas-accent'
+                        : 'border-canvas-border text-canvas-subtle'
                     }`}
                   >
                     {m === 'percent' ? 'Step-up %' : 'Step-up ₹'}
@@ -285,7 +285,7 @@ export default function SipCalculatorTool() {
                 ))}
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-canvas-subtle">
                   {stepUpMode === 'percent' ? 'Increase % per year' : 'Increase ₹ per year'}
                 </span>
                 <input
@@ -307,14 +307,14 @@ export default function SipCalculatorTool() {
               />
             </fieldset>
 
-            <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-3">
+            <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-canvas-border bg-slate-950/50 px-4 py-3">
               <input
                 type="checkbox"
                 checked={inflationAdjust}
                 onChange={(e) => setInflationAdjust(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-600 accent-emerald-500"
+                className="h-4 w-4 rounded border-canvas-border accent-emerald-500"
               />
-              <span className="text-sm text-slate-300">
+              <span className="text-sm text-canvas-muted">
                 Inflation adjustment ({INFLATION_BASELINE}% baseline — real purchasing power)
               </span>
             </label>
@@ -336,23 +336,23 @@ export default function SipCalculatorTool() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">Wealth forecast</h2>
+        <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-none sm:p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Wealth forecast</h2>
           <dl className="mt-5 space-y-4">
             <div className="flex items-baseline justify-between gap-3">
-              <dt className="text-slate-400">Maturity value</dt>
-              <dd className="text-2xl font-bold tabular-nums text-emerald-400">
+              <dt className="text-canvas-subtle">Maturity value</dt>
+              <dd className="text-2xl font-bold tabular-nums text-canvas-accent">
                 {result ? formatInr(Math.round(result.totalValue)) : '₹0'}
               </dd>
             </div>
             <div className="flex justify-between gap-3 text-sm">
-              <dt className="text-slate-400">Total invested</dt>
-              <dd className="font-semibold tabular-nums text-white">
+              <dt className="text-canvas-subtle">Total invested</dt>
+              <dd className="font-semibold tabular-nums text-canvas-text">
                 {result ? formatInr(Math.round(result.totalInvested)) : '₹0'}
               </dd>
             </div>
             <div className="flex justify-between gap-3 text-sm">
-              <dt className="text-slate-400">Wealth generated</dt>
+              <dt className="text-canvas-subtle">Wealth generated</dt>
               <dd className="font-semibold tabular-nums text-amber-300">
                 {result ? formatInr(Math.round(result.estimatedReturns)) : '₹0'}
               </dd>
@@ -378,9 +378,9 @@ export default function SipCalculatorTool() {
         </section>
       </div>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Year-by-year breakdown</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Year-by-year breakdown</h2>
           <button
             type="button"
             disabled={!result}
@@ -407,7 +407,7 @@ export default function SipCalculatorTool() {
 
         <div className="mt-4 overflow-auto rounded-xl border border-slate-800">
           <table className="w-full min-w-[28rem] text-left text-sm">
-            <thead className="bg-slate-900 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            <thead className="bg-canvas-accent-muted text-[10px] font-semibold uppercase tracking-wider text-canvas-subtle">
               <tr>
                 <th className="px-4 py-2">Year</th>
                 <th className="px-4 py-2">Invested wealth</th>
@@ -416,12 +416,12 @@ export default function SipCalculatorTool() {
                 {inflationAdjust && <th className="px-4 py-2">Real value</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80 text-slate-300">
+            <tbody className="divide-y divide-slate-800/80 text-canvas-muted">
               {yearly.map((r) => (
-                <tr key={r.year} className="hover:bg-slate-800/40">
+                <tr key={r.year} className="hover:bg-canvas-elevated/40">
                   <td className="px-4 py-2 tabular-nums">{r.year}</td>
                   <td className="px-4 py-2 tabular-nums">{formatInr(r.invested)}</td>
-                  <td className="px-4 py-2 tabular-nums text-emerald-300">{formatInr(r.corpus)}</td>
+                  <td className="px-4 py-2 tabular-nums text-canvas-accent">{formatInr(r.corpus)}</td>
                   <td className="px-4 py-2 tabular-nums text-amber-300">{formatInr(r.gains)}</td>
                   {inflationAdjust && (
                     <td className="px-4 py-2 tabular-nums text-sky-300">

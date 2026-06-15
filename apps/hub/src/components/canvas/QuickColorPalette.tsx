@@ -38,19 +38,19 @@ function SwatchRow({
   if (swatches.length === 0) return null;
   return (
     <div>
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-canvas-subtle">{label}</p>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         {swatches.map((swatch, idx) => (
           <button
             key={`${swatch.hex}-${idx}`}
             type="button"
             onClick={() => onCopy(swatch.hex)}
-            className="group flex min-h-[88px] flex-col justify-end overflow-hidden rounded-xl border border-slate-200 shadow-sm transition hover:scale-[1.02] hover:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-400"
+            className="group flex min-h-[88px] flex-col justify-end overflow-hidden rounded-xl border border-canvas-border shadow-none transition hover:scale-[1.02] hover:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-400"
             style={{ backgroundColor: swatch.hex }}
             title={`Copy ${swatch.hex}`}
           >
             <div className="bg-black/45 px-2 py-1.5 text-left backdrop-blur-sm">
-              <p className="font-mono text-[10px] font-bold text-white">{swatch.hex}</p>
+              <p className="font-mono text-[10px] font-bold text-canvas-text">{swatch.hex}</p>
             </div>
           </button>
         ))}
@@ -86,15 +86,15 @@ export default function QuickColorPalette({ onToast }: Props) {
   );
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono text-sm uppercase outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 font-mono text-sm uppercase outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Base color</h2>
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Base color</h2>
         <div className="mt-4 flex flex-wrap items-end gap-4">
           <label className="block flex-1 min-w-[140px]">
-            <span className="text-sm font-medium text-slate-700">Hex code</span>
+            <span className="text-sm font-medium text-canvas-muted">Hex code</span>
             <input
               type="text"
               value={baseHex}
@@ -105,12 +105,12 @@ export default function QuickColorPalette({ onToast }: Props) {
             />
           </label>
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Picker</span>
+            <span className="text-sm font-medium text-canvas-muted">Picker</span>
             <input
               type="color"
               value={isValid ? baseHex : '#6366F1'}
               onChange={(e) => setBaseHex(e.target.value.toUpperCase())}
-              className="mt-1.5 h-11 w-full min-w-[3rem] cursor-pointer rounded-xl border border-slate-200 bg-white"
+              className="mt-1.5 h-11 w-full min-w-[3rem] cursor-pointer rounded-xl border border-canvas-border bg-canvas-surface"
             />
           </label>
         </div>
@@ -133,7 +133,7 @@ export default function QuickColorPalette({ onToast }: Props) {
                   .join(', ')
               )
             }
-            className="w-full rounded-xl border border-violet-300 bg-violet-50 px-4 py-2.5 text-sm font-semibold text-violet-800 hover:bg-violet-100"
+            className="w-full rounded-xl border border-violet-300 bg-canvas-accent-soft px-4 py-2.5 text-sm font-semibold text-violet-800 hover:bg-violet-100"
           >
             Copy all hex values
           </button>

@@ -59,20 +59,20 @@ export default function QuickUrlEncoder({ onToast }: Props) {
   }, [onToast, output]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono text-sm text-slate-900 outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 font-mono text-sm text-canvas-text outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm font-medium text-slate-700">Mode</p>
-        <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5" role="group">
+        <p className="text-sm font-medium text-canvas-muted">Mode</p>
+        <div className="inline-flex rounded-lg border border-canvas-border bg-canvas-surface p-0.5" role="group">
           {(['encode', 'decode'] as Mode[]).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => setMode(m)}
               className={`rounded-md px-4 py-1.5 text-xs font-semibold capitalize ${
-                mode === m ? 'bg-violet-600 text-white' : 'text-slate-600 hover:text-violet-700'
+                mode === m ? 'bg-canvas-accent-muted text-canvas-text' : 'text-canvas-muted hover:text-canvas-accent'
               }`}
             >
               {m}
@@ -81,7 +81,7 @@ export default function QuickUrlEncoder({ onToast }: Props) {
         </div>
       </div>
 
-      <label className="block text-sm font-medium text-slate-700">
+      <label className="block text-sm font-medium text-canvas-muted">
         {mode === 'encode' ? 'Plain text / URL' : 'URL-encoded string'}
         <textarea
           rows={5}
@@ -99,7 +99,7 @@ export default function QuickUrlEncoder({ onToast }: Props) {
           rows={5}
           readOnly
           value={output}
-          className={`${inputClass} mt-1.5 resize-y bg-violet-50/50`}
+          className={`${inputClass} mt-1.5 resize-y bg-canvas-accent-soft/50`}
           placeholder="Result appears here…"
           spellCheck={false}
         />
@@ -116,7 +116,7 @@ export default function QuickUrlEncoder({ onToast }: Props) {
           type="button"
           onClick={() => setInput(output)}
           disabled={!output}
-          className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          className="rounded-xl border border-canvas-border px-4 py-2 text-sm font-semibold text-canvas-muted hover:bg-canvas-elevated disabled:opacity-50"
         >
           Use output as input
         </button>
@@ -124,7 +124,7 @@ export default function QuickUrlEncoder({ onToast }: Props) {
           type="button"
           onClick={() => void copyResult()}
           disabled={!output}
-          className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
+          className="rounded-xl bg-canvas-accent-muted px-4 py-2 text-sm font-semibold text-canvas-text hover:bg-canvas-accent/40 disabled:opacity-50"
         >
           Copy to clipboard
         </button>
@@ -135,7 +135,7 @@ export default function QuickUrlEncoder({ onToast }: Props) {
             setOutput('');
             setError('');
           }}
-          className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          className="rounded-xl border border-canvas-border px-4 py-2 text-sm font-semibold text-canvas-muted hover:bg-canvas-elevated"
         >
           Clear
         </button>

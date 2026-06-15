@@ -67,13 +67,13 @@ export default function QuickPasswordGenerator({ onToast }: Props) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Options</h2>
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Options</h2>
         <div className="mt-4 space-y-6">
           <label className="block">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-700">Length</span>
-              <span className="text-sm font-bold tabular-nums text-violet-700">{length}</span>
+              <span className="text-sm font-medium text-canvas-muted">Length</span>
+              <span className="text-sm font-bold tabular-nums text-canvas-accent">{length}</span>
             </div>
             <input
               type="range"
@@ -83,15 +83,15 @@ export default function QuickPasswordGenerator({ onToast }: Props) {
               onChange={(e) => setLength(Number(e.target.value))}
               className="w-full accent-violet-600"
             />
-            <div className="mt-1 flex justify-between text-[10px] text-slate-400">
+            <div className="mt-1 flex justify-between text-[10px] text-canvas-subtle">
               <span>8</span>
               <span>64</span>
             </div>
           </label>
 
           <div className="space-y-3">
-            <label className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
-              <span className="text-sm font-medium text-slate-700">Include numbers (0–9)</span>
+            <label className="flex cursor-pointer items-center justify-between rounded-xl border border-canvas-border px-4 py-3">
+              <span className="text-sm font-medium text-canvas-muted">Include numbers (0–9)</span>
               <input
                 type="checkbox"
                 checked={numbers}
@@ -99,8 +99,8 @@ export default function QuickPasswordGenerator({ onToast }: Props) {
                 className="h-5 w-5 accent-violet-600"
               />
             </label>
-            <label className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
-              <span className="text-sm font-medium text-slate-700">Include symbols (!@#$…)</span>
+            <label className="flex cursor-pointer items-center justify-between rounded-xl border border-canvas-border px-4 py-3">
+              <span className="text-sm font-medium text-canvas-muted">Include symbols (!@#$…)</span>
               <input
                 type="checkbox"
                 checked={special}
@@ -113,17 +113,17 @@ export default function QuickPasswordGenerator({ onToast }: Props) {
           <button
             type="button"
             onClick={regenerate}
-            className="w-full rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700"
+            className="w-full rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40"
           >
             Regenerate
           </button>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50/80 to-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-violet-700">Your password</h2>
+      <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-violet-50/80 to-white p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Your password</h2>
         <div
-          className="mt-4 break-all rounded-xl border border-slate-200 bg-white px-4 py-4 font-mono text-sm leading-relaxed text-slate-900 sm:text-base"
+          className="mt-4 break-all rounded-xl border border-canvas-border bg-canvas-surface px-4 py-4 font-mono text-sm leading-relaxed text-canvas-text sm:text-base"
           aria-live="polite"
         >
           {password || '—'}
@@ -132,7 +132,7 @@ export default function QuickPasswordGenerator({ onToast }: Props) {
           type="button"
           onClick={() => void copyPassword()}
           disabled={!password}
-          className="mt-4 w-full rounded-xl border border-violet-300 bg-white px-4 py-2.5 text-sm font-semibold text-violet-800 transition hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 w-full rounded-xl border border-violet-300 bg-canvas-surface px-4 py-2.5 text-sm font-semibold text-violet-800 transition hover:bg-canvas-accent-soft disabled:cursor-not-allowed disabled:opacity-50"
         >
           Copy to clipboard
         </button>

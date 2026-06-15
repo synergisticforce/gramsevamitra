@@ -8,9 +8,9 @@ const { title, lastUpdated = 'June 2026' } = Astro.props;
 ---
 
 <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-  <h1 class="text-3xl font-bold text-white">{title}</h1>
-  <p class="mt-2 text-sm text-slate-500">Last updated: {lastUpdated}</p>
-  <div class="prose prose-invert prose-slate mt-8 max-w-none text-slate-300">
+  <h1 class="text-3xl font-bold text-canvas-text">{title}</h1>
+  <p class="mt-2 text-sm text-canvas-subtle">Last updated: {lastUpdated}</p>
+  <div class="prose prose-invert prose-slate mt-8 max-w-none text-canvas-muted">
     <slot />
   </div>
 </section>

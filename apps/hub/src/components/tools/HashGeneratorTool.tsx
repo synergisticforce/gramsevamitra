@@ -65,8 +65,8 @@ export default function HashGeneratorTool() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Source text</h2>
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Source text</h2>
         <textarea
           rows={5}
           value={input}
@@ -75,13 +75,13 @@ export default function HashGeneratorTool() {
           placeholder="Type or paste text to hash…"
           spellCheck={false}
         />
-        <p className="mt-2 text-xs text-slate-500" aria-live="polite">
+        <p className="mt-2 text-xs text-canvas-subtle" aria-live="polite">
           {status}
         </p>
       </section>
 
       <section className="space-y-3" aria-labelledby="hash-output-heading">
-        <h2 id="hash-output-heading" className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+        <h2 id="hash-output-heading" className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">
           Digests
         </h2>
         {HASH_ROWS.map((row) => {
@@ -89,20 +89,20 @@ export default function HashGeneratorTool() {
           return (
             <div
               key={row.key}
-              className="grid gap-2 rounded-xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-3 sm:grid-cols-[5rem_1fr_auto] sm:items-center sm:gap-3 sm:p-4"
+              className="grid gap-2 rounded-xl border border-canvas-border bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-3 sm:grid-cols-[5rem_1fr_auto] sm:items-center sm:gap-3 sm:p-4"
             >
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">{row.label}</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-canvas-subtle">{row.label}</span>
               <input
                 type="text"
                 readOnly
                 value={value}
-                className="min-w-0 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 font-mono text-xs text-emerald-300 sm:text-sm"
+                className="min-w-0 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 font-mono text-xs text-canvas-accent sm:text-sm"
               />
               <button
                 type="button"
                 disabled={!digests[row.key]}
                 onClick={() => copyValue(digests[row.key], row.label)}
-                className="rounded-lg border border-emerald-700/60 bg-emerald-950/40 px-3 py-2 text-xs font-semibold text-emerald-400 transition hover:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-lg border border-emerald-700/60 bg-canvas-accent-soft/40 px-3 py-2 text-xs font-semibold text-canvas-accent transition hover:border-canvas-accent disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Copy
               </button>

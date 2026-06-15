@@ -32,15 +32,15 @@ export default function AgeCalculatorTool() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Dates</h2>
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Dates</h2>
         <div className="mt-5 space-y-4">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Date of birth</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Date of birth</span>
             <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="input-field w-full" />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Compare date</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Compare date</span>
             <input type="date" value={compare} onChange={(e) => setCompare(e.target.value)} className="input-field w-full" />
           </label>
         </div>
@@ -49,22 +49,22 @@ export default function AgeCalculatorTool() {
         </button>
       </section>
 
-      <section className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6" aria-live="polite">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">Age difference</h2>
+      <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-none sm:p-6" aria-live="polite">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Age difference</h2>
         {!result ? (
-          <p className="mt-5 text-center text-slate-400">Select a date of birth</p>
+          <p className="mt-5 text-center text-canvas-subtle">Select a date of birth</p>
         ) : result.invalid ? (
           <div className="mt-5 text-center">
             <p className="text-xl font-bold text-rose-400">Invalid range</p>
-            <p className="mt-2 text-sm text-slate-400">{result.invalid}</p>
+            <p className="mt-2 text-sm text-canvas-subtle">{result.invalid}</p>
           </div>
         ) : (
           <>
             <div className="mt-5 text-center">
-              <p className="text-3xl font-extrabold tabular-nums text-white sm:text-4xl">
+              <p className="text-3xl font-extrabold tabular-nums text-canvas-text sm:text-4xl">
                 {result.years}y {result.months}m {result.days}d
               </p>
-              <p className="mt-2 text-sm text-slate-400">As of {result.compareLabel}</p>
+              <p className="mt-2 text-sm text-canvas-subtle">As of {result.compareLabel}</p>
             </div>
             <dl className="mt-6 grid grid-cols-3 gap-3 text-center">
               {[
@@ -73,19 +73,19 @@ export default function AgeCalculatorTool() {
                 { label: 'Days', value: result.days },
               ].map((item) => (
                 <div key={item.label} className="rounded-xl border border-slate-800 bg-slate-950/50 px-2 py-3">
-                  <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{item.label}</dt>
-                  <dd className="mt-1 text-2xl font-bold tabular-nums text-emerald-400">{item.value}</dd>
+                  <dt className="text-[10px] font-semibold uppercase tracking-wider text-canvas-subtle">{item.label}</dt>
+                  <dd className="mt-1 text-2xl font-bold tabular-nums text-canvas-accent">{item.value}</dd>
                 </div>
               ))}
             </dl>
             <div className="mt-5 rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-4 text-sm">
               <div className="flex justify-between gap-2">
-                <span className="text-slate-400">Total days</span>
-                <span className="font-semibold tabular-nums text-white">{result.totalDays.toLocaleString('en-IN')}</span>
+                <span className="text-canvas-subtle">Total days</span>
+                <span className="font-semibold tabular-nums text-canvas-text">{result.totalDays.toLocaleString('en-IN')}</span>
               </div>
               <div className="mt-2 flex justify-between gap-2 border-t border-slate-800 pt-2">
-                <span className="text-slate-400">Born on</span>
-                <span className="font-semibold text-emerald-300">{result.birthLabel}</span>
+                <span className="text-canvas-subtle">Born on</span>
+                <span className="font-semibold text-canvas-accent">{result.birthLabel}</span>
               </div>
             </div>
           </>

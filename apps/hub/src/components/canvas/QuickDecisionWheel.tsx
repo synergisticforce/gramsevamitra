@@ -207,13 +207,13 @@ export default function QuickDecisionWheel() {
   useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Wheel options</h2>
-        <p className="mt-1 text-xs text-slate-500">One option per line. Optional weight: Option [2]</p>
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Wheel options</h2>
+        <p className="mt-1 text-xs text-canvas-subtle">One option per line. Optional weight: Option [2]</p>
         <textarea
           rows={5}
           value={optionsText}
@@ -227,7 +227,7 @@ export default function QuickDecisionWheel() {
             type="button"
             onClick={spin}
             disabled={isSpinning}
-            className="flex-1 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
+            className="flex-1 rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text hover:bg-canvas-accent/40 disabled:opacity-50"
           >
             {isSpinning ? 'Spinning…' : 'Spin the wheel!'}
           </button>
@@ -239,7 +239,7 @@ export default function QuickDecisionWheel() {
               setOptionsText(lines.slice(0, -1).join('\n'));
             }}
             disabled={isSpinning}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted hover:bg-canvas-elevated disabled:opacity-50"
           >
             Remove last
           </button>
@@ -247,7 +247,7 @@ export default function QuickDecisionWheel() {
             type="button"
             onClick={() => setOptionsText((prev) => (prev.trim() ? `${prev}\nNew option` : 'New option'))}
             disabled={isSpinning}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted hover:bg-canvas-elevated disabled:opacity-50"
           >
             + Add option
           </button>
@@ -263,7 +263,7 @@ export default function QuickDecisionWheel() {
             ref={wheelCanvasRef}
             width={340}
             height={340}
-            className="mx-auto rounded-full border-4 border-slate-200 shadow-lg"
+            className="mx-auto rounded-full border-4 border-canvas-border shadow-none"
             role="img"
             aria-label="Decision wheel"
           />

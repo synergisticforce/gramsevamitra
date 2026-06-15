@@ -110,9 +110,9 @@ export default function QuickScientificCalculator() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_220px]">
       <div className="space-y-4">
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-right shadow-sm">
-          <p className="min-h-[1.25rem] truncate text-xs text-slate-400">{expression || ' '}</p>
-          <p className="text-3xl font-bold tabular-nums text-slate-900">{display}</p>
+        <div className="rounded-2xl border border-canvas-border bg-canvas-surface px-4 py-3 text-right shadow-none">
+          <p className="min-h-[1.25rem] truncate text-xs text-canvas-subtle">{expression || ' '}</p>
+          <p className="text-3xl font-bold tabular-nums text-canvas-text">{display}</p>
           {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
         </div>
 
@@ -125,38 +125,38 @@ export default function QuickScientificCalculator() {
               style={btn.span ? { gridColumn: `span ${btn.span}` } : undefined}
               className={`rounded-xl border py-3 text-sm font-semibold transition active:scale-95 ${
                 btn.type === 'action' && btn.value === 'equals'
-                  ? 'border-violet-600 bg-violet-600 text-white hover:bg-violet-700'
+                  ? 'border-violet-600 bg-canvas-accent-muted text-canvas-text hover:bg-canvas-accent/40'
                   : btn.type === 'action'
-                    ? 'border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    ? 'border-canvas-border bg-canvas-elevated text-canvas-muted hover:bg-canvas-elevated'
                     : btn.type === 'fn'
-                      ? 'border-violet-200 bg-violet-50 text-violet-800 hover:border-violet-300'
-                      : 'border-slate-200 bg-white text-slate-900 hover:border-violet-200'
+                      ? 'border-canvas-border bg-canvas-accent-soft text-violet-800 hover:border-violet-300'
+                      : 'border-canvas-border bg-canvas-surface text-canvas-text hover:border-canvas-border'
               }`}
             >
               {btn.label}
             </button>
           ))}
         </div>
-        <p className="text-xs text-slate-500">
-          Use <code className="text-violet-700">pow(a,b)</code> for powers after tapping xʸ, e.g.{' '}
-          <code className="text-violet-700">pow(2,8)</code>
+        <p className="text-xs text-canvas-subtle">
+          Use <code className="text-canvas-accent">pow(a,b)</code> for powers after tapping xʸ, e.g.{' '}
+          <code className="text-canvas-accent">pow(2,8)</code>
         </p>
       </div>
 
-      <aside className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">History</h3>
+      <aside className="rounded-2xl border border-canvas-border bg-canvas-surface p-4 shadow-none">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-canvas-subtle">History</h3>
         <ul className="mt-3 max-h-80 space-y-2 overflow-y-auto text-sm">
-          {history.length === 0 && <li className="text-slate-400">Calculations appear here</li>}
+          {history.length === 0 && <li className="text-canvas-subtle">Calculations appear here</li>}
           {history.map((entry, i) => (
             <li
               key={`${entry.expression}-${i}`}
-              className="cursor-pointer rounded-lg border border-slate-100 bg-slate-50 px-2 py-1.5 hover:border-violet-200"
+              className="cursor-pointer rounded-lg border border-slate-100 bg-canvas-elevated px-2 py-1.5 hover:border-canvas-border"
               onClick={() => {
                 setExpression(entry.expression);
                 setDisplay(entry.result);
               }}
             >
-              <p className="truncate text-xs text-slate-400">{entry.expression}</p>
+              <p className="truncate text-xs text-canvas-subtle">{entry.expression}</p>
               <p className="font-semibold tabular-nums text-violet-800">= {entry.result}</p>
             </li>
           ))}

@@ -53,23 +53,23 @@ export default function InstallAppBanner() {
 
   return (
     <div
-      className="fixed inset-x-0 bottom-0 z-[100] border-t border-slate-700 bg-slate-950 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.45)] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-[100] border-t border-canvas-border bg-slate-950 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.45)] md:hidden"
       role="region"
       aria-label="Install GramSeva Mitra app"
     >
       <div className="mx-auto flex max-w-lg items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-sm font-bold text-white">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-canvas-accent-muted text-sm font-bold text-canvas-text">
           GS
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold leading-snug text-white">
+          <p className="text-sm font-semibold leading-snug text-canvas-text">
             Get the GramSeva App — Works offline. Zero MB storage.
           </p>
         </div>
         <button
           type="button"
           onClick={hide}
-          className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+          className="shrink-0 rounded-lg p-1.5 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-text"
           aria-label="Dismiss install banner"
         >
           ✕
@@ -86,7 +86,7 @@ export default function InstallAppBanner() {
         <button
           type="button"
           onClick={hide}
-          className="rounded-xl border border-slate-600 px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:text-white"
+          className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-medium text-canvas-muted transition hover:border-slate-500 hover:text-canvas-text"
         >
           Not now
         </button>

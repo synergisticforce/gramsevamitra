@@ -57,7 +57,7 @@ export default function CoverLetterModal({ onClose, onSuccess }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="cover-letter-title"
@@ -65,20 +65,20 @@ export default function CoverLetterModal({ onClose, onSuccess }: Props) {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="cover-letter-title" className="text-lg font-bold text-slate-900">
+            <h2 id="cover-letter-title" className="text-lg font-bold text-canvas-text">
               📄 Cover Letter Template
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-canvas-subtle">
               Generated entirely in your browser — no data sent to servers.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted"
             aria-label="Close"
           >
             ✕
@@ -88,7 +88,7 @@ export default function CoverLetterModal({ onClose, onSuccess }: Props) {
         {step === 'form' && (
           <div className="mt-4 space-y-4">
             <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
                 Your name
               </span>
               <input
@@ -96,11 +96,11 @@ export default function CoverLetterModal({ onClose, onSuccess }: Props) {
                 value={form.userName}
                 onChange={(event) => update({ userName: event.target.value })}
                 placeholder="e.g. Priya Sharma"
-                className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-sky-500/30 focus:border-sky-400 focus:ring-2"
+                className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-sky-500/30 focus:border-sky-400 focus:ring-2"
               />
             </label>
             <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
                 Target role
               </span>
               <input
@@ -108,11 +108,11 @@ export default function CoverLetterModal({ onClose, onSuccess }: Props) {
                 value={form.targetRole}
                 onChange={(event) => update({ targetRole: event.target.value })}
                 placeholder="e.g. Software Engineer"
-                className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-sky-500/30 focus:border-sky-400 focus:ring-2"
+                className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-sky-500/30 focus:border-sky-400 focus:ring-2"
               />
             </label>
             <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
                 Company name
               </span>
               <input
@@ -120,7 +120,7 @@ export default function CoverLetterModal({ onClose, onSuccess }: Props) {
                 value={form.companyName}
                 onChange={(event) => update({ companyName: event.target.value })}
                 placeholder="e.g. Infosys"
-                className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-sky-500/30 focus:border-sky-400 focus:ring-2"
+                className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-sky-500/30 focus:border-sky-400 focus:ring-2"
               />
             </label>
           </div>
@@ -128,21 +128,21 @@ export default function CoverLetterModal({ onClose, onSuccess }: Props) {
 
         {step === 'preview' && (
           <div className="mt-4">
-            <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 p-4 font-sans text-sm leading-relaxed text-slate-800">
+            <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-xl border border-canvas-border bg-canvas-elevated p-4 font-sans text-sm leading-relaxed text-canvas-text">
               {letterText}
             </pre>
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => void handleCopy()}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                className="rounded-xl border border-canvas-border bg-canvas-surface px-4 py-2 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated"
               >
                 {copied ? 'Copied!' : 'Copy to clipboard'}
               </button>
               <button
                 type="button"
                 onClick={handleDownload}
-                className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
+                className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-canvas-text transition hover:bg-sky-700"
               >
                 Download .txt
               </button>
@@ -167,7 +167,7 @@ export default function CoverLetterModal({ onClose, onSuccess }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated"
           >
             {step === 'preview' ? 'Done' : 'Cancel'}
           </button>
@@ -175,7 +175,7 @@ export default function CoverLetterModal({ onClose, onSuccess }: Props) {
             <button
               type="button"
               onClick={handleGenerate}
-              className="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
+              className="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-sky-700"
             >
               Generate letter
             </button>

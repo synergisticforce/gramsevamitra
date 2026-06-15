@@ -73,7 +73,7 @@ export default function QuickPercentageCalculator() {
     mode === 'percent-of' ? 'Number (Y)' : mode === 'what-percent' ? 'Total (Y)' : 'Original value (Y)';
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2 tabular-nums';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2 tabular-nums';
 
   return (
     <div className="space-y-6">
@@ -85,8 +85,8 @@ export default function QuickPercentageCalculator() {
             onClick={() => setMode(m.id)}
             className={`rounded-xl border px-3 py-2 text-xs font-semibold transition sm:text-sm ${
               mode === m.id
-                ? 'border-violet-500 bg-violet-50 text-violet-800'
-                : 'border-slate-200 bg-white text-slate-600 hover:border-violet-200'
+                ? 'border-violet-500 bg-canvas-accent-soft text-violet-800'
+                : 'border-canvas-border bg-canvas-surface text-canvas-muted hover:border-canvas-border'
             }`}
           >
             {m.label}
@@ -95,7 +95,7 @@ export default function QuickPercentageCalculator() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-canvas-muted">
           {xLabel}
           <input
             type="number"
@@ -106,7 +106,7 @@ export default function QuickPercentageCalculator() {
             className={`${inputClass} mt-1.5`}
           />
         </label>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-canvas-muted">
           {yLabel}
           <input
             type="number"
@@ -119,10 +119,10 @@ export default function QuickPercentageCalculator() {
         </label>
       </div>
 
-      <div className="rounded-2xl border border-violet-200 bg-violet-50/80 px-5 py-4" aria-live="polite">
-        <p className="text-xs font-semibold uppercase tracking-wider text-violet-700">Result</p>
-        <p className="mt-2 text-xl font-bold text-slate-900">{result?.text ?? 'Enter values above'}</p>
-        {result?.detail && <p className="mt-1 text-sm text-slate-600">{result.detail}</p>}
+      <div className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/80 px-5 py-4" aria-live="polite">
+        <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent">Result</p>
+        <p className="mt-2 text-xl font-bold text-canvas-text">{result?.text ?? 'Enter values above'}</p>
+        {result?.detail && <p className="mt-1 text-sm text-canvas-muted">{result.detail}</p>}
       </div>
     </div>
   );

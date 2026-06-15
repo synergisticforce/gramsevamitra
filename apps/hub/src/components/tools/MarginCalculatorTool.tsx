@@ -76,20 +76,20 @@ export default function MarginCalculatorTool() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">
           Margin &amp; markup matrix
         </h2>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-canvas-subtle">
           Edit any two fields — the remaining values resolve automatically across the model.
         </p>
 
         <div className="mt-5 space-y-4">
           {FIELDS.map((f) => (
             <label key={f.id} className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-300">
+              <span className="mb-1 block text-sm font-medium text-canvas-muted">
                 {f.label}
-                {f.suffix && <span className="text-slate-500"> ({f.suffix})</span>}
+                {f.suffix && <span className="text-canvas-subtle"> ({f.suffix})</span>}
               </span>
               <input
                 type="number"
@@ -117,27 +117,27 @@ export default function MarginCalculatorTool() {
       </section>
 
       <section
-        className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6"
+        className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-none sm:p-6"
         aria-live="polite"
       >
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">Profit matrix</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Profit matrix</h2>
 
         <div className="mt-5 space-y-4">
           <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
             <div className="flex justify-between text-sm">
-              <span className="text-slate-400">Cost</span>
-              <span className="font-semibold tabular-nums text-white">
+              <span className="text-canvas-subtle">Cost</span>
+              <span className="font-semibold tabular-nums text-canvas-text">
                 {displayModel.cost !== null ? formatInr(displayModel.cost, 2) : '—'}
               </span>
             </div>
             <div className="mt-2 flex justify-between text-sm">
-              <span className="text-slate-400">Revenue</span>
-              <span className="font-semibold tabular-nums text-emerald-300">
+              <span className="text-canvas-subtle">Revenue</span>
+              <span className="font-semibold tabular-nums text-canvas-accent">
                 {displayModel.revenue !== null ? formatInr(displayModel.revenue, 2) : '—'}
               </span>
             </div>
             <div className="mt-2 flex justify-between border-t border-slate-800 pt-2 text-sm">
-              <span className="text-slate-400">Gross profit</span>
+              <span className="text-canvas-subtle">Gross profit</span>
               <span
                 className={`font-semibold tabular-nums ${
                   (displayModel.grossProfit ?? 0) >= 0 ? 'text-amber-300' : 'text-red-400'
@@ -150,30 +150,30 @@ export default function MarginCalculatorTool() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-center">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Markup</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-white">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-canvas-subtle">Markup</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-canvas-text">
                 {displayModel.markupPct !== null ? `${displayModel.markupPct.toFixed(2)}%` : '—'}
               </p>
-              <p className="mt-1 text-[10px] text-slate-500">Profit ÷ Cost</p>
+              <p className="mt-1 text-[10px] text-canvas-subtle">Profit ÷ Cost</p>
             </div>
-            <div className="rounded-xl border border-emerald-800/40 bg-emerald-950/30 p-4 text-center">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/80">Margin</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-300">
+            <div className="rounded-xl border border-canvas-border bg-canvas-accent-soft/30 p-4 text-center">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-canvas-accent/80">Margin</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-canvas-accent">
                 {displayModel.marginPct !== null ? `${displayModel.marginPct.toFixed(2)}%` : '—'}
               </p>
-              <p className="mt-1 text-[10px] text-slate-500">Profit ÷ Revenue</p>
+              <p className="mt-1 text-[10px] text-canvas-subtle">Profit ÷ Revenue</p>
             </div>
           </div>
 
           {profitBar > 0 && (
             <div>
-              <div className="mb-1 flex justify-between text-xs text-slate-500">
+              <div className="mb-1 flex justify-between text-xs text-canvas-subtle">
                 <span>Cost portion</span>
                 <span>Profit margin</span>
               </div>
-              <div className="flex h-3 overflow-hidden rounded-full bg-slate-800">
-                <div className="bg-slate-600" style={{ width: `${100 - profitBar}%` }} />
-                <div className="bg-emerald-500" style={{ width: `${profitBar}%` }} />
+              <div className="flex h-3 overflow-hidden rounded-full bg-canvas-elevated">
+                <div className="bg-canvas-accent-muted" style={{ width: `${100 - profitBar}%` }} />
+                <div className="bg-canvas-accent-soft0" style={{ width: `${profitBar}%` }} />
               </div>
             </div>
           )}
@@ -181,7 +181,7 @@ export default function MarginCalculatorTool() {
           {displayModel.cost !== null &&
             displayModel.revenue !== null &&
             displayModel.grossProfit !== null && (
-              <p className="text-center text-xs text-slate-500">
+              <p className="text-center text-xs text-canvas-subtle">
                 Selling at {formatInr(displayModel.revenue, 2)} with cost {formatInr(displayModel.cost, 2)} yields{' '}
                 {formatInr(displayModel.grossProfit, 2)} profit (
                 {displayModel.marginPct?.toFixed(1)}% margin, {displayModel.markupPct?.toFixed(1)}% markup).

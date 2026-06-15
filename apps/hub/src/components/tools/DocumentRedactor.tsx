@@ -197,19 +197,19 @@ export default function DocumentRedactor() {
 
   return (
     <div className="document-redactor space-y-4">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Upload &amp; redact</h2>
-        <p className="mt-2 text-xs text-slate-500">
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Upload &amp; redact</h2>
+        <p className="mt-2 text-xs text-canvas-subtle">
           Drag black boxes over sensitive text. Redactions are burned into the exported PNG — nothing is uploaded.
         </p>
 
         <label className="mt-4 block">
-          <span className="mb-2 block text-sm font-medium text-slate-300">Image or PDF (first page)</span>
+          <span className="mb-2 block text-sm font-medium text-canvas-muted">Image or PDF (first page)</span>
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp,application/pdf"
             onChange={handleUpload}
-            className="block w-full text-sm text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-500"
+            className="block w-full text-sm text-canvas-subtle file:mr-3 file:rounded-lg file:border-0 file:bg-canvas-accent-muted file:px-4 file:py-2 file:text-sm file:font-semibold file:text-canvas-text hover:file:bg-canvas-accent-soft0"
           />
         </label>
 
@@ -244,12 +244,12 @@ export default function DocumentRedactor() {
               aria-label="Document canvas — drag to draw redaction boxes"
             />
           ) : (
-            <p className="py-16 text-center text-sm text-slate-500">Upload a document to begin redacting.</p>
+            <p className="py-16 text-center text-sm text-canvas-subtle">Upload a document to begin redacting.</p>
           )}
         </div>
 
         {redactions.length > 0 && (
-          <p className="mt-2 text-center text-xs text-slate-500">{redactions.length} redaction box(es) applied</p>
+          <p className="mt-2 text-center text-xs text-canvas-subtle">{redactions.length} redaction box(es) applied</p>
         )}
       </section>
     </div>

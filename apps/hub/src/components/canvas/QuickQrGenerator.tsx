@@ -112,14 +112,14 @@ export default function QuickQrGenerator() {
   }, [hasQr, text]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Content</h2>
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Content</h2>
         <label className="mt-4 block">
-          <span className="mb-1 block text-sm font-medium text-slate-700">Text or URL</span>
+          <span className="mb-1 block text-sm font-medium text-canvas-muted">Text or URL</span>
           <textarea
             rows={5}
             value={text}
@@ -131,7 +131,7 @@ export default function QuickQrGenerator() {
         </label>
 
         <fieldset className="mt-4">
-          <legend className="mb-2 text-sm font-medium text-slate-700">Error correction</legend>
+          <legend className="mb-2 text-sm font-medium text-canvas-muted">Error correction</legend>
           <div className="flex flex-wrap gap-2">
             {(['L', 'M', 'Q', 'H'] as ErrorLevel[]).map((lvl) => (
               <button
@@ -140,8 +140,8 @@ export default function QuickQrGenerator() {
                 onClick={() => setErrorLevel(lvl)}
                 className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
                   errorLevel === lvl
-                    ? 'border-violet-500 bg-violet-50 text-violet-800'
-                    : 'border-slate-200 text-slate-600 hover:border-violet-300'
+                    ? 'border-violet-500 bg-canvas-accent-soft text-violet-800'
+                    : 'border-canvas-border text-canvas-muted hover:border-violet-300'
                 }`}
               >
                 {lvl}
@@ -151,12 +151,12 @@ export default function QuickQrGenerator() {
         </fieldset>
       </section>
 
-      <section className="rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50/80 to-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-violet-700">Preview</h2>
+      <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-violet-50/80 to-white p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Preview</h2>
         <div className="mt-4 flex flex-col items-center">
-          <div className="flex min-h-[260px] w-full max-w-[300px] items-center justify-center rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="flex min-h-[260px] w-full max-w-[300px] items-center justify-center rounded-2xl border border-canvas-border bg-canvas-surface p-4">
             {!hasQr && (
-              <p className="px-4 text-center text-sm text-slate-500">Enter text to generate your QR code</p>
+              <p className="px-4 text-center text-sm text-canvas-subtle">Enter text to generate your QR code</p>
             )}
             <canvas
               ref={canvasRef}
@@ -166,12 +166,12 @@ export default function QuickQrGenerator() {
               aria-label="QR code preview"
             />
           </div>
-          <p className="mt-2 min-h-[1.25rem] text-center text-xs text-slate-500">{status}</p>
+          <p className="mt-2 min-h-[1.25rem] text-center text-xs text-canvas-subtle">{status}</p>
           <button
             type="button"
             onClick={downloadPng}
             disabled={!hasQr}
-            className="mt-4 w-full max-w-[300px] rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-4 w-full max-w-[300px] rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Download PNG
           </button>

@@ -73,12 +73,12 @@ export default function QuickHashGenerator({ onToast }: Props) {
   );
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Source text</h2>
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Source text</h2>
         <textarea
           rows={5}
           value={input}
@@ -87,7 +87,7 @@ export default function QuickHashGenerator({ onToast }: Props) {
           placeholder="Type or paste text to hash…"
           spellCheck={false}
         />
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-canvas-subtle">
           {input ? 'Digests computed locally via crypto.subtle and MD5.' : 'Type to compute digests locally.'}
         </p>
       </section>
@@ -98,20 +98,20 @@ export default function QuickHashGenerator({ onToast }: Props) {
           return (
             <div
               key={row.key}
-              className="grid gap-2 rounded-xl border border-violet-100 bg-violet-50/50 p-4 sm:grid-cols-[5.5rem_1fr_auto] sm:items-center"
+              className="grid gap-2 rounded-xl border border-violet-100 bg-canvas-accent-soft/50 p-4 sm:grid-cols-[5.5rem_1fr_auto] sm:items-center"
             >
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{row.label}</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-canvas-subtle">{row.label}</span>
               <input
                 type="text"
                 readOnly
                 value={value}
-                className="min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-800 sm:text-sm"
+                className="min-w-0 rounded-lg border border-canvas-border bg-canvas-surface px-3 py-2 font-mono text-xs text-canvas-text sm:text-sm"
               />
               <button
                 type="button"
                 disabled={!digests[row.key]}
                 onClick={() => void copyValue(digests[row.key], row.label)}
-                className="rounded-lg border border-violet-300 bg-white px-3 py-2 text-xs font-semibold text-violet-800 transition hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-lg border border-violet-300 bg-canvas-surface px-3 py-2 text-xs font-semibold text-violet-800 transition hover:bg-canvas-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Copy
               </button>

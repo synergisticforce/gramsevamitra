@@ -82,21 +82,21 @@ export default function QuickUnitConverter() {
   };
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2 tabular-nums';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2 tabular-nums';
 
   const selectClass =
-    'mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
+    'mt-2 w-full rounded-xl border border-canvas-border bg-canvas-surface px-3 py-2.5 text-sm text-canvas-text outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
 
   function pillClass(active: boolean): string {
     return `rounded-full border px-4 py-2 text-sm font-semibold capitalize transition ${
       active
-        ? 'border-violet-500 bg-violet-600 text-white'
-        : 'border-slate-200 bg-white text-slate-600 hover:border-violet-300'
+        ? 'border-violet-500 bg-canvas-accent-muted text-canvas-text'
+        : 'border-canvas-border bg-canvas-surface text-canvas-muted hover:border-violet-300'
     }`;
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Conversion category">
         {(['length', 'weight', 'temperature'] as UnitCategory[]).map((cat) => (
           <button
@@ -114,7 +114,7 @@ export default function QuickUnitConverter() {
 
       <div className="mt-6 grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
         <label className="min-w-0 block">
-          <span className="mb-1 block text-sm font-medium text-slate-700">From</span>
+          <span className="mb-1 block text-sm font-medium text-canvas-muted">From</span>
           <input
             type="number"
             inputMode="decimal"
@@ -148,7 +148,7 @@ export default function QuickUnitConverter() {
         </div>
 
         <label className="min-w-0 block">
-          <span className="mb-1 block text-sm font-medium text-slate-700">To</span>
+          <span className="mb-1 block text-sm font-medium text-canvas-muted">To</span>
           <input
             type="number"
             inputMode="decimal"

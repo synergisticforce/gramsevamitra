@@ -72,7 +72,7 @@ export default function ProtectPdfModal({ file, onClose, onSuccess, onProcessing
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="protect-pdf-title"
@@ -80,13 +80,13 @@ export default function ProtectPdfModal({ file, onClose, onSuccess, onProcessing
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="protect-pdf-title" className="text-lg font-bold text-slate-900">
+            <h2 id="protect-pdf-title" className="text-lg font-bold text-canvas-text">
               Protect PDF
             </h2>
-            <p className="mt-1 text-xs text-slate-500 truncate">
+            <p className="mt-1 text-xs text-canvas-subtle truncate">
               {file.name} · {formatFileSize(file.size)}
             </p>
           </div>
@@ -94,19 +94,19 @@ export default function ProtectPdfModal({ file, onClose, onSuccess, onProcessing
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted disabled:opacity-50"
             aria-label="Close"
           >
             ✕
           </button>
         </div>
 
-        <p className="mt-4 text-sm text-slate-600">
+        <p className="mt-4 text-sm text-canvas-muted">
           AES encryption runs entirely on your device. Passwords are never sent to a server.
         </p>
 
         <label className="mt-4 block">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
             User password (required to open)
           </span>
           <input
@@ -119,17 +119,17 @@ export default function ProtectPdfModal({ file, onClose, onSuccess, onProcessing
             autoComplete="new-password"
             placeholder="Choose a strong open password"
             disabled={busy}
-            className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 disabled:bg-slate-50"
+            className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 disabled:bg-canvas-elevated"
           />
         </label>
 
         {userPassword.length > 0 && (
           <div className="mt-2 space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500">Password strength</span>
+              <span className="text-canvas-subtle">Password strength</span>
               <span className={`font-semibold ${strength.textClass}`}>{strength.label}</span>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-1.5 overflow-hidden rounded-full bg-canvas-elevated">
               <div
                 className={`h-full rounded-full transition-all ${strength.barClass}`}
                 style={{ width: `${strength.score}%` }}
@@ -139,7 +139,7 @@ export default function ProtectPdfModal({ file, onClose, onSuccess, onProcessing
         )}
 
         <label className="mt-4 block">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
             Owner password (optional)
           </span>
           <input
@@ -149,7 +149,7 @@ export default function ProtectPdfModal({ file, onClose, onSuccess, onProcessing
             autoComplete="new-password"
             placeholder="Defaults to user password if empty"
             disabled={busy}
-            className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 disabled:bg-slate-50"
+            className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 disabled:bg-canvas-elevated"
           />
         </label>
 
@@ -164,7 +164,7 @@ export default function ProtectPdfModal({ file, onClose, onSuccess, onProcessing
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-50"
           >
             Cancel
           </button>
@@ -172,7 +172,7 @@ export default function ProtectPdfModal({ file, onClose, onSuccess, onProcessing
             type="button"
             onClick={() => void handleProtect()}
             disabled={busy}
-            className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? 'Encrypting…' : 'Protect & download'}
           </button>

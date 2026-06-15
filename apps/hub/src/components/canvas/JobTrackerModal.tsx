@@ -181,7 +181,7 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-2 sm:items-center sm:p-4"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-2 sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="job-tracker-title"
@@ -189,13 +189,13 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
         if (event.target === event.currentTarget && !formOpen) onClose();
       }}
     >
-      <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+      <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-canvas-border bg-canvas-surface shadow-none">
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-5">
           <div>
-            <h2 id="job-tracker-title" className="text-lg font-bold text-slate-900">
+            <h2 id="job-tracker-title" className="text-lg font-bold text-canvas-text">
               📋 Job Application Tracker
             </h2>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-canvas-subtle">
               {totalJobs} application{totalJobs === 1 ? '' : 's'} · saved locally in your browser
             </p>
           </div>
@@ -203,14 +203,14 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
             <button
               type="button"
               onClick={openAdd}
-              className="rounded-xl bg-sky-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-sky-700"
+              className="rounded-xl bg-sky-600 px-3 py-2 text-xs font-semibold text-canvas-text transition hover:bg-sky-700"
             >
               + Add job
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+              className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted"
               aria-label="Close"
             >
               ✕
@@ -227,10 +227,10 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
               key={col.id}
               className={`flex min-h-[320px] min-w-[78vw] snap-center flex-col rounded-xl border ${col.border} ${col.bg} sm:min-w-0`}
             >
-              <header className="shrink-0 border-b border-slate-200/80 px-3 py-2.5">
+              <header className="shrink-0 border-b border-canvas-border/80 px-3 py-2.5">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className={`text-sm font-bold ${col.accent}`}>{col.label}</h3>
-                  <span className="rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-bold tabular-nums text-slate-500">
+                  <span className="rounded-full bg-canvas-surface/80 px-2 py-0.5 text-[10px] font-bold tabular-nums text-canvas-subtle">
                     {board[col.id].length}
                   </span>
                 </div>
@@ -243,7 +243,7 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
                   <article
                     key={card.id}
                     data-job-id={card.id}
-                    className="cursor-grab rounded-lg border border-slate-200 bg-white p-3 shadow-sm active:cursor-grabbing"
+                    className="cursor-grab rounded-lg border border-canvas-border bg-canvas-surface p-3 shadow-none active:cursor-grabbing"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <button
@@ -251,23 +251,23 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
                         className="min-w-0 flex-1 text-left"
                         onClick={() => openEdit(card)}
                       >
-                        <h4 className="truncate text-sm font-bold text-slate-900">{card.company}</h4>
-                        <p className="mt-0.5 truncate text-xs text-slate-500">{card.role}</p>
+                        <h4 className="truncate text-sm font-bold text-canvas-text">{card.company}</h4>
+                        <p className="mt-0.5 truncate text-xs text-canvas-subtle">{card.role}</p>
                       </button>
                       <button
                         type="button"
                         onClick={() => deleteCard(card.id)}
-                        className="shrink-0 rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+                        className="shrink-0 rounded p-1 text-canvas-subtle hover:bg-rose-50 hover:text-rose-600"
                         aria-label={`Delete ${card.company}`}
                       >
                         ✕
                       </button>
                     </div>
-                    <p className="mt-1.5 text-[10px] uppercase tracking-wide text-slate-400">
+                    <p className="mt-1.5 text-[10px] uppercase tracking-wide text-canvas-subtle">
                       {formatJobDate(card.dateApplied)}
                     </p>
                     {card.notes && (
-                      <p className="mt-1 line-clamp-2 text-[11px] text-slate-500">{card.notes}</p>
+                      <p className="mt-1 line-clamp-2 text-[11px] text-canvas-subtle">{card.notes}</p>
                     )}
                     <label className="mt-2 block sm:hidden">
                       <span className="sr-only">Move status</span>
@@ -276,7 +276,7 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
                         onChange={(event) =>
                           moveCard(card.id, event.target.value as JobTrackerColumnId)
                         }
-                        className="w-full rounded-lg border border-slate-200 px-2 py-1 text-[11px] text-slate-600"
+                        className="w-full rounded-lg border border-canvas-border px-2 py-1 text-[11px] text-canvas-muted"
                       >
                         {JOB_TRACKER_COLUMNS.map((option) => (
                           <option key={option.id} value={option.id}>
@@ -294,57 +294,57 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
       </div>
 
       {formOpen && (
-        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-slate-900/40 p-4 sm:items-center">
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-canvas-accent-muted/40 p-4 sm:items-center">
           <form
             onSubmit={submitForm}
-            className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+            className="w-full max-w-md rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none"
           >
-            <h3 className="text-base font-bold text-slate-900">
+            <h3 className="text-base font-bold text-canvas-text">
               {editingId ? 'Edit application' : 'Add job application'}
             </h3>
             <div className="mt-4 space-y-3">
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
                   Company
                 </span>
                 <input
                   required
                   value={form.company}
                   onChange={(event) => setForm({ ...form, company: event.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                  className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
                 />
               </label>
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
                   Role
                 </span>
                 <input
                   required
                   value={form.role}
                   onChange={(event) => setForm({ ...form, role: event.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                  className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
                 />
               </label>
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
                   Date applied
                 </span>
                 <input
                   type="date"
                   value={form.dateApplied}
                   onChange={(event) => setForm({ ...form, dateApplied: event.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                  className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
                 />
               </label>
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
                   Notes (optional)
                 </span>
                 <textarea
                   rows={2}
                   value={form.notes}
                   onChange={(event) => setForm({ ...form, notes: event.target.value })}
-                  className="mt-1.5 w-full resize-y rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                  className="mt-1.5 w-full resize-y rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
                 />
               </label>
             </div>
@@ -352,13 +352,13 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
               <button
                 type="button"
                 onClick={() => setFormOpen(false)}
-                className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700"
+                className="flex-1 rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex-1 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white"
+                className="flex-1 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-canvas-text"
               >
                 Save
               </button>

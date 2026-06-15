@@ -98,13 +98,13 @@ export default function FinanceMeetingCostCalculator() {
   }, [result]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 tabular-nums';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 tabular-nums';
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Meeting setup</h2>
-        <label className="mt-4 block text-sm font-medium text-slate-700">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Meeting setup</h2>
+        <label className="mt-4 block text-sm font-medium text-canvas-muted">
           Duration ({durationMinutes} min)
           <input
             type="range"
@@ -118,7 +118,7 @@ export default function FinanceMeetingCostCalculator() {
         </label>
 
         <div className="mt-5 space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Attendees (₹/hour)</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">Attendees (₹/hour)</p>
           {attendees.map((attendee, index) => (
             <div key={attendee.id} className="flex gap-2">
               <input
@@ -148,7 +148,7 @@ export default function FinanceMeetingCostCalculator() {
               <button
                 type="button"
                 onClick={() => setAttendees(attendees.filter((a) => a.id !== attendee.id))}
-                className="rounded-lg px-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+                className="rounded-lg px-2 text-canvas-subtle hover:bg-rose-50 hover:text-rose-600"
                 aria-label="Remove attendee"
               >
                 ✕
@@ -163,25 +163,25 @@ export default function FinanceMeetingCostCalculator() {
                 { id: createAttendeeId(), label: 'Attendee', hourlyRate: 1_500 },
               ])
             }
-            className="w-full rounded-xl border border-dashed border-slate-300 py-2 text-sm font-semibold text-slate-600 hover:border-emerald-400 hover:text-emerald-700"
+            className="w-full rounded-xl border border-dashed border-canvas-border py-2 text-sm font-semibold text-canvas-muted hover:border-canvas-accent hover:text-canvas-accent"
           >
             + Add attendee
           </button>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-700">Meeting cost</h2>
-        <p className="mt-3 text-3xl font-bold tabular-nums text-emerald-800">
+      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Meeting cost</h2>
+        <p className="mt-3 text-3xl font-bold tabular-nums text-canvas-accent">
           {formatInr(Math.round(result.meetingCost))}
         </p>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-canvas-subtle">
           Combined hourly burn {formatInr(Math.round(result.totalHourlyBurn))}/hr
         </p>
-        <div className="relative mt-5 h-56 rounded-xl border border-slate-100 bg-white p-2">
+        <div className="relative mt-5 h-56 rounded-xl border border-slate-100 bg-canvas-surface p-2">
           <canvas ref={chartRef} aria-label="Cost per attendee" />
         </div>
-        <p className="mt-2 text-center text-xs text-slate-500">
+        <p className="mt-2 text-center text-xs text-canvas-subtle">
           Based on {clamp(durationMinutes, 15, 240)} minutes · {attendees.length} attendee
           {attendees.length === 1 ? '' : 's'}
         </p>

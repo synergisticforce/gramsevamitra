@@ -112,8 +112,8 @@ export default function ScientificCalculatorTool() {
     <div className="grid gap-6 lg:grid-cols-[1fr_220px]">
       <div className="space-y-4">
         <div className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3 text-right">
-          <p className="min-h-[1.25rem] truncate text-xs text-slate-500">{expression || ' '}</p>
-          <p className="text-3xl font-bold tabular-nums text-white">{display}</p>
+          <p className="min-h-[1.25rem] truncate text-xs text-canvas-subtle">{expression || ' '}</p>
+          <p className="text-3xl font-bold tabular-nums text-canvas-text">{display}</p>
           {error && <p className="mt-1 text-xs text-rose-400">{error}</p>}
         </div>
 
@@ -125,29 +125,29 @@ export default function ScientificCalculatorTool() {
               onClick={() => handleClick(btn)}
               className={`rounded-xl border py-3 text-sm font-semibold transition active:scale-95 ${
                 btn.type === 'action' && btn.value === 'equals'
-                  ? 'col-span-2 border-emerald-600 bg-emerald-600 text-slate-950 hover:bg-emerald-500'
+                  ? 'col-span-2 border-emerald-600 bg-canvas-accent-muted text-slate-950 hover:bg-canvas-accent-soft0'
                   : btn.type === 'action'
-                    ? 'border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700'
+                    ? 'border-canvas-border bg-canvas-elevated text-canvas-text hover:bg-canvas-accent-muted'
                     : btn.type === 'fn'
-                      ? 'border-slate-700 bg-slate-900 text-emerald-300 hover:border-emerald-700'
-                      : 'border-slate-700 bg-slate-900/80 text-white hover:border-slate-600'
+                      ? 'border-canvas-border bg-canvas-accent-muted text-canvas-accent hover:border-canvas-accent/40'
+                      : 'border-canvas-border bg-canvas-accent-muted/80 text-canvas-text hover:border-canvas-border'
               }`}
             >
               {btn.label}
             </button>
           ))}
         </div>
-        <p className="text-xs text-slate-500">
-          Use <code className="text-emerald-400">pow(a,b)</code> for powers after tapping xʸ, e.g.{' '}
-          <code className="text-emerald-400">pow(2,8)</code>
+        <p className="text-xs text-canvas-subtle">
+          Use <code className="text-canvas-accent">pow(a,b)</code> for powers after tapping xʸ, e.g.{' '}
+          <code className="text-canvas-accent">pow(2,8)</code>
         </p>
       </div>
 
-      <aside className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">History</h3>
+      <aside className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-canvas-subtle">History</h3>
         <ul className="mt-3 max-h-80 space-y-2 overflow-y-auto text-sm">
           {history.length === 0 && (
-            <li className="text-slate-500">Calculations appear here</li>
+            <li className="text-canvas-subtle">Calculations appear here</li>
           )}
           {history.map((entry, i) => (
             <li
@@ -158,8 +158,8 @@ export default function ScientificCalculatorTool() {
                 setDisplay(entry.result);
               }}
             >
-              <p className="truncate text-xs text-slate-500">{entry.expression}</p>
-              <p className="font-semibold tabular-nums text-emerald-300">= {entry.result}</p>
+              <p className="truncate text-xs text-canvas-subtle">{entry.expression}</p>
+              <p className="font-semibold tabular-nums text-canvas-accent">= {entry.result}</p>
             </li>
           ))}
         </ul>

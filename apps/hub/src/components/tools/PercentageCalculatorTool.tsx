@@ -60,8 +60,8 @@ export default function PercentageCalculatorTool() {
             onClick={() => setMode(m.id)}
             className={`rounded-xl border px-3 py-2 text-xs font-semibold transition sm:text-sm ${
               mode === m.id
-                ? 'border-emerald-500 bg-emerald-950/50 text-emerald-300'
-                : 'border-slate-700 bg-slate-950/60 text-slate-400 hover:border-slate-600'
+                ? 'border-canvas-accent bg-canvas-accent-soft/50 text-canvas-accent'
+                : 'border-canvas-border bg-slate-950/60 text-canvas-subtle hover:border-canvas-border'
             }`}
           >
             {m.label}
@@ -71,7 +71,7 @@ export default function PercentageCalculatorTool() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-slate-300">{xLabel}</span>
+          <span className="mb-1 block text-sm font-medium text-canvas-muted">{xLabel}</span>
           <input
             type="number"
             inputMode="decimal"
@@ -82,7 +82,7 @@ export default function PercentageCalculatorTool() {
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-slate-300">{yLabel}</span>
+          <span className="mb-1 block text-sm font-medium text-canvas-muted">{yLabel}</span>
           <input
             type="number"
             inputMode="decimal"
@@ -95,12 +95,12 @@ export default function PercentageCalculatorTool() {
       </div>
 
       <div
-        className="rounded-2xl border border-emerald-800/40 bg-emerald-950/30 px-5 py-4"
+        className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/30 px-5 py-4"
         aria-live="polite"
       >
-        <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400/80">Result</p>
-        <p className="mt-2 text-xl font-bold text-white">{result?.text ?? 'Enter values above'}</p>
-        {result?.detail && <p className="mt-1 text-sm text-slate-400">{result.detail}</p>}
+        <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent/80">Result</p>
+        <p className="mt-2 text-xl font-bold text-canvas-text">{result?.text ?? 'Enter values above'}</p>
+        {result?.detail && <p className="mt-1 text-sm text-canvas-subtle">{result.detail}</p>}
       </div>
     </div>
   );

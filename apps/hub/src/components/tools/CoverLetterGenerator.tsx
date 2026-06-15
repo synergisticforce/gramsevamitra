@@ -125,42 +125,42 @@ export default function CoverLetterGenerator() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Your details</h2>
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Your details</h2>
         <div className="mt-4 space-y-4">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Your name</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Your name</span>
             <input value={form.userName} onChange={(e) => update({ userName: e.target.value })} className="input-field w-full" placeholder="e.g. Alex Morgan" />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Target role</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Target role</span>
             <input value={form.targetRole} onChange={(e) => update({ targetRole: e.target.value })} className="input-field w-full" placeholder="e.g. Product Manager" />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Target company</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Target company</span>
             <input value={form.targetCompany} onChange={(e) => update({ targetCompany: e.target.value })} className="input-field w-full" placeholder="e.g. Acme Corp" />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Key skills (comma-separated)</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Key skills (comma-separated)</span>
             <input value={form.keySkills} onChange={(e) => update({ keySkills: e.target.value })} className="input-field w-full" placeholder="SQL, stakeholder management, A/B testing" />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Years of experience</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Years of experience</span>
             <input value={form.yearsExperience} onChange={(e) => update({ yearsExperience: e.target.value })} className="input-field w-full" placeholder="e.g. 5" />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Career highlight (one sentence)</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Career highlight (one sentence)</span>
             <textarea rows={2} value={form.highlight} onChange={(e) => update({ highlight: e.target.value })} className="input-field w-full resize-y text-sm" placeholder="Led a project that increased conversion by 18%…" />
           </label>
         </div>
 
-        <div className="mt-5 rounded-xl border border-emerald-900/40 bg-emerald-950/20 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">Dynamic match blocks</p>
+        <div className="mt-5 rounded-xl border border-canvas-border bg-canvas-accent-soft/20 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent">Dynamic match blocks</p>
           <ul className="mt-3 space-y-2">
             {dynamicBlocks.map((block) => (
               <li key={block.key} className="flex items-center justify-between gap-2 text-sm">
-                <span className="text-slate-500">{block.label}</span>
-                <span className={`truncate font-medium ${block.filled ? 'text-emerald-300' : 'text-slate-600'}`}>{block.value}</span>
+                <span className="text-canvas-subtle">{block.label}</span>
+                <span className={`truncate font-medium ${block.filled ? 'text-canvas-accent' : 'text-canvas-muted'}`}>{block.value}</span>
               </li>
             ))}
           </ul>
@@ -171,14 +171,14 @@ export default function CoverLetterGenerator() {
 
       <section className="space-y-4">
         {templateMeta.map(({ id, title }) => (
-          <article key={id} className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-4 shadow-lg">
+          <article key={id} className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-4 shadow-none">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-white">{title}</h3>
+              <h3 className="text-sm font-bold text-canvas-text">{title}</h3>
               <button type="button" onClick={() => void copyTemplate(id)} className="btn-secondary px-3 py-1.5 text-xs">
                 {copied === id ? 'Copied!' : 'Copy'}
               </button>
             </div>
-            <pre className="mt-3 max-h-56 overflow-y-auto whitespace-pre-wrap rounded-xl border border-slate-800 bg-slate-950/50 p-3 font-sans text-xs leading-relaxed text-slate-300">
+            <pre className="mt-3 max-h-56 overflow-y-auto whitespace-pre-wrap rounded-xl border border-slate-800 bg-slate-950/50 p-3 font-sans text-xs leading-relaxed text-canvas-muted">
               {templates[id]}
             </pre>
           </article>

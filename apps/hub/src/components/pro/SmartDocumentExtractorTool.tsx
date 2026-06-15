@@ -98,16 +98,16 @@ export default function SmartDocumentExtractorTool() {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-4 shadow-none sm:p-5">
         <p className="text-xs font-semibold uppercase tracking-wider text-amber-800">Workspace 1 · Pro</p>
-        <h2 className="mt-1 text-lg font-bold text-slate-900">Smart Document Extractor</h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <h2 className="mt-1 text-lg font-bold text-canvas-text">Smart Document Extractor</h2>
+        <p className="mt-1 text-sm text-canvas-muted">
           Test the Tri-Engine Smart Router — Scenario A (JSON/CSV) or Scenario B (DOCX). Mock GPU engines simulate
           5–10 s latency per stage.
         </p>
 
         {!isPending && (
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs text-canvas-subtle">
             {session?.user
               ? `Signed in as ${session.user.email} · plan: ${userPlan ?? 'free'}`
               : 'Not signed in — Pro upgrade required.'}
@@ -116,12 +116,12 @@ export default function SmartDocumentExtractorTool() {
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-slate-700">Output format</span>
+            <span className="mb-1 block font-medium text-canvas-muted">Output format</span>
             <select
               value={outputFormat}
               onChange={(e) => setOutputFormat(e.target.value as OutputFormat)}
               disabled={loading}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-canvas-border bg-canvas-surface px-3 py-2 text-sm"
             >
               <option value="json">JSON (Scenario A)</option>
               <option value="csv">CSV (Scenario A)</option>
@@ -130,12 +130,12 @@ export default function SmartDocumentExtractorTool() {
           </label>
 
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-slate-700">Document type</span>
+            <span className="mb-1 block font-medium text-canvas-muted">Document type</span>
             <select
               value={documentType}
               onChange={(e) => setDocumentType(e.target.value as DocumentType)}
               disabled={loading || outputFormat === 'docx'}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm disabled:opacity-60"
+              className="w-full rounded-lg border border-canvas-border bg-canvas-surface px-3 py-2 text-sm disabled:opacity-60"
             >
               <option value="invoice">Invoice</option>
               <option value="bank_statement">Bank statement</option>
@@ -143,25 +143,25 @@ export default function SmartDocumentExtractorTool() {
           </label>
 
           <label className="block text-sm sm:col-span-2">
-            <span className="mb-1 block font-medium text-slate-700">Sample file name</span>
+            <span className="mb-1 block font-medium text-canvas-muted">Sample file name</span>
             <input
               type="text"
               value={fileName}
               onChange={(e) => setFileName(e.target.value)}
               disabled={loading}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-canvas-border px-3 py-2 text-sm"
               placeholder="invoice-scan.pdf"
             />
           </label>
         </div>
 
-        <label className="mt-3 flex items-center gap-2 text-sm text-slate-600">
+        <label className="mt-3 flex items-center gap-2 text-sm text-canvas-muted">
           <input
             type="checkbox"
             checked={forceFailsafe}
             onChange={(e) => setForceFailsafe(e.target.checked)}
             disabled={loading}
-            className="rounded border-slate-300"
+            className="rounded border-canvas-border"
           />
           Force Google Vision failsafe (test low-confidence path)
         </label>
@@ -170,7 +170,7 @@ export default function SmartDocumentExtractorTool() {
           type="button"
           onClick={() => void runExtraction()}
           disabled={loading || isPending}
-          className="mt-4 inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+          className="mt-4 inline-flex items-center justify-center rounded-lg bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-elevated disabled:opacity-60"
         >
           {loading ? 'Processing…' : isPro ? 'Review credits & run ⚡' : 'Upgrade to Pro ⚡'}
         </button>
@@ -187,17 +187,17 @@ export default function SmartDocumentExtractorTool() {
       )}
 
       {result?.success && !loading && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 sm:p-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800">Complete</p>
-          <p className="mt-1 text-sm text-slate-800">
+        <div className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/60 p-4 sm:p-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent">Complete</p>
+          <p className="mt-1 text-sm text-canvas-text">
             Scenario {result.scenario} — {result.description}
             {result.usedFailsafe ? ' (Vision failsafe engaged)' : ''}
           </p>
-          <p className="mt-1 text-xs text-slate-600">
+          <p className="mt-1 text-xs text-canvas-muted">
             Simulated pipeline time: {Math.round((result.totalProcessingMs ?? 0) / 1000)}s across{' '}
             {result.pipeline?.length ?? 0} engine calls
           </p>
-          <pre className="mt-3 max-h-80 overflow-auto rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-800">
+          <pre className="mt-3 max-h-80 overflow-auto rounded-lg border border-canvas-border bg-canvas-surface p-3 text-xs text-canvas-text">
             {JSON.stringify(result.output, null, 2)}
           </pre>
         </div>

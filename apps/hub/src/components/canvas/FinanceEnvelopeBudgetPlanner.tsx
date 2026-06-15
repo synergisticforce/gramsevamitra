@@ -78,7 +78,7 @@ export default function FinanceEnvelopeBudgetPlanner() {
   }, [envelopes]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 tabular-nums';
+    'w-full rounded-xl border border-canvas-border px-3 py-2 text-sm outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 tabular-nums';
 
   const updateEnvelope = (index: number, patch: Partial<EnvelopeCategory>) => {
     setEnvelopes((prev) => {
@@ -99,37 +99,37 @@ export default function FinanceEnvelopeBudgetPlanner() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">Total budget</p>
-          <p className="mt-1 text-xl font-bold text-slate-900">{formatInr(summary.totalBudget)}</p>
+        <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-4">
+          <p className="text-xs font-semibold uppercase text-canvas-subtle">Total budget</p>
+          <p className="mt-1 text-xl font-bold text-canvas-text">{formatInr(summary.totalBudget)}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">Total spent</p>
-          <p className="mt-1 text-xl font-bold text-slate-900">{formatInr(summary.totalSpent)}</p>
+        <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-4">
+          <p className="text-xs font-semibold uppercase text-canvas-subtle">Total spent</p>
+          <p className="mt-1 text-xl font-bold text-canvas-text">{formatInr(summary.totalSpent)}</p>
         </div>
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
-          <p className="text-xs font-semibold uppercase text-emerald-700">Remaining</p>
+        <div className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/80 p-4">
+          <p className="text-xs font-semibold uppercase text-canvas-accent">Remaining</p>
           <p className={`mt-1 text-xl font-bold ${summary.remaining >= 0 ? 'text-emerald-900' : 'text-rose-700'}`}>
             {formatInr(summary.remaining)}
           </p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">Over budget</p>
-          <p className="mt-1 text-xl font-bold text-slate-900">{summary.overBudgetCount}</p>
+        <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-4">
+          <p className="text-xs font-semibold uppercase text-canvas-subtle">Over budget</p>
+          <p className="mt-1 text-xl font-bold text-canvas-text">{summary.overBudgetCount}</p>
         </div>
       </div>
 
-      <div className="h-64 rounded-2xl border border-slate-200 bg-white p-4">
-        <p className="mb-2 text-xs font-semibold uppercase text-slate-500">Budget vs. actual</p>
+      <div className="h-64 rounded-2xl border border-canvas-border bg-canvas-surface p-4">
+        <p className="mb-2 text-xs font-semibold uppercase text-canvas-subtle">Budget vs. actual</p>
         <div className="h-52">
           <canvas ref={chartRef} />
         </div>
       </div>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Envelopes</h2>
-          <button type="button" onClick={addEnvelope} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Envelopes</h2>
+          <button type="button" onClick={addEnvelope} className="rounded-lg bg-canvas-accent-muted px-3 py-1.5 text-xs font-semibold text-canvas-text">
             + Add envelope
           </button>
         </div>
@@ -138,25 +138,25 @@ export default function FinanceEnvelopeBudgetPlanner() {
             const pct = env.budget > 0 ? Math.min(100, (env.spent / env.budget) * 100) : 0;
             const over = env.spent > env.budget;
             return (
-              <div key={env.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+              <div key={env.id} className="rounded-xl border border-slate-100 bg-canvas-elevated p-4">
                 <div className="grid gap-2 sm:grid-cols-3">
                   <input value={env.name} onChange={(e) => updateEnvelope(index, { name: e.target.value })} className={inputClass} />
-                  <label className="text-xs text-slate-500">
+                  <label className="text-xs text-canvas-subtle">
                     Budget
                     <input type="number" min={0} value={env.budget} onChange={(e) => updateEnvelope(index, { budget: Number(e.target.value) || 0 })} className={`${inputClass} mt-1`} />
                   </label>
-                  <label className="text-xs text-slate-500">
+                  <label className="text-xs text-canvas-subtle">
                     Spent
                     <input type="number" min={0} value={env.spent} onChange={(e) => updateEnvelope(index, { spent: Number(e.target.value) || 0 })} className={`${inputClass} mt-1`} />
                   </label>
                 </div>
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-canvas-elevated">
                   <div
-                    className={`h-full rounded-full transition-all ${over ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                    className={`h-full rounded-full transition-all ${over ? 'bg-rose-500' : 'bg-canvas-accent-soft0'}`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-canvas-subtle">
                   {formatInr(env.spent)} of {formatInr(env.budget)} ({pct.toFixed(0)}%)
                 </p>
               </div>

@@ -126,7 +126,7 @@ export default function FinanceCryptoGainsCalculator() {
   }, [gains, portfolio]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2';
+    'w-full rounded-xl border border-canvas-border px-3 py-2 text-sm outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2';
 
   const addTrade = () => {
     setTrades((prev) => [
@@ -157,47 +157,47 @@ export default function FinanceCryptoGainsCalculator() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
-          <p className="text-xs font-semibold uppercase text-emerald-700">Total realized gain</p>
+        <div className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/80 p-4">
+          <p className="text-xs font-semibold uppercase text-canvas-accent">Total realized gain</p>
           <p className={`mt-1 text-2xl font-bold tabular-nums ${totalGain >= 0 ? 'text-emerald-900' : 'text-rose-700'}`}>
             {formatInr(totalGain)}
           </p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">Trades</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">{trades.length}</p>
+        <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-4">
+          <p className="text-xs font-semibold uppercase text-canvas-subtle">Trades</p>
+          <p className="mt-1 text-2xl font-bold text-canvas-text">{trades.length}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">Assets tracked</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">{gains.length}</p>
+        <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-4">
+          <p className="text-xs font-semibold uppercase text-canvas-subtle">Assets tracked</p>
+          <p className="mt-1 text-2xl font-bold text-canvas-text">{gains.length}</p>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="h-56 rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="mb-2 text-xs font-semibold uppercase text-slate-500">Portfolio distribution</p>
+        <div className="h-56 rounded-2xl border border-canvas-border bg-canvas-surface p-4">
+          <p className="mb-2 text-xs font-semibold uppercase text-canvas-subtle">Portfolio distribution</p>
           <div className="h-44">
             <canvas ref={doughnutRef} />
           </div>
         </div>
-        <div className="h-56 rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="mb-2 text-xs font-semibold uppercase text-slate-500">Gains by asset (FIFO)</p>
+        <div className="h-56 rounded-2xl border border-canvas-border bg-canvas-surface p-4">
+          <p className="mb-2 text-xs font-semibold uppercase text-canvas-subtle">Gains by asset (FIFO)</p>
           <div className="h-44">
             <canvas ref={barRef} />
           </div>
         </div>
       </div>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Trade log</h2>
-          <button type="button" onClick={addTrade} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Trade log</h2>
+          <button type="button" onClick={addTrade} className="rounded-lg bg-canvas-accent-muted px-3 py-1.5 text-xs font-semibold text-canvas-text">
             + Add trade
           </button>
         </div>
         <div className="mt-4 space-y-3">
           {trades.map((trade, index) => (
-            <div key={trade.id} className="grid grid-cols-2 gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:grid-cols-6">
+            <div key={trade.id} className="grid grid-cols-2 gap-2 rounded-xl border border-slate-100 bg-canvas-elevated p-3 sm:grid-cols-6">
               <input value={trade.asset} onChange={(e) => updateTrade(index, { asset: e.target.value.toUpperCase() })} placeholder="Asset" className={inputClass} />
               <select value={trade.type} onChange={(e) => updateTrade(index, { type: e.target.value as 'buy' | 'sell' })} className={inputClass}>
                 <option value="buy">Buy</option>

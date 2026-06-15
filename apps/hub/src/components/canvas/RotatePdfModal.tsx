@@ -101,7 +101,7 @@ export default function RotatePdfModal({ file, onClose, onSuccess, onProcessingC
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="rotate-pdf-title"
@@ -109,19 +109,19 @@ export default function RotatePdfModal({ file, onClose, onSuccess, onProcessingC
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="rotate-pdf-title" className="text-lg font-bold text-slate-900">
+            <h2 id="rotate-pdf-title" className="text-lg font-bold text-canvas-text">
               Rotate PDF Pages
             </h2>
-            <p className="mt-1 text-xs text-slate-500 truncate">{file.name}</p>
+            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted disabled:opacity-50"
             aria-label="Close"
           >
             ✕
@@ -129,24 +129,24 @@ export default function RotatePdfModal({ file, onClose, onSuccess, onProcessingC
         </div>
 
         {loadingMeta ? (
-          <p className="mt-4 text-sm text-slate-500">Reading page count…</p>
+          <p className="mt-4 text-sm text-canvas-subtle">Reading page count…</p>
         ) : (
           <>
-            <p className="mt-4 text-sm text-slate-600">
+            <p className="mt-4 text-sm text-canvas-muted">
               Choose a rotation for each page. Only changed pages are processed.
             </p>
             <ul className="mt-3 max-h-64 space-y-2 overflow-y-auto">
               {Array.from({ length: pageCount }, (_, i) => (
                 <li
                   key={i}
-                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"
+                  className="flex items-center justify-between rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2"
                 >
-                  <span className="text-sm font-medium text-slate-800">Page {i + 1}</span>
+                  <span className="text-sm font-medium text-canvas-text">Page {i + 1}</span>
                   <select
                     value={rotations[i] ?? 0}
                     disabled={busy}
                     onChange={(e) => setPageRotation(i, Number(e.target.value) as PageRotationAngle)}
-                    className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm text-slate-800"
+                    className="rounded-lg border border-canvas-border bg-canvas-surface px-2 py-1 text-sm text-canvas-text"
                   >
                     {ROTATION_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -171,7 +171,7 @@ export default function RotatePdfModal({ file, onClose, onSuccess, onProcessingC
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-50"
           >
             Cancel
           </button>
@@ -179,7 +179,7 @@ export default function RotatePdfModal({ file, onClose, onSuccess, onProcessingC
             type="button"
             onClick={() => void handleApply()}
             disabled={busy || loadingMeta || pageCount < 1}
-            className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? 'Rotating…' : 'Apply & download'}
           </button>

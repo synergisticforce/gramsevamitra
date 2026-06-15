@@ -69,8 +69,8 @@ export default function FormatConverterTool() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Conversion route</h2>
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Conversion route</h2>
         <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Format selection">
           {CONVERSION_ROUTES.map((route) => {
             const active = route.from === fromFmt && route.to === toFmt;
@@ -81,8 +81,8 @@ export default function FormatConverterTool() {
                 onClick={() => selectRoute(route.from, route.to)}
                 className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                   active
-                    ? 'border-emerald-600 bg-emerald-950/50 text-emerald-300'
-                    : 'border-slate-700 bg-slate-950/60 text-slate-400 hover:border-slate-600 hover:text-white'
+                    ? 'border-emerald-600 bg-canvas-accent-soft/50 text-canvas-accent'
+                    : 'border-canvas-border bg-slate-950/60 text-canvas-subtle hover:border-canvas-border hover:text-canvas-text'
                 }`}
               >
                 {route.label}
@@ -91,7 +91,7 @@ export default function FormatConverterTool() {
           })}
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-4">
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-canvas-muted">
             <input
               type="checkbox"
               checked={pretty}
@@ -100,7 +100,7 @@ export default function FormatConverterTool() {
             />
             Beautify output
           </label>
-          <p className="text-xs text-emerald-400">
+          <p className="text-xs text-canvas-accent">
             {fromFmt.toUpperCase()} → {toFmt.toUpperCase()}
             {!pretty && ' (minified)'}
           </p>
@@ -109,7 +109,7 @@ export default function FormatConverterTool() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">Input ({fromFmt})</h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Input ({fromFmt})</h2>
           <textarea
             rows={16}
             value={input}
@@ -131,7 +131,7 @@ export default function FormatConverterTool() {
 
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">Output ({toFmt})</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Output ({toFmt})</h2>
             <button type="button" onClick={copyOutput} disabled={!conversion.output} className="btn-secondary text-xs">
               {copyLabel}
             </button>
@@ -140,7 +140,7 @@ export default function FormatConverterTool() {
             rows={16}
             readOnly
             value={conversion.output}
-            className="input-field w-full resize-y font-mono text-xs text-emerald-300"
+            className="input-field w-full resize-y font-mono text-xs text-canvas-accent"
             spellCheck={false}
             placeholder="Converted output appears here…"
           />

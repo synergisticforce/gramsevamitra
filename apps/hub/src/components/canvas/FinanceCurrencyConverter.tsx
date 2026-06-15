@@ -78,17 +78,17 @@ export default function FinanceCurrencyConverter() {
   }, [from, to]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 tabular-nums';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 tabular-nums';
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Convert</h2>
-        {loading && <p className="mt-2 text-sm text-slate-500">Loading live rates…</p>}
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Convert</h2>
+        {loading && <p className="mt-2 text-sm text-canvas-subtle">Loading live rates…</p>}
         {error && <p className="mt-2 text-sm text-rose-600">{error}</p>}
-        {!loading && meta && <p className="mt-2 text-xs text-slate-400">{meta}</p>}
+        {!loading && meta && <p className="mt-2 text-xs text-canvas-subtle">{meta}</p>}
         <div className="mt-4 space-y-4">
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-canvas-muted">
             Amount
             <input
               type="number"
@@ -100,7 +100,7 @@ export default function FinanceCurrencyConverter() {
             />
           </label>
           <div className="grid grid-cols-2 gap-3">
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-canvas-muted">
               From
               <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={!rates} className={`${inputClass} mt-1.5`}>
                 {codes.map((code) => (
@@ -108,7 +108,7 @@ export default function FinanceCurrencyConverter() {
                 ))}
               </select>
             </label>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-canvas-muted">
               To
               <select value={to} onChange={(e) => setTo(e.target.value)} disabled={!rates} className={`${inputClass} mt-1.5`}>
                 {codes.map((code) => (
@@ -117,23 +117,23 @@ export default function FinanceCurrencyConverter() {
               </select>
             </label>
           </div>
-          <button type="button" onClick={swap} disabled={!rates} className="w-full rounded-xl border border-slate-200 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+          <button type="button" onClick={swap} disabled={!rates} className="w-full rounded-xl border border-canvas-border py-2 text-sm font-semibold text-canvas-muted hover:bg-canvas-elevated">
             ⇅ Swap currencies
           </button>
         </div>
       </section>
-      <section className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-700">Result</h2>
+      <section className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/80 p-5">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Result</h2>
         <p className="mt-3 text-3xl font-bold tabular-nums text-emerald-900">
           {result ? formatFxAmount(result.converted, to) : '—'}
         </p>
         {result && (
-          <p className="mt-2 text-sm text-emerald-800">
+          <p className="mt-2 text-sm text-canvas-accent">
             1 {from} = {formatFxRate(result.rate)} {to}
           </p>
         )}
         {rates?.INR && (
-          <ul className="mt-4 space-y-1 text-xs text-slate-600">
+          <ul className="mt-4 space-y-1 text-xs text-canvas-muted">
             {POPULAR_INR_REFS.filter((c) => rates[c]).map((code) => (
               <li key={code} className="flex justify-between">
                 <span>{code} → INR</span>

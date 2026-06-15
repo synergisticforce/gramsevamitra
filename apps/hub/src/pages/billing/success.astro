@@ -8,22 +8,22 @@ const pageTitle = formatSeoTitle('Welcome to Pro', 'GramSeva Mitra');
 <AppShellLayout title={pageTitle} description="Your GramSeva Mitra Pro subscription is being activated." activeWorkspace="documents">
   <div class="px-4 py-12 text-center sm:px-6 sm:py-16">
     <p class="text-5xl" aria-hidden="true">⚡</p>
-    <h1 class="mt-4 text-2xl font-bold text-slate-900 sm:text-3xl">Payment successful</h1>
-    <p class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-600">
+    <h1 class="mt-4 text-2xl font-bold text-canvas-text sm:text-3xl">Payment successful</h1>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-canvas-muted">
       Thank you! Razorpay confirmed your payment. Your account will show Pro within a few seconds once our
       webhook updates Cloudflare D1.
     </p>
-    <p id="session-hint" class="mt-4 text-xs text-slate-400"></p>
+    <p id="session-hint" class="mt-4 text-xs text-canvas-subtle"></p>
     <div class="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
       <a
         href="/workspace/documents"
-        class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+        class="inline-flex items-center justify-center rounded-lg bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-elevated"
       >
         Back to app
       </a>
       <a
         href="/workspace/documents"
-        class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+        class="inline-flex items-center justify-center rounded-lg border border-canvas-border bg-canvas-surface px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated"
       >
         Open Document Studio
       </a>

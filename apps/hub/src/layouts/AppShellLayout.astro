@@ -26,7 +26,7 @@ const currentPath = Astro.url.pathname;
 <BaseLayout title={title} description={description} site="hub">
   <slot name="head" slot="head" />
 
-  <div class="flex min-h-screen flex-col bg-canvas-bg text-slate-800 lg:flex-row">
+  <div class="flex min-h-screen flex-col bg-canvas-bg text-canvas-muted lg:flex-row">
     <AppSidebar client:load activeWorkspace={activeWorkspace} currentPath={currentPath} />
     <main class="flex min-w-0 flex-1 flex-col">
       <div class="min-h-0 flex-1">

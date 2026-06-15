@@ -76,14 +76,14 @@ export default function CaseConverterTool() {
   }, [text]);
 
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
+    <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
       <div className="flex flex-wrap gap-2" role="toolbar" aria-label="Case conversion options">
         {CASE_ACTIONS.map((action) => (
           <button
             key={action.id}
             type="button"
             onClick={() => applyCase(action.fn, action.label)}
-            className="rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-emerald-600 hover:text-white"
+            className="rounded-lg border border-canvas-border bg-slate-950/60 px-3 py-2 text-xs font-semibold text-canvas-muted transition hover:border-emerald-600 hover:text-canvas-text"
           >
             {action.label}
           </button>
@@ -91,7 +91,7 @@ export default function CaseConverterTool() {
       </div>
 
       <label className="mt-4 block">
-        <span className="mb-1 block text-sm font-medium text-slate-300">Your text</span>
+        <span className="mb-1 block text-sm font-medium text-canvas-muted">Your text</span>
         <textarea
           rows={12}
           value={text}
@@ -111,7 +111,7 @@ export default function CaseConverterTool() {
         </button>
       </div>
 
-      <p className="mt-2 text-center text-xs text-slate-500" aria-live="polite">
+      <p className="mt-2 text-center text-xs text-canvas-subtle" aria-live="polite">
         {status}
       </p>
     </section>

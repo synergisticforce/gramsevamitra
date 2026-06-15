@@ -73,7 +73,7 @@ export default function PdfToTextModal({ file, onClose, onSuccess, onProcessingC
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="pdf-to-text-title"
@@ -81,19 +81,19 @@ export default function PdfToTextModal({ file, onClose, onSuccess, onProcessingC
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="pdf-to-text-title" className="text-lg font-bold text-slate-900">
+            <h2 id="pdf-to-text-title" className="text-lg font-bold text-canvas-text">
               PDF to Text
             </h2>
-            <p className="mt-1 text-xs text-slate-500 truncate">{file.name}</p>
+            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted disabled:opacity-50"
             aria-label="Close"
           >
             ✕
@@ -101,30 +101,30 @@ export default function PdfToTextModal({ file, onClose, onSuccess, onProcessingC
         </div>
 
         {busy ? (
-          <p className="mt-4 text-sm text-slate-500">Extracting text from your PDF…</p>
+          <p className="mt-4 text-sm text-canvas-subtle">Extracting text from your PDF…</p>
         ) : error ? (
           <p className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
             {error}
           </p>
         ) : (
           <>
-            <p className="mt-4 text-sm text-slate-600">
+            <p className="mt-4 text-sm text-canvas-muted">
               Extracted text from{' '}
-              <span className="font-semibold text-slate-900">{pageCount}</span> page
+              <span className="font-semibold text-canvas-text">{pageCount}</span> page
               {pageCount === 1 ? '' : 's'}. Copy or download instantly — nothing leaves your device.
             </p>
             <textarea
               readOnly
               value={text}
               rows={12}
-              className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-mono text-xs text-slate-800 outline-none"
+              className="mt-3 w-full rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 font-mono text-xs text-canvas-text outline-none"
             />
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"
                 onClick={() => void handleCopy()}
                 disabled={!text || copyBusy}
-                className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex-1 rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {copyBusy ? 'Copying…' : 'Copy to clipboard'}
               </button>
@@ -132,7 +132,7 @@ export default function PdfToTextModal({ file, onClose, onSuccess, onProcessingC
                 type="button"
                 onClick={handleDownload}
                 disabled={!text}
-                className="flex-1 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex-1 rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Download .txt
               </button>
@@ -145,7 +145,7 @@ export default function PdfToTextModal({ file, onClose, onSuccess, onProcessingC
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-50"
           >
             Close
           </button>

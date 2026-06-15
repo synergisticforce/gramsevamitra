@@ -12,8 +12,8 @@ interface Props {
 type Step = 'input' | 'results';
 
 function scoreColor(score: number): string {
-  if (score >= 75) return 'text-emerald-600';
-  if (score >= 50) return 'text-amber-600';
+  if (score >= 75) return 'text-canvas-accent';
+  if (score >= 50) return 'text-canvas-muted';
   return 'text-rose-600';
 }
 
@@ -79,7 +79,7 @@ export default function AtsScannerModal({
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="ats-scanner-title"
@@ -87,19 +87,19 @@ export default function AtsScannerModal({
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="ats-scanner-title" className="text-lg font-bold text-slate-900">
+            <h2 id="ats-scanner-title" className="text-lg font-bold text-canvas-text">
               🔍 ATS Scanner
             </h2>
-            <p className="mt-1 text-xs text-slate-500 truncate">{file.name}</p>
+            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted disabled:opacity-50"
             aria-label="Close"
           >
             ✕
@@ -108,11 +108,11 @@ export default function AtsScannerModal({
 
         {step === 'input' && (
           <>
-            <p className="mt-4 text-sm text-slate-600">
+            <p className="mt-4 text-sm text-canvas-muted">
               Paste the job description below. Your resume PDF is parsed locally — nothing is uploaded.
             </p>
             <label className="mt-3 block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
                 Job description
               </span>
               <textarea
@@ -121,7 +121,7 @@ export default function AtsScannerModal({
                 rows={8}
                 disabled={busy}
                 placeholder="Paste the full job posting here — requirements, skills, and responsibilities…"
-                className="mt-1.5 w-full resize-y rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-sky-500/30 focus:border-sky-400 focus:ring-2 disabled:bg-slate-50"
+                className="mt-1.5 w-full resize-y rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-sky-500/30 focus:border-sky-400 focus:ring-2 disabled:bg-canvas-elevated"
               />
             </label>
           </>
@@ -129,7 +129,7 @@ export default function AtsScannerModal({
 
         {step === 'results' && result && (
           <div className="mt-4 space-y-5">
-            <div className="flex flex-col items-center rounded-2xl border border-slate-100 bg-slate-50 px-4 py-6">
+            <div className="flex flex-col items-center rounded-2xl border border-slate-100 bg-canvas-elevated px-4 py-6">
               <div className="relative h-28 w-28">
                 <svg className="h-28 w-28 -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
                   <circle
@@ -156,24 +156,24 @@ export default function AtsScannerModal({
                   <span className={`text-3xl font-bold ${scoreColor(result.score)}`}>
                     {result.score}%
                   </span>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-canvas-subtle">
                     Match
                   </span>
                 </div>
               </div>
-              <p className="mt-3 text-center text-sm text-slate-600">
+              <p className="mt-3 text-center text-sm text-canvas-muted">
                 {result.matchedCount} of {result.totalJobTerms} job keywords found in your resume
                 {result.resumeWordCount > 0 ? ` · ${result.resumeWordCount} resume words` : ''}
               </p>
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">Missing keywords</h3>
-              <p className="mt-0.5 text-xs text-slate-500">
+              <h3 className="text-sm font-semibold text-canvas-text">Missing keywords</h3>
+              <p className="mt-0.5 text-xs text-canvas-subtle">
                 High-frequency terms from the job description not detected in your resume.
               </p>
               {result.missingKeywords.length === 0 ? (
-                <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+                <p className="mt-3 rounded-xl border border-emerald-200 bg-canvas-accent-soft px-3 py-2 text-sm text-canvas-accent">
                   Great match — no major keyword gaps detected.
                 </p>
               ) : (
@@ -211,7 +211,7 @@ export default function AtsScannerModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-50"
           >
             {step === 'results' ? 'Done' : 'Cancel'}
           </button>
@@ -220,7 +220,7 @@ export default function AtsScannerModal({
               type="button"
               onClick={() => void handleScan()}
               disabled={busy}
-              className="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy ? 'Scanning…' : 'Scan resume'}
             </button>

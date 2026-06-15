@@ -109,7 +109,7 @@ export default function FinanceGigIncomeTracker() {
   }, [monthly, byCategory]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2';
+    'w-full rounded-xl border border-canvas-border px-3 py-2 text-sm outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2';
 
   const addEntry = () => {
     setEntries((prev) => [
@@ -138,37 +138,37 @@ export default function FinanceGigIncomeTracker() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-5">
-        <p className="text-xs font-semibold uppercase text-emerald-700">Total gig income</p>
+      <div className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/80 p-5">
+        <p className="text-xs font-semibold uppercase text-canvas-accent">Total gig income</p>
         <p className="mt-1 text-3xl font-bold text-emerald-900">{formatInr(total)}</p>
-        <p className="mt-1 text-sm text-emerald-800">{entries.length} entries tracked</p>
+        <p className="mt-1 text-sm text-canvas-accent">{entries.length} entries tracked</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="h-56 rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="mb-2 text-xs font-semibold uppercase text-slate-500">Monthly income</p>
+        <div className="h-56 rounded-2xl border border-canvas-border bg-canvas-surface p-4">
+          <p className="mb-2 text-xs font-semibold uppercase text-canvas-subtle">Monthly income</p>
           <div className="h-44">
             <canvas ref={lineRef} />
           </div>
         </div>
-        <div className="h-56 rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="mb-2 text-xs font-semibold uppercase text-slate-500">By category</p>
+        <div className="h-56 rounded-2xl border border-canvas-border bg-canvas-surface p-4">
+          <p className="mb-2 text-xs font-semibold uppercase text-canvas-subtle">By category</p>
           <div className="h-44">
             <canvas ref={doughnutRef} />
           </div>
         </div>
       </div>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Income entries</h2>
-          <button type="button" onClick={addEntry} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Income entries</h2>
+          <button type="button" onClick={addEntry} className="rounded-lg bg-canvas-accent-muted px-3 py-1.5 text-xs font-semibold text-canvas-text">
             + Add entry
           </button>
         </div>
         <div className="mt-4 space-y-3">
           {entries.map((entry, index) => (
-            <div key={entry.id} className="grid grid-cols-2 gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:grid-cols-5">
+            <div key={entry.id} className="grid grid-cols-2 gap-2 rounded-xl border border-slate-100 bg-canvas-elevated p-3 sm:grid-cols-5">
               <input type="date" value={entry.date} onChange={(e) => updateEntry(index, { date: e.target.value })} className={inputClass} />
               <input type="number" min={0} value={entry.amount} onChange={(e) => updateEntry(index, { amount: Number(e.target.value) || 0 })} placeholder="Amount" className={inputClass} />
               <input value={entry.client} onChange={(e) => updateEntry(index, { client: e.target.value })} placeholder="Client" className={inputClass} />

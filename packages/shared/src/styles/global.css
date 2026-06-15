@@ -3,46 +3,50 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    color-scheme: dark;
+  }
+
   html {
     @apply scroll-smooth antialiased;
   }
 
   body {
-    @apply min-h-screen antialiased;
+    @apply min-h-screen bg-canvas-bg text-canvas-muted antialiased;
   }
 
   ::selection {
-    @apply bg-slate-400/30 text-slate-900;
+    @apply bg-canvas-accent/25 text-canvas-text;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-slate-700 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-canvas-accent-muted px-5 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 focus:outline-none focus:ring-2 focus:ring-canvas-accent/50 focus:ring-offset-2 focus:ring-offset-canvas-bg disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-600 bg-slate-800/80 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-canvas-border bg-canvas-surface px-5 py-3 text-sm font-semibold text-canvas-muted transition hover:border-canvas-accent/40 hover:bg-canvas-elevated focus:outline-none focus:ring-2 focus:ring-canvas-accent/40 focus:ring-offset-2 focus:ring-offset-canvas-bg disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .card {
-    @apply rounded-2xl border border-slate-700/80 bg-slate-800/50 p-6 shadow-lg backdrop-blur-sm;
+    @apply rounded-2xl border border-canvas-border bg-canvas-surface p-6 shadow-none backdrop-blur-sm;
   }
 
   .input-field {
-    @apply w-full rounded-xl border border-slate-600 bg-slate-800/80 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500;
+    @apply w-full rounded-xl border border-canvas-border bg-canvas-elevated px-4 py-3 text-sm text-canvas-text placeholder:text-canvas-subtle focus:border-canvas-accent/50 focus:outline-none focus:ring-1 focus:ring-canvas-accent/40;
   }
 
   .select-field {
-    @apply input-field relative z-50 cursor-pointer appearance-auto overflow-visible bg-slate-900 text-slate-100;
+    @apply input-field relative z-50 cursor-pointer appearance-auto overflow-visible bg-canvas-elevated text-canvas-text;
     z-index: 50;
   }
 
   .select-field option {
-    @apply bg-slate-900 text-slate-100;
+    @apply bg-canvas-surface text-canvas-text;
   }
 
   .label {
-    @apply mb-2 block text-sm font-medium text-slate-300;
+    @apply mb-2 block text-sm font-medium text-canvas-muted;
   }
 }

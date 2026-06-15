@@ -18,14 +18,14 @@ function ResultRow({ tool, onNavigate }: { tool: OmniSearchTool; onNavigate: () 
     <a
       href={tool.href}
       onClick={onNavigate}
-      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-slate-100 focus:bg-slate-100 focus:outline-none"
+      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-canvas-elevated focus:bg-canvas-elevated focus:outline-none"
       role="option"
     >
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold text-slate-900">{tool.name}</span>
-        <span className="block truncate text-xs text-slate-500">{tool.description}</span>
+        <span className="block truncate text-sm font-semibold text-canvas-text">{tool.name}</span>
+        <span className="block truncate text-xs text-canvas-subtle">{tool.description}</span>
       </span>
-      <span className="shrink-0 text-xs font-medium text-emerald-700">Open</span>
+      <span className="shrink-0 text-xs font-medium text-canvas-accent">Open</span>
     </a>
   );
 }
@@ -108,18 +108,18 @@ export default function OmniSearchPalette({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/40 px-4 pt-[12vh] backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-canvas-accent-muted/40 px-4 pt-[12vh] backdrop-blur-sm"
       role="presentation"
       onClick={close}
     >
       <div
-        className="w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
+        className="w-full max-w-xl overflow-hidden rounded-2xl border border-canvas-border bg-canvas-surface shadow-none"
         role="dialog"
         aria-modal="true"
         aria-label="Quick tools search"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="border-b border-slate-200 px-4 py-3">
+        <div className="border-b border-canvas-border px-4 py-3">
           <label className="block">
             <span className="sr-only">Search tools</span>
             <input
@@ -130,15 +130,15 @@ export default function OmniSearchPalette({
               onKeyDown={onInputKeyDown}
               placeholder={placeholder}
               autoComplete="off"
-              className="w-full border-0 bg-transparent text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0"
+              className="w-full border-0 bg-transparent text-base text-canvas-text placeholder:text-canvas-subtle focus:outline-none focus:ring-0"
             />
           </label>
-          <p className="mt-1 text-xs text-slate-500">{hint}</p>
+          <p className="mt-1 text-xs text-canvas-subtle">{hint}</p>
         </div>
 
         <ul className="max-h-[min(50vh,420px)] overflow-y-auto p-2" role="listbox">
           {results.length === 0 ? (
-            <li className="px-3 py-6 text-center text-sm text-slate-500">No tools match your search.</li>
+            <li className="px-3 py-6 text-center text-sm text-canvas-subtle">No tools match your search.</li>
           ) : (
             results.map((tool) => (
               <li key={tool.id}>
@@ -148,11 +148,11 @@ export default function OmniSearchPalette({
           )}
         </ul>
 
-        <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-4 py-2 text-[11px] text-slate-500">
+        <div className="flex items-center justify-between border-t border-canvas-border bg-canvas-elevated px-4 py-2 text-[11px] text-canvas-subtle">
           <span>{footerLabel}</span>
           <span>
-            <kbd className="rounded border border-slate-200 bg-white px-1">↵</kbd> open ·{' '}
-            <kbd className="rounded border border-slate-200 bg-white px-1">esc</kbd> close
+            <kbd className="rounded border border-canvas-border bg-canvas-surface px-1">↵</kbd> open ·{' '}
+            <kbd className="rounded border border-canvas-border bg-canvas-surface px-1">esc</kbd> close
           </span>
         </div>
       </div>

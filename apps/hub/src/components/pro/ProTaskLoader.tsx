@@ -31,26 +31,26 @@ export default function ProTaskLoader({ active, stages, intervalMs = 2400 }: Pro
 
   return (
     <div
-      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+      className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none"
       role="status"
       aria-live="polite"
       aria-busy="true"
     >
       <div className="flex items-center gap-3">
         <div
-          className="h-10 w-10 shrink-0 animate-pulse rounded-full border-2 border-emerald-200 bg-emerald-50"
+          className="h-10 w-10 shrink-0 animate-pulse rounded-full border-2 border-emerald-200 bg-canvas-accent-soft"
           aria-hidden="true"
         />
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">Pro AI Pipeline</p>
-          <p className="mt-0.5 text-sm font-medium text-slate-900">{label}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent">Pro AI Pipeline</p>
+          <p className="mt-0.5 text-sm font-medium text-canvas-text">{label}</p>
         </div>
         <span className="text-lg" aria-hidden="true">
           ⚡
         </span>
       </div>
 
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-canvas-elevated">
         <div
           className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all duration-700 ease-out"
           style={{ width: `${Math.min(progress, 96)}%` }}
@@ -65,7 +65,7 @@ export default function ProTaskLoader({ active, stages, intervalMs = 2400 }: Pro
             <li
               key={stage}
               className={`flex items-center gap-2 text-xs ${
-                current ? 'font-semibold text-slate-900' : done ? 'text-emerald-700' : 'text-slate-400'
+                current ? 'font-semibold text-canvas-text' : done ? 'text-canvas-accent' : 'text-canvas-subtle'
               }`}
             >
               <span aria-hidden="true">{done ? '✓' : current ? '●' : '○'}</span>

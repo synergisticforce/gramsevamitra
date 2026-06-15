@@ -51,7 +51,7 @@ export default function UnitConverterTool() {
   };
 
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
+    <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Conversion category">
         {(['length', 'weight', 'temperature'] as UnitCategory[]).map((cat) => (
           <button
@@ -62,8 +62,8 @@ export default function UnitConverterTool() {
             onClick={() => switchCategory(cat)}
             className={`rounded-full border px-4 py-2 text-sm font-semibold capitalize transition ${
               category === cat
-                ? 'border-emerald-500 bg-emerald-600 text-white'
-                : 'border-slate-700 bg-slate-950/50 text-slate-400 hover:border-emerald-600 hover:text-white'
+                ? 'border-canvas-accent bg-canvas-accent-muted text-canvas-text'
+                : 'border-canvas-border bg-slate-950/50 text-canvas-subtle hover:border-emerald-600 hover:text-canvas-text'
             }`}
           >
             {cat}
@@ -73,7 +73,7 @@ export default function UnitConverterTool() {
 
       <div className="mt-6 grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
         <label className="min-w-0 block">
-          <span className="mb-1 block text-sm font-medium text-slate-300">From</span>
+          <span className="mb-1 block text-sm font-medium text-canvas-muted">From</span>
           <input
             type="number"
             inputMode="decimal"
@@ -102,12 +102,12 @@ export default function UnitConverterTool() {
           </select>
         </label>
 
-        <div className="hidden pb-3 text-center text-slate-500 sm:block" aria-hidden="true">
+        <div className="hidden pb-3 text-center text-canvas-subtle sm:block" aria-hidden="true">
           ⇄
         </div>
 
         <label className="min-w-0 block">
-          <span className="mb-1 block text-sm font-medium text-slate-300">To</span>
+          <span className="mb-1 block text-sm font-medium text-canvas-muted">To</span>
           <input
             type="number"
             inputMode="decimal"

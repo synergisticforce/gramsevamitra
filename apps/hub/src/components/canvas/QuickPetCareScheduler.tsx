@@ -54,7 +54,7 @@ export default function QuickPetCareScheduler() {
   );
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
+    'w-full rounded-xl border border-canvas-border px-3 py-2 text-sm outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
 
   const addTask = () => {
     setTasks((prev) => [
@@ -81,17 +81,17 @@ export default function QuickPetCareScheduler() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-violet-200 bg-violet-50/80 p-4">
-          <p className="text-xs font-semibold uppercase text-violet-700">Tasks</p>
+        <div className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/80 p-4">
+          <p className="text-xs font-semibold uppercase text-canvas-accent">Tasks</p>
           <p className="mt-1 text-2xl font-bold text-violet-900">{tasks.length}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">Done today</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">{doneToday}</p>
+        <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-4">
+          <p className="text-xs font-semibold uppercase text-canvas-subtle">Done today</p>
+          <p className="mt-1 text-2xl font-bold text-canvas-text">{doneToday}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">Daily / Weekly</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">
+        <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-4">
+          <p className="text-xs font-semibold uppercase text-canvas-subtle">Daily / Weekly</p>
+          <p className="mt-1 text-2xl font-bold text-canvas-text">
             {tasks.filter((t) => t.frequency === 'daily').length} / {tasks.filter((t) => t.frequency === 'weekly').length}
           </p>
         </div>
@@ -104,13 +104,13 @@ export default function QuickPetCareScheduler() {
             type="button"
             onClick={() => setFilter(f)}
             className={`rounded-xl border px-3 py-2 text-xs font-semibold capitalize ${
-              filter === f ? 'border-violet-500 bg-violet-50 text-violet-800' : 'border-slate-200 bg-white text-slate-600'
+              filter === f ? 'border-violet-500 bg-canvas-accent-soft text-violet-800' : 'border-canvas-border bg-canvas-surface text-canvas-muted'
             }`}
           >
             {f}
           </button>
         ))}
-        <button type="button" onClick={addTask} className="ml-auto rounded-xl bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-700">
+        <button type="button" onClick={addTask} className="ml-auto rounded-xl bg-canvas-accent-muted px-3 py-2 text-xs font-semibold text-canvas-text hover:bg-canvas-accent/40">
           + Add task
         </button>
       </div>
@@ -119,13 +119,13 @@ export default function QuickPetCareScheduler() {
         {visible.map((task) => {
           const isDone = task.lastDone === todayKey();
           return (
-            <li key={task.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <li key={task.id} className="rounded-xl border border-canvas-border bg-canvas-surface p-4 shadow-none">
               <div className="flex items-start gap-3">
                 <button
                   type="button"
                   onClick={() => toggleDone(task.id)}
                   className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold ${
-                    isDone ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 text-transparent'
+                    isDone ? 'border-canvas-accent bg-canvas-accent-soft0 text-canvas-text' : 'border-canvas-border text-transparent'
                   }`}
                   aria-label={isDone ? 'Mark incomplete' : 'Mark done today'}
                 >
@@ -141,7 +141,7 @@ export default function QuickPetCareScheduler() {
                     <input type="time" value={task.time} onChange={(e) => updateTask(task.id, { time: e.target.value })} className={inputClass} />
                   </div>
                   <input value={task.notes} onChange={(e) => updateTask(task.id, { notes: e.target.value })} placeholder="Notes (portions, duration…)" className={inputClass} />
-                  {isDone && <p className="text-xs text-emerald-600">Completed today</p>}
+                  {isDone && <p className="text-xs text-canvas-accent">Completed today</p>}
                 </div>
                 <button type="button" onClick={() => removeTask(task.id)} className="text-xs font-semibold text-rose-600 hover:text-rose-700">
                   Remove

@@ -272,12 +272,12 @@ export default function EmiCalculatorTool({ emphasisPrepayment = false }: Props)
   return (
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Loan details</h2>
+        <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Loan details</h2>
           <div className="mt-5 space-y-5">
             <div>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <label htmlFor="loan-amount" className="text-sm font-medium text-slate-300">
+                <label htmlFor="loan-amount" className="text-sm font-medium text-canvas-muted">
                   Loan amount (₹)
                 </label>
                 <input
@@ -302,7 +302,7 @@ export default function EmiCalculatorTool({ emphasisPrepayment = false }: Props)
 
             <div>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <label htmlFor="interest-rate" className="text-sm font-medium text-slate-300">
+                <label htmlFor="interest-rate" className="text-sm font-medium text-canvas-muted">
                   Interest rate (% p.a.)
                 </label>
                 <input
@@ -329,7 +329,7 @@ export default function EmiCalculatorTool({ emphasisPrepayment = false }: Props)
 
             <div>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="tenure-value" className="text-sm font-medium text-slate-300">
+                <label htmlFor="tenure-value" className="text-sm font-medium text-canvas-muted">
                   Tenure
                 </label>
                 <div className="flex items-center gap-2">
@@ -365,16 +365,16 @@ export default function EmiCalculatorTool({ emphasisPrepayment = false }: Props)
             <button
               type="button"
               onClick={() => setShowPrepay((s) => !s)}
-              className="flex w-full items-center justify-between rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-3 text-sm font-semibold text-slate-300"
+              className="flex w-full items-center justify-between rounded-xl border border-canvas-border bg-slate-950/50 px-4 py-3 text-sm font-semibold text-canvas-muted"
             >
               Prepayment options
-              <span className="text-emerald-400">{showPrepay ? '−' : '+'}</span>
+              <span className="text-canvas-accent">{showPrepay ? '−' : '+'}</span>
             </button>
 
             {showPrepay && (
               <div className="space-y-4 rounded-xl border border-sky-900/40 bg-sky-950/20 p-4">
                 <label className="block">
-                  <span className="mb-1 block text-sm font-medium text-slate-300">Extra monthly prepayment (₹)</span>
+                  <span className="mb-1 block text-sm font-medium text-canvas-muted">Extra monthly prepayment (₹)</span>
                   <input
                     type="number"
                     min={0}
@@ -386,7 +386,7 @@ export default function EmiCalculatorTool({ emphasisPrepayment = false }: Props)
                 </label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="block">
-                    <span className="mb-1 block text-sm font-medium text-slate-300">Lump-sum prepayment (₹)</span>
+                    <span className="mb-1 block text-sm font-medium text-canvas-muted">Lump-sum prepayment (₹)</span>
                     <input
                       type="number"
                       min={0}
@@ -397,7 +397,7 @@ export default function EmiCalculatorTool({ emphasisPrepayment = false }: Props)
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-1 block text-sm font-medium text-slate-300">Lump-sum at month #</span>
+                    <span className="mb-1 block text-sm font-medium text-canvas-muted">Lump-sum at month #</span>
                     <input
                       type="number"
                       min={0}
@@ -429,24 +429,24 @@ export default function EmiCalculatorTool({ emphasisPrepayment = false }: Props)
           </div>
         </section>
 
-        <section className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl sm:p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">Loan summary</h2>
+        <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-none sm:p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Loan summary</h2>
           <dl className="mt-5 space-y-4">
             <div className="flex items-baseline justify-between gap-3">
-              <dt className="text-slate-400">Monthly EMI</dt>
-              <dd className="text-2xl font-bold tabular-nums text-emerald-400">
+              <dt className="text-canvas-subtle">Monthly EMI</dt>
+              <dd className="text-2xl font-bold tabular-nums text-canvas-accent">
                 {result ? formatInr(Math.round(result.emi)) : '₹0'}
               </dd>
             </div>
             <div className="flex justify-between gap-3 text-sm">
-              <dt className="text-slate-400">Total interest</dt>
+              <dt className="text-canvas-subtle">Total interest</dt>
               <dd className="font-semibold tabular-nums text-amber-300">
                 {result ? formatInr(Math.round(result.totalInterest)) : '₹0'}
               </dd>
             </div>
             <div className="flex justify-between gap-3 text-sm">
-              <dt className="text-slate-400">Total payment</dt>
-              <dd className="font-semibold tabular-nums text-white">
+              <dt className="text-canvas-subtle">Total payment</dt>
+              <dd className="font-semibold tabular-nums text-canvas-text">
                 {result ? formatInr(Math.round(result.totalPayment)) : '₹0'}
               </dd>
             </div>
@@ -457,8 +457,8 @@ export default function EmiCalculatorTool({ emphasisPrepayment = false }: Props)
               </div>
             )}
             <div className="flex justify-between gap-3 text-sm">
-              <dt className="text-slate-400">Payoff tenure</dt>
-              <dd className="font-semibold tabular-nums text-white">
+              <dt className="text-canvas-subtle">Payoff tenure</dt>
+              <dd className="font-semibold tabular-nums text-canvas-text">
                 {result ? `${result.tenureMonths} months` : '—'}
               </dd>
             </div>
@@ -474,9 +474,9 @@ export default function EmiCalculatorTool({ emphasisPrepayment = false }: Props)
           </div>
 
           {result && (
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-800">
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-canvas-elevated">
               <div className="flex h-full">
-                <div className="bg-emerald-500" style={{ width: `${result.principalPct}%` }} />
+                <div className="bg-canvas-accent-soft0" style={{ width: `${result.principalPct}%` }} />
                 <div className="bg-amber-400" style={{ width: `${result.interestPct}%` }} />
               </div>
             </div>
@@ -484,18 +484,18 @@ export default function EmiCalculatorTool({ emphasisPrepayment = false }: Props)
         </section>
       </div>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Amortization schedule</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Amortization schedule</h2>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex rounded-lg border border-slate-700 p-0.5">
+            <div className="flex rounded-lg border border-canvas-border p-0.5">
               {(['monthly', 'annual'] as TableView[]).map((v) => (
                 <button
                   key={v}
                   type="button"
                   onClick={() => setTableView(v)}
                   className={`rounded-md px-3 py-1.5 text-xs font-semibold capitalize ${
-                    tableView === v ? 'bg-emerald-950/60 text-emerald-300' : 'text-slate-400'
+                    tableView === v ? 'bg-emerald-950/60 text-canvas-accent' : 'text-canvas-subtle'
                   }`}
                 >
                   {v}
@@ -510,7 +510,7 @@ export default function EmiCalculatorTool({ emphasisPrepayment = false }: Props)
 
         <div className="mt-4 max-h-[28rem] overflow-auto rounded-xl border border-slate-800">
           <table className="w-full min-w-[44rem] text-left text-xs sm:text-sm">
-            <thead className="sticky top-0 bg-slate-900 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            <thead className="sticky top-0 bg-canvas-accent-muted text-[10px] font-semibold uppercase tracking-wider text-canvas-subtle">
               <tr>
                 {tableView === 'monthly' ? (
                   <>
@@ -551,10 +551,10 @@ export default function EmiCalculatorTool({ emphasisPrepayment = false }: Props)
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80 text-slate-300">
+            <tbody className="divide-y divide-slate-800/80 text-canvas-muted">
               {tableView === 'monthly'
                 ? sortedMonthly.map((r) => (
-                    <tr key={r.month} className="hover:bg-slate-800/40">
+                    <tr key={r.month} className="hover:bg-canvas-elevated/40">
                       <td className="px-3 py-2 tabular-nums">{r.month}</td>
                       <td className="px-3 py-2 tabular-nums">{formatInr(Math.round(r.beginningBalance))}</td>
                       <td className="px-3 py-2 tabular-nums">{formatInr(Math.round(r.scheduledPayment))}</td>
@@ -569,7 +569,7 @@ export default function EmiCalculatorTool({ emphasisPrepayment = false }: Props)
                     </tr>
                   ))
                 : sortedAnnual.map((r) => (
-                    <tr key={r.year} className="hover:bg-slate-800/40">
+                    <tr key={r.year} className="hover:bg-canvas-elevated/40">
                       <td className="px-3 py-2 tabular-nums">{r.year}</td>
                       <td className="px-3 py-2 tabular-nums">{formatInr(Math.round(r.beginningBalance))}</td>
                       <td className="px-3 py-2 tabular-nums">{formatInr(Math.round(r.scheduledPayment))}</td>

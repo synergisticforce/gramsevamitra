@@ -4,10 +4,10 @@ import Sortable from 'sortablejs';
 const STORAGE_KEY = 'gsm-tools:job-tracker-v2';
 
 const COLUMNS = [
-  { id: 'wishlist', label: 'Wishlist', accent: 'text-slate-300', border: 'border-slate-700' },
+  { id: 'wishlist', label: 'Wishlist', accent: 'text-canvas-muted', border: 'border-canvas-border' },
   { id: 'applied', label: 'Applied', accent: 'text-sky-400', border: 'border-sky-800/50' },
   { id: 'interviewing', label: 'Interviewing', accent: 'text-amber-400', border: 'border-amber-800/50' },
-  { id: 'offer', label: 'Offer', accent: 'text-emerald-400', border: 'border-emerald-800/50' },
+  { id: 'offer', label: 'Offer', accent: 'text-canvas-accent', border: 'border-canvas-border' },
   { id: 'rejected', label: 'Rejected', accent: 'text-rose-400', border: 'border-rose-800/50' },
 ] as const;
 
@@ -263,7 +263,7 @@ export default function JobTrackerTool() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-slate-500">{totalJobs} application{totalJobs === 1 ? '' : 's'} tracked · saved locally</p>
+        <p className="text-xs text-canvas-subtle">{totalJobs} application{totalJobs === 1 ? '' : 's'} tracked · saved locally</p>
         <button type="button" onClick={openAddModal} className="btn-primary px-4 py-2 text-sm">+ Add job</button>
       </div>
 
@@ -276,13 +276,13 @@ export default function JobTrackerTool() {
         {COLUMNS.map((col) => (
           <section
             key={col.id}
-            className={`flex min-h-[420px] min-w-[85vw] snap-center flex-col rounded-2xl border bg-slate-900/50 sm:min-w-0 ${col.border}`}
+            className={`flex min-h-[420px] min-w-[85vw] snap-center flex-col rounded-2xl border bg-canvas-accent-muted/50 sm:min-w-0 ${col.border}`}
             data-column={col.id}
           >
             <header className="shrink-0 border-b border-slate-800 px-3 py-3">
               <div className="flex items-center justify-between gap-2">
                 <h2 className={`text-sm font-bold ${col.accent}`}>{col.label}</h2>
-                <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-bold tabular-nums text-slate-400">
+                <span className="rounded-full bg-canvas-elevated px-2 py-0.5 text-[10px] font-bold tabular-nums text-canvas-subtle">
                   {board[col.id].length}
                 </span>
               </div>
@@ -292,32 +292,32 @@ export default function JobTrackerTool() {
                 <article
                   key={card.id}
                   data-job-id={card.id}
-                  className="cursor-grab rounded-xl border border-slate-700 bg-slate-950/80 p-3 shadow-sm active:cursor-grabbing"
+                  className="cursor-grab rounded-xl border border-canvas-border bg-slate-950/80 p-3 shadow-none active:cursor-grabbing"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openEditModal(card)}>
-                      <h3 className="truncate text-sm font-bold text-white">{card.company}</h3>
-                      <p className="mt-0.5 truncate text-xs text-slate-400">{card.role}</p>
+                      <h3 className="truncate text-sm font-bold text-canvas-text">{card.company}</h3>
+                      <p className="mt-0.5 truncate text-xs text-canvas-subtle">{card.role}</p>
                     </button>
                     <button
                       type="button"
                       onClick={() => deleteCard(card.id)}
-                      className="shrink-0 rounded-lg p-1 text-slate-500 hover:bg-rose-950/50 hover:text-rose-400"
+                      className="shrink-0 rounded-lg p-1 text-canvas-subtle hover:bg-rose-950/50 hover:text-rose-400"
                       aria-label={`Delete ${card.company}`}
                     >
                       ✕
                     </button>
                   </div>
                   {card.salary && (
-                    <p className="mt-2 text-xs font-medium text-emerald-400">{card.salary}</p>
+                    <p className="mt-2 text-xs font-medium text-canvas-accent">{card.salary}</p>
                   )}
-                  <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-500">{formatDate(card.dateApplied)}</p>
+                  <p className="mt-1 text-[10px] uppercase tracking-wide text-canvas-subtle">{formatDate(card.dateApplied)}</p>
                   {card.link && (
                     <a
                       href={card.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-2 inline-flex text-xs font-semibold text-emerald-400 hover:text-emerald-300"
+                      className="mt-2 inline-flex text-xs font-semibold text-canvas-accent hover:text-canvas-accent"
                       onClick={(e) => e.stopPropagation()}
                     >
                       View posting ↗
@@ -327,7 +327,7 @@ export default function JobTrackerTool() {
                     <ul className="mt-2 space-y-1 border-t border-slate-800 pt-2">
                       {card.checklist.slice(0, 3).map((item) => (
                         <li key={item.id}>
-                          <label className="flex items-center gap-2 text-[10px] text-slate-400">
+                          <label className="flex items-center gap-2 text-[10px] text-canvas-subtle">
                             <input
                               type="checkbox"
                               checked={item.done}
@@ -351,9 +351,9 @@ export default function JobTrackerTool() {
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center" role="dialog">
           <form
             onSubmit={submitForm}
-            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-2xl"
+            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-canvas-border bg-canvas-accent-muted p-5 shadow-2xl"
           >
-            <h2 className="text-lg font-bold text-white">{editingId ? 'Edit application' : 'Add job application'}</h2>
+            <h2 className="text-lg font-bold text-canvas-text">{editingId ? 'Edit application' : 'Add job application'}</h2>
             <div className="mt-4 space-y-3">
               <label className="block">
                 <span className="label">Company</span>

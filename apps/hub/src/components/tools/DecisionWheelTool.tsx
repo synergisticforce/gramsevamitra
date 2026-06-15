@@ -202,10 +202,10 @@ export default function DecisionWheelTool() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Wheel entries</h2>
-        <p className="mt-1 text-xs text-slate-500">
-          One option per line. Optional weight syntax: <code className="text-emerald-400">Option [2]</code>
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Wheel entries</h2>
+        <p className="mt-1 text-xs text-canvas-subtle">
+          One option per line. Optional weight syntax: <code className="text-canvas-accent">Option [2]</code>
         </p>
         <label className="mt-4 block">
           <textarea
@@ -231,7 +231,7 @@ export default function DecisionWheelTool() {
             ref={wheelCanvasRef}
             width={340}
             height={340}
-            className="mx-auto rounded-full border-4 border-slate-700 shadow-xl"
+            className="mx-auto rounded-full border-4 border-canvas-border shadow-none"
             role="img"
             aria-label="Decision wheel"
           />
@@ -243,7 +243,7 @@ export default function DecisionWheelTool() {
             aria-hidden
           />
         </div>
-        <p className="mt-6 text-lg font-bold text-emerald-400" aria-live="polite">
+        <p className="mt-6 text-lg font-bold text-canvas-accent" aria-live="polite">
           {result}
         </p>
       </section>

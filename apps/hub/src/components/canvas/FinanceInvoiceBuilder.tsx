@@ -34,12 +34,12 @@ export default function FinanceInvoiceBuilder() {
   const update = (patch: Partial<InvoiceFormData>) => setForm((prev) => ({ ...prev, ...patch }));
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2';
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Invoice details</h2>
+      <section className="space-y-3 rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Invoice details</h2>
         {(
           [
             ['businessName', 'Your business'],
@@ -51,7 +51,7 @@ export default function FinanceInvoiceBuilder() {
             ['dueDate', 'Due date', 'date'],
           ] as const
         ).map(([key, label, type]) => (
-          <label key={key} className="block text-sm font-medium text-slate-700">
+          <label key={key} className="block text-sm font-medium text-canvas-muted">
             {label}
             <input
               type={type ?? 'text'}
@@ -61,12 +61,12 @@ export default function FinanceInvoiceBuilder() {
             />
           </label>
         ))}
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-canvas-muted">
           Tax ({form.taxPercent}%)
           <input type="range" min={0} max={28} value={form.taxPercent} onChange={(e) => update({ taxPercent: Number(e.target.value) })} className="mt-2 w-full accent-emerald-600" />
         </label>
         {form.lineItems.map((item, index) => (
-          <div key={item.id} className="grid grid-cols-3 gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3">
+          <div key={item.id} className="grid grid-cols-3 gap-2 rounded-xl border border-slate-100 bg-canvas-elevated p-3">
             <input value={item.description} onChange={(e) => {
               const lineItems = [...form.lineItems];
               lineItems[index] = { ...item, description: e.target.value };
@@ -84,7 +84,7 @@ export default function FinanceInvoiceBuilder() {
             }} className={inputClass} />
           </div>
         ))}
-        <button type="button" onClick={() => update({ lineItems: [...form.lineItems, { id: createLineItemId(), description: 'Item', quantity: 1, unitPrice: 0 }] })} className="w-full rounded-xl border border-dashed border-slate-300 py-2 text-sm font-semibold text-slate-600">
+        <button type="button" onClick={() => update({ lineItems: [...form.lineItems, { id: createLineItemId(), description: 'Item', quantity: 1, unitPrice: 0 }] })} className="w-full rounded-xl border border-dashed border-canvas-border py-2 text-sm font-semibold text-canvas-muted">
           + Add line item
         </button>
         <textarea rows={2} value={form.notes} onChange={(e) => update({ notes: e.target.value })} className={`${inputClass} resize-y`} placeholder="Notes" />
@@ -96,15 +96,15 @@ export default function FinanceInvoiceBuilder() {
           } catch (err) {
             setError(err instanceof Error ? err.message : 'PDF export failed.');
           } finally { setBusy(false); }
-        })()} className="w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+        })()} className="w-full rounded-xl bg-canvas-accent-muted py-2.5 text-sm font-semibold text-canvas-text disabled:opacity-50">
           {busy ? 'Exporting…' : 'Download PDF'}
         </button>
         {error && <p className="text-sm text-rose-600">{error}</p>}
       </section>
-      <section className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5">
-        <p className="text-xs font-semibold uppercase text-emerald-700">Live preview</p>
+      <section className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/50 p-5">
+        <p className="text-xs font-semibold uppercase text-canvas-accent">Live preview</p>
         <p className="mt-2 text-2xl font-bold text-emerald-900">{formatInr(totals.total)}</p>
-        <pre className="mt-4 max-h-96 overflow-y-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-white p-4 font-sans text-[11px] leading-relaxed text-slate-800">{preview}</pre>
+        <pre className="mt-4 max-h-96 overflow-y-auto whitespace-pre-wrap rounded-xl border border-canvas-border bg-canvas-surface p-4 font-sans text-[11px] leading-relaxed text-canvas-text">{preview}</pre>
       </section>
     </div>
   );

@@ -13,29 +13,29 @@ function MeterBar({ metrics, label }: { metrics: SeoFieldMetrics; label: string 
   const charPct = Math.min(100, (metrics.chars / metrics.charLimit) * 100);
   const pixelPct = Math.min(100, (metrics.pixels / metrics.pixelLimit) * 100);
   const statusColor = (s: SeoFieldMetrics['charStatus']) =>
-    s === 'error' ? 'bg-rose-500' : s === 'warn' ? 'bg-amber-400' : 'bg-emerald-500';
+    s === 'error' ? 'bg-rose-500' : s === 'warn' ? 'bg-amber-400' : 'bg-canvas-accent-soft0';
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs">
-        <span className="font-medium text-slate-400">{label}</span>
+        <span className="font-medium text-canvas-subtle">{label}</span>
         <span
           className={
             metrics.charStatus === 'error' || metrics.pixelStatus === 'error'
               ? 'text-rose-400'
               : metrics.charStatus === 'warn' || metrics.pixelStatus === 'warn'
                 ? 'text-amber-300'
-                : 'text-emerald-400'
+                : 'text-canvas-accent'
           }
         >
           {metrics.chars}/{metrics.charLimit} chars · {metrics.pixels}/{metrics.pixelLimit}px
         </span>
       </div>
       <div className="space-y-1">
-        <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
+        <div className="h-1.5 overflow-hidden rounded-full bg-canvas-elevated">
           <div className={`h-full ${statusColor(metrics.charStatus)}`} style={{ width: `${charPct}%` }} />
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
+        <div className="h-1.5 overflow-hidden rounded-full bg-canvas-elevated">
           <div className={`h-full ${statusColor(metrics.pixelStatus)}`} style={{ width: `${pixelPct}%` }} />
         </div>
       </div>
@@ -110,11 +110,11 @@ export default function SeoMetaGeneratorTool() {
   return (
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">SEO inputs</h2>
+        <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">SEO inputs</h2>
           <div className="mt-5 space-y-4">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-300">Title</span>
+              <span className="mb-1 block text-sm font-medium text-canvas-muted">Title</span>
               <input
                 type="text"
                 value={title}
@@ -128,7 +128,7 @@ export default function SeoMetaGeneratorTool() {
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-300">Meta description</span>
+              <span className="mb-1 block text-sm font-medium text-canvas-muted">Meta description</span>
               <textarea
                 rows={3}
                 value={description}
@@ -142,7 +142,7 @@ export default function SeoMetaGeneratorTool() {
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-300">Canonical URL</span>
+              <span className="mb-1 block text-sm font-medium text-canvas-muted">Canonical URL</span>
               <input
                 type="url"
                 value={canonicalUrl}
@@ -153,7 +153,7 @@ export default function SeoMetaGeneratorTool() {
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-300">Open Graph image URL</span>
+              <span className="mb-1 block text-sm font-medium text-canvas-muted">Open Graph image URL</span>
               <input
                 type="url"
                 value={ogImage}
@@ -165,7 +165,7 @@ export default function SeoMetaGeneratorTool() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-1 block text-sm font-medium text-slate-300">OG type</span>
+                <span className="mb-1 block text-sm font-medium text-canvas-muted">OG type</span>
                 <select value={ogType} onChange={(e) => setOgType(e.target.value)} className="select-field w-full py-2 text-sm">
                   <option value="website">website</option>
                   <option value="article">article</option>
@@ -173,7 +173,7 @@ export default function SeoMetaGeneratorTool() {
                 </select>
               </label>
               <label className="block">
-                <span className="mb-1 block text-sm font-medium text-slate-300">Site name</span>
+                <span className="mb-1 block text-sm font-medium text-canvas-muted">Site name</span>
                 <input
                   type="text"
                   value={siteName}
@@ -186,42 +186,42 @@ export default function SeoMetaGeneratorTool() {
         </section>
 
         <section className="space-y-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">Google SERP preview</h2>
-            <div className="mt-4 rounded-xl border border-slate-700 bg-white p-4 text-left shadow-inner">
+          <div className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Google SERP preview</h2>
+            <div className="mt-4 rounded-xl border border-canvas-border bg-canvas-surface p-4 text-left shadow-inner">
               <p className="truncate font-sans text-xl text-[#1a0dab]">{serpTitle}</p>
               <p className="mt-0.5 truncate font-sans text-sm text-[#006621]">{displayUrl}</p>
               <p className="mt-1 line-clamp-2 font-sans text-sm leading-snug text-[#545454]">{serpDesc}</p>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">
+          <div className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">
               Facebook / X link card
             </h2>
-            <div className="mt-4 overflow-hidden rounded-xl border border-slate-700 bg-[#f0f2f5]">
+            <div className="mt-4 overflow-hidden rounded-xl border border-canvas-border bg-[#f0f2f5]">
               {ogImage ? (
                 <div className="aspect-[1.91/1] w-full bg-slate-300">
                   <img src={ogImage} alt="" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 </div>
               ) : (
-                <div className="flex aspect-[1.91/1] items-center justify-center bg-slate-300 text-sm text-slate-500">
+                <div className="flex aspect-[1.91/1] items-center justify-center bg-slate-300 text-sm text-canvas-subtle">
                   OG image preview
                 </div>
               )}
-              <div className="border-t border-slate-300 bg-[#f0f2f5] px-3 py-2 text-left">
-                <p className="truncate text-[10px] uppercase tracking-wide text-slate-500">{displayUrl}</p>
-                <p className="truncate text-sm font-semibold text-slate-900">{title || 'Link title'}</p>
-                <p className="line-clamp-2 text-xs text-slate-600">{description || 'Link description preview'}</p>
+              <div className="border-t border-canvas-border bg-[#f0f2f5] px-3 py-2 text-left">
+                <p className="truncate text-[10px] uppercase tracking-wide text-canvas-subtle">{displayUrl}</p>
+                <p className="truncate text-sm font-semibold text-canvas-text">{title || 'Link title'}</p>
+                <p className="line-clamp-2 text-xs text-canvas-muted">{description || 'Link description preview'}</p>
               </div>
             </div>
           </div>
         </section>
       </div>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Generated meta tags</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Generated meta tags</h2>
           <button type="button" onClick={copyTags} className="btn-secondary text-xs">
             {copyLabel}
           </button>
@@ -230,7 +230,7 @@ export default function SeoMetaGeneratorTool() {
           readOnly
           rows={14}
           value={metaTags}
-          className="input-field w-full resize-y font-mono text-xs text-emerald-300"
+          className="input-field w-full resize-y font-mono text-xs text-canvas-accent"
           spellCheck={false}
         />
       </section>

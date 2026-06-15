@@ -43,11 +43,11 @@ export default function RecipeScalerTool() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Original recipe</h2>
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Original recipe</h2>
         <div className="mt-4 grid grid-cols-2 gap-4">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Original servings</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Original servings</span>
             <input
               type="number"
               min={0.25}
@@ -58,7 +58,7 @@ export default function RecipeScalerTool() {
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-300">Target servings</span>
+            <span className="mb-1 block text-sm font-medium text-canvas-muted">Target servings</span>
             <input
               type="number"
               min={0.25}
@@ -70,7 +70,7 @@ export default function RecipeScalerTool() {
           </label>
         </div>
         <label className="mt-4 block">
-          <span className="mb-1 block text-sm font-medium text-slate-300">Ingredients (one per line)</span>
+          <span className="mb-1 block text-sm font-medium text-canvas-muted">Ingredients (one per line)</span>
           <textarea
             rows={10}
             value={ingredients}
@@ -79,22 +79,22 @@ export default function RecipeScalerTool() {
             className="input-field w-full resize-y font-mono text-sm"
           />
         </label>
-        <p className="mt-2 text-xs text-slate-500">Format: name then quantity — e.g. flour 2 cups or eggs 3</p>
+        <p className="mt-2 text-xs text-canvas-subtle">Format: name then quantity — e.g. flour 2 cups or eggs 3</p>
       </section>
 
       <section aria-live="polite">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-emerald-400/80">Scaled ingredients</h2>
-        <div className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-4 shadow-lg sm:p-5">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Scaled ingredients</h2>
+        <div className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-4 shadow-none sm:p-5">
           {scaled.items.length === 0 ? (
-            <p className="text-sm text-slate-500">Add ingredients to see scaled quantities.</p>
+            <p className="text-sm text-canvas-subtle">Add ingredients to see scaled quantities.</p>
           ) : (
             <ul className="space-y-0">
               {scaled.items.map((item) => (
                 <li key={item.raw} className="flex items-baseline justify-between gap-3 border-b border-slate-800/60 py-2 last:border-0">
-                  <span className="text-sm font-medium text-white">{item.name}</span>
-                  <span className="text-right text-sm text-emerald-400">
+                  <span className="text-sm font-medium text-canvas-text">{item.name}</span>
+                  <span className="text-right text-sm text-canvas-accent">
                     {item.scaledLabel}
-                    <span className="block text-xs text-slate-500">
+                    <span className="block text-xs text-canvas-subtle">
                       was {formatQty(item.qty)}
                       {item.unit ? ` ${item.unit}` : ''}
                     </span>
@@ -105,7 +105,7 @@ export default function RecipeScalerTool() {
           )}
         </div>
         {scaled.items.length > 0 && (
-          <p className="mt-3 text-center text-xs text-slate-500">
+          <p className="mt-3 text-center text-xs text-canvas-subtle">
             Scale factor ×{scaled.factor.toFixed(3).replace(/\.?0+$/, '')} ({originalServings} → {targetServings} servings)
           </p>
         )}

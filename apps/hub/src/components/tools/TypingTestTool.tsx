@@ -124,10 +124,10 @@ function charState(target: string, typed: string, index: number): CharState {
 
 function charClass(state: CharState): string {
   switch (state) {
-    case 'correct': return 'text-white';
+    case 'correct': return 'text-canvas-text';
     case 'incorrect': return 'text-rose-400';
     case 'extra': return 'text-rose-900 bg-rose-950/80';
-    default: return 'text-slate-500';
+    default: return 'text-canvas-subtle';
   }
 }
 
@@ -284,7 +284,7 @@ export default function TypingTestTool() {
     for (let i = 0; i < targetText.length; i++) {
       if (i === caretIndex && !finished) {
         nodes.push(
-          <span key={`caret-${i}`} className="caret-blink mx-px inline-block w-0.5 text-emerald-400" aria-hidden="true">|</span>
+          <span key={`caret-${i}`} className="caret-blink mx-px inline-block w-0.5 text-canvas-accent" aria-hidden="true">|</span>
         );
       }
       const ch = targetText[i];
@@ -296,7 +296,7 @@ export default function TypingTestTool() {
     }
     if (caretIndex >= targetText.length && !finished) {
       nodes.push(
-        <span key="caret-end" className="caret-blink mx-px inline-block w-0.5 text-emerald-400" aria-hidden="true">|</span>
+        <span key="caret-end" className="caret-blink mx-px inline-block w-0.5 text-canvas-accent" aria-hidden="true">|</span>
       );
     }
     if (typed.length > targetText.length) {
@@ -313,7 +313,7 @@ export default function TypingTestTool() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl sm:p-6 lg:col-span-2">
+      <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6 lg:col-span-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             {WORD_COUNT_OPTIONS.map((n) => (
@@ -322,7 +322,7 @@ export default function TypingTestTool() {
                 type="button"
                 onClick={() => changeWordCount(n)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  wordCount === n ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  wordCount === n ? 'bg-canvas-accent-muted text-canvas-text' : 'bg-canvas-elevated text-canvas-subtle hover:bg-canvas-accent-muted'
                 }`}
               >
                 {n} words
@@ -330,9 +330,9 @@ export default function TypingTestTool() {
             ))}
           </div>
           <div className="flex items-center gap-3 text-sm tabular-nums">
-            <span className="font-semibold text-emerald-400">{stats.wpm} WPM</span>
-            <span className="text-slate-400">{stats.accuracy}%</span>
-            <span className="rounded-lg border border-emerald-800/50 bg-emerald-950/40 px-3 py-1 font-bold text-emerald-400">
+            <span className="font-semibold text-canvas-accent">{stats.wpm} WPM</span>
+            <span className="text-canvas-subtle">{stats.accuracy}%</span>
+            <span className="rounded-lg border border-canvas-border bg-canvas-accent-soft/40 px-3 py-1 font-bold text-canvas-accent">
               {secondsLeft}s
             </span>
             <button type="button" onClick={() => reset()} className="btn-secondary px-3 py-1.5 text-xs">Restart</button>
@@ -361,25 +361,25 @@ export default function TypingTestTool() {
           />
         </div>
 
-        <p className="mt-3 text-center text-xs text-slate-500">{status}</p>
+        <p className="mt-3 text-center text-xs text-canvas-subtle">{status}</p>
 
         {summary && (
-          <div className="mt-6 rounded-xl border border-emerald-900/40 bg-emerald-950/20 p-4">
-            <h3 className="text-sm font-semibold text-emerald-300">Post-test performance timeline</h3>
-            <p className="mt-1 text-xs text-slate-500">
+          <div className="mt-6 rounded-xl border border-canvas-border bg-canvas-accent-soft/20 p-4">
+            <h3 className="text-sm font-semibold text-canvas-accent">Post-test performance timeline</h3>
+            <p className="mt-1 text-xs text-canvas-subtle">
               Peak {summary.peakWpm} WPM · Final {summary.wpm} WPM · {summary.errors} errors
             </p>
             <div className="mt-4 flex h-24 items-end gap-0.5">
               {summary.timeline.map((point) => (
                 <div
                   key={point.second}
-                  className="group relative flex-1 rounded-t bg-emerald-600/80 transition hover:bg-emerald-400"
+                  className="group relative flex-1 rounded-t bg-canvas-accent-muted/80 transition hover:bg-canvas-accent/40"
                   style={{ height: `${Math.max(8, (point.wpm / maxTimelineWpm) * 100)}%` }}
                   title={`${point.second}s: ${point.wpm} WPM, ${point.accuracy}% acc`}
                 />
               ))}
             </div>
-            <div className="mt-1 flex justify-between text-[10px] text-slate-600">
+            <div className="mt-1 flex justify-between text-[10px] text-canvas-muted">
               <span>0s</span>
               <span>60s</span>
             </div>
@@ -392,21 +392,21 @@ export default function TypingTestTool() {
         `}</style>
       </section>
 
-      <section className="rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-xl">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-400/80">Live stats</h2>
+      <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/50 to-slate-900/60 p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Live stats</h2>
         <div className="mt-5 space-y-4">
-          <div className="rounded-xl border border-emerald-800/40 bg-slate-950/50 px-4 py-5 text-center">
-            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">WPM</p>
-            <p className="mt-1 text-4xl font-extrabold tabular-nums text-emerald-400">{stats.wpm}</p>
+          <div className="rounded-xl border border-canvas-border bg-slate-950/50 px-4 py-5 text-center">
+            <p className="text-xs font-medium uppercase tracking-wider text-canvas-subtle">WPM</p>
+            <p className="mt-1 text-4xl font-extrabold tabular-nums text-canvas-accent">{stats.wpm}</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-4 text-center">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Accuracy</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-white">{stats.accuracy}%</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-canvas-subtle">Accuracy</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-canvas-text">{stats.accuracy}%</p>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-4 text-center">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Correct</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-400">{stats.correctChars}</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-canvas-subtle">Correct</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-canvas-accent">{stats.correctChars}</p>
             </div>
           </div>
         </div>

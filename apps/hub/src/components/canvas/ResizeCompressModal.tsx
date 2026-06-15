@@ -122,7 +122,7 @@ export default function ResizeCompressModal({
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="resize-compress-title"
@@ -130,13 +130,13 @@ export default function ResizeCompressModal({
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="resize-compress-title" className="text-lg font-bold text-slate-900">
+            <h2 id="resize-compress-title" className="text-lg font-bold text-canvas-text">
               Resize &amp; Compress
             </h2>
-            <p className="mt-1 text-xs text-slate-500 truncate">
+            <p className="mt-1 text-xs text-canvas-subtle truncate">
               {file.name} · {formatFileSize(file.size)}
             </p>
           </div>
@@ -144,27 +144,27 @@ export default function ResizeCompressModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted disabled:opacity-50"
             aria-label="Close"
           >
             ✕
           </button>
         </div>
 
-        <p className="mt-4 text-sm text-slate-600">
+        <p className="mt-4 text-sm text-canvas-muted">
           Processed locally with browser-image-compression — nothing is uploaded.
         </p>
 
         {loadingMeta ? (
-          <p className="mt-3 text-sm text-slate-500">Reading image dimensions…</p>
+          <p className="mt-3 text-sm text-canvas-subtle">Reading image dimensions…</p>
         ) : naturalSize ? (
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs text-canvas-subtle">
             Original: {naturalSize.width} × {naturalSize.height} px
           </p>
         ) : null}
 
         <div className="mt-4 space-y-2">
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 px-3 py-3">
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-canvas-border px-3 py-3">
             <input
               type="radio"
               name="resize-mode"
@@ -174,11 +174,11 @@ export default function ResizeCompressModal({
               className="mt-1 accent-violet-600"
             />
             <span>
-              <span className="block text-sm font-semibold text-slate-900">Target dimensions</span>
-              <span className="mt-0.5 block text-xs text-slate-500">Set width and height in pixels</span>
+              <span className="block text-sm font-semibold text-canvas-text">Target dimensions</span>
+              <span className="mt-0.5 block text-xs text-canvas-subtle">Set width and height in pixels</span>
             </span>
           </label>
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 px-3 py-3">
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-canvas-border px-3 py-3">
             <input
               type="radio"
               name="resize-mode"
@@ -188,8 +188,8 @@ export default function ResizeCompressModal({
               className="mt-1 accent-violet-600"
             />
             <span>
-              <span className="block text-sm font-semibold text-slate-900">Target file size</span>
-              <span className="mt-0.5 block text-xs text-slate-500">Compress to a maximum KB size</span>
+              <span className="block text-sm font-semibold text-canvas-text">Target file size</span>
+              <span className="mt-0.5 block text-xs text-canvas-subtle">Compress to a maximum KB size</span>
             </span>
           </label>
         </div>
@@ -198,7 +198,7 @@ export default function ResizeCompressModal({
           <div className="mt-4 space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Width (px)</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">Width (px)</span>
                 <input
                   type="number"
                   min={32}
@@ -206,11 +206,11 @@ export default function ResizeCompressModal({
                   value={width}
                   onChange={(event) => updateWidth(Number(event.target.value))}
                   disabled={busy || loadingMeta}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm disabled:bg-slate-50"
+                  className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm disabled:bg-canvas-elevated"
                 />
               </label>
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Height (px)</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">Height (px)</span>
                 <input
                   type="number"
                   min={32}
@@ -218,11 +218,11 @@ export default function ResizeCompressModal({
                   value={height}
                   onChange={(event) => updateHeight(Number(event.target.value))}
                   disabled={busy || loadingMeta || lockAspect}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm disabled:bg-slate-50"
+                  className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm disabled:bg-canvas-elevated"
                 />
               </label>
             </div>
-            <label className="flex items-center gap-2 text-sm text-slate-700">
+            <label className="flex items-center gap-2 text-sm text-canvas-muted">
               <input
                 type="checkbox"
                 checked={lockAspect}
@@ -237,7 +237,7 @@ export default function ResizeCompressModal({
 
         {mode === 'file-size' && (
           <label className="mt-4 block">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
               Target max size (KB)
             </span>
             <input
@@ -247,7 +247,7 @@ export default function ResizeCompressModal({
               value={targetKb}
               onChange={(event) => setTargetKb(Math.max(1, Number(event.target.value)))}
               disabled={busy}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm disabled:bg-slate-50"
+              className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm disabled:bg-canvas-elevated"
             />
           </label>
         )}
@@ -263,7 +263,7 @@ export default function ResizeCompressModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-50"
           >
             Cancel
           </button>
@@ -271,7 +271,7 @@ export default function ResizeCompressModal({
             type="button"
             onClick={() => void handleProcess()}
             disabled={busy || loadingMeta}
-            className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? 'Processing…' : 'Optimize & download'}
           </button>

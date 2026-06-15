@@ -15,8 +15,8 @@ interface Props {
 function pillClass(active: boolean): string {
   return `rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
     active
-      ? 'border-violet-500 bg-violet-50 text-violet-800'
-      : 'border-slate-200 text-slate-600 hover:border-violet-300'
+      ? 'border-violet-500 bg-canvas-accent-soft text-violet-800'
+      : 'border-canvas-border text-canvas-muted hover:border-violet-300'
   }`;
 }
 
@@ -64,7 +64,7 @@ export default function HiFiConverterModal({
 
   return (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="hifi-converter-title"
@@ -72,33 +72,33 @@ export default function HiFiConverterModal({
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-2xl border border-violet-200 bg-white p-5 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-violet-600">⚡ Pro</p>
-            <h2 id="hifi-converter-title" className="text-lg font-bold text-slate-900">
+            <p className="text-xs font-semibold uppercase tracking-wide text-canvas-accent">⚡ Pro</p>
+            <h2 id="hifi-converter-title" className="text-lg font-bold text-canvas-text">
               High-Fidelity Converter
             </h2>
-            <p className="mt-1 text-xs text-slate-500 truncate">{file.name}</p>
+            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted disabled:opacity-50"
             aria-label="Close"
           >
             ✕
           </button>
         </div>
 
-        <p className="mt-4 text-sm text-slate-600">
+        <p className="mt-4 text-sm text-canvas-muted">
           Convert your PDF to an editable Office document via our serverless pipeline. Your file is
           uploaded to secure transient storage and deleted after conversion.
         </p>
 
         <fieldset className="mt-4">
-          <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
             Output format
           </legend>
           <div className="flex flex-wrap gap-2">
@@ -132,7 +132,7 @@ export default function HiFiConverterModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-50"
           >
             Cancel
           </button>
@@ -140,7 +140,7 @@ export default function HiFiConverterModal({
             type="button"
             onClick={handleConvertClick}
             disabled={busy}
-            className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? 'Converting…' : 'Review credits & convert'}
           </button>

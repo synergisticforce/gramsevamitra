@@ -17,10 +17,10 @@ export function scorePasswordStrength(password: string): {
     return { score, label: 'Weak', barClass: 'bg-rose-500', textClass: 'text-rose-600' };
   }
   if (score < 65) {
-    return { score, label: 'Fair', barClass: 'bg-amber-500', textClass: 'text-amber-600' };
+    return { score, label: 'Fair', barClass: 'bg-canvas-elevated0', textClass: 'text-canvas-muted' };
   }
   if (score < 85) {
-    return { score, label: 'Good', barClass: 'bg-emerald-500', textClass: 'text-emerald-600' };
+    return { score, label: 'Good', barClass: 'bg-canvas-accent-soft0', textClass: 'text-canvas-accent' };
   }
-  return { score, label: 'Strong', barClass: 'bg-emerald-400', textClass: 'text-emerald-700' };
+  return { score, label: 'Strong', barClass: 'bg-canvas-accent-muted', textClass: 'text-canvas-accent' };
 }

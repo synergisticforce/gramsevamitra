@@ -146,14 +146,14 @@ export default function FinanceLoanRepaymentCalculator() {
   }, [annualRows]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 tabular-nums';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 tabular-nums';
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Loan & prepayments</h2>
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Loan & prepayments</h2>
         <div className="mt-4 space-y-4">
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-canvas-muted">
             Loan amount (₹)
             <input
               type="number"
@@ -163,7 +163,7 @@ export default function FinanceLoanRepaymentCalculator() {
               className={`${inputClass} mt-1.5`}
             />
           </label>
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-canvas-muted">
             Interest rate ({interestRate}% p.a.)
             <input
               type="range"
@@ -175,7 +175,7 @@ export default function FinanceLoanRepaymentCalculator() {
               className="mt-2 w-full accent-emerald-600"
             />
           </label>
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-canvas-muted">
             Tenure ({tenureYears} years)
             <input
               type="range"
@@ -186,7 +186,7 @@ export default function FinanceLoanRepaymentCalculator() {
               className="mt-2 w-full accent-emerald-600"
             />
           </label>
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-canvas-muted">
             Extra monthly prepayment (₹)
             <input
               type="number"
@@ -197,7 +197,7 @@ export default function FinanceLoanRepaymentCalculator() {
             />
           </label>
           <div className="grid grid-cols-2 gap-3">
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-canvas-muted">
               Lump sum (₹)
               <input
                 type="number"
@@ -207,7 +207,7 @@ export default function FinanceLoanRepaymentCalculator() {
                 className={`${inputClass} mt-1.5`}
               />
             </label>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-canvas-muted">
               Lump sum month
               <input
                 type="number"
@@ -222,32 +222,32 @@ export default function FinanceLoanRepaymentCalculator() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-700">Repayment plan</h2>
+      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Repayment plan</h2>
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between">
-            <dt className="text-slate-500">Monthly EMI</dt>
-            <dd className="text-xl font-bold text-emerald-800">
+            <dt className="text-canvas-subtle">Monthly EMI</dt>
+            <dd className="text-xl font-bold text-canvas-accent">
               {result ? formatInr(Math.round(result.emi)) : '₹0'}
             </dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-500">Payoff tenure</dt>
+            <dt className="text-canvas-subtle">Payoff tenure</dt>
             <dd className="font-semibold">{result ? `${result.tenureMonths} months` : '—'}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-500">Interest saved vs. no prepay</dt>
+            <dt className="text-canvas-subtle">Interest saved vs. no prepay</dt>
             <dd className="font-semibold text-indigo-700">{formatInr(Math.round(interestSaved))}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-500">Months saved</dt>
+            <dt className="text-canvas-subtle">Months saved</dt>
             <dd className="font-semibold">{monthsSaved} mo</dd>
           </div>
         </dl>
-        <div className="relative mt-5 h-56 rounded-xl border border-slate-100 bg-white p-2">
+        <div className="relative mt-5 h-56 rounded-xl border border-slate-100 bg-canvas-surface p-2">
           <canvas ref={chartRef} aria-label="Annual principal vs interest" />
         </div>
-        <p className="mt-2 text-center text-xs text-slate-500">
+        <p className="mt-2 text-center text-xs text-canvas-subtle">
           {tenureToMonths(tenureYears, 'years')} month schedule · {annualRows.length} years shown
         </p>
       </section>

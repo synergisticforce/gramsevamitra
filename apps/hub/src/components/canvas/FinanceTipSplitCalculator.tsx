@@ -84,14 +84,14 @@ export default function FinanceTipSplitCalculator() {
   }, [result]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none ring-emerald-500/30 focus:border-emerald-400 focus:ring-2 tabular-nums';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 tabular-nums';
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Bill details</h2>
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Bill details</h2>
         <div className="mt-4 space-y-4">
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-canvas-muted">
             Bill amount (₹)
             <input
               type="number"
@@ -101,7 +101,7 @@ export default function FinanceTipSplitCalculator() {
               className={`${inputClass} mt-1.5`}
             />
           </label>
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-canvas-muted">
             Tip ({tipPercent}%)
             <input
               type="range"
@@ -113,7 +113,7 @@ export default function FinanceTipSplitCalculator() {
               className="mt-2 w-full accent-emerald-600"
             />
           </label>
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-canvas-muted">
             Split between ({numPeople} people)
             <input
               type="range"
@@ -127,26 +127,26 @@ export default function FinanceTipSplitCalculator() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-700">Per person</h2>
+      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Per person</h2>
         {result ? (
           <>
-            <p className="mt-3 text-3xl font-bold tabular-nums text-emerald-800">
+            <p className="mt-3 text-3xl font-bold tabular-nums text-canvas-accent">
               {formatInr(Math.round(result.perPerson))}
             </p>
             <dl className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
-                <dt className="text-slate-500">Tip amount</dt>
+                <dt className="text-canvas-subtle">Tip amount</dt>
                 <dd className="font-semibold">{formatInr(Math.round(result.tipAmount))}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-slate-500">Total with tip</dt>
+                <dt className="text-canvas-subtle">Total with tip</dt>
                 <dd className="font-semibold">{formatInr(Math.round(result.totalWithTip))}</dd>
               </div>
             </dl>
           </>
         ) : null}
-        <div className="relative mt-5 h-48 rounded-xl border border-slate-100 bg-white p-2">
+        <div className="relative mt-5 h-48 rounded-xl border border-slate-100 bg-canvas-surface p-2">
           <canvas ref={chartRef} aria-label="Bill vs tip split" />
         </div>
       </section>

@@ -125,18 +125,18 @@ export default function QuickBabyNameGenerator() {
   }, [filtered]);
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
+    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
 
   const pillClass = (active: boolean) =>
     `rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-      active ? 'border-violet-500 bg-violet-50 text-violet-800' : 'border-slate-200 bg-white text-slate-600'
+      active ? 'border-violet-500 bg-canvas-accent-soft text-violet-800' : 'border-canvas-border bg-canvas-surface text-canvas-muted'
     }`;
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Filter &amp; search</h2>
-        <label className="mt-4 block text-sm font-medium text-slate-700">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Filter &amp; search</h2>
+        <label className="mt-4 block text-sm font-medium text-canvas-muted">
           Search name
           <input
             type="search"
@@ -160,7 +160,7 @@ export default function QuickBabyNameGenerator() {
               ],
             ] as const
           ).map(([label, value, setter, options]) => (
-            <label key={label} className="block text-xs font-semibold uppercase text-slate-500">
+            <label key={label} className="block text-xs font-semibold uppercase text-canvas-subtle">
               {label}
               <select
                 value={value}
@@ -196,24 +196,24 @@ export default function QuickBabyNameGenerator() {
           type="button"
           onClick={randomPick}
           disabled={loading || filtered.length === 0}
-          className="mt-4 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
+          className="mt-4 rounded-xl bg-canvas-accent-muted px-4 py-2 text-sm font-semibold text-canvas-text hover:bg-canvas-accent/40 disabled:opacity-50"
         >
           Random name from filters
         </button>
       </section>
 
       <section>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-violet-700">
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-canvas-accent">
           Shortlist ({shortlist.length})
         </h2>
-        <ul className="flex min-h-[44px] flex-wrap gap-2 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-3">
+        <ul className="flex min-h-[44px] flex-wrap gap-2 rounded-xl border border-dashed border-canvas-border bg-canvas-elevated p-3">
           {shortlist.length === 0 ? (
-            <li className="text-xs text-slate-500">Tap ☆ on any name to add here.</li>
+            <li className="text-xs text-canvas-subtle">Tap ☆ on any name to add here.</li>
           ) : (
             shortlist.map((name) => (
               <li
                 key={name}
-                className="inline-flex items-center gap-1 rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-800"
+                className="inline-flex items-center gap-1 rounded-lg border border-canvas-border bg-canvas-accent-soft px-2.5 py-1 text-xs font-medium text-violet-800"
               >
                 {name}
                 <button type="button" onClick={() => toggleShortlist(name)} className="text-rose-500 hover:text-rose-600" aria-label={`Remove ${name}`}>
@@ -226,18 +226,18 @@ export default function QuickBabyNameGenerator() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-canvas-subtle">
           Names ({loading ? '…' : filtered.length.toLocaleString()})
         </h2>
         {loading && (
-          <p className="flex items-center gap-2 text-sm text-violet-700">
+          <p className="flex items-center gap-2 text-sm text-canvas-accent">
             <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-violet-400 border-t-transparent" />
             Loading name database…
           </p>
         )}
         {loadError && <p className="text-sm text-rose-600">{loadError}</p>}
         {!loading && !loadError && filtered.length === 0 && (
-          <p className="text-sm text-slate-500">No names match your filters.</p>
+          <p className="text-sm text-canvas-subtle">No names match your filters.</p>
         )}
         {!loading && filtered.length > 0 && (
           <ul className="grid max-h-96 gap-2 overflow-y-auto sm:grid-cols-2">
@@ -246,11 +246,11 @@ export default function QuickBabyNameGenerator() {
               return (
                 <li
                   key={`${entry.origin}-${entry.gender}-${entry.name}`}
-                  className="flex items-start justify-between gap-2 rounded-xl border border-slate-200 bg-white p-3"
+                  className="flex items-start justify-between gap-2 rounded-xl border border-canvas-border bg-canvas-surface p-3"
                 >
                   <div>
-                    <p className="font-semibold text-slate-900">{entry.name}</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="font-semibold text-canvas-text">{entry.name}</p>
+                    <p className="text-xs text-canvas-subtle">
                       {entry.gender} · {entry.origin} · {entry.syllables} syllable{entry.syllables === 1 ? '' : 's'}
                     </p>
                   </div>
@@ -258,7 +258,7 @@ export default function QuickBabyNameGenerator() {
                     type="button"
                     onClick={() => toggleShortlist(entry.name)}
                     className={`shrink-0 rounded-lg border px-2 py-1 text-sm ${
-                      starred ? 'border-amber-400 bg-amber-50 text-amber-600' : 'border-slate-200 text-slate-400'
+                      starred ? 'border-amber-400 bg-canvas-elevated text-canvas-muted' : 'border-canvas-border text-canvas-subtle'
                     }`}
                     aria-label={starred ? 'Remove from shortlist' : 'Add to shortlist'}
                   >
@@ -270,7 +270,7 @@ export default function QuickBabyNameGenerator() {
           </ul>
         )}
         {!loading && filtered.length > 100 && (
-          <p className="mt-2 text-xs text-slate-500">Showing first 100 matches — refine filters to narrow results.</p>
+          <p className="mt-2 text-xs text-canvas-subtle">Showing first 100 matches — refine filters to narrow results.</p>
         )}
       </section>
     </div>

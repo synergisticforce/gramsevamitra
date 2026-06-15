@@ -223,12 +223,12 @@ export default function ProUpgradeModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-900/50 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-canvas-accent-muted/50 p-4 backdrop-blur-sm sm:items-center"
       role="presentation"
       onClick={close}
     >
       <div
-        className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+        className="w-full max-w-md overflow-hidden rounded-2xl border border-canvas-border bg-canvas-surface shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="pro-upgrade-title"
@@ -237,20 +237,20 @@ export default function ProUpgradeModal() {
         <div className="border-b border-slate-100 bg-gradient-to-br from-slate-50 to-white px-5 py-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+              <p className="inline-flex items-center gap-1 rounded-full bg-canvas-accent-muted px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-canvas-text">
                 <span aria-hidden="true">⚡</span> Pro
               </p>
-              <h2 id="pro-upgrade-title" className="mt-2 text-xl font-bold text-slate-900">
+              <h2 id="pro-upgrade-title" className="mt-2 text-xl font-bold text-canvas-text">
                 {detail.featureName}
               </h2>
-              <p className="mt-1 text-sm leading-relaxed text-slate-600">
+              <p className="mt-1 text-sm leading-relaxed text-canvas-muted">
                 {detail.featureDescription ?? DEFAULT_DETAIL.featureDescription}
               </p>
             </div>
             <button
               type="button"
               onClick={close}
-              className="rounded-lg border border-slate-200 px-2 py-1 text-sm text-slate-500 transition hover:bg-slate-50"
+              className="rounded-lg border border-canvas-border px-2 py-1 text-sm text-canvas-subtle transition hover:bg-canvas-elevated"
               aria-label="Close"
             >
               ✕
@@ -259,13 +259,13 @@ export default function ProUpgradeModal() {
         </div>
 
         <div className="space-y-4 px-5 py-5">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-600">Pro plan</p>
-            <p className="mt-1 text-2xl font-extrabold tabular-nums text-slate-900">
+          <div className="rounded-xl border border-canvas-border bg-canvas-elevated px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-canvas-muted">Pro plan</p>
+            <p className="mt-1 text-2xl font-extrabold tabular-nums text-canvas-text">
               {PRO_PRICE_LABEL}
-              <span className="text-base font-semibold text-slate-500">{PRO_PRICE_INTERVAL}</span>
+              <span className="text-base font-semibold text-canvas-subtle">{PRO_PRICE_INTERVAL}</span>
             </p>
-            <ul className="mt-3 space-y-1.5 text-xs text-slate-700">
+            <ul className="mt-3 space-y-1.5 text-xs text-canvas-muted">
               <li>• Smart Document Extractor (CSV / JSON / DOCX)</li>
               <li>• Serverless AI routing — PaddleOCR + vision models</li>
               <li>• Batch 50+ conversions &amp; priority GPU queue</li>
@@ -273,15 +273,15 @@ export default function ProUpgradeModal() {
           </div>
 
           {isPro ? (
-            <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+            <p className="rounded-lg border border-emerald-200 bg-canvas-accent-soft px-3 py-2 text-sm text-canvas-accent">
               You already have Pro active on {user?.email}.
             </p>
           ) : signedIn ? (
-            <p className="text-xs text-slate-500">
-              Signed in as <span className="font-medium text-slate-700">{user?.email}</span>
+            <p className="text-xs text-canvas-subtle">
+              Signed in as <span className="font-medium text-canvas-muted">{user?.email}</span>
             </p>
           ) : (
-            <p className="text-xs text-slate-500">Sign in with Google to link Pro to your account.</p>
+            <p className="text-xs text-canvas-subtle">Sign in with Google to link Pro to your account.</p>
           )}
 
           {error && (
@@ -296,7 +296,7 @@ export default function ProUpgradeModal() {
                 type="button"
                 onClick={() => void signInWithGoogle()}
                 disabled={loading}
-                className="inline-flex flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 disabled:opacity-60"
+                className="inline-flex flex-1 items-center justify-center rounded-lg border border-canvas-border bg-canvas-surface px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-elevated disabled:opacity-60"
               >
                 Continue with Google
               </button>
@@ -307,7 +307,7 @@ export default function ProUpgradeModal() {
                 type="button"
                 onClick={() => void (signedIn ? startCheckout() : signInWithGoogle())}
                 disabled={loading || isPending}
-                className="inline-flex flex-1 items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+                className="inline-flex flex-1 items-center justify-center rounded-lg bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-elevated disabled:opacity-60"
               >
                 {loading ? 'Opening checkout…' : signedIn ? 'Pay with Razorpay →' : 'Sign in & Upgrade →'}
               </button>
@@ -315,14 +315,14 @@ export default function ProUpgradeModal() {
               <button
                 type="button"
                 onClick={close}
-                className="inline-flex flex-1 items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
+                className="inline-flex flex-1 items-center justify-center rounded-lg bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text"
               >
                 Continue
               </button>
             )}
           </div>
 
-          <p className="text-center text-[11px] leading-relaxed text-slate-400">
+          <p className="text-center text-[11px] leading-relaxed text-canvas-subtle">
             Secure Razorpay Checkout (UPI, cards, netbanking). Free tools stay 100% offline.
           </p>
         </div>
