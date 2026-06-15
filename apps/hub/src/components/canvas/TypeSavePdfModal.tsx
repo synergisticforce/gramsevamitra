@@ -73,7 +73,7 @@ export default function TypeSavePdfModal({ onClose, onSuccess, onProcessingChang
             <h2 id="type-save-title" className="text-lg font-bold text-canvas-text">
               Type &amp; Save as PDF
             </h2>
-            <p className="mt-1 text-sm text-canvas-subtle">Create a formatted PDF from plain text</p>
+            <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">Create a formatted PDF from plain text</p>
           </div>
           <button
             type="button"
@@ -98,7 +98,7 @@ export default function TypeSavePdfModal({ onClose, onSuccess, onProcessingChang
               void loadTextFile(event.target.files);
               event.target.value = '';
             }}
-            className="mt-1.5 block w-full text-sm text-canvas-muted file:mr-3 file:rounded-lg file:border-0 file:bg-canvas-accent-soft file:px-3 file:py-2 file:text-xs file:font-semibold file:text-canvas-accent"
+            className="mt-1.5 block w-full text-sm font-medium leading-relaxed text-slate-200 file:mr-3 file:rounded-lg file:border-0 file:bg-canvas-accent-soft file:px-3 file:py-2 file:text-xs file:font-semibold file:text-canvas-accent"
           />
         </label>
 
@@ -120,7 +120,7 @@ export default function TypeSavePdfModal({ onClose, onSuccess, onProcessingChang
         </label>
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

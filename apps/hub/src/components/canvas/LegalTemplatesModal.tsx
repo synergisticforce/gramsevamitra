@@ -84,7 +84,7 @@ export default function LegalTemplatesModal({ onClose, onSuccess }: Props) {
             <h2 id="legal-templates-title" className="text-lg font-bold text-canvas-text">
               📜 Legal &amp; Employment Templates
             </h2>
-            <p className="mt-1 text-sm text-canvas-subtle">{templateDef.description}</p>
+            <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">{templateDef.description}</p>
           </div>
           <button
             type="button"
@@ -96,7 +96,7 @@ export default function LegalTemplatesModal({ onClose, onSuccess }: Props) {
           </button>
         </div>
 
-        <p className="mt-3 rounded-lg border border-amber-200 bg-canvas-elevated px-3 py-2 text-xs text-amber-900">
+        <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-elevated px-3 py-2 text-xs text-slate-200">
           {templateDef.disclaimer}
         </p>
 
@@ -162,7 +162,7 @@ export default function LegalTemplatesModal({ onClose, onSuccess }: Props) {
         </div>
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

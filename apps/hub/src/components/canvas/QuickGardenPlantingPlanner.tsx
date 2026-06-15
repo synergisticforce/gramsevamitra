@@ -106,7 +106,7 @@ export default function QuickGardenPlantingPlanner() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/80 p-4">
+        <div className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/80 p-4">
           <p className="text-xs font-semibold uppercase text-canvas-accent">Plants tracked</p>
           <p className="mt-1 text-2xl font-bold text-emerald-900">{plants.length}</p>
         </div>
@@ -127,7 +127,7 @@ export default function QuickGardenPlantingPlanner() {
           <li key={plant.id} className="rounded-xl border border-canvas-border bg-canvas-surface p-4 shadow-none">
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <input value={plant.name} onChange={(e) => updatePlant(index, { name: e.target.value })} placeholder="Plant name" className={inputClass} />
-              <label className="text-xs text-canvas-subtle">
+              <label className="text-xs font-medium leading-relaxed text-slate-300">
                 Sown
                 <input type="date" value={plant.sowDate} onChange={(e) => updatePlant(index, { sowDate: e.target.value })} className={`${inputClass} mt-1`} />
               </label>
@@ -142,14 +142,14 @@ export default function QuickGardenPlantingPlanner() {
                 <button type="button" onClick={() => markWatered(index)} className="flex-1 rounded-xl border border-emerald-300 bg-canvas-accent-soft px-2 py-2 text-xs font-semibold text-canvas-accent hover:bg-canvas-accent-soft">
                   💧 Watered
                 </button>
-                <button type="button" onClick={() => removePlant(index)} className="rounded-xl border border-rose-200 px-2 py-2 text-xs font-semibold text-rose-600">
+                <button type="button" onClick={() => removePlant(index)} className="rounded-xl border border-canvas-border px-2 py-2 text-xs font-semibold text-rose-600">
                   Remove
                 </button>
               </div>
             </div>
             <input value={plant.notes} onChange={(e) => updatePlant(index, { notes: e.target.value })} placeholder="Growing notes…" className={`${inputClass} mt-2`} />
             {plant.lastWatered && (
-              <p className="mt-2 text-xs text-canvas-subtle">Last watered: {plant.lastWatered}</p>
+              <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">Last watered: {plant.lastWatered}</p>
             )}
           </li>
         ))}

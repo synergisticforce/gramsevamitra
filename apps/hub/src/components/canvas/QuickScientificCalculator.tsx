@@ -111,7 +111,7 @@ export default function QuickScientificCalculator() {
     <div className="grid gap-6 lg:grid-cols-[1fr_220px]">
       <div className="space-y-4">
         <div className="rounded-2xl border border-canvas-border bg-canvas-surface px-4 py-3 text-right shadow-none">
-          <p className="min-h-[1.25rem] truncate text-xs text-canvas-subtle">{expression || ' '}</p>
+          <p className="min-h-[1.25rem] truncate text-xs font-medium leading-relaxed text-slate-300">{expression || ' '}</p>
           <p className="text-3xl font-bold tabular-nums text-canvas-text">{display}</p>
           {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
         </div>
@@ -137,7 +137,7 @@ export default function QuickScientificCalculator() {
             </button>
           ))}
         </div>
-        <p className="text-xs text-canvas-subtle">
+        <p className="text-xs font-medium leading-relaxed text-slate-300">
           Use <code className="text-canvas-accent">pow(a,b)</code> for powers after tapping xʸ, e.g.{' '}
           <code className="text-canvas-accent">pow(2,8)</code>
         </p>
@@ -156,7 +156,7 @@ export default function QuickScientificCalculator() {
                 setDisplay(entry.result);
               }}
             >
-              <p className="truncate text-xs text-canvas-subtle">{entry.expression}</p>
+              <p className="truncate text-xs font-medium leading-relaxed text-slate-300">{entry.expression}</p>
               <p className="font-semibold tabular-nums text-violet-800">= {entry.result}</p>
             </li>
           ))}

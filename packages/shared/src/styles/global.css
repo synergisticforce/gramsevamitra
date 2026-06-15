@@ -12,21 +12,30 @@
   }
 
   body {
-    @apply min-h-screen bg-canvas-bg text-canvas-muted antialiased;
+    @apply min-h-screen bg-canvas-bg text-slate-200 leading-relaxed font-normal antialiased;
+  }
+
+  p,
+  li,
+  dd,
+  dt,
+  label,
+  figcaption {
+    @apply leading-relaxed;
   }
 
   ::selection {
-    @apply bg-canvas-accent/25 text-canvas-text;
+    @apply bg-canvas-accent/25 text-slate-100;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-canvas-accent-muted px-5 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 focus:outline-none focus:ring-2 focus:ring-canvas-accent/50 focus:ring-offset-2 focus:ring-offset-canvas-bg disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-canvas-accent-muted px-5 py-3 text-sm font-semibold text-slate-200 transition hover:bg-canvas-accent/40 focus:outline-none focus:ring-2 focus:ring-canvas-accent/50 focus:ring-offset-2 focus:ring-offset-canvas-bg disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-canvas-border bg-canvas-surface px-5 py-3 text-sm font-semibold text-canvas-muted transition hover:border-canvas-accent/40 hover:bg-canvas-elevated focus:outline-none focus:ring-2 focus:ring-canvas-accent/40 focus:ring-offset-2 focus:ring-offset-canvas-bg disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-canvas-border bg-canvas-surface px-5 py-3 text-sm font-medium text-slate-200 transition hover:border-canvas-accent/40 hover:bg-canvas-elevated focus:outline-none focus:ring-2 focus:ring-canvas-accent/40 focus:ring-offset-2 focus:ring-offset-canvas-bg disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .card {
@@ -34,19 +43,27 @@
   }
 
   .input-field {
-    @apply w-full rounded-xl border border-canvas-border bg-canvas-elevated px-4 py-3 text-sm text-canvas-text placeholder:text-canvas-subtle focus:border-canvas-accent/50 focus:outline-none focus:ring-1 focus:ring-canvas-accent/40;
+    @apply w-full rounded-xl border border-canvas-border bg-canvas-elevated px-4 py-3 text-sm font-medium text-slate-200 placeholder:text-canvas-subtle focus:border-canvas-accent/50 focus:outline-none focus:ring-1 focus:ring-canvas-accent/40;
   }
 
   .select-field {
-    @apply input-field relative z-50 cursor-pointer appearance-auto overflow-visible bg-canvas-elevated text-canvas-text;
+    @apply input-field relative z-50 cursor-pointer appearance-auto overflow-visible bg-canvas-elevated text-slate-200;
     z-index: 50;
   }
 
   .select-field option {
-    @apply bg-canvas-surface text-canvas-text;
+    @apply bg-canvas-surface text-slate-200;
   }
 
   .label {
-    @apply mb-2 block text-sm font-medium text-canvas-muted;
+    @apply mb-2 block text-sm font-medium text-slate-200;
+  }
+
+  .copy-body {
+    @apply text-sm font-medium leading-relaxed text-slate-200;
+  }
+
+  .copy-muted {
+    @apply text-sm font-medium leading-relaxed text-slate-300;
   }
 }

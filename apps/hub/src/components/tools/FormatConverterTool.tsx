@@ -91,7 +91,7 @@ export default function FormatConverterTool() {
           })}
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-4">
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-canvas-muted">
+          <label className="flex cursor-pointer items-center gap-2 text-sm font-medium leading-relaxed text-slate-200">
             <input
               type="checkbox"
               checked={pretty}

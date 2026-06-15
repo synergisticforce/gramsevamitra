@@ -30,10 +30,10 @@ function startExtractProgressTicker(
   onProgress: (progress: SmartExtractProgress) => void,
 ): () => void {
   let percent = 55;
-  onProgress({ label: 'Running serverless GPU extraction…', percent });
+  onProgress({ label: 'Running advanced AI extraction…', percent });
   const timer = window.setInterval(() => {
     percent = Math.min(92, percent + 2);
-    onProgress({ label: 'Running serverless GPU extraction…', percent });
+    onProgress({ label: 'Running advanced AI extraction…', percent });
   }, 600);
   return () => window.clearInterval(timer);
 }

@@ -1,4 +1,4 @@
-/** Client-side file category for the Omni-Router Intent Engine. */
+/** Client-side file category for the Smart Upload Intent Engine. */
 export type OmniFileCategory =
   | 'pdf'
   | 'image'

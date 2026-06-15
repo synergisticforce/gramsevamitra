@@ -285,7 +285,7 @@ export default function SipCalculatorTool() {
                 ))}
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm text-canvas-subtle">
+                <span className="text-sm font-medium leading-relaxed text-slate-200">
                   {stepUpMode === 'percent' ? 'Increase % per year' : 'Increase ₹ per year'}
                 </span>
                 <input
@@ -314,7 +314,7 @@ export default function SipCalculatorTool() {
                 onChange={(e) => setInflationAdjust(e.target.checked)}
                 className="h-4 w-4 rounded border-canvas-border accent-emerald-500"
               />
-              <span className="text-sm text-canvas-muted">
+              <span className="text-sm font-medium leading-relaxed text-slate-200">
                 Inflation adjustment ({INFLATION_BASELINE}% baseline — real purchasing power)
               </span>
             </label>

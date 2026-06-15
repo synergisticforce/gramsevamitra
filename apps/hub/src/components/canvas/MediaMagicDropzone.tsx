@@ -96,7 +96,7 @@ export default function MediaMagicDropzone({ onFileSelect, onInvalidFile, disabl
         <p className="mt-4 text-lg font-semibold text-canvas-text">
           {isDragging ? 'Release to load your image' : 'Drop your image here'}
         </p>
-        <p className="mt-2 max-w-md text-sm text-canvas-subtle">
+        <p className="mt-2 max-w-md text-sm font-medium leading-relaxed text-slate-200">
           JPG, PNG, or WebP — processed locally in your browser. Or click to browse.
         </p>
       </div>
@@ -107,7 +107,7 @@ export default function MediaMagicDropzone({ onFileSelect, onInvalidFile, disabl
             🖼️
           </span>
           <p className="mt-4 text-lg font-semibold text-canvas-text">Add an image</p>
-          <p className="mt-2 text-sm text-canvas-subtle">
+          <p className="mt-2 text-sm font-medium leading-relaxed text-slate-200">
             Tap below to pick a JPG, PNG, or WebP from your device.
           </p>
           <button

@@ -12,7 +12,7 @@ export async function onRequestPost(context) {
     console.error('[billing/razorpay-order] Billing not configured. Missing:', billing.missing.join(', '));
     return jsonResponse(
       {
-        error: 'Billing is not configured yet. Set Razorpay server secrets in Cloudflare Pages.',
+        error: 'Payment gateway temporarily unavailable. Please try again later.',
         code: 'BILLING_NOT_CONFIGURED',
         missing: billing.missing,
       },

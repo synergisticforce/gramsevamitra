@@ -124,7 +124,7 @@ export default function MergePdfModal({
             <h2 id="merge-pdf-title" className="text-lg font-bold text-canvas-text">
               Merge PDF
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle">
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
               Canvas file is first; add PDFs to append after it.
             </p>
           </div>
@@ -139,12 +139,12 @@ export default function MergePdfModal({
           </button>
         </div>
 
-        <div className="mt-4 rounded-xl border border-emerald-200 bg-canvas-accent-soft px-3 py-2.5">
+        <div className="mt-4 rounded-xl border border-canvas-border bg-canvas-accent-soft px-3 py-2.5">
           <p className="text-xs font-semibold uppercase tracking-wide text-canvas-accent">
             Canvas file (first)
           </p>
           <p className="mt-0.5 truncate text-sm font-medium text-canvas-text">{canvasFile.name}</p>
-          <p className="text-xs text-canvas-subtle">{formatFileSize(canvasFile.size)}</p>
+          <p className="text-xs font-medium leading-relaxed text-slate-300">{formatFileSize(canvasFile.size)}</p>
         </div>
 
         <div className="mt-3 space-y-2">
@@ -158,7 +158,7 @@ export default function MergePdfModal({
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-canvas-text">{item.file.name}</p>
-                <p className="text-xs text-canvas-subtle">
+                <p className="text-xs font-medium leading-relaxed text-slate-300">
                   {item.pageCount} page{item.pageCount === 1 ? '' : 's'} ·{' '}
                   {formatFileSize(item.file.size)}
                 </p>
@@ -167,7 +167,7 @@ export default function MergePdfModal({
                 type="button"
                 onClick={() => removeItem(item.id)}
                 disabled={busy}
-                className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
+                className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-rose-600 transition hover:bg-canvas-danger-soft/30 disabled:opacity-50"
               >
                 Remove
               </button>
@@ -179,7 +179,7 @@ export default function MergePdfModal({
           <span className="text-sm font-semibold text-canvas-muted">
             {adding ? 'Reading PDFs…' : 'Tap to add PDFs to append'}
           </span>
-          <span className="mt-1 text-xs text-canvas-subtle">Processed locally — nothing uploaded</span>
+          <span className="mt-1 text-xs font-medium leading-relaxed text-slate-300">Processed locally — nothing uploaded</span>
           <input
             type="file"
             accept="application/pdf,.pdf"
@@ -194,7 +194,7 @@ export default function MergePdfModal({
         </label>
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

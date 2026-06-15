@@ -42,7 +42,7 @@ interface ProcessingState {
 }
 
 const PRO_MEDIA_SUBTITLE =
-  'Pro GPU processing uses ephemeral Cloudflare R2 storage — deleted after transformation.';
+  'Pro processing uses secure temporary storage — deleted immediately after transformation.';
 
 export default function MediaLabCanvas() {
   const [phase, setPhase] = useState<CanvasPhase>('empty');
@@ -229,7 +229,7 @@ export default function MediaLabCanvas() {
   const onOmniHandoff = useCallback(
     ({ file, intentId }: OmniHandoffPayload) => {
       if (!isImageMimeOrName(file.type, file.name)) {
-        setToastMessage('Media Lab accepts JPG, PNG, and WebP images from the Omni-Router.');
+        setToastMessage('Media Lab accepts JPG, PNG, and WebP images. Upload from the homepage or drop here.');
         return;
       }
       pendingOmniIntentRef.current = intentId;
@@ -288,7 +288,7 @@ export default function MediaLabCanvas() {
             </span>
             <div>
               <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Media Lab</h1>
-              <p className="mt-1 text-sm text-canvas-muted">
+              <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
                 Resize, compress, convert, or AI-enhance — drop an image to begin.
               </p>
             </div>
@@ -306,7 +306,7 @@ export default function MediaLabCanvas() {
           <div className="space-y-4">
             {activeFile.restoredFromSession && !activeFile.file && (
               <p
-                className="rounded-xl border border-amber-200 bg-canvas-elevated px-4 py-3 text-sm text-amber-900"
+                className="rounded-xl border border-canvas-border bg-canvas-elevated px-4 py-3 text-sm font-medium leading-relaxed text-slate-200"
                 role="status"
               >
                 Session restored after refresh. Your file metadata is preserved — re-upload below to run
@@ -325,7 +325,7 @@ export default function MediaLabCanvas() {
                   </span>
                   <div className="min-w-0">
                     <p className="truncate text-base font-semibold text-canvas-text">{activeFile.meta.name}</p>
-                    <p className="mt-0.5 text-xs text-canvas-subtle">
+                    <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-300">
                       {formatFileSize(activeFile.meta.size)}
                       {activeFile.meta.type ? ` · ${activeFile.meta.type}` : ''}
                     </p>
@@ -348,7 +348,7 @@ export default function MediaLabCanvas() {
                   <button
                     type="button"
                     onClick={clearCanvas}
-                    className="inline-flex items-center justify-center rounded-lg border border-canvas-border px-3 py-2 text-xs font-semibold text-canvas-muted transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-800"
+                    className="inline-flex items-center justify-center rounded-lg border border-canvas-border px-3 py-2 text-xs font-semibold text-canvas-muted transition hover:border-canvas-border hover:bg-canvas-danger-soft/30 hover:text-rose-200"
                   >
                     Clear
                   </button>

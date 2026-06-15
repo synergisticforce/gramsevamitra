@@ -361,12 +361,12 @@ export default function TypingTestTool() {
           />
         </div>
 
-        <p className="mt-3 text-center text-xs text-canvas-subtle">{status}</p>
+        <p className="mt-3 text-center text-xs font-medium leading-relaxed text-slate-300">{status}</p>
 
         {summary && (
           <div className="mt-6 rounded-xl border border-canvas-border bg-canvas-accent-soft/20 p-4">
             <h3 className="text-sm font-semibold text-canvas-accent">Post-test performance timeline</h3>
-            <p className="mt-1 text-xs text-canvas-subtle">
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
               Peak {summary.peakWpm} WPM · Final {summary.wpm} WPM · {summary.errors} errors
             </p>
             <div className="mt-4 flex h-24 items-end gap-0.5">

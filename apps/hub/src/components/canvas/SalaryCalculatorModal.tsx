@@ -62,7 +62,7 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
             <h2 id="salary-calc-title" className="text-lg font-bold text-canvas-text">
               💰 Salary &amp; Take-Home Calculator
             </h2>
-            <p className="mt-1 text-sm text-canvas-subtle">
+            <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
               Estimate in-hand pay from CTC with standard EPF — computed locally.
             </p>
           </div>
@@ -121,7 +121,7 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
             />
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-canvas-muted">
+          <label className="flex items-center gap-2 text-sm font-medium leading-relaxed text-slate-200">
             <input
               type="checkbox"
               checked={pfEnabled}
@@ -131,7 +131,7 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
             Include employee EPF (12%, capped)
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-canvas-muted">
+          <label className="flex items-center gap-2 text-sm font-medium leading-relaxed text-slate-200">
             <input
               type="checkbox"
               checked={includeTaxEstimate}
@@ -150,7 +150,7 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
                   onClick={() => setTaxRegime(regime)}
                   className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
                     taxRegime === regime
-                      ? 'border-sky-400 bg-sky-50 text-sky-800'
+                      ? 'border-sky-400 bg-canvas-elevated text-sky-800'
                       : 'border-canvas-border text-canvas-muted hover:bg-canvas-elevated'
                   }`}
                 >
@@ -161,7 +161,7 @@ export default function SalaryCalculatorModal({ onClose, onSuccess }: Props) {
           )}
         </div>
 
-        <div className="mt-5 rounded-xl border border-sky-200 bg-sky-50 p-4">
+        <div className="mt-5 rounded-xl border border-canvas-border bg-canvas-elevated p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">Monthly in-hand</p>
           <p className="mt-1 text-3xl font-bold text-sky-900">{formatInr(breakdown.inHandMonthly)}</p>
           <p className="mt-1 text-sm text-sky-700">

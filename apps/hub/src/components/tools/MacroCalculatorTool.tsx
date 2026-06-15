@@ -196,7 +196,7 @@ export default function MacroCalculatorTool() {
           <p className="mt-2 text-4xl font-extrabold tabular-nums text-canvas-text">
             {result ? result.calories.toLocaleString() : '—'}
           </p>
-          {result && <p className="mt-1 text-sm text-canvas-subtle">BMR: {result.bmr.toLocaleString()} kcal</p>}
+          {result && <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">BMR: {result.bmr.toLocaleString()} kcal</p>}
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
@@ -214,7 +214,7 @@ export default function MacroCalculatorTool() {
                 {m.value ?? '—'}
                 <span className="ml-0.5 text-sm font-medium text-canvas-subtle">{m.unit}</span>
               </p>
-              <p className="mt-1 text-xs text-canvas-subtle">{m.hint}</p>
+              <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">{m.hint}</p>
             </div>
           ))}
         </div>

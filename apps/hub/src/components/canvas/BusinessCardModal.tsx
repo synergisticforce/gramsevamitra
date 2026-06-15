@@ -115,7 +115,7 @@ export default function BusinessCardModal({
             <h2 id="biz-card-title" className="text-lg font-bold text-canvas-text">
               🪪 Business Card Generator
             </h2>
-            <p className="mt-1 text-sm text-canvas-subtle">
+            <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
               Standard 3.5×2 in card — export PNG or PDF locally via Canvas.
             </p>
           </div>
@@ -177,7 +177,7 @@ export default function BusinessCardModal({
                   className="mx-auto w-full max-w-md rounded shadow-none"
                 />
               ) : (
-                <p className="py-16 text-center text-sm text-canvas-subtle">Generating preview…</p>
+                <p className="py-16 text-center text-sm font-medium leading-relaxed text-slate-200">Generating preview…</p>
               )}
             </div>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -202,7 +202,7 @@ export default function BusinessCardModal({
         </div>
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

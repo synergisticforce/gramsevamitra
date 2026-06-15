@@ -49,7 +49,7 @@ const ogImage = new URL('/favicon.svg', siteConfig.url).href;
 
     <slot name="head" />
     {site === 'hub' && (
-      <script is:inline define:vars={{ buildId: 'DAY-ZERO-V7' }}>
+      <script is:inline define:vars={{ buildId: 'DAY-ZERO-V8' }}>
         (function () {
           try {
             var key = 'gsm-sw-purge';
@@ -77,7 +77,7 @@ const ogImage = new URL('/favicon.svg', siteConfig.url).href;
     )}
     <PostHogAnalytics />
   </head>
-  <body class="min-h-screen bg-canvas-bg text-canvas-muted antialiased">
+  <body class="min-h-screen bg-canvas-bg text-slate-200 leading-relaxed antialiased">
     <slot />
   </body>
 </html>

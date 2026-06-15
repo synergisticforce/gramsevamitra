@@ -31,7 +31,7 @@ export function useDocumentActionHandler({
             featureName: action.featureName ?? action.label,
             featureDescription:
               action.featureDescription ??
-              'Unlock serverless AI document tools with GramSeva Mitra Pro.',
+              'Unlock advanced AI document tools with GramSeva Mitra Pro.',
           });
           return;
         }

@@ -55,7 +55,7 @@ export const MEDIA_CANVAS_ACTIONS: MediaCanvasAction[] = [
     featureId: 'remove-background',
     featureName: 'AI Background Removal',
     featureDescription:
-      'Remove backgrounds from exam photos and ID scans with serverless GPU — powered by GramSeva Mitra Pro.',
+      'Remove backgrounds from exam photos and ID scans with advanced AI — powered by GramSeva Mitra Pro.',
   },
   {
     id: 'upscale-4x',
@@ -66,7 +66,7 @@ export const MEDIA_CANVAS_ACTIONS: MediaCanvasAction[] = [
     featureId: 'upscale-4x',
     featureName: '4× AI Upscale',
     featureDescription:
-      'Enhance low-resolution scans up to 4× with serverless GPU super-resolution — Pro only.',
+      'Enhance low-resolution scans up to 4× with advanced AI super-resolution — Pro only.',
   },
   {
     id: 'photo-restore',
@@ -77,7 +77,7 @@ export const MEDIA_CANVAS_ACTIONS: MediaCanvasAction[] = [
     featureId: 'photo-restore',
     featureName: 'AI Photo Restoration',
     featureDescription:
-      'Colorize and repair old or damaged photos with serverless AI — powered by GramSeva Mitra Pro.',
+      'Colorize and repair old or damaged photos with advanced AI — powered by GramSeva Mitra Pro.',
   },
 ];
 

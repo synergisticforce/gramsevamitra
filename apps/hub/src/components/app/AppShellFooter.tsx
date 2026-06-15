@@ -31,7 +31,7 @@ export default function AppShellFooter() {
             </li>
           </ul>
         </nav>
-        <p className="text-xs text-canvas-subtle">
+        <p className="text-xs font-medium leading-relaxed text-slate-300">
           © {year} GramSeva Mitra · Pro payments via Razorpay
         </p>
       </div>

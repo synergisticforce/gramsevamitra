@@ -93,7 +93,7 @@ export default function AtsScannerModal({
             <h2 id="ats-scanner-title" className="text-lg font-bold text-canvas-text">
               🔍 ATS Scanner
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300 truncate">{file.name}</p>
           </div>
           <button
             type="button"
@@ -108,7 +108,7 @@ export default function AtsScannerModal({
 
         {step === 'input' && (
           <>
-            <p className="mt-4 text-sm text-canvas-muted">
+            <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">
               Paste the job description below. Your resume PDF is parsed locally — nothing is uploaded.
             </p>
             <label className="mt-3 block">
@@ -161,7 +161,7 @@ export default function AtsScannerModal({
                   </span>
                 </div>
               </div>
-              <p className="mt-3 text-center text-sm text-canvas-muted">
+              <p className="mt-3 text-center text-sm font-medium leading-relaxed text-slate-200">
                 {result.matchedCount} of {result.totalJobTerms} job keywords found in your resume
                 {result.resumeWordCount > 0 ? ` · ${result.resumeWordCount} resume words` : ''}
               </p>
@@ -169,11 +169,11 @@ export default function AtsScannerModal({
 
             <div>
               <h3 className="text-sm font-semibold text-canvas-text">Missing keywords</h3>
-              <p className="mt-0.5 text-xs text-canvas-subtle">
+              <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-300">
                 High-frequency terms from the job description not detected in your resume.
               </p>
               {result.missingKeywords.length === 0 ? (
-                <p className="mt-3 rounded-xl border border-emerald-200 bg-canvas-accent-soft px-3 py-2 text-sm text-canvas-accent">
+                <p className="mt-3 rounded-xl border border-canvas-border bg-canvas-accent-soft px-3 py-2 text-sm text-canvas-accent">
                   Great match — no major keyword gaps detected.
                 </p>
               ) : (
@@ -181,7 +181,7 @@ export default function AtsScannerModal({
                   {result.missingKeywords.map((keyword) => (
                     <li
                       key={keyword}
-                      className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-medium text-rose-800"
+                      className="rounded-full border border-canvas-border bg-canvas-danger-soft/30 px-3 py-1 text-xs font-medium text-rose-200"
                     >
                       {keyword}
                     </li>
@@ -201,7 +201,7 @@ export default function AtsScannerModal({
         )}
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

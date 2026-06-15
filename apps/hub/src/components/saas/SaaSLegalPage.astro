@@ -11,7 +11,7 @@ const { title, lastUpdated = 'June 2026' } = Astro.props;
   <header class="mb-8">
     <slot name="nav" />
     <h1 class="mt-6 text-3xl font-bold tracking-tight text-canvas-text">{title}</h1>
-    <p class="mt-2 text-sm text-canvas-subtle">Last updated: {lastUpdated}</p>
+    <p class="mt-2 text-sm font-medium leading-relaxed text-slate-200">Last updated: {lastUpdated}</p>
   </header>
   <div class="saas-legal-content prose prose-slate max-w-none text-canvas-muted prose-headings:text-canvas-text prose-a:text-canvas-accent">
     <slot />

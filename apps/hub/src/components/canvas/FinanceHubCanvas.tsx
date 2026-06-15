@@ -81,7 +81,7 @@ export default function FinanceHubCanvas() {
   if (!hydrated) {
     return (
       <div className="flex min-h-[280px] items-center justify-center px-4 py-12">
-        <p className="text-sm text-canvas-subtle">Loading Finance Hub…</p>
+        <p className="text-sm font-medium leading-relaxed text-slate-200">Loading Finance Hub…</p>
       </div>
     );
   }
@@ -99,7 +99,7 @@ export default function FinanceHubCanvas() {
             </span>
             <div>
               <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Finance Hub</h1>
-              <p className="mt-1 text-sm text-canvas-muted">
+              <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
                 EMI, SIP, GST, invoices, crypto gains, budgeting, and 14 client-side money tools.
               </p>
             </div>
@@ -126,7 +126,7 @@ export default function FinanceHubCanvas() {
                   </span>
                   <div>
                     <h2 className="text-lg font-bold text-canvas-text">{activeTool.label}</h2>
-                    <p className="text-sm text-canvas-subtle">{activeTool.description}</p>
+                    <p className="text-sm font-medium leading-relaxed text-slate-200">{activeTool.description}</p>
                   </div>
                 </div>
                 {renderTool(view)}

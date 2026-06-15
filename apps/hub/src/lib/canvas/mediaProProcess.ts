@@ -50,10 +50,10 @@ function startGpuProgressTicker(
 ): () => void {
   const label =
     action === 'remove-bg'
-      ? 'Running serverless background removal…'
+      ? 'Running advanced background removal…'
       : action === 'restore'
         ? 'Running AI photo restoration…'
-        : 'Running serverless 4× upscale…';
+        : 'Running advanced 4× upscale…';
   let percent = 55;
   onProgress({ label, percent });
   const timer = window.setInterval(() => {

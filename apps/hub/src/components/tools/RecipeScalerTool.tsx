@@ -79,14 +79,14 @@ export default function RecipeScalerTool() {
             className="input-field w-full resize-y font-mono text-sm"
           />
         </label>
-        <p className="mt-2 text-xs text-canvas-subtle">Format: name then quantity — e.g. flour 2 cups or eggs 3</p>
+        <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">Format: name then quantity — e.g. flour 2 cups or eggs 3</p>
       </section>
 
       <section aria-live="polite">
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Scaled ingredients</h2>
         <div className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-4 shadow-none sm:p-5">
           {scaled.items.length === 0 ? (
-            <p className="text-sm text-canvas-subtle">Add ingredients to see scaled quantities.</p>
+            <p className="text-sm font-medium leading-relaxed text-slate-200">Add ingredients to see scaled quantities.</p>
           ) : (
             <ul className="space-y-0">
               {scaled.items.map((item) => (
@@ -94,7 +94,7 @@ export default function RecipeScalerTool() {
                   <span className="text-sm font-medium text-canvas-text">{item.name}</span>
                   <span className="text-right text-sm text-canvas-accent">
                     {item.scaledLabel}
-                    <span className="block text-xs text-canvas-subtle">
+                    <span className="block text-xs font-medium leading-relaxed text-slate-300">
                       was {formatQty(item.qty)}
                       {item.unit ? ` ${item.unit}` : ''}
                     </span>
@@ -105,7 +105,7 @@ export default function RecipeScalerTool() {
           )}
         </div>
         {scaled.items.length > 0 && (
-          <p className="mt-3 text-center text-xs text-canvas-subtle">
+          <p className="mt-3 text-center text-xs font-medium leading-relaxed text-slate-300">
             Scale factor ×{scaled.factor.toFixed(3).replace(/\.?0+$/, '')} ({originalServings} → {targetServings} servings)
           </p>
         )}

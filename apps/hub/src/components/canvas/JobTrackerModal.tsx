@@ -195,7 +195,7 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
             <h2 id="job-tracker-title" className="text-lg font-bold text-canvas-text">
               📋 Job Application Tracker
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle">
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
               {totalJobs} application{totalJobs === 1 ? '' : 's'} · saved locally in your browser
             </p>
           </div>
@@ -252,12 +252,12 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
                         onClick={() => openEdit(card)}
                       >
                         <h4 className="truncate text-sm font-bold text-canvas-text">{card.company}</h4>
-                        <p className="mt-0.5 truncate text-xs text-canvas-subtle">{card.role}</p>
+                        <p className="mt-0.5 truncate text-xs font-medium leading-relaxed text-slate-300">{card.role}</p>
                       </button>
                       <button
                         type="button"
                         onClick={() => deleteCard(card.id)}
-                        className="shrink-0 rounded p-1 text-canvas-subtle hover:bg-rose-50 hover:text-rose-600"
+                        className="shrink-0 rounded p-1 text-canvas-subtle hover:bg-canvas-danger-soft/30 hover:text-rose-600"
                         aria-label={`Delete ${card.company}`}
                       >
                         ✕

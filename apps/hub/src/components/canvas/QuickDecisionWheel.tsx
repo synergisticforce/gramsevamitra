@@ -213,7 +213,7 @@ export default function QuickDecisionWheel() {
     <div className="space-y-6">
       <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Wheel options</h2>
-        <p className="mt-1 text-xs text-canvas-subtle">One option per line. Optional weight: Option [2]</p>
+        <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">One option per line. Optional weight: Option [2]</p>
         <textarea
           rows={5}
           value={optionsText}

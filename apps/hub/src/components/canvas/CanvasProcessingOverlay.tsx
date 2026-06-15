@@ -16,10 +16,10 @@ export default function CanvasProcessingOverlay({ label, percent, subtitle }: Pr
     >
       <div className="w-full max-w-sm rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <p className="text-sm font-semibold text-canvas-text">Processing</p>
-        <p className="mt-1 text-xs text-canvas-subtle">
+        <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
           {subtitle ?? 'Your file never leaves this device.'}
         </p>
-        <p className="mt-3 text-sm text-canvas-muted">{label}</p>
+        <p className="mt-3 text-sm font-medium leading-relaxed text-slate-200">{label}</p>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-canvas-elevated">
           <div
             className="h-full rounded-full bg-canvas-accent-soft0 transition-[width] duration-200"

@@ -111,7 +111,7 @@ export default function CaseConverterTool() {
         </button>
       </div>
 
-      <p className="mt-2 text-center text-xs text-canvas-subtle" aria-live="polite">
+      <p className="mt-2 text-center text-xs font-medium leading-relaxed text-slate-300" aria-live="polite">
         {status}
       </p>
     </section>

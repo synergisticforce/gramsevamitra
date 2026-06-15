@@ -13,7 +13,7 @@ export default function LegalDocumentShell({ title, children }: Props) {
       <header className="mb-8 border-b border-canvas-border pb-5">
         <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent">Legal</p>
         <h1 className="mt-2 text-2xl font-bold text-canvas-text sm:text-3xl">{title}</h1>
-        <p className="mt-2 text-sm text-canvas-subtle">Last updated: {LAST_UPDATED}</p>
+        <p className="mt-2 text-sm font-medium leading-relaxed text-slate-200">Last updated: {LAST_UPDATED}</p>
       </header>
       <div className="space-y-4 text-sm leading-relaxed text-canvas-muted">{children}</div>
     </article>

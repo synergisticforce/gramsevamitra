@@ -35,7 +35,7 @@ export default function FinanceToolGrid({ onSelectTool }: Props) {
               <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">
                 {meta.label}
               </h2>
-              <p className="mt-0.5 text-sm text-canvas-muted">{meta.description}</p>
+              <p className="mt-0.5 text-sm font-medium leading-relaxed text-slate-200">{meta.description}</p>
             </div>
 
             <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -53,7 +53,7 @@ export default function FinanceToolGrid({ onSelectTool }: Props) {
                       <p className="text-base font-semibold text-canvas-text group-hover:text-canvas-accent">
                         {tool.label}
                       </p>
-                      <p className="mt-1 text-sm text-canvas-subtle">{tool.description}</p>
+                      <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">{tool.description}</p>
                     </div>
                     <span className="mt-auto text-xs font-semibold text-canvas-accent">Open tool →</span>
                   </button>
@@ -64,7 +64,7 @@ export default function FinanceToolGrid({ onSelectTool }: Props) {
         );
       })}
 
-      <p className="rounded-xl border border-slate-100 bg-canvas-elevated px-4 py-3 text-center text-xs text-canvas-subtle">
+      <p className="rounded-xl border border-slate-100 bg-canvas-elevated px-4 py-3 text-center text-xs font-medium leading-relaxed text-slate-300">
         {FINANCE_CANVAS_TOOLS.length} calculators · 100% client-side · your numbers stay on this device
       </p>
     </div>

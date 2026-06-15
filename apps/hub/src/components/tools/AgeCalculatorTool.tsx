@@ -56,7 +56,7 @@ export default function AgeCalculatorTool() {
         ) : result.invalid ? (
           <div className="mt-5 text-center">
             <p className="text-xl font-bold text-rose-400">Invalid range</p>
-            <p className="mt-2 text-sm text-canvas-subtle">{result.invalid}</p>
+            <p className="mt-2 text-sm font-medium leading-relaxed text-slate-200">{result.invalid}</p>
           </div>
         ) : (
           <>
@@ -64,7 +64,7 @@ export default function AgeCalculatorTool() {
               <p className="text-3xl font-extrabold tabular-nums text-canvas-text sm:text-4xl">
                 {result.years}y {result.months}m {result.days}d
               </p>
-              <p className="mt-2 text-sm text-canvas-subtle">As of {result.compareLabel}</p>
+              <p className="mt-2 text-sm font-medium leading-relaxed text-slate-200">As of {result.compareLabel}</p>
             </div>
             <dl className="mt-6 grid grid-cols-3 gap-3 text-center">
               {[

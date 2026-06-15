@@ -138,7 +138,7 @@ export default function FinanceGigIncomeTracker() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/80 p-5">
+      <div className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/80 p-5">
         <p className="text-xs font-semibold uppercase text-canvas-accent">Total gig income</p>
         <p className="mt-1 text-3xl font-bold text-emerald-900">{formatInr(total)}</p>
         <p className="mt-1 text-sm text-canvas-accent">{entries.length} entries tracked</p>
@@ -173,7 +173,7 @@ export default function FinanceGigIncomeTracker() {
               <input type="number" min={0} value={entry.amount} onChange={(e) => updateEntry(index, { amount: Number(e.target.value) || 0 })} placeholder="Amount" className={inputClass} />
               <input value={entry.client} onChange={(e) => updateEntry(index, { client: e.target.value })} placeholder="Client" className={inputClass} />
               <input value={entry.category} onChange={(e) => updateEntry(index, { category: e.target.value })} placeholder="Category" className={inputClass} />
-              <button type="button" onClick={() => removeEntry(index)} className="rounded-xl border border-rose-200 text-xs font-semibold text-rose-600 hover:bg-rose-50">
+              <button type="button" onClick={() => removeEntry(index)} className="rounded-xl border border-canvas-border text-xs font-semibold text-rose-600 hover:bg-canvas-danger-soft/30">
                 Remove
               </button>
             </div>

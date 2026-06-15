@@ -156,7 +156,7 @@ export default function QuickQrGenerator() {
         <div className="mt-4 flex flex-col items-center">
           <div className="flex min-h-[260px] w-full max-w-[300px] items-center justify-center rounded-2xl border border-canvas-border bg-canvas-surface p-4">
             {!hasQr && (
-              <p className="px-4 text-center text-sm text-canvas-subtle">Enter text to generate your QR code</p>
+              <p className="px-4 text-center text-sm font-medium leading-relaxed text-slate-200">Enter text to generate your QR code</p>
             )}
             <canvas
               ref={canvasRef}
@@ -166,7 +166,7 @@ export default function QuickQrGenerator() {
               aria-label="QR code preview"
             />
           </div>
-          <p className="mt-2 min-h-[1.25rem] text-center text-xs text-canvas-subtle">{status}</p>
+          <p className="mt-2 min-h-[1.25rem] text-center text-xs font-medium leading-relaxed text-slate-300">{status}</p>
           <button
             type="button"
             onClick={downloadPng}

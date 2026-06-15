@@ -83,7 +83,7 @@ export default function QuickSeoMetaGenerator({ onToast }: Props) {
     'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm outline-none ring-violet-500/30 focus:border-violet-400 focus:ring-2';
 
   const meterColor = (status: 'ok' | 'warn' | 'error') =>
-    status === 'error' ? 'bg-rose-500' : status === 'warn' ? 'bg-amber-400' : 'bg-canvas-accent-soft0';
+    status === 'error' ? 'bg-canvas-danger-soft/300' : status === 'warn' ? 'bg-amber-400' : 'bg-canvas-accent-soft0';
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -98,7 +98,7 @@ export default function QuickSeoMetaGenerator({ onToast }: Props) {
               style={{ width: `${Math.min(100, (titleMetrics.chars / titleMetrics.charLimit) * 100)}%` }}
             />
           </div>
-          <p className="mt-1 text-xs text-canvas-subtle">
+          <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
             {titleMetrics.chars}/{titleMetrics.charLimit} characters
           </p>
         </label>
@@ -116,7 +116,7 @@ export default function QuickSeoMetaGenerator({ onToast }: Props) {
               style={{ width: `${Math.min(100, (descMetrics.chars / descMetrics.charLimit) * 100)}%` }}
             />
           </div>
-          <p className="mt-1 text-xs text-canvas-subtle">
+          <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
             {descMetrics.chars}/{descMetrics.charLimit} characters
           </p>
         </label>

@@ -12,7 +12,8 @@ const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 
 const DEFAULT_DETAIL: ProUpgradeDetail = {
   featureName: 'Pro Feature',
-  featureDescription: 'Unlock serverless AI tools — Smart Document Extractor, high-fidelity DOCX, and batch conversion.',
+  featureDescription:
+    'Unlock advanced AI document extraction, high-fidelity Word export, and batch conversion.',
 };
 
 interface RazorpayOrderResponse {
@@ -146,9 +147,13 @@ export default function ProUpgradeModal() {
       }
 
       if (response.status === 503 && result.error?.includes('not configured')) {
-        setError(
-          'Pro billing is not registered on the server yet. Ask support to set RAZORPAY_KEY_SECRET in Cloudflare Pages.',
-        );
+        setError('Payment gateway temporarily unavailable. Please try again later.');
+        setLoading(false);
+        return;
+      }
+
+      if (response.status === 503) {
+        setError('Payment gateway temporarily unavailable. Please try again later.');
         setLoading(false);
         return;
       }
@@ -234,7 +239,7 @@ export default function ProUpgradeModal() {
         aria-labelledby="pro-upgrade-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="border-b border-slate-100 bg-gradient-to-br from-slate-50 to-white px-5 py-5">
+        <div className="border-b border-canvas-border bg-canvas-elevated px-5 py-5">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="inline-flex items-center gap-1 rounded-full bg-canvas-accent-muted px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-canvas-text">
@@ -243,14 +248,14 @@ export default function ProUpgradeModal() {
               <h2 id="pro-upgrade-title" className="mt-2 text-xl font-bold text-canvas-text">
                 {detail.featureName}
               </h2>
-              <p className="mt-1 text-sm leading-relaxed text-canvas-muted">
+              <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
                 {detail.featureDescription ?? DEFAULT_DETAIL.featureDescription}
               </p>
             </div>
             <button
               type="button"
               onClick={close}
-              className="rounded-lg border border-canvas-border px-2 py-1 text-sm text-canvas-subtle transition hover:bg-canvas-elevated"
+              className="rounded-lg border border-canvas-border px-2 py-1 text-sm font-medium leading-relaxed text-slate-200 transition hover:bg-canvas-elevated"
               aria-label="Close"
             >
               ✕
@@ -265,27 +270,27 @@ export default function ProUpgradeModal() {
               {PRO_PRICE_LABEL}
               <span className="text-base font-semibold text-canvas-subtle">{PRO_PRICE_INTERVAL}</span>
             </p>
-            <ul className="mt-3 space-y-1.5 text-xs text-canvas-muted">
-              <li>• Smart Document Extractor (CSV / JSON / DOCX)</li>
-              <li>• Serverless AI routing — PaddleOCR + vision models</li>
-              <li>• Batch 50+ conversions &amp; priority GPU queue</li>
+            <ul className="mt-3 space-y-1.5 text-xs font-medium leading-relaxed text-slate-200">
+              <li>• Advanced AI Document Extraction (CSV / JSON / Word)</li>
+              <li>• Lightning-fast processing with priority queue</li>
+              <li>• Batch 50+ conversions included</li>
             </ul>
           </div>
 
           {isPro ? (
-            <p className="rounded-lg border border-emerald-200 bg-canvas-accent-soft px-3 py-2 text-sm text-canvas-accent">
+            <p className="rounded-lg border border-canvas-border bg-canvas-accent-soft px-3 py-2 text-sm text-canvas-accent">
               You already have Pro active on {user?.email}.
             </p>
           ) : signedIn ? (
-            <p className="text-xs text-canvas-subtle">
+            <p className="text-xs font-medium leading-relaxed text-slate-300">
               Signed in as <span className="font-medium text-canvas-muted">{user?.email}</span>
             </p>
           ) : (
-            <p className="text-xs text-canvas-subtle">Sign in with Google to link Pro to your account.</p>
+            <p className="text-xs font-medium leading-relaxed text-slate-300">Sign in with Google to link Pro to your account.</p>
           )}
 
           {error && (
-            <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" role="alert">
+            <p className="rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm font-medium leading-relaxed text-rose-200" role="alert">
               {error}
             </p>
           )}

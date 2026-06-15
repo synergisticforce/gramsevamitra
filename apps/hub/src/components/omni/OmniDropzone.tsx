@@ -146,7 +146,8 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
         isDragging ? 'border-canvas-border bg-canvas-elevated shadow-inner' : 'hover:border-canvas-border hover:bg-canvas-elevated',
       ].join(' ');
 
-  const subtextClass = isDark ? 'text-canvas-subtle' : 'text-canvas-subtle';
+  const subtextClass = 'text-sm font-medium leading-relaxed text-slate-200';
+  const metaClass = 'text-xs font-medium leading-relaxed text-slate-300';
   const panelClass = isDark
     ? 'rounded-2xl border border-canvas-border/80 bg-canvas-accent-muted/80 text-slate-100 shadow-none backdrop-blur-sm'
     : 'rounded-2xl border border-canvas-border bg-canvas-surface text-canvas-text shadow-none';
@@ -156,14 +157,14 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
       <div className="w-full">
         <div className={`${panelClass} px-5 py-6 sm:px-6`} role="alert">
           <div className="flex items-start gap-4">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-500/15 text-2xl" aria-hidden="true">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-canvas-danger-soft/300/15 text-2xl" aria-hidden="true">
               ⚠️
             </span>
             <div className="min-w-0 flex-1">
               <h2 className={`text-lg font-semibold ${isDark ? 'text-rose-300' : 'text-rose-700'}`}>
                 Unsupported file type
               </h2>
-              <p className={`mt-2 text-sm ${isDark ? 'text-canvas-subtle' : 'text-canvas-muted'}`}>
+              <p className={`mt-2 text-sm font-medium leading-relaxed ${isDark ? 'text-slate-200' : 'text-slate-200'}`}>
                 <span className="font-medium">{metadata.name}</span> ({formatFileSize(metadata.sizeBytes)}
                 {metadata.extension ? ` · .${metadata.extension}` : ''}) cannot be routed yet.
               </p>
@@ -206,11 +207,11 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
                   {categoryEmoji(metadata.category)}
                 </span>
                 <div className="min-w-0">
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-canvas-subtle' : 'text-canvas-muted'}`}>
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${metaClass}`}>
                     File detected · {categoryLabel(metadata.category)}
                   </p>
-                  <h2 className="mt-1 truncate text-base font-semibold sm:text-lg">{metadata.name}</h2>
-                  <p className={`mt-0.5 text-xs sm:text-sm ${subtextClass}`}>
+                  <h2 className="mt-1 truncate text-base font-semibold text-slate-100 sm:text-lg">{metadata.name}</h2>
+                  <p className={`mt-0.5 ${metaClass}`}>
                     {formatFileSize(metadata.sizeBytes)}
                     {metadata.mimeType ? ` · ${metadata.mimeType}` : ''}
                   </p>
@@ -231,19 +232,19 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
           </div>
 
           <div className="px-5 py-5 sm:px-6">
-            <h3 className="text-sm font-semibold">What would you like to do?</h3>
-            <p className={`mt-1 text-xs sm:text-sm ${subtextClass}`}>
+            <h3 className="text-sm font-semibold text-slate-100">What would you like to do?</h3>
+            <p className={`mt-1 ${subtextClass}`}>
               Choose an action — your file routes to the right workspace tool automatically.
             </p>
 
             {redirecting && (
-              <p className={`mt-3 text-sm font-medium ${isDark ? 'text-canvas-muted' : 'text-canvas-muted'}`} role="status">
+              <p className={`mt-3 text-sm font-medium leading-relaxed text-slate-200`} role="status">
                 Preparing workspace handoff…
               </p>
             )}
 
             {redirectError && (
-              <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" role="alert">
+              <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm font-medium leading-relaxed text-rose-200" role="alert">
                 {redirectError}
               </p>
             )}
@@ -265,14 +266,14 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold">{intent.label}</span>
+                        <span className="font-semibold text-slate-100">{intent.label}</span>
                         {intent.tier === 'pro' && (
                           <span className="rounded-full bg-canvas-accent-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-canvas-text">
                             Pro
                           </span>
                         )}
                       </span>
-                      <span className={`mt-0.5 block text-xs ${subtextClass}`}>{intent.description}</span>
+                      <span className={`mt-0.5 block ${metaClass}`}>{intent.description}</span>
                       <span
                         className={`mt-1.5 inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold ${
                           intent.tier === 'free'
@@ -281,7 +282,7 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
                               : 'bg-canvas-elevated text-canvas-muted'
                             : isDark
                               ? 'bg-amber-900/20 text-amber-200/90'
-                              : 'bg-canvas-elevated text-amber-900/80'
+                              : 'bg-canvas-elevated text-slate-200/80'
                         }`}
                       >
                         {intent.quoteLabel}
@@ -323,7 +324,7 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
         }`}
         role="button"
         tabIndex={disabled ? -1 : 0}
-        aria-label="Drop any file to begin — Omni Router"
+        aria-label="Drop any file to begin"
         onDragEnter={onDragEnter}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
@@ -340,14 +341,14 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
         <span className="text-5xl" aria-hidden="true">
           {isDragging ? '📥' : '✨'}
         </span>
-        <p className="mt-4 text-lg font-semibold">
+        <p className="mt-4 text-lg font-semibold text-slate-100">
           {isDragging ? 'Release to analyze your file' : 'Drop any file here'}
         </p>
-        <p className={`mt-2 max-w-lg text-sm ${subtextClass}`}>
+        <p className={`mt-2 max-w-lg ${subtextClass}`}>
           PDF, images, video, audio, Office docs, spreadsheets, and more — we read type &amp; size instantly in your
           browser. No upload.
         </p>
-        <p className={`mt-3 text-xs ${subtextClass}`}>Omni-Router · Phase 1 Intent Engine</p>
+        <p className={`mt-3 ${metaClass}`}>Smart file detection · instant suggestions</p>
       </div>
 
       <div className="md:hidden">
@@ -355,8 +356,8 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
           <span className="text-5xl" aria-hidden="true">
             ✨
           </span>
-          <p className="mt-4 text-lg font-semibold">Omni-Router</p>
-          <p className={`mt-2 text-sm ${subtextClass}`}>
+          <p className="mt-4 text-lg font-semibold text-slate-100">Upload a file</p>
+          <p className={`mt-2 ${subtextClass}`}>
             Tap to pick a file. We detect the type locally and suggest what you can do next.
           </p>
           <button

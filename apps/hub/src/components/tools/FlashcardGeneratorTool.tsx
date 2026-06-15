@@ -61,7 +61,7 @@ export default function FlashcardGeneratorTool() {
         />
       </label>
 
-      <p className="text-sm text-canvas-subtle">
+      <p className="text-sm font-medium leading-relaxed text-slate-200">
         {cards.length} card{cards.length === 1 ? '' : 's'} parsed
       </p>
 
@@ -94,7 +94,7 @@ export default function FlashcardGeneratorTool() {
           </div>
         </>
       ) : (
-        <p className="rounded-xl border border-dashed border-canvas-border px-4 py-8 text-center text-sm text-canvas-subtle">
+        <p className="rounded-xl border border-dashed border-canvas-border px-4 py-8 text-center text-sm font-medium leading-relaxed text-slate-200">
           Add at least one valid line to start studying.
         </p>
       )}

@@ -4,10 +4,10 @@ export const CAREER_JOB_TRACKER_KEY = 'gsm-canvas-career:job-tracker';
 
 export const JOB_TRACKER_COLUMNS = [
   { id: 'wishlist', label: 'Wishlist', accent: 'text-canvas-muted', border: 'border-canvas-border', bg: 'bg-canvas-elevated' },
-  { id: 'applied', label: 'Applied', accent: 'text-sky-700', border: 'border-sky-200', bg: 'bg-sky-50' },
-  { id: 'interviewing', label: 'Interviewing', accent: 'text-canvas-muted', border: 'border-amber-200', bg: 'bg-canvas-elevated' },
-  { id: 'offer', label: 'Offer', accent: 'text-canvas-accent', border: 'border-emerald-200', bg: 'bg-canvas-accent-soft' },
-  { id: 'rejected', label: 'Rejected', accent: 'text-rose-700', border: 'border-rose-200', bg: 'bg-rose-50' },
+  { id: 'applied', label: 'Applied', accent: 'text-sky-700', border: 'border-canvas-border', bg: 'bg-canvas-elevated' },
+  { id: 'interviewing', label: 'Interviewing', accent: 'text-canvas-muted', border: 'border-canvas-border', bg: 'bg-canvas-elevated' },
+  { id: 'offer', label: 'Offer', accent: 'text-canvas-accent', border: 'border-canvas-border', bg: 'bg-canvas-accent-soft' },
+  { id: 'rejected', label: 'Rejected', accent: 'text-rose-700', border: 'border-canvas-border', bg: 'bg-canvas-danger-soft/30' },
 ] as const;
 
 export type JobTrackerColumnId = (typeof JOB_TRACKER_COLUMNS)[number]['id'];

@@ -290,7 +290,7 @@ export default function FinanceDiscountMarginCalculator() {
           ) : (
             <>
               <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Margin matrix</h2>
-              <p className="mt-1 text-xs text-canvas-subtle">Edit any two fields — the rest resolve automatically.</p>
+              <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">Edit any two fields — the rest resolve automatically.</p>
               <div className="mt-4 space-y-3">
                 {(
                   [
@@ -316,7 +316,7 @@ export default function FinanceDiscountMarginCalculator() {
           )}
         </section>
 
-        <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-none">
+        <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-canvas-accent-soft/40 to-canvas-surface p-5 shadow-none">
           {tab === 'discount' && discountResult ? (
             <>
               <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Final price</h2>

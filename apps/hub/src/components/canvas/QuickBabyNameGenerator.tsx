@@ -208,7 +208,7 @@ export default function QuickBabyNameGenerator() {
         </h2>
         <ul className="flex min-h-[44px] flex-wrap gap-2 rounded-xl border border-dashed border-canvas-border bg-canvas-elevated p-3">
           {shortlist.length === 0 ? (
-            <li className="text-xs text-canvas-subtle">Tap ☆ on any name to add here.</li>
+            <li className="text-xs font-medium leading-relaxed text-slate-300">Tap ☆ on any name to add here.</li>
           ) : (
             shortlist.map((name) => (
               <li
@@ -237,7 +237,7 @@ export default function QuickBabyNameGenerator() {
         )}
         {loadError && <p className="text-sm text-rose-600">{loadError}</p>}
         {!loading && !loadError && filtered.length === 0 && (
-          <p className="text-sm text-canvas-subtle">No names match your filters.</p>
+          <p className="text-sm font-medium leading-relaxed text-slate-200">No names match your filters.</p>
         )}
         {!loading && filtered.length > 0 && (
           <ul className="grid max-h-96 gap-2 overflow-y-auto sm:grid-cols-2">
@@ -250,7 +250,7 @@ export default function QuickBabyNameGenerator() {
                 >
                   <div>
                     <p className="font-semibold text-canvas-text">{entry.name}</p>
-                    <p className="text-xs text-canvas-subtle">
+                    <p className="text-xs font-medium leading-relaxed text-slate-300">
                       {entry.gender} · {entry.origin} · {entry.syllables} syllable{entry.syllables === 1 ? '' : 's'}
                     </p>
                   </div>
@@ -270,7 +270,7 @@ export default function QuickBabyNameGenerator() {
           </ul>
         )}
         {!loading && filtered.length > 100 && (
-          <p className="mt-2 text-xs text-canvas-subtle">Showing first 100 matches — refine filters to narrow results.</p>
+          <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">Showing first 100 matches — refine filters to narrow results.</p>
         )}
       </section>
     </div>

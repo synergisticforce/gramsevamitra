@@ -75,7 +75,7 @@ export default function SkillGapModal({ onClose, onSuccess }: Props) {
             <h2 id="skill-gap-title" className="text-lg font-bold text-canvas-text">
               🎯 Skill Gap Analyzer
             </h2>
-            <p className="mt-1 text-sm text-canvas-subtle">
+            <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
               Core competencies vs. learning resources — progress saved locally.
             </p>
           </div>
@@ -106,9 +106,9 @@ export default function SkillGapModal({ onClose, onSuccess }: Props) {
           </select>
         </label>
 
-        <p className="mt-3 text-sm text-canvas-muted">{profile.summary}</p>
+        <p className="mt-3 text-sm font-medium leading-relaxed text-slate-200">{profile.summary}</p>
 
-        <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3">
+        <div className="mt-4 rounded-xl border border-canvas-border bg-canvas-elevated px-4 py-3">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-semibold text-sky-900">Progress</p>
             <p className="text-sm font-bold text-sky-800">
@@ -130,7 +130,7 @@ export default function SkillGapModal({ onClose, onSuccess }: Props) {
               <li
                 key={item.id}
                 className={`rounded-xl border px-3 py-3 transition ${
-                  done ? 'border-emerald-200 bg-canvas-accent-soft/50' : 'border-canvas-border bg-canvas-elevated'
+                  done ? 'border-canvas-border bg-canvas-accent-soft/50' : 'border-canvas-border bg-canvas-elevated'
                 }`}
               >
                 <label className="flex cursor-pointer items-start gap-3">
@@ -146,7 +146,7 @@ export default function SkillGapModal({ onClose, onSuccess }: Props) {
                     >
                       {item.label}
                     </span>
-                    <span className="mt-0.5 block text-xs text-canvas-subtle">
+                    <span className="mt-0.5 block text-xs font-medium leading-relaxed text-slate-300">
                       Resource: {item.resource}
                     </span>
                   </span>

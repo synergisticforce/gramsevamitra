@@ -75,7 +75,7 @@ export default function HashGeneratorTool() {
           placeholder="Type or paste text to hash…"
           spellCheck={false}
         />
-        <p className="mt-2 text-xs text-canvas-subtle" aria-live="polite">
+        <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300" aria-live="polite">
           {status}
         </p>
       </section>

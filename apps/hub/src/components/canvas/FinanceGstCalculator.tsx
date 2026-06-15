@@ -183,7 +183,7 @@ export default function FinanceGstCalculator() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-none">
+      <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-canvas-accent-soft/40 to-canvas-surface p-5 shadow-none">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">GST breakdown</h2>
 
         <dl className="mt-4 space-y-2 text-sm">
@@ -222,7 +222,7 @@ export default function FinanceGstCalculator() {
               {result ? formatInr(result.gstTotal, 2) : '₹0.00'}
             </dd>
           </div>
-          <div className="flex justify-between gap-3 rounded-lg border border-emerald-200 bg-canvas-surface px-3 py-2">
+          <div className="flex justify-between gap-3 rounded-lg border border-canvas-border bg-canvas-surface px-3 py-2">
             <dt className="font-medium text-canvas-accent">Gross valuation</dt>
             <dd className="text-lg font-bold tabular-nums text-canvas-accent">
               {result ? formatInr(result.gross, 2) : '₹0.00'}

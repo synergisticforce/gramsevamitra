@@ -115,7 +115,7 @@ export default function RotatePdfModal({ file, onClose, onSuccess, onProcessingC
             <h2 id="rotate-pdf-title" className="text-lg font-bold text-canvas-text">
               Rotate PDF Pages
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300 truncate">{file.name}</p>
           </div>
           <button
             type="button"
@@ -129,10 +129,10 @@ export default function RotatePdfModal({ file, onClose, onSuccess, onProcessingC
         </div>
 
         {loadingMeta ? (
-          <p className="mt-4 text-sm text-canvas-subtle">Reading page count…</p>
+          <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">Reading page count…</p>
         ) : (
           <>
-            <p className="mt-4 text-sm text-canvas-muted">
+            <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">
               Choose a rotation for each page. Only changed pages are processed.
             </p>
             <ul className="mt-3 max-h-64 space-y-2 overflow-y-auto">
@@ -161,7 +161,7 @@ export default function RotatePdfModal({ file, onClose, onSuccess, onProcessingC
         )}
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

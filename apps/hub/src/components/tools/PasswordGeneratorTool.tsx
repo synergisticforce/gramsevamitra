@@ -76,7 +76,7 @@ export default function PasswordGeneratorTool() {
                   onChange={(e) => item.set(e.target.checked)}
                   className="h-4 w-4 accent-emerald-500"
                 />
-                <span className="text-sm text-canvas-muted">{item.label}</span>
+                <span className="text-sm font-medium leading-relaxed text-slate-200">{item.label}</span>
               </label>
             ))}
           </fieldset>

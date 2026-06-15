@@ -57,7 +57,7 @@ export default function ImageToPdfModal({ file, onClose, onSuccess, onProcessing
             <h2 id="image-to-pdf-title" className="text-lg font-bold text-canvas-text">
               JPG / PNG to PDF
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300 truncate">{file.name}</p>
           </div>
           <button
             type="button"
@@ -70,12 +70,12 @@ export default function ImageToPdfModal({ file, onClose, onSuccess, onProcessing
           </button>
         </div>
 
-        <p className="mt-4 text-sm text-canvas-muted">
+        <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">
           Embed your image as a full-page PDF document. Processing runs locally in your browser.
         </p>
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

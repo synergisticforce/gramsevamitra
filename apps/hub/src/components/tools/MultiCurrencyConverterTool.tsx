@@ -243,7 +243,7 @@ export default function MultiCurrencyConverterTool() {
           </p>
         )}
         {!loadingRates && !ratesError && ratesUpdatedAt && (
-          <p className="mt-3 text-xs text-canvas-subtle" role="status">
+          <p className="mt-3 text-xs font-medium leading-relaxed text-slate-300" role="status">
             Rates updated: {ratesUpdatedAt} — Sourced from public markets.
           </p>
         )}

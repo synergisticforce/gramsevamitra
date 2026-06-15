@@ -112,7 +112,7 @@ export default function UnlockPdfModal({
             <h2 id="unlock-pdf-title" className="text-lg font-bold text-canvas-text">
               Unlock PDF
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle truncate">
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300 truncate">
               {file.name} · {formatFileSize(file.size)}
             </p>
           </div>
@@ -128,12 +128,12 @@ export default function UnlockPdfModal({
         </div>
 
         {scanning ? (
-          <p className="mt-4 text-sm text-canvas-subtle">Checking whether this PDF is encrypted…</p>
+          <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">Checking whether this PDF is encrypted…</p>
         ) : (
           <>
             {encrypted === true && (
               <p
-                className="mt-4 rounded-xl border border-amber-200 bg-canvas-elevated px-3 py-2.5 text-sm text-amber-900"
+                className="mt-4 rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 text-sm text-slate-200"
                 role="status"
               >
                 This document is password-protected. Enter the open password to remove encryption.
@@ -141,7 +141,7 @@ export default function UnlockPdfModal({
             )}
             {encrypted === false && (
               <p
-                className="mt-4 rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 text-sm text-canvas-muted"
+                className="mt-4 rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 text-sm font-medium leading-relaxed text-slate-200"
                 role="status"
               >
                 No open-password lock detected. If the file has owner restrictions, enter the owner
@@ -167,14 +167,14 @@ export default function UnlockPdfModal({
               />
             </label>
 
-            <p className="mt-2 text-xs text-canvas-subtle">
+            <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">
               Decryption runs locally in your browser. Your password is never uploaded.
             </p>
           </>
         )}
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

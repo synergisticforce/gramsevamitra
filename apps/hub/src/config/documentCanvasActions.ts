@@ -136,7 +136,7 @@ export const DOCUMENT_CANVAS_ACTIONS: DocumentCanvasAction[] = [
     featureId: 'smart-document-extractor',
     featureName: 'Smart Document Extractor',
     featureDescription:
-      'Extract invoices and bank statements to CSV/JSON, or high-fidelity DOCX — powered by our serverless Smart Router.',
+      'Extract invoices and bank statements to CSV/JSON, or high-fidelity DOCX — powered by Advanced AI Document Extraction.',
   },
   {
     id: 'hifi-convert',
@@ -147,7 +147,7 @@ export const DOCUMENT_CANVAS_ACTIONS: DocumentCanvasAction[] = [
     featureId: 'high-fidelity-converter',
     featureName: 'High-Fidelity File Converter',
     featureDescription:
-      'Convert PDFs to editable DOCX or PPTX with layout preservation — powered by our serverless Pro pipeline.',
+      'Convert PDFs to editable DOCX or PPTX with layout preservation — powered by our advanced Pro conversion pipeline.',
   },
 ];
 

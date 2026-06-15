@@ -92,7 +92,7 @@ export default function SalaryBenchmarker() {
   }, []);
 
   if (loading) {
-    return <p className="text-sm text-canvas-muted">Loading salary benchmarks…</p>;
+    return <p className="text-sm font-medium leading-relaxed text-slate-200">Loading salary benchmarks…</p>;
   }
 
   if (error) {
@@ -137,7 +137,7 @@ export default function SalaryBenchmarker() {
       {selected && activeBand && (
         <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-emerald-950/30 to-slate-900/60 p-5 shadow-none">
           <p className="text-lg font-bold text-canvas-text">{selected.role}</p>
-          <p className="mt-1 text-sm text-canvas-subtle">{activeBand.label} · indicative annual CTC (₹ lakhs)</p>
+          <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">{activeBand.label} · indicative annual CTC (₹ lakhs)</p>
           <div className="mt-4 grid grid-cols-3 gap-3 text-center">
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 px-2 py-3">
               <p className="text-xs uppercase text-canvas-subtle">Min</p>
@@ -192,7 +192,7 @@ export default function SalaryBenchmarker() {
           </table>
         </div>
         {filteredRoles.length === 0 && (
-          <p className="mt-3 text-center text-sm text-canvas-subtle">No roles match your search.</p>
+          <p className="mt-3 text-center text-sm font-medium leading-relaxed text-slate-200">No roles match your search.</p>
         )}
       </section>
     </div>

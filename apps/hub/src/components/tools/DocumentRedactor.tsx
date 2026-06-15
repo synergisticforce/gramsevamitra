@@ -199,7 +199,7 @@ export default function DocumentRedactor() {
     <div className="document-redactor space-y-4">
       <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Upload &amp; redact</h2>
-        <p className="mt-2 text-xs text-canvas-subtle">
+        <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">
           Drag black boxes over sensitive text. Redactions are burned into the exported PNG — nothing is uploaded.
         </p>
 
@@ -209,7 +209,7 @@ export default function DocumentRedactor() {
             type="file"
             accept="image/jpeg,image/png,image/webp,application/pdf"
             onChange={handleUpload}
-            className="block w-full text-sm text-canvas-subtle file:mr-3 file:rounded-lg file:border-0 file:bg-canvas-accent-muted file:px-4 file:py-2 file:text-sm file:font-semibold file:text-canvas-text hover:file:bg-canvas-accent-soft0"
+            className="block w-full text-sm font-medium leading-relaxed text-slate-200 file:mr-3 file:rounded-lg file:border-0 file:bg-canvas-accent-muted file:px-4 file:py-2 file:text-sm file:font-semibold file:text-canvas-text hover:file:bg-canvas-accent-soft0"
           />
         </label>
 
@@ -244,12 +244,12 @@ export default function DocumentRedactor() {
               aria-label="Document canvas — drag to draw redaction boxes"
             />
           ) : (
-            <p className="py-16 text-center text-sm text-canvas-subtle">Upload a document to begin redacting.</p>
+            <p className="py-16 text-center text-sm font-medium leading-relaxed text-slate-200">Upload a document to begin redacting.</p>
           )}
         </div>
 
         {redactions.length > 0 && (
-          <p className="mt-2 text-center text-xs text-canvas-subtle">{redactions.length} redaction box(es) applied</p>
+          <p className="mt-2 text-center text-xs font-medium leading-relaxed text-slate-300">{redactions.length} redaction box(es) applied</p>
         )}
       </section>
     </div>

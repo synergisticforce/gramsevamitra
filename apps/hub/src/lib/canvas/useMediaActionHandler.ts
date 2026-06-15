@@ -31,7 +31,7 @@ export function useMediaActionHandler({
             featureName: action.featureName ?? action.label,
             featureDescription:
               action.featureDescription ??
-              'Unlock serverless AI image tools with GramSeva Mitra Pro.',
+              'Unlock advanced AI image tools with GramSeva Mitra Pro.',
           });
           return;
         }

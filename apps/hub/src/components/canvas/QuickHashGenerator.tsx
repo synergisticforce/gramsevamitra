@@ -87,7 +87,7 @@ export default function QuickHashGenerator({ onToast }: Props) {
           placeholder="Type or paste text to hash…"
           spellCheck={false}
         />
-        <p className="mt-2 text-xs text-canvas-subtle">
+        <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">
           {input ? 'Digests computed locally via crypto.subtle and MD5.' : 'Type to compute digests locally.'}
         </p>
       </section>

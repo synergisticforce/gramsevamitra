@@ -14,7 +14,7 @@ export function scorePasswordStrength(password: string): {
   if (/[^a-zA-Z0-9]/.test(password)) score += 15;
 
   if (score < 40) {
-    return { score, label: 'Weak', barClass: 'bg-rose-500', textClass: 'text-rose-600' };
+    return { score, label: 'Weak', barClass: 'bg-canvas-danger-soft/300', textClass: 'text-rose-600' };
   }
   if (score < 65) {
     return { score, label: 'Fair', barClass: 'bg-canvas-elevated0', textClass: 'text-canvas-muted' };

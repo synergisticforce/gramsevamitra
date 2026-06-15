@@ -63,7 +63,7 @@ export default function DeskewPdfModal({ file, onClose, onSuccess, onProcessingC
             <h2 id="deskew-pdf-title" className="text-lg font-bold text-canvas-text">
               Straighten / Deskew
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300 truncate">{file.name}</p>
           </div>
           <button
             type="button"
@@ -76,7 +76,7 @@ export default function DeskewPdfModal({ file, onClose, onSuccess, onProcessingC
           </button>
         </div>
 
-        <p className="mt-4 text-sm text-canvas-muted">
+        <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">
           Rotate all pages to correct a tilted scan. Processing runs locally in your browser.
         </p>
 
@@ -103,7 +103,7 @@ export default function DeskewPdfModal({ file, onClose, onSuccess, onProcessingC
         </label>
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

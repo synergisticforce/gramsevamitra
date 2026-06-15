@@ -91,7 +91,7 @@ export default function MagicDropzone({ onFileSelect, disabled = false }: Props)
         <p className="mt-4 text-lg font-semibold text-canvas-text">
           {isDragging ? 'Release to load your document' : 'Drop your document here'}
         </p>
-        <p className="mt-2 max-w-md text-sm text-canvas-subtle">
+        <p className="mt-2 max-w-md text-sm font-medium leading-relaxed text-slate-200">
           PDF, Word, or image files — processed locally in your browser. Or click to browse.
         </p>
       </div>
@@ -103,7 +103,7 @@ export default function MagicDropzone({ onFileSelect, disabled = false }: Props)
             📄
           </span>
           <p className="mt-4 text-lg font-semibold text-canvas-text">Add a document</p>
-          <p className="mt-2 text-sm text-canvas-subtle">
+          <p className="mt-2 text-sm font-medium leading-relaxed text-slate-200">
             Tap below to pick a PDF, Word file, or image from your device.
           </p>
           <button

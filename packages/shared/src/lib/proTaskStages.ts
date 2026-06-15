@@ -1,26 +1,26 @@
 /** Multi-stage Pro task loader copy — shared between API docs and UI. */
 
 export const PRO_TASK_STAGES_DEFAULT = [
-  'Waking up AI engine…',
+  'Starting advanced AI engine…',
   'Analyzing document layout…',
   'Refining extracted data…',
-  'Finalizing file…',
+  'Finalizing your file…',
 ];
 
 export const PRO_TASK_STAGES_SCENARIO_A = [
-  'Waking up AI engine…',
-  'Running GLM-4V vision extraction…',
+  'Starting advanced AI engine…',
+  'Running intelligent document analysis…',
   'Refining structured data…',
-  'Applying Vision API failsafe (if needed)…',
+  'Applying backup accuracy check (if needed)…',
   'Finalizing export…',
 ];
 
 export const PRO_TASK_STAGES_SCENARIO_B = [
-  'Waking up AI engine…',
-  'PaddleOCR bounding-box detection…',
-  'GLM-4V layout hierarchy mapping…',
-  'LibreOffice Headless DOCX render…',
-  'Finalizing file…',
+  'Starting advanced AI engine…',
+  'Detecting text and layout regions…',
+  'Mapping document structure…',
+  'Building high-fidelity document…',
+  'Finalizing your file…',
 ];
 
 export function stagesForOutputFormat(outputFormat: 'json' | 'csv' | 'docx'): string[] {

@@ -110,7 +110,7 @@ export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
     featureId: 'ai-resume-rewriter',
     featureName: 'AI Resume Rewriter',
     featureDescription:
-      'Rewrite your resume for specific job descriptions with serverless AI — powered by GramSeva Mitra Pro.',
+      'Rewrite your resume for specific job descriptions with advanced AI — powered by GramSeva Mitra Pro.',
   },
   {
     id: 'ai-cover-letter',

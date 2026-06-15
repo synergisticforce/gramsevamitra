@@ -100,7 +100,7 @@ export default function PercentageCalculatorTool() {
       >
         <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent/80">Result</p>
         <p className="mt-2 text-xl font-bold text-canvas-text">{result?.text ?? 'Enter values above'}</p>
-        {result?.detail && <p className="mt-1 text-sm text-canvas-subtle">{result.detail}</p>}
+        {result?.detail && <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">{result.detail}</p>}
       </div>
     </div>
   );

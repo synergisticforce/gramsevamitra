@@ -148,7 +148,7 @@ export default function FinanceMeetingCostCalculator() {
               <button
                 type="button"
                 onClick={() => setAttendees(attendees.filter((a) => a.id !== attendee.id))}
-                className="rounded-lg px-2 text-canvas-subtle hover:bg-rose-50 hover:text-rose-600"
+                className="rounded-lg px-2 text-canvas-subtle hover:bg-canvas-danger-soft/30 hover:text-rose-600"
                 aria-label="Remove attendee"
               >
                 ✕
@@ -170,18 +170,18 @@ export default function FinanceMeetingCostCalculator() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-none">
+      <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-canvas-accent-soft/40 to-canvas-surface p-5 shadow-none">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Meeting cost</h2>
         <p className="mt-3 text-3xl font-bold tabular-nums text-canvas-accent">
           {formatInr(Math.round(result.meetingCost))}
         </p>
-        <p className="mt-1 text-sm text-canvas-subtle">
+        <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
           Combined hourly burn {formatInr(Math.round(result.totalHourlyBurn))}/hr
         </p>
         <div className="relative mt-5 h-56 rounded-xl border border-slate-100 bg-canvas-surface p-2">
           <canvas ref={chartRef} aria-label="Cost per attendee" />
         </div>
-        <p className="mt-2 text-center text-xs text-canvas-subtle">
+        <p className="mt-2 text-center text-xs font-medium leading-relaxed text-slate-300">
           Based on {clamp(durationMinutes, 15, 240)} minutes · {attendees.length} attendee
           {attendees.length === 1 ? '' : 's'}
         </p>

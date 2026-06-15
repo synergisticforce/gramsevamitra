@@ -155,12 +155,12 @@ export default function FinanceTaxDeductionCalculator() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-none">
+      <section className="rounded-2xl border border-canvas-border bg-gradient-to-br from-canvas-accent-soft/40 to-canvas-surface p-5 shadow-none">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Tax savings</h2>
         <p className="mt-3 text-3xl font-bold tabular-nums text-canvas-accent">
           {formatInr(Math.round(result.estimatedSavings))}
         </p>
-        <p className="mt-1 text-sm text-canvas-subtle">Estimated annual tax saved</p>
+        <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">Estimated annual tax saved</p>
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between">
             <dt className="text-canvas-subtle">Tax without extras</dt>
@@ -180,7 +180,7 @@ export default function FinanceTaxDeductionCalculator() {
         <div className="relative mt-5 h-56 rounded-xl border border-slate-100 bg-canvas-surface p-2">
           <canvas ref={chartRef} aria-label="Tax comparison chart" />
         </div>
-        <p className="mt-2 text-center text-xs text-canvas-subtle">
+        <p className="mt-2 text-center text-xs font-medium leading-relaxed text-slate-300">
           Simplified Indian income-tax estimate · not professional tax advice
         </p>
       </section>

@@ -128,7 +128,7 @@ export default function OcrExtractor() {
         <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Image input</h2>
 
-          <p className="mt-2 text-xs text-canvas-subtle">
+          <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">
             Powered by <strong className="text-canvas-accent/90">Transformers.js</strong> + ONNX Runtime WASM
             (TrOCR). Preprocessing runs on Canvas before inference in a Web Worker.
           </p>
@@ -139,11 +139,11 @@ export default function OcrExtractor() {
               type="file"
               accept="image/jpeg,image/png,image/webp"
               onChange={handleFile}
-              className="block w-full text-sm text-canvas-subtle file:mr-3 file:rounded-lg file:border-0 file:bg-canvas-accent-muted file:px-4 file:py-2 file:text-sm file:font-semibold file:text-canvas-text hover:file:bg-canvas-accent-soft0"
+              className="block w-full text-sm font-medium leading-relaxed text-slate-200 file:mr-3 file:rounded-lg file:border-0 file:bg-canvas-accent-muted file:px-4 file:py-2 file:text-sm file:font-semibold file:text-canvas-text hover:file:bg-canvas-accent-soft0"
             />
           </label>
 
-          <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-canvas-muted">
+          <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm font-medium leading-relaxed text-slate-200">
             <input
               type="checkbox"
               checked={multiLine}
@@ -153,7 +153,7 @@ export default function OcrExtractor() {
             Split into text lines (better for documents)
           </label>
 
-          <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-xs text-canvas-subtle">
+          <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-xs font-medium leading-relaxed text-slate-300">
             {modelProgress}
           </div>
 

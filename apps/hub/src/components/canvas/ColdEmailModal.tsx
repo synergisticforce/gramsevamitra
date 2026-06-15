@@ -63,7 +63,7 @@ export default function ColdEmailModal({ onClose, onSuccess }: Props) {
             <h2 id="cold-email-title" className="text-lg font-bold text-canvas-text">
               ✉️ Cold Email Builder
             </h2>
-            <p className="mt-1 text-sm text-canvas-subtle">
+            <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
               Outreach, interview follow-up &amp; thank-you templates — nothing leaves your device.
             </p>
           </div>
@@ -179,7 +179,7 @@ export default function ColdEmailModal({ onClose, onSuccess }: Props) {
                   onClick={() => setActiveTemplate(id)}
                   className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
                     activeTemplate === id
-                      ? 'border-sky-400 bg-sky-50 text-sky-800'
+                      ? 'border-sky-400 bg-canvas-elevated text-sky-800'
                       : 'border-canvas-border text-canvas-muted hover:bg-canvas-elevated'
                   }`}
                 >
@@ -201,7 +201,7 @@ export default function ColdEmailModal({ onClose, onSuccess }: Props) {
         </div>
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

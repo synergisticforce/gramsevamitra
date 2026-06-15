@@ -173,7 +173,7 @@ export async function runSmartRouter(input) {
 
     return {
       scenario: 'A',
-      description: 'Structured data extraction via GLM-4V (with Vision failsafe when needed)',
+      description: 'Advanced AI document extraction with backup accuracy when needed',
       pipeline,
       usedFailsafe,
       output: {
@@ -225,7 +225,7 @@ export async function runSmartRouter(input) {
 
   return {
     scenario: 'B',
-    description: 'High-fidelity DOCX via PaddleOCR + GLM-4V layout + LibreOffice Headless',
+    description: 'High-fidelity document conversion with layout preservation',
     pipeline,
     usedFailsafe,
     output: docx.output,
@@ -234,17 +234,17 @@ export async function runSmartRouter(input) {
 }
 
 export const SCENARIO_A_STAGES = [
-  'Waking up AI engine…',
-  'Running GLM-4V vision extraction…',
+  'Starting advanced AI engine…',
+  'Running intelligent document analysis…',
   'Refining structured data…',
-  'Applying Vision API failsafe (if needed)…',
+  'Applying backup accuracy check (if needed)…',
   'Finalizing export…',
 ];
 
 export const SCENARIO_B_STAGES = [
-  'Waking up AI engine…',
-  'PaddleOCR bounding-box detection…',
-  'GLM-4V layout hierarchy mapping…',
-  'LibreOffice Headless DOCX render…',
-  'Finalizing file…',
+  'Starting advanced AI engine…',
+  'Detecting text and layout regions…',
+  'Mapping document structure…',
+  'Building high-fidelity document…',
+  'Finalizing your file…',
 ];

@@ -53,8 +53,8 @@ export default function CareerMagicDropzone({ onFileSelect, onInvalidFile, disab
   const dropzoneClass = [
     'relative flex min-h-[320px] flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-12 text-center transition sm:min-h-[380px]',
     isDragging
-      ? 'border-sky-500 bg-sky-50/80 shadow-inner'
-      : 'border-canvas-border bg-canvas-surface hover:border-sky-400 hover:bg-sky-50/30',
+      ? 'border-sky-500 bg-canvas-elevated/80 shadow-inner'
+      : 'border-canvas-border bg-canvas-surface hover:border-sky-400 hover:bg-canvas-elevated/30',
     disabled ? 'pointer-events-none opacity-60' : 'cursor-pointer',
   ].join(' ');
 
@@ -96,7 +96,7 @@ export default function CareerMagicDropzone({ onFileSelect, onInvalidFile, disab
         <p className="mt-4 text-lg font-semibold text-canvas-text">
           {isDragging ? 'Release to load your document' : 'Drop your resume or cover letter here'}
         </p>
-        <p className="mt-2 max-w-md text-sm text-canvas-subtle">
+        <p className="mt-2 max-w-md text-sm font-medium leading-relaxed text-slate-200">
           PDF or Word (DOCX) — processed locally in your browser. Or click to browse.
         </p>
       </div>
@@ -107,7 +107,7 @@ export default function CareerMagicDropzone({ onFileSelect, onInvalidFile, disab
             🎯
           </span>
           <p className="mt-4 text-lg font-semibold text-canvas-text">Add a document</p>
-          <p className="mt-2 text-sm text-canvas-subtle">
+          <p className="mt-2 text-sm font-medium leading-relaxed text-slate-200">
             Tap below to pick a PDF or Word file from your device.
           </p>
           <button

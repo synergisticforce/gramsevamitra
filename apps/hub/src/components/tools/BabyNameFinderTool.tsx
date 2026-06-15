@@ -258,7 +258,7 @@ export default function BabyNameFinderTool() {
         </h2>
         <ul className="flex min-h-[48px] flex-wrap gap-2 rounded-xl border border-dashed border-canvas-border bg-canvas-accent-muted/30 p-3">
           {shortlist.length === 0 ? (
-            <li className="text-xs text-canvas-subtle">Tap ☆ on any name to add here.</li>
+            <li className="text-xs font-medium leading-relaxed text-slate-300">Tap ☆ on any name to add here.</li>
           ) : (
             shortlist.map((name) => (
               <li
@@ -302,7 +302,7 @@ export default function BabyNameFinderTool() {
         )}
 
         {!loading && !loadError && filtered.length === 0 ? (
-          <p className="text-center text-sm text-canvas-subtle">No names match your filters.</p>
+          <p className="text-center text-sm font-medium leading-relaxed text-slate-200">No names match your filters.</p>
         ) : loading ? (
           <NamesSkeleton />
         ) : (
@@ -320,7 +320,7 @@ export default function BabyNameFinderTool() {
                       {entry.name}
                       <span className="ml-2 text-sm font-normal text-canvas-accent/90">{syllableLabel}</span>
                     </p>
-                    <p className="text-xs text-canvas-subtle">
+                    <p className="text-xs font-medium leading-relaxed text-slate-300">
                       {entry.gender} · {entry.origin}
                     </p>
                   </div>

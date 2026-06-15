@@ -61,7 +61,7 @@ interface ProcessingState {
 }
 
 const PRO_CAREER_SUBTITLE =
-  'Pro AI runs on Cloudflare edge — only extracted resume text is sent, never your file.';
+  'Pro AI runs securely in the cloud — only extracted resume text is sent, never your file.';
 
 export default function CareerPrepCanvas() {
   const [phase, setPhase] = useState<CanvasPhase>('empty');
@@ -215,7 +215,7 @@ export default function CareerPrepCanvas() {
         }
         if (isDocxFile(file.type, file.name) || (!isPdfFile(file.type, file.name) && !file.type)) {
           setToastMessage(
-            'ATS Scanner currently supports PDF resumes only. Upload a PDF from the Omni-Router.',
+            'ATS Scanner currently supports PDF resumes only. Upload a PDF from the homepage or drop here.',
           );
           return;
         }
@@ -229,7 +229,7 @@ export default function CareerPrepCanvas() {
   const onOmniHandoff = useCallback(
     ({ file, intentId }: OmniHandoffPayload) => {
       if (!isCareerDocumentMimeOrName(file.type, file.name)) {
-        setToastMessage('Career Prep accepts PDF or Word (DOCX) documents from the Omni-Router.');
+        setToastMessage('Career Prep accepts PDF or Word (DOCX) documents. Upload from the homepage or drop here.');
         return;
       }
       pendingOmniIntentRef.current = intentId;
@@ -365,7 +365,7 @@ export default function CareerPrepCanvas() {
             </span>
             <div>
               <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Career Prep</h1>
-              <p className="mt-1 text-sm text-canvas-muted">
+              <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
                 Job tracking, salary tools, ATS scanning, and AI resume helpers — drop a document or
                 pick a tool below.
               </p>
@@ -387,7 +387,7 @@ export default function CareerPrepCanvas() {
           <div className="space-y-4">
             {activeFile.restoredFromSession && !activeFile.file && (
               <p
-                className="rounded-xl border border-amber-200 bg-canvas-elevated px-4 py-3 text-sm text-amber-900"
+                className="rounded-xl border border-canvas-border bg-canvas-elevated px-4 py-3 text-sm font-medium leading-relaxed text-slate-200"
                 role="status"
               >
                 Session restored after refresh. Your file metadata is preserved — re-upload below to run
@@ -395,18 +395,18 @@ export default function CareerPrepCanvas() {
               </p>
             )}
 
-            <div className="rounded-2xl border border-sky-200 bg-canvas-surface p-4 shadow-none sm:p-5">
+            <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-4 shadow-none sm:p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 items-center gap-3">
                   <span
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-2xl"
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-canvas-elevated text-2xl"
                     aria-hidden="true"
                   >
                     📎
                   </span>
                   <div className="min-w-0">
                     <p className="truncate text-base font-semibold text-canvas-text">{activeFile.meta.name}</p>
-                    <p className="mt-0.5 text-xs text-canvas-subtle">
+                    <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-300">
                       {formatFileSize(activeFile.meta.size)}
                       {activeFile.meta.type ? ` · ${activeFile.meta.type}` : ''}
                     </p>
@@ -429,7 +429,7 @@ export default function CareerPrepCanvas() {
                   <button
                     type="button"
                     onClick={clearCanvas}
-                    className="inline-flex items-center justify-center rounded-lg border border-canvas-border px-3 py-2 text-xs font-semibold text-canvas-muted transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-800"
+                    className="inline-flex items-center justify-center rounded-lg border border-canvas-border px-3 py-2 text-xs font-semibold text-canvas-muted transition hover:border-canvas-border hover:bg-canvas-danger-soft/30 hover:text-rose-200"
                   >
                     Clear
                   </button>

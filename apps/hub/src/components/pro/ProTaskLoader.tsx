@@ -38,7 +38,7 @@ export default function ProTaskLoader({ active, stages, intervalMs = 2400 }: Pro
     >
       <div className="flex items-center gap-3">
         <div
-          className="h-10 w-10 shrink-0 animate-pulse rounded-full border-2 border-emerald-200 bg-canvas-accent-soft"
+          className="h-10 w-10 shrink-0 animate-pulse rounded-full border-2 border-canvas-border bg-canvas-accent-soft"
           aria-hidden="true"
         />
         <div className="min-w-0 flex-1">

@@ -31,7 +31,7 @@ export function useCareerActionHandler({
             featureName: action.featureName ?? action.label,
             featureDescription:
               action.featureDescription ??
-              'Unlock serverless AI career tools with GramSeva Mitra Pro.',
+              'Unlock advanced AI career tools with GramSeva Mitra Pro.',
           });
           return;
         }

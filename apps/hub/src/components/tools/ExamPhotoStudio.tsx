@@ -219,7 +219,7 @@ export default function ExamPhotoStudio() {
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-xs text-canvas-subtle">{preset.description}</p>
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">{preset.description}</p>
           </label>
 
           <div className="mt-4 flex gap-2">
@@ -256,7 +256,7 @@ export default function ExamPhotoStudio() {
               type="file"
               accept="image/jpeg,image/png,image/webp"
               onChange={handleFileChange}
-              className="block w-full text-sm text-canvas-subtle file:mr-3 file:rounded-lg file:border-0 file:bg-canvas-accent-muted file:px-4 file:py-2 file:text-sm file:font-semibold file:text-canvas-text hover:file:bg-canvas-accent-soft0"
+              className="block w-full text-sm font-medium leading-relaxed text-slate-200 file:mr-3 file:rounded-lg file:border-0 file:bg-canvas-accent-muted file:px-4 file:py-2 file:text-sm file:font-semibold file:text-canvas-text hover:file:bg-canvas-accent-soft0"
             />
           </label>
 
@@ -308,7 +308,7 @@ export default function ExamPhotoStudio() {
           <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent/80">Output</h2>
 
           {!result ? (
-            <div className="mt-8 flex flex-col items-center justify-center text-center text-sm text-canvas-subtle">
+            <div className="mt-8 flex flex-col items-center justify-center text-center text-sm font-medium leading-relaxed text-slate-200">
               <span className="mb-3 text-4xl" aria-hidden="true">
                 📷
               </span>

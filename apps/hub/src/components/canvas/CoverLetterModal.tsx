@@ -71,7 +71,7 @@ export default function CoverLetterModal({ onClose, onSuccess }: Props) {
             <h2 id="cover-letter-title" className="text-lg font-bold text-canvas-text">
               📄 Cover Letter Template
             </h2>
-            <p className="mt-1 text-sm text-canvas-subtle">
+            <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
               Generated entirely in your browser — no data sent to servers.
             </p>
           </div>
@@ -158,7 +158,7 @@ export default function CoverLetterModal({ onClose, onSuccess }: Props) {
         )}
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

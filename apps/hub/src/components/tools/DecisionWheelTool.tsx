@@ -204,7 +204,7 @@ export default function DecisionWheelTool() {
     <div className="space-y-6">
       <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Wheel entries</h2>
-        <p className="mt-1 text-xs text-canvas-subtle">
+        <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
           One option per line. Optional weight syntax: <code className="text-canvas-accent">Option [2]</code>
         </p>
         <label className="mt-4 block">

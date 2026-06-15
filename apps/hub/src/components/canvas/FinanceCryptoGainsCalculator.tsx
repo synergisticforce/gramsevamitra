@@ -157,7 +157,7 @@ export default function FinanceCryptoGainsCalculator() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/80 p-4">
+        <div className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/80 p-4">
           <p className="text-xs font-semibold uppercase text-canvas-accent">Total realized gain</p>
           <p className={`mt-1 text-2xl font-bold tabular-nums ${totalGain >= 0 ? 'text-emerald-900' : 'text-rose-700'}`}>
             {formatInr(totalGain)}
@@ -206,7 +206,7 @@ export default function FinanceCryptoGainsCalculator() {
               <input type="number" min={0} step="any" value={trade.quantity} onChange={(e) => updateTrade(index, { quantity: Number(e.target.value) || 0 })} placeholder="Qty" className={inputClass} />
               <input type="number" min={0} value={trade.priceInr} onChange={(e) => updateTrade(index, { priceInr: Number(e.target.value) || 0 })} placeholder="Price (₹)" className={inputClass} />
               <input type="date" value={trade.date} onChange={(e) => updateTrade(index, { date: e.target.value })} className={inputClass} />
-              <button type="button" onClick={() => removeTrade(index)} className="rounded-xl border border-rose-200 text-xs font-semibold text-rose-600 hover:bg-rose-50">
+              <button type="button" onClick={() => removeTrade(index)} className="rounded-xl border border-canvas-border text-xs font-semibold text-rose-600 hover:bg-canvas-danger-soft/30">
                 Remove
               </button>
             </div>

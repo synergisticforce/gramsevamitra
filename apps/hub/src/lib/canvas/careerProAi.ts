@@ -30,8 +30,8 @@ function startAiProgressTicker(
 ): () => void {
   const label =
     action === 'rewrite_resume'
-      ? 'Running serverless AI resume optimization…'
-      : 'Generating serverless AI cover letter…';
+      ? 'Running advanced AI resume optimization…'
+      : 'Generating advanced AI cover letter…';
   let percent = 45;
   onProgress({ label, percent });
   const timer = window.setInterval(() => {

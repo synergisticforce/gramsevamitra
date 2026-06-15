@@ -199,7 +199,7 @@ export default function QrGeneratorTool() {
             style={{ backgroundColor: bgColor }}
           >
             {!hasQr && (
-              <p className="px-4 text-center text-sm text-canvas-subtle">Enter text to generate your QR code</p>
+              <p className="px-4 text-center text-sm font-medium leading-relaxed text-slate-200">Enter text to generate your QR code</p>
             )}
             <canvas
               ref={canvasRef}
@@ -209,7 +209,7 @@ export default function QrGeneratorTool() {
               aria-label="QR code preview"
             />
           </div>
-          <p className="mt-3 min-h-[1.25rem] text-center text-xs text-canvas-subtle">{status}</p>
+          <p className="mt-3 min-h-[1.25rem] text-center text-xs font-medium leading-relaxed text-slate-300">{status}</p>
           <button type="button" onClick={downloadPng} disabled={!hasQr} className="btn-primary mt-5 w-full max-w-[340px]">
             Download high-res PNG
           </button>

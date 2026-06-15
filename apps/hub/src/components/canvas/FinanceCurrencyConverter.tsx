@@ -84,9 +84,9 @@ export default function FinanceCurrencyConverter() {
     <div className="grid gap-6 lg:grid-cols-2">
       <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Convert</h2>
-        {loading && <p className="mt-2 text-sm text-canvas-subtle">Loading live rates…</p>}
+        {loading && <p className="mt-2 text-sm font-medium leading-relaxed text-slate-200">Loading live rates…</p>}
         {error && <p className="mt-2 text-sm text-rose-600">{error}</p>}
-        {!loading && meta && <p className="mt-2 text-xs text-canvas-subtle">{meta}</p>}
+        {!loading && meta && <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">{meta}</p>}
         <div className="mt-4 space-y-4">
           <label className="block text-sm font-medium text-canvas-muted">
             Amount
@@ -122,7 +122,7 @@ export default function FinanceCurrencyConverter() {
           </button>
         </div>
       </section>
-      <section className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/80 p-5">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/80 p-5">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Result</h2>
         <p className="mt-3 text-3xl font-bold tabular-nums text-emerald-900">
           {result ? formatFxAmount(result.converted, to) : '—'}

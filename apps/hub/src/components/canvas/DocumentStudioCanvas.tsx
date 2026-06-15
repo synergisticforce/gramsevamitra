@@ -146,7 +146,7 @@ export default function DocumentStudioCanvas() {
         true,
         'Preparing Smart Extract…',
         5,
-        'Pro processing uses ephemeral Cloudflare R2 storage — deleted after extraction.',
+        'Pro processing uses secure temporary storage — deleted immediately after extraction.',
       );
 
       try {
@@ -156,7 +156,7 @@ export default function DocumentStudioCanvas() {
             true,
             label,
             percent,
-            'Pro processing uses ephemeral Cloudflare R2 storage — deleted after extraction.',
+            'Pro processing uses secure temporary storage — deleted immediately after extraction.',
           );
         });
         setProcessingProgress(false, '', 0);
@@ -404,7 +404,7 @@ export default function DocumentStudioCanvas() {
             </span>
             <div>
               <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Document Studio</h1>
-              <p className="mt-1 text-sm text-canvas-muted">
+              <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
                 Merge, split, compress, protect, or smart-extract — drop a file to begin.
               </p>
             </div>
@@ -417,7 +417,7 @@ export default function DocumentStudioCanvas() {
           <div className="space-y-4">
             {activeFile.restoredFromSession && !activeFile.file && (
               <p
-                className="rounded-xl border border-amber-200 bg-canvas-elevated px-4 py-3 text-sm text-amber-900"
+                className="rounded-xl border border-canvas-border bg-canvas-elevated px-4 py-3 text-sm font-medium leading-relaxed text-slate-200"
                 role="status"
               >
                 Session restored after refresh. Your file metadata is preserved — re-upload below to run
@@ -425,7 +425,7 @@ export default function DocumentStudioCanvas() {
               </p>
             )}
 
-            <div className="rounded-2xl border border-emerald-200 bg-canvas-surface p-4 shadow-none sm:p-5">
+            <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-4 shadow-none sm:p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 items-center gap-3">
                   <span
@@ -436,7 +436,7 @@ export default function DocumentStudioCanvas() {
                   </span>
                   <div className="min-w-0">
                     <p className="truncate text-base font-semibold text-canvas-text">{activeFile.meta.name}</p>
-                    <p className="mt-0.5 text-xs text-canvas-subtle">
+                    <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-300">
                       {formatFileSize(activeFile.meta.size)}
                       {activeFile.meta.type ? ` · ${activeFile.meta.type}` : ''}
                     </p>
@@ -459,7 +459,7 @@ export default function DocumentStudioCanvas() {
                   <button
                     type="button"
                     onClick={clearCanvas}
-                    className="inline-flex items-center justify-center rounded-lg border border-canvas-border px-3 py-2 text-xs font-semibold text-canvas-muted transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-800"
+                    className="inline-flex items-center justify-center rounded-lg border border-canvas-border px-3 py-2 text-xs font-semibold text-canvas-muted transition hover:border-canvas-border hover:bg-canvas-danger-soft/30 hover:text-rose-200"
                   >
                     Clear
                   </button>

@@ -136,7 +136,7 @@ export default function ResizeCompressModal({
             <h2 id="resize-compress-title" className="text-lg font-bold text-canvas-text">
               Resize &amp; Compress
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle truncate">
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300 truncate">
               {file.name} · {formatFileSize(file.size)}
             </p>
           </div>
@@ -151,14 +151,14 @@ export default function ResizeCompressModal({
           </button>
         </div>
 
-        <p className="mt-4 text-sm text-canvas-muted">
+        <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">
           Processed locally with browser-image-compression — nothing is uploaded.
         </p>
 
         {loadingMeta ? (
-          <p className="mt-3 text-sm text-canvas-subtle">Reading image dimensions…</p>
+          <p className="mt-3 text-sm font-medium leading-relaxed text-slate-200">Reading image dimensions…</p>
         ) : naturalSize ? (
-          <p className="mt-3 text-xs text-canvas-subtle">
+          <p className="mt-3 text-xs font-medium leading-relaxed text-slate-300">
             Original: {naturalSize.width} × {naturalSize.height} px
           </p>
         ) : null}
@@ -175,7 +175,7 @@ export default function ResizeCompressModal({
             />
             <span>
               <span className="block text-sm font-semibold text-canvas-text">Target dimensions</span>
-              <span className="mt-0.5 block text-xs text-canvas-subtle">Set width and height in pixels</span>
+              <span className="mt-0.5 block text-xs font-medium leading-relaxed text-slate-300">Set width and height in pixels</span>
             </span>
           </label>
           <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-canvas-border px-3 py-3">
@@ -189,7 +189,7 @@ export default function ResizeCompressModal({
             />
             <span>
               <span className="block text-sm font-semibold text-canvas-text">Target file size</span>
-              <span className="mt-0.5 block text-xs text-canvas-subtle">Compress to a maximum KB size</span>
+              <span className="mt-0.5 block text-xs font-medium leading-relaxed text-slate-300">Compress to a maximum KB size</span>
             </span>
           </label>
         </div>
@@ -222,7 +222,7 @@ export default function ResizeCompressModal({
                 />
               </label>
             </div>
-            <label className="flex items-center gap-2 text-sm text-canvas-muted">
+            <label className="flex items-center gap-2 text-sm font-medium leading-relaxed text-slate-200">
               <input
                 type="checkbox"
                 checked={lockAspect}
@@ -253,7 +253,7 @@ export default function ResizeCompressModal({
         )}
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

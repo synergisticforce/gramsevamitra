@@ -71,7 +71,7 @@ export default function ConvertFormatModal({
             <h2 id="convert-format-title" className="text-lg font-bold text-canvas-text">
               Convert Format
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle truncate">
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300 truncate">
               {file.name} · {formatFileSize(file.size)}
             </p>
           </div>
@@ -86,7 +86,7 @@ export default function ConvertFormatModal({
           </button>
         </div>
 
-        <p className="mt-4 text-sm text-canvas-muted">
+        <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">
           Redraws your image on an HTML5 canvas and exports locally — no server upload.
         </p>
 
@@ -113,7 +113,7 @@ export default function ConvertFormatModal({
                 />
                 <span>
                   <span className="block text-sm font-semibold text-canvas-text">{item.label}</span>
-                  <span className="mt-0.5 block text-xs text-canvas-subtle">{item.description}</span>
+                  <span className="mt-0.5 block text-xs font-medium leading-relaxed text-slate-300">{item.description}</span>
                 </span>
               </label>
             );
@@ -121,7 +121,7 @@ export default function ConvertFormatModal({
         </div>
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

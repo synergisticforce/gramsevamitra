@@ -47,7 +47,7 @@ export async function prepareSmartExtractUpload(
   }
 
   onProgress({
-    label: 'RAM Shield: extracting text locally from your PDF…',
+    label: 'Preparing your document for fast, secure processing…',
     percent: 10,
   });
 
@@ -56,13 +56,13 @@ export async function prepareSmartExtractUpload(
     const extractedText = await extractTextFromPdfFile(file, (current, total) => {
       const percent = 10 + Math.round((current / total) * 25);
       onProgress({
-        label: `RAM Shield: reading page ${current} of ${total} locally…`,
+        label: `Reading page ${current} of ${total} locally…`,
         percent,
       });
     });
 
     if (extractedText.length >= MIN_TEXT_CHARS_FOR_TEXT_MODE) {
-      onProgress({ label: 'Text payload ready — skipping raw file upload.', percent: 38 });
+      onProgress({ label: 'Document ready for advanced AI extraction.', percent: 38 });
       return { mode: 'text', extractedText, fileName: file.name };
     }
   } catch {
@@ -70,11 +70,11 @@ export async function prepareSmartExtractUpload(
   }
 
   onProgress({
-    label: 'RAM Shield: preparing a lightweight PDF subset with pdf-lib…',
+    label: 'Optimizing a lightweight copy of your document…',
     percent: 28,
   });
 
   const subset = await shrinkPdfToPageCap(file, MAX_SHIELD_PAGES);
-  onProgress({ label: 'Subset PDF ready for secure upload.', percent: 38 });
+  onProgress({ label: 'Document ready for secure upload.', percent: 38 });
   return { mode: 'upload', file: subset, shieldApplied: true };
 }

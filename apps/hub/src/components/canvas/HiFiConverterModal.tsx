@@ -32,7 +32,7 @@ export default function HiFiConverterModal({
   const { requestProConfirm, proCreditModal } = useProCreditConfirm();
 
   const proSubtitle =
-    'Pro conversion uses ephemeral Cloudflare R2 storage — deleted after processing.';
+    'Pro conversion uses secure temporary storage — deleted immediately after processing.';
 
   const handleConvert = useCallback(async () => {
     setBusy(true);
@@ -79,7 +79,7 @@ export default function HiFiConverterModal({
             <h2 id="hifi-converter-title" className="text-lg font-bold text-canvas-text">
               High-Fidelity Converter
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300 truncate">{file.name}</p>
           </div>
           <button
             type="button"
@@ -92,8 +92,8 @@ export default function HiFiConverterModal({
           </button>
         </div>
 
-        <p className="mt-4 text-sm text-canvas-muted">
-          Convert your PDF to an editable Office document via our serverless pipeline. Your file is
+        <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">
+          Convert your PDF to an editable Office document via our advanced conversion pipeline. Your file is
           uploaded to secure transient storage and deleted after conversion.
         </p>
 
@@ -122,7 +122,7 @@ export default function HiFiConverterModal({
         </fieldset>
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

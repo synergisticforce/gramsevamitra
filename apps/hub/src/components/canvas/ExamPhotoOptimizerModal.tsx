@@ -95,7 +95,7 @@ export default function ExamPhotoOptimizerModal({
             <h2 id="exam-photo-title" className="text-lg font-bold text-canvas-text">
               Exam Photo Optimizer
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle truncate">
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300 truncate">
               {file.name} · {formatFileSize(file.size)}
             </p>
           </div>
@@ -110,14 +110,14 @@ export default function ExamPhotoOptimizerModal({
           </button>
         </div>
 
-        <p className="mt-4 text-sm text-canvas-muted">
+        <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">
           Creates a clean scanned-document look with B&amp;W threshold, auto-crop, and deskew — 100%
           client-side.
         </p>
 
         <div className="mt-4 overflow-hidden rounded-xl border border-canvas-border bg-canvas-elevated">
           {previewLoading ? (
-            <p className="px-4 py-12 text-center text-sm text-canvas-subtle">Generating preview…</p>
+            <p className="px-4 py-12 text-center text-sm font-medium leading-relaxed text-slate-200">Generating preview…</p>
           ) : previewUrl ? (
             <img
               src={previewUrl}
@@ -125,7 +125,7 @@ export default function ExamPhotoOptimizerModal({
               className="mx-auto max-h-48 w-full object-contain"
             />
           ) : (
-            <p className="px-4 py-12 text-center text-sm text-canvas-subtle">Preview unavailable</p>
+            <p className="px-4 py-12 text-center text-sm font-medium leading-relaxed text-slate-200">Preview unavailable</p>
           )}
         </div>
 
@@ -162,7 +162,7 @@ export default function ExamPhotoOptimizerModal({
             />
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-canvas-muted">
+          <label className="flex items-center gap-2 text-sm font-medium leading-relaxed text-slate-200">
             <input
               type="checkbox"
               checked={autoCrop}
@@ -175,7 +175,7 @@ export default function ExamPhotoOptimizerModal({
         </div>
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

@@ -91,14 +91,14 @@ export default function FeedbackWidget() {
                 <h2 id="feedback-widget-title" className="text-base font-semibold text-canvas-text">
                   Send feedback
                 </h2>
-                <p className="mt-0.5 text-xs text-canvas-subtle">
+                <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-300">
                   Tell us what&apos;s working or what we should improve.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={close}
-                className="rounded-lg border border-canvas-border px-2 py-1 text-sm text-canvas-subtle transition hover:bg-canvas-elevated"
+                className="rounded-lg border border-canvas-border px-2 py-1 text-sm font-medium leading-relaxed text-slate-200 transition hover:bg-canvas-elevated"
                 aria-label="Close feedback form"
               >
                 ✕

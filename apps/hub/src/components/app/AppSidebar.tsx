@@ -127,7 +127,7 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
           <div className="mt-2">{navLinks}</div>
         </nav>
 
-        <div className="border-t border-canvas-border px-4 py-4 text-xs text-canvas-subtle">
+        <div className="border-t border-canvas-border px-4 py-4 text-xs font-medium leading-relaxed text-slate-300">
           <a href="/contact" className="font-medium text-canvas-muted hover:text-canvas-accent">
             Contact &amp; support →
           </a>

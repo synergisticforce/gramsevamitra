@@ -122,7 +122,7 @@ export default function QuickPercentageCalculator() {
       <div className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/80 px-5 py-4" aria-live="polite">
         <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent">Result</p>
         <p className="mt-2 text-xl font-bold text-canvas-text">{result?.text ?? 'Enter values above'}</p>
-        {result?.detail && <p className="mt-1 text-sm text-canvas-muted">{result.detail}</p>}
+        {result?.detail && <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">{result.detail}</p>}
       </div>
     </div>
   );

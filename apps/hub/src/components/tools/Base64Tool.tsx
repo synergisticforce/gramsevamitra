@@ -112,7 +112,7 @@ export default function Base64Tool() {
           rows={6}
           readOnly
           value={output}
-          className="input-field w-full resize-y font-mono text-sm text-canvas-muted"
+          className="input-field w-full resize-y font-mono text-sm font-medium leading-relaxed text-slate-200"
           placeholder="Result appears here…"
           spellCheck={false}
         />

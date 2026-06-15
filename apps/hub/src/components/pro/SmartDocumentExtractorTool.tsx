@@ -86,7 +86,7 @@ export default function SmartDocumentExtractorTool() {
         featureId: 'smart-document-extractor',
         featureName: 'Smart Document Extractor',
         featureDescription:
-          'Extract invoices and bank statements to CSV/JSON, or high-fidelity DOCX — powered by our serverless Smart Router.',
+          'Extract invoices and bank statements to CSV/JSON, or high-fidelity DOCX — powered by Advanced AI Document Extraction.',
       });
       return;
     }
@@ -101,13 +101,13 @@ export default function SmartDocumentExtractorTool() {
       <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-4 shadow-none sm:p-5">
         <p className="text-xs font-semibold uppercase tracking-wider text-amber-800">Workspace 1 · Pro</p>
         <h2 className="mt-1 text-lg font-bold text-canvas-text">Smart Document Extractor</h2>
-        <p className="mt-1 text-sm text-canvas-muted">
+        <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
           Test the Tri-Engine Smart Router — Scenario A (JSON/CSV) or Scenario B (DOCX). Mock GPU engines simulate
           5–10 s latency per stage.
         </p>
 
         {!isPending && (
-          <p className="mt-3 text-xs text-canvas-subtle">
+          <p className="mt-3 text-xs font-medium leading-relaxed text-slate-300">
             {session?.user
               ? `Signed in as ${session.user.email} · plan: ${userPlan ?? 'free'}`
               : 'Not signed in — Pro upgrade required.'}
@@ -155,7 +155,7 @@ export default function SmartDocumentExtractorTool() {
           </label>
         </div>
 
-        <label className="mt-3 flex items-center gap-2 text-sm text-canvas-muted">
+        <label className="mt-3 flex items-center gap-2 text-sm font-medium leading-relaxed text-slate-200">
           <input
             type="checkbox"
             checked={forceFailsafe}
@@ -181,13 +181,13 @@ export default function SmartDocumentExtractorTool() {
       {loading && <ProTaskLoader active stages={stages} />}
 
       {error && (
-        <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" role="alert">
+        <p className="rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200" role="alert">
           {error}
         </p>
       )}
 
       {result?.success && !loading && (
-        <div className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/60 p-4 sm:p-5">
+        <div className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/60 p-4 sm:p-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent">Complete</p>
           <p className="mt-1 text-sm text-canvas-text">
             Scenario {result.scenario} — {result.description}

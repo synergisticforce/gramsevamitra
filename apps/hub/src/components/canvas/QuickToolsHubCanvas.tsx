@@ -94,7 +94,7 @@ export default function QuickToolsHubCanvas() {
   if (!hydrated) {
     return (
       <div className="flex min-h-[280px] items-center justify-center px-4 py-12">
-        <p className="text-sm text-canvas-subtle">Loading Quick Tools…</p>
+        <p className="text-sm font-medium leading-relaxed text-slate-200">Loading Quick Tools…</p>
       </div>
     );
   }
@@ -112,7 +112,7 @@ export default function QuickToolsHubCanvas() {
             </span>
             <div>
               <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Quick Tools</h1>
-              <p className="mt-1 text-sm text-canvas-muted">
+              <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
                 17 client-side utilities — calculators, planners, encoders, and home DIY tools, all offline.
               </p>
             </div>
@@ -139,7 +139,7 @@ export default function QuickToolsHubCanvas() {
                   </span>
                   <div>
                     <h2 className="text-lg font-bold text-canvas-text">{activeTool.label}</h2>
-                    <p className="text-sm text-canvas-subtle">{activeTool.description}</p>
+                    <p className="text-sm font-medium leading-relaxed text-slate-200">{activeTool.description}</p>
                   </div>
                 </div>
                 {renderTool(view, setToastMessage)}

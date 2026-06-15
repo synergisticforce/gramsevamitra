@@ -16,7 +16,7 @@ export default function OmniHandoffLoading({
         aria-hidden="true"
       />
       <p className="max-w-sm text-center text-sm font-medium text-canvas-muted">{label}</p>
-      <p className="max-w-sm text-center text-xs text-canvas-subtle">
+      <p className="max-w-sm text-center text-xs font-medium leading-relaxed text-slate-300">
         Your file stays in browser memory — nothing is uploaded to our servers.
       </p>
     </div>

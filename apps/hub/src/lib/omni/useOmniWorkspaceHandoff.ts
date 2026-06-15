@@ -46,7 +46,7 @@ export function useOmniWorkspaceHandoff({
           setStatus('error');
           clearOmniUrlParam();
           onError?.(
-            'Could not load your file from the Omni-Router. Drop it again on the homepage and retry.',
+            'Could not load your file from the previous step. Drop it again on the homepage and retry.',
           );
           return;
         }
@@ -58,7 +58,7 @@ export function useOmniWorkspaceHandoff({
         if (cancelled) return;
         setStatus('error');
         clearOmniUrlParam();
-        onError?.('Omni-Router handoff failed. Please drop your file again on the homepage.');
+        onError?.('File transfer failed. Please drop your file again on the homepage.');
       }
     })();
 

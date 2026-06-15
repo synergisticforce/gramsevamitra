@@ -20,10 +20,10 @@ function startConverterProgressTicker(
   onProgress: (progress: FileConverterProgress) => void
 ): () => void {
   let percent = 55;
-  onProgress({ label: 'Running high-fidelity serverless conversion…', percent });
+  onProgress({ label: 'Running high-fidelity conversion…', percent });
   const timer = window.setInterval(() => {
     percent = Math.min(92, percent + 2);
-    onProgress({ label: 'Running high-fidelity serverless conversion…', percent });
+    onProgress({ label: 'Running high-fidelity conversion…', percent });
   }, 600);
   return () => window.clearInterval(timer);
 }

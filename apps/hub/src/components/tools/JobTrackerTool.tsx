@@ -263,7 +263,7 @@ export default function JobTrackerTool() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-canvas-subtle">{totalJobs} application{totalJobs === 1 ? '' : 's'} tracked · saved locally</p>
+        <p className="text-xs font-medium leading-relaxed text-slate-300">{totalJobs} application{totalJobs === 1 ? '' : 's'} tracked · saved locally</p>
         <button type="button" onClick={openAddModal} className="btn-primary px-4 py-2 text-sm">+ Add job</button>
       </div>
 
@@ -297,7 +297,7 @@ export default function JobTrackerTool() {
                   <div className="flex items-start justify-between gap-2">
                     <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openEditModal(card)}>
                       <h3 className="truncate text-sm font-bold text-canvas-text">{card.company}</h3>
-                      <p className="mt-0.5 truncate text-xs text-canvas-subtle">{card.role}</p>
+                      <p className="mt-0.5 truncate text-xs font-medium leading-relaxed text-slate-300">{card.role}</p>
                     </button>
                     <button
                       type="button"

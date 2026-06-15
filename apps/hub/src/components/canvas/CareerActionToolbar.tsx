@@ -8,7 +8,7 @@ interface Props {
 export default function CareerActionToolbar({ actions, onActionClick }: Props) {
   if (actions.length === 0) {
     return (
-      <p className="rounded-xl border border-canvas-border bg-canvas-surface px-4 py-3 text-sm text-canvas-subtle">
+      <p className="rounded-xl border border-canvas-border bg-canvas-surface px-4 py-3 text-sm font-medium leading-relaxed text-slate-200">
         No actions available for this file type yet.
       </p>
     );
@@ -21,7 +21,7 @@ export default function CareerActionToolbar({ actions, onActionClick }: Props) {
           <p className="text-xs font-semibold uppercase tracking-wider text-canvas-subtle">Actions</p>
           <p className="mt-0.5 text-sm font-medium text-canvas-text">Choose what to do with this document</p>
         </div>
-        <span className="hidden text-xs text-canvas-subtle sm:inline">Free tools run locally · Pro uses serverless AI</span>
+        <span className="hidden text-xs font-medium leading-relaxed text-slate-300 sm:inline">Free tools run locally · Pro uses advanced AI</span>
       </div>
 
       <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
@@ -34,7 +34,7 @@ export default function CareerActionToolbar({ actions, onActionClick }: Props) {
                 onClick={() => onActionClick?.(action.id)}
                 className={`group relative flex w-full flex-col items-start gap-2 rounded-xl border px-3 py-3 text-left transition active:scale-[0.98] ${
                   isPro
-                    ? 'border-amber-200 bg-gradient-to-br from-amber-50 to-white hover:border-amber-300 hover:shadow-none'
+                    ? 'border-canvas-border bg-gradient-to-br from-amber-50 to-white hover:border-amber-300 hover:shadow-none'
                     : 'border-canvas-border bg-canvas-elevated hover:border-sky-300 hover:bg-canvas-surface hover:shadow-none'
                 }`}
               >

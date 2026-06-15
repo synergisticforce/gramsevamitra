@@ -150,7 +150,7 @@ export default function GstCalculatorTool() {
                 Tax inclusive
               </button>
             </div>
-            <p className="mt-2 text-xs text-canvas-subtle">
+            <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">
               {mode === 'exclusive'
                 ? 'Enter net price; GST is added to compute gross valuation.'
                 : 'Enter gross price; GST is extracted to reveal net price.'}
@@ -255,7 +255,7 @@ export default function GstCalculatorTool() {
           </dl>
         </div>
 
-        <p className="mt-4 text-center text-xs text-canvas-subtle">
+        <p className="mt-4 text-center text-xs font-medium leading-relaxed text-slate-300">
           {result
             ? mode === 'exclusive'
               ? `Net ${formatInr(result.net, 2)} + GST ${formatInr(result.gstTotal, 2)} = Gross ${formatInr(result.gross, 2)}`

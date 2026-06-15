@@ -87,7 +87,7 @@ export default function PdfToTextModal({ file, onClose, onSuccess, onProcessingC
             <h2 id="pdf-to-text-title" className="text-lg font-bold text-canvas-text">
               PDF to Text
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300 truncate">{file.name}</p>
           </div>
           <button
             type="button"
@@ -101,14 +101,14 @@ export default function PdfToTextModal({ file, onClose, onSuccess, onProcessingC
         </div>
 
         {busy ? (
-          <p className="mt-4 text-sm text-canvas-subtle">Extracting text from your PDF…</p>
+          <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">Extracting text from your PDF…</p>
         ) : error ? (
-          <p className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-4 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         ) : (
           <>
-            <p className="mt-4 text-sm text-canvas-muted">
+            <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">
               Extracted text from{' '}
               <span className="font-semibold text-canvas-text">{pageCount}</span> page
               {pageCount === 1 ? '' : 's'}. Copy or download instantly — nothing leaves your device.

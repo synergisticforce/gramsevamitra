@@ -48,7 +48,7 @@ export default function CareerAiResultModal({ result, onClose, onSuccess }: Prop
               {result.title}
             </h2>
             {result.processingMs != null && result.processingMs > 0 && (
-              <p className="mt-0.5 text-xs text-canvas-subtle">
+              <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-300">
                 Processed in {Math.round(result.processingMs / 1000)}s · mock edge LLM
               </p>
             )}

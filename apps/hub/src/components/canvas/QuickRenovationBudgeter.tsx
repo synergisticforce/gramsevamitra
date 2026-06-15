@@ -149,7 +149,7 @@ export default function QuickRenovationBudgeter() {
           </ul>
           <div className="mt-4 border-t border-slate-100 pt-3">
             {( ['materials', 'labor', 'other'] as BudgetLineCategory[]).map((cat) => (
-              <div key={cat} className="flex justify-between text-xs text-canvas-subtle">
+              <div key={cat} className="flex justify-between text-xs font-medium leading-relaxed text-slate-300">
                 <span>{BUDGET_CATEGORY_LABELS[cat]}</span>
                 <span>{formatInr(summary[cat])}</span>
               </div>

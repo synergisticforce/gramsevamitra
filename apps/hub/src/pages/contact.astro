@@ -119,12 +119,12 @@ const fieldClass =
     statusEl.textContent = message;
     statusEl.classList.remove(
       'hidden',
-      'border-emerald-200',
+      'border-canvas-border',
       'bg-canvas-accent-soft',
       'text-canvas-accent',
-      'border-rose-200',
-      'bg-rose-50',
-      'text-rose-800',
+      'border-canvas-border',
+      'bg-canvas-danger-soft/30',
+      'text-rose-200',
       'border-emerald-800/60',
       'bg-canvas-accent-soft/40',
       'text-canvas-accent',
@@ -133,9 +133,9 @@ const fieldClass =
       'text-rose-300'
     );
     if (type === 'success') {
-      statusEl.classList.add('border-emerald-200', 'bg-canvas-accent-soft', 'text-canvas-accent');
+      statusEl.classList.add('border-canvas-border', 'bg-canvas-accent-soft', 'text-canvas-accent');
     } else {
-      statusEl.classList.add('border-rose-200', 'bg-rose-50', 'text-rose-800');
+      statusEl.classList.add('border-canvas-border', 'bg-canvas-danger-soft/30', 'text-rose-200');
     }
   }
 

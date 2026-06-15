@@ -13,7 +13,7 @@ function MeterBar({ metrics, label }: { metrics: SeoFieldMetrics; label: string 
   const charPct = Math.min(100, (metrics.chars / metrics.charLimit) * 100);
   const pixelPct = Math.min(100, (metrics.pixels / metrics.pixelLimit) * 100);
   const statusColor = (s: SeoFieldMetrics['charStatus']) =>
-    s === 'error' ? 'bg-rose-500' : s === 'warn' ? 'bg-amber-400' : 'bg-canvas-accent-soft0';
+    s === 'error' ? 'bg-canvas-danger-soft/300' : s === 'warn' ? 'bg-amber-400' : 'bg-canvas-accent-soft0';
 
   return (
     <div className="space-y-2">
@@ -205,7 +205,7 @@ export default function SeoMetaGeneratorTool() {
                   <img src={ogImage} alt="" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 </div>
               ) : (
-                <div className="flex aspect-[1.91/1] items-center justify-center bg-slate-300 text-sm text-canvas-subtle">
+                <div className="flex aspect-[1.91/1] items-center justify-center bg-slate-300 text-sm font-medium leading-relaxed text-slate-200">
                   OG image preview
                 </div>
               )}

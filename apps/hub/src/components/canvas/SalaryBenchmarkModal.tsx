@@ -59,7 +59,7 @@ export default function SalaryBenchmarkModal({ onClose, onSuccess }: Props) {
             <h2 id="salary-benchmark-title" className="text-lg font-bold text-canvas-text">
               📊 Salary Benchmarking
             </h2>
-            <p className="mt-1 text-sm text-canvas-subtle">
+            <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
               Indicative CTC ranges by role, experience, and region — offline static data.
             </p>
           </div>
@@ -139,7 +139,7 @@ export default function SalaryBenchmarkModal({ onClose, onSuccess }: Props) {
         </div>
 
         {result && (
-          <div className="mt-5 rounded-xl border border-sky-200 bg-sky-50 p-4">
+          <div className="mt-5 rounded-xl border border-canvas-border bg-canvas-elevated p-4">
             <p className="text-sm font-bold text-sky-900">{result.role}</p>
             <p className="mt-0.5 text-xs text-sky-700">
               {result.experienceLabel} · {result.regionLabel}

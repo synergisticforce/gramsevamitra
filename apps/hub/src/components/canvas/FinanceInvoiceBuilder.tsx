@@ -101,7 +101,7 @@ export default function FinanceInvoiceBuilder() {
         </button>
         {error && <p className="text-sm text-rose-600">{error}</p>}
       </section>
-      <section className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/50 p-5">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/50 p-5">
         <p className="text-xs font-semibold uppercase text-canvas-accent">Live preview</p>
         <p className="mt-2 text-2xl font-bold text-emerald-900">{formatInr(totals.total)}</p>
         <pre className="mt-4 max-h-96 overflow-y-auto whitespace-pre-wrap rounded-xl border border-canvas-border bg-canvas-surface p-4 font-sans text-[11px] leading-relaxed text-canvas-text">{preview}</pre>

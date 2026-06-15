@@ -80,7 +80,7 @@ export default function MarginCalculatorTool() {
         <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">
           Margin &amp; markup matrix
         </h2>
-        <p className="mt-2 text-xs text-canvas-subtle">
+        <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">
           Edit any two fields — the remaining values resolve automatically across the model.
         </p>
 
@@ -167,7 +167,7 @@ export default function MarginCalculatorTool() {
 
           {profitBar > 0 && (
             <div>
-              <div className="mb-1 flex justify-between text-xs text-canvas-subtle">
+              <div className="mb-1 flex justify-between text-xs font-medium leading-relaxed text-slate-300">
                 <span>Cost portion</span>
                 <span>Profit margin</span>
               </div>
@@ -181,7 +181,7 @@ export default function MarginCalculatorTool() {
           {displayModel.cost !== null &&
             displayModel.revenue !== null &&
             displayModel.grossProfit !== null && (
-              <p className="text-center text-xs text-canvas-subtle">
+              <p className="text-center text-xs font-medium leading-relaxed text-slate-300">
                 Selling at {formatInr(displayModel.revenue, 2)} with cost {formatInr(displayModel.cost, 2)} yields{' '}
                 {formatInr(displayModel.grossProfit, 2)} profit (
                 {displayModel.marginPct?.toFixed(1)}% margin, {displayModel.markupPct?.toFixed(1)}% markup).

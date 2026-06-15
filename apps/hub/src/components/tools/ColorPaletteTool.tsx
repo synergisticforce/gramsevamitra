@@ -139,8 +139,8 @@ export default function ColorPaletteTool() {
           onDragLeave={() => setIsDragging(false)}
           onDrop={onDrop}
         >
-          <p className="text-sm text-canvas-muted">Drag &amp; drop an image here</p>
-          <p className="mt-1 text-xs text-canvas-subtle">Processed locally via HTML5 Canvas — never uploaded</p>
+          <p className="text-sm font-medium leading-relaxed text-slate-200">Drag &amp; drop an image here</p>
+          <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">Processed locally via HTML5 Canvas — never uploaded</p>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -179,7 +179,7 @@ export default function ColorPaletteTool() {
               Generate (Space)
             </button>
           </div>
-          <p className="mt-2 text-xs text-canvas-subtle">Press Space or click to shuffle a harmonized 5-color palette.</p>
+          <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">Press Space or click to shuffle a harmonized 5-color palette.</p>
         </section>
       )}
 

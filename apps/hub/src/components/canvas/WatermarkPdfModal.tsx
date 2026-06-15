@@ -89,7 +89,7 @@ export default function WatermarkPdfModal({
             <h2 id="watermark-pdf-title" className="text-lg font-bold text-canvas-text">
               Add Watermark
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300 truncate">{file.name}</p>
           </div>
           <button
             type="button"
@@ -152,7 +152,7 @@ export default function WatermarkPdfModal({
         </fieldset>
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}

@@ -107,7 +107,7 @@ export default function FinanceEnvelopeBudgetPlanner() {
           <p className="text-xs font-semibold uppercase text-canvas-subtle">Total spent</p>
           <p className="mt-1 text-xl font-bold text-canvas-text">{formatInr(summary.totalSpent)}</p>
         </div>
-        <div className="rounded-2xl border border-emerald-200 bg-canvas-accent-soft/80 p-4">
+        <div className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/80 p-4">
           <p className="text-xs font-semibold uppercase text-canvas-accent">Remaining</p>
           <p className={`mt-1 text-xl font-bold ${summary.remaining >= 0 ? 'text-emerald-900' : 'text-rose-700'}`}>
             {formatInr(summary.remaining)}
@@ -141,22 +141,22 @@ export default function FinanceEnvelopeBudgetPlanner() {
               <div key={env.id} className="rounded-xl border border-slate-100 bg-canvas-elevated p-4">
                 <div className="grid gap-2 sm:grid-cols-3">
                   <input value={env.name} onChange={(e) => updateEnvelope(index, { name: e.target.value })} className={inputClass} />
-                  <label className="text-xs text-canvas-subtle">
+                  <label className="text-xs font-medium leading-relaxed text-slate-300">
                     Budget
                     <input type="number" min={0} value={env.budget} onChange={(e) => updateEnvelope(index, { budget: Number(e.target.value) || 0 })} className={`${inputClass} mt-1`} />
                   </label>
-                  <label className="text-xs text-canvas-subtle">
+                  <label className="text-xs font-medium leading-relaxed text-slate-300">
                     Spent
                     <input type="number" min={0} value={env.spent} onChange={(e) => updateEnvelope(index, { spent: Number(e.target.value) || 0 })} className={`${inputClass} mt-1`} />
                   </label>
                 </div>
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-canvas-elevated">
                   <div
-                    className={`h-full rounded-full transition-all ${over ? 'bg-rose-500' : 'bg-canvas-accent-soft0'}`}
+                    className={`h-full rounded-full transition-all ${over ? 'bg-canvas-danger-soft/300' : 'bg-canvas-accent-soft0'}`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <p className="mt-1 text-xs text-canvas-subtle">
+                <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
                   {formatInr(env.spent)} of {formatInr(env.budget)} ({pct.toFixed(0)}%)
                 </p>
               </div>

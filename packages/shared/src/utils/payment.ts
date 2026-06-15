@@ -125,9 +125,7 @@ export async function initiatePayment(config: PaymentConfig): Promise<void> {
     return;
   }
 
-  config.onError?.(
-    'Payment gateway not configured. Set PUBLIC_RAZORPAY_KEY_ID or PUBLIC_INSTAMOJO_PAYMENT_LINK in environment variables.'
-  );
+  config.onError?.('Payment gateway temporarily unavailable. Please try again later.');
 }
 
 export function getUsageCount(storageKey: string): number {

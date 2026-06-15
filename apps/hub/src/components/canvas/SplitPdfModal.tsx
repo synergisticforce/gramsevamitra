@@ -101,7 +101,7 @@ export default function SplitPdfModal({ file, onClose, onSuccess, onProcessingCh
             <h2 id="split-pdf-title" className="text-lg font-bold text-canvas-text">
               Split PDF
             </h2>
-            <p className="mt-1 text-xs text-canvas-subtle truncate">{file.name}</p>
+            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300 truncate">{file.name}</p>
           </div>
           <button
             type="button"
@@ -115,10 +115,10 @@ export default function SplitPdfModal({ file, onClose, onSuccess, onProcessingCh
         </div>
 
         {loadingMeta ? (
-          <p className="mt-4 text-sm text-canvas-subtle">Reading page count…</p>
+          <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">Reading page count…</p>
         ) : (
           <>
-            <p className="mt-4 text-sm text-canvas-muted">
+            <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">
               This PDF has <span className="font-semibold text-canvas-text">{pageCount}</span>{' '}
               page{pageCount === 1 ? '' : 's'}. Enter pages to extract (1-based).
             </p>
@@ -135,12 +135,12 @@ export default function SplitPdfModal({ file, onClose, onSuccess, onProcessingCh
                 className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 disabled:bg-canvas-elevated"
               />
             </label>
-            <p className="mt-1.5 text-xs text-canvas-subtle">Examples: 1-3, 5, 2-4, 7</p>
+            <p className="mt-1.5 text-xs font-medium leading-relaxed text-slate-300">Examples: 1-3, 5, 2-4, 7</p>
           </>
         )}
 
         {error && (
-          <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <p className="mt-3 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
           </p>
         )}
