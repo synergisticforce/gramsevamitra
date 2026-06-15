@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
  * Production deploy orchestrator: auth → build → deploy → verify.
- * Payment gateways are disabled — all tools are free.
  */
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
@@ -13,9 +12,6 @@ const ROOT = path.resolve(__dirname, '..');
 
 const LIVE_ENDPOINTS = [
   { name: 'hub', url: 'https://gramsevamitra.com', dist: 'apps/hub/dist/_headers' },
-  { name: 'optimizer', url: 'https://optimizer.gramsevamitra.com', dist: 'apps/optimizer/dist/_headers' },
-  { name: 'resume', url: 'https://resume.gramsevamitra.com', dist: 'apps/resume/dist/_headers' },
-  { name: 'pdf', url: 'https://pdf.gramsevamitra.com', dist: 'apps/pdf/dist/_headers' },
 ];
 
 function run(cmd) {
@@ -49,20 +45,18 @@ async function verifyLiveEndpoints() {
     }
   }
 
-  for (const project of ['gramsevamitra-hub', 'gramsevamitra-optimizer', 'gramsevamitra-resume', 'gramsevamitra-pdf']) {
-    const previewUrl = `https://${project}.pages.dev/`;
-    try {
-      const res = await fetch(previewUrl, { redirect: 'follow' });
-      const robots = res.headers.get('x-robots-tag') || '(preview — noindex via Pages env)';
-      console.log(`${previewUrl} → HTTP ${res.status} | X-Robots-Tag: ${robots}`);
-    } catch {
-      console.log(`${previewUrl} → not yet provisioned or DNS pending`);
-    }
+  const previewUrl = 'https://gramsevamitra-hub.pages.dev/';
+  try {
+    const res = await fetch(previewUrl, { redirect: 'follow' });
+    const robots = res.headers.get('x-robots-tag') || '(preview — noindex via Pages env)';
+    console.log(`${previewUrl} → HTTP ${res.status} | X-Robots-Tag: ${robots}`);
+  } catch {
+    console.log(`${previewUrl} → not yet provisioned or DNS pending`);
   }
 }
 
 async function main() {
-  console.log('GramSeva Mitra — PRODUCTION DEPLOY (100% Free)\n');
+  console.log('GramSeva Mitra — PRODUCTION DEPLOY\n');
 
   run('node scripts/cf-auth.mjs');
   run('node scripts/sync-public.mjs');

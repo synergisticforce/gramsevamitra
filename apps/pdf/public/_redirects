@@ -1,2 +1,0 @@
-# Tool routes are served directly by this deployment — no trailing-slash redirects.
-# Unknown paths fall through to static 404.html (no SPA catch-all).

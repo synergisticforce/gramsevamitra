@@ -20,34 +20,13 @@ const PROJECTS = [
     cnameTarget: 'gramsevamitra-hub.pages.dev',
     dnsHosts: ['@', 'www', 'utilities'],
   },
-  {
-    project: 'gramsevamitra-optimizer',
-    domains: ['optimizer.gramsevamitra.com'],
-    cnameTarget: 'gramsevamitra-optimizer.pages.dev',
-    dnsHosts: ['optimizer'],
-  },
-  {
-    project: 'gramsevamitra-resume',
-    domains: ['resume.gramsevamitra.com'],
-    cnameTarget: 'gramsevamitra-resume.pages.dev',
-    dnsHosts: ['resume'],
-  },
-  {
-    project: 'gramsevamitra-pdf',
-    domains: ['pdf.gramsevamitra.com'],
-    cnameTarget: 'gramsevamitra-pdf.pages.dev',
-    dnsHosts: ['pdf'],
-  },
 ];
 
 const LIVE_URLS = [
   'https://gramsevamitra.com',
   'https://www.gramsevamitra.com',
   'https://utilities.gramsevamitra.com',
-  'https://utilities.gramsevamitra.com/tools',
-  'https://optimizer.gramsevamitra.com',
-  'https://resume.gramsevamitra.com',
-  'https://pdf.gramsevamitra.com',
+  'https://utilities.gramsevamitra.com/workspace/documents',
 ];
 
 function getApiToken() {
@@ -161,7 +140,7 @@ async function detachLegacyWorkerDomains(oauthToken) {
 async function configureDns(token, zoneId) {
   console.log('\n=== 2. DNS zone record overrides ===');
 
-  const allHosts = ['@', 'www', 'utilities', 'optimizer', 'resume', 'pdf'];
+  const allHosts = ['@', 'www', 'utilities'];
   let page = 1;
   const records = [];
   while (true) {
@@ -201,9 +180,6 @@ async function configureDns(token, zoneId) {
     { name: ZONE_NAME, content: 'gramsevamitra-hub.pages.dev', host: '@' },
     { name: `www.${ZONE_NAME}`, content: 'gramsevamitra-hub.pages.dev', host: 'www' },
     { name: `utilities.${ZONE_NAME}`, content: 'gramsevamitra-hub.pages.dev', host: 'utilities' },
-    { name: `optimizer.${ZONE_NAME}`, content: 'gramsevamitra-optimizer.pages.dev', host: 'optimizer' },
-    { name: `resume.${ZONE_NAME}`, content: 'gramsevamitra-resume.pages.dev', host: 'resume' },
-    { name: `pdf.${ZONE_NAME}`, content: 'gramsevamitra-pdf.pages.dev', host: 'pdf' },
   ];
 
   for (const { name, content, host } of cnames) {
@@ -281,10 +257,9 @@ async function verifyEndpoints() {
       const title = html.match(/<title>([^<]*)<\/title>/i)?.[1]?.trim() || '(no title)';
       const isNew =
         title.includes('Digital Empowerment') ||
-        title.includes('Document Optimizer') ||
-        title.includes('ATS Resume') ||
-        title.includes('PDF Micro-Tools') ||
-        title.includes('GramSeva Mitra —');
+        title.includes('GramSeva Mitra —') ||
+        title.includes('Document Studio') ||
+        title.includes('GramSeva Mitra');
       const status = isNew ? 'NEW toolkit' : `OLD/other (${title.slice(0, 50)})`;
       console.log(`${url}`);
       console.log(`  HTTP ${res.status} | X-Robots-Tag: ${robots} | ${status}`);

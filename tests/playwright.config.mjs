@@ -22,9 +22,9 @@ export default {
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npm run build:optimizer && npm run preview:optimizer',
+    command: 'npm run build:hub && npm run preview:hub',
     cwd: root,
-    url: 'http://localhost:4322',
+    url: 'http://localhost:4321',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

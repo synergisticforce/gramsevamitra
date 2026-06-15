@@ -15,16 +15,10 @@ const ROOT = path.resolve(__dirname, '..');
 const ENV_PATHS = [
   path.join(ROOT, '.env'),
   path.join(ROOT, 'apps/hub/.env'),
-  path.join(ROOT, 'apps/optimizer/.env'),
-  path.join(ROOT, 'apps/resume/.env'),
-  path.join(ROOT, 'apps/pdf/.env'),
 ];
 
 const PROJECTS = [
   { name: 'gramsevamitra-hub', domain: 'gramsevamitra.com' },
-  { name: 'gramsevamitra-optimizer', domain: 'optimizer.gramsevamitra.com' },
-  { name: 'gramsevamitra-resume', domain: 'resume.gramsevamitra.com' },
-  { name: 'gramsevamitra-pdf', domain: 'pdf.gramsevamitra.com' },
 ];
 
 const PLACEHOLDER = [/your_key/i, /replace_me/i, /@your-handle/i, /your-handle/];
@@ -248,17 +242,10 @@ async function main() {
     run('npm run build');
 
     for (const p of PROJECTS) {
-      const headers = path.join(ROOT, 'apps', p.name.replace('gramsevamitra-', ''), 'dist', '_headers');
-      const alt = {
-        'gramsevamitra-hub': 'hub',
-        'gramsevamitra-optimizer': 'optimizer',
-        'gramsevamitra-resume': 'resume',
-        'gramsevamitra-pdf': 'pdf',
-      }[p.name];
-      const hp = path.join(ROOT, 'apps', alt, 'dist', '_headers');
+      const hp = path.join(ROOT, 'apps/hub/dist', '_headers');
       const c = readFileSync(hp, 'utf8');
       if (!c.includes('X-Robots-Tag: index, follow')) throw new Error(`${p.name}: missing index,follow in _headers`);
-      console.log(`✓ ${alt}: _headers verified`);
+      console.log(`✓ hub: _headers verified`);
     }
 
     run('node scripts/deploy-all.mjs');

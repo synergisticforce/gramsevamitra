@@ -1,7 +1,6 @@
 ---
 import AppShellLayout from '../../layouts/AppShellLayout.astro';
 import { formatSeoTitle } from '@shared/config/seo';
-import { SITES } from '@shared/config/sites';
 
 const pageTitle = formatSeoTitle('Welcome to Pro', 'GramSeva Mitra');
 ---
@@ -23,11 +22,10 @@ const pageTitle = formatSeoTitle('Welcome to Pro', 'GramSeva Mitra');
         Back to app
       </a>
       <a
-        href={`${SITES.pdf.url}/studio`}
-        data-astro-reload
+        href="/workspace/documents"
         class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
       >
-        Open PDF Studio
+        Open Document Studio
       </a>
     </div>
   </div>

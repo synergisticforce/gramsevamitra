@@ -1,8 +1,0 @@
-# Resume — resume.gramsevamitra.com
-
-[build]
-command = "cd ../.. && npm ci && node scripts/sync-public.mjs && node scripts/generate-pwa-icons.mjs && npm run build --workspace=@gramsevamitra/resume"
-publish = "dist"
-
-[build.environment]
-NODE_VERSION = "20"

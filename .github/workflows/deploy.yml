@@ -33,12 +33,6 @@ jobs:
           path: |
             apps/hub/node_modules/.astro
             apps/hub/node_modules/.vite
-            apps/pdf/node_modules/.astro
-            apps/pdf/node_modules/.vite
-            apps/resume/node_modules/.astro
-            apps/resume/node_modules/.vite
-            apps/optimizer/node_modules/.astro
-            apps/optimizer/node_modules/.vite
             node_modules/.cache
           key: ${{ runner.os }}-astro-vite-${{ hashFiles('package-lock.json') }}-${{ hashFiles('apps/**/**', 'packages/**/**') }}
           restore-keys: |
@@ -59,17 +53,11 @@ jobs:
       - name: Validate tools registry
         run: npm run validate:tools
 
-      - name: Build all apps
+      - name: Build hub
         run: npm run build
 
       - name: Production sanity check
         run: npm run prod-check
-
-      - name: Install Playwright Chromium
-        run: npx playwright install chromium
-
-      - name: QA stress test (optimizer 3G compression)
-        run: npm run test:stress
 
       - name: Deploy dry-run validation
         run: npm run deploy:dry-run
@@ -79,27 +67,6 @@ jobs:
         with:
           name: hub-dist
           path: apps/hub/dist
-          retention-days: 7
-
-      - name: Upload optimizer artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: optimizer-dist
-          path: apps/optimizer/dist
-          retention-days: 7
-
-      - name: Upload pdf artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: pdf-dist
-          path: apps/pdf/dist
-          retention-days: 7
-
-      - name: Upload resume artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: resume-dist
-          path: apps/resume/dist
           retention-days: 7
 
   deploy-hub:
@@ -127,72 +94,3 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --config apps/hub/wrangler.toml
-
-  deploy-optimizer:
-    name: Deploy Optimizer
-    needs: build-and-verify
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production')
-    runs-on: ubuntu-latest
-    environment: production
-    permissions:
-      contents: read
-      deployments: write
-    steps:
-      - name: Download optimizer artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: optimizer-dist
-          path: apps/optimizer/dist
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/optimizer/dist --project-name=gramsevamitra-optimizer --branch=main
-
-  deploy-pdf:
-    name: Deploy PDF
-    needs: build-and-verify
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production')
-    runs-on: ubuntu-latest
-    environment: production
-    permissions:
-      contents: read
-      deployments: write
-    steps:
-      - name: Download pdf artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: pdf-dist
-          path: apps/pdf/dist
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/pdf/dist --project-name=gramsevamitra-pdf --branch=main
-
-  deploy-resume:
-    name: Deploy Resume
-    needs: build-and-verify
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production')
-    runs-on: ubuntu-latest
-    environment: production
-    permissions:
-      contents: read
-      deployments: write
-    steps:
-      - name: Download resume artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: resume-dist
-          path: apps/resume/dist
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/resume/dist --project-name=gramsevamitra-resume --branch=main

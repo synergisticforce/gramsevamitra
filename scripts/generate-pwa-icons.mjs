@@ -9,7 +9,7 @@ import { deflateSync } from 'node:zlib';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
-const apps = ['hub', 'optimizer', 'resume'];
+const apps = ['hub'];
 const sizes = [192, 512];
 
 function crc32(buf) {

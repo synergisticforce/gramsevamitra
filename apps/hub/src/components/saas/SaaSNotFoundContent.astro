@@ -6,28 +6,15 @@ import { SITES } from '@shared/config/sites';
   <p class="text-6xl font-extrabold tabular-nums text-slate-200" aria-hidden="true">404</p>
   <h1 class="mt-4 text-2xl font-bold text-slate-900 sm:text-3xl">Page not found</h1>
   <p class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-600">
-    This page does not exist or may have moved. Search our free tools or return to the homepage.
+    This page does not exist or may have moved. Return to the workspace or contact support.
   </p>
-
-  <div class="mx-auto mt-8 max-w-md">
-    <button
-      type="button"
-      id="saas-404-search-trigger"
-      class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm text-slate-500 shadow-sm transition hover:border-slate-300"
-    >
-      <span>Search tools…</span>
-      <kbd class="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
-        ⌘K
-      </kbd>
-    </button>
-  </div>
 
   <div class="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
     <a
-      href={SITES.hub.url}
+      href="/workspace/documents"
       class="inline-flex w-full max-w-xs items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto"
     >
-      Back to homepage
+      Back to workspace
     </a>
     <a
       href={`${SITES.hub.url}/contact`}
@@ -37,9 +24,3 @@ import { SITES } from '@shared/config/sites';
     </a>
   </div>
 </section>
-
-<script>
-  document.getElementById('saas-404-search-trigger')?.addEventListener('click', () => {
-    window.dispatchEvent(new CustomEvent('gsm-omni-search-open'));
-  });
-</script>

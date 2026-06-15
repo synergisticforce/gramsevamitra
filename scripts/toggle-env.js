@@ -24,8 +24,6 @@ const ROOT = path.resolve(__dirname, '..');
 const ENV_PATHS = [
   path.join(ROOT, '.env'),
   path.join(ROOT, 'apps/hub/.env'),
-  path.join(ROOT, 'apps/optimizer/.env'),
-  path.join(ROOT, 'apps/resume/.env'),
 ];
 
 const VAULT_KEYS = {

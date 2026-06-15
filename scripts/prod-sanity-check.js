@@ -12,9 +12,6 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 /** @type {{ name: string; dist: string }[]} */
 const APPS = [
   { name: 'hub', dist: 'apps/hub/dist' },
-  { name: 'optimizer', dist: 'apps/optimizer/dist' },
-  { name: 'pdf', dist: 'apps/pdf/dist' },
-  { name: 'resume', dist: 'apps/resume/dist' },
 ];
 
 /** @type {{ rel: string; label: string }[]} */
@@ -98,4 +95,4 @@ if (failures > 0) {
   process.exit(1);
 }
 
-console.log('✓ Production sanity check passed for all apps.');
+console.log('✓ Production sanity check passed for hub.');

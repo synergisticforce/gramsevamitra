@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const sharedPublic = path.resolve(root, 'packages/shared/public');
 const rootRobots = path.resolve(root, 'robots.txt');
-const apps = ['hub', 'optimizer', 'resume', 'pdf'];
+const apps = ['hub'];
 
 for (const app of apps) {
   const dest = path.resolve(root, 'apps', app, 'public');
@@ -20,4 +20,4 @@ for (const app of apps) {
   }
 }
 
-console.log('Synced public assets to all apps.');
+console.log('Synced public assets to hub app.');

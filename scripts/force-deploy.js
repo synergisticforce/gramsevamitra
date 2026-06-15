@@ -19,24 +19,6 @@ const TARGETS = [
     buildScript: 'build:hub',
     domain: 'gramsevamitra.com',
   },
-  {
-    project: 'gramsevamitra-pdf',
-    distDir: 'apps/pdf/dist',
-    buildScript: 'build:pdf',
-    domain: 'pdf.gramsevamitra.com',
-  },
-  {
-    project: 'gramsevamitra-optimizer',
-    distDir: 'apps/optimizer/dist',
-    buildScript: 'build:optimizer',
-    domain: 'optimizer.gramsevamitra.com',
-  },
-  {
-    project: 'gramsevamitra-resume',
-    distDir: 'apps/resume/dist',
-    buildScript: 'build:resume',
-    domain: 'resume.gramsevamitra.com',
-  },
 ];
 
 function loadEnvFile() {
@@ -194,7 +176,7 @@ async function forceDeploy() {
     console.log(`  ${project} (${method})`);
     console.log(`    ${url ?? '—'}`);
   }
-  console.log('\n✓ All monorepo apps processed successfully.\n');
+  console.log('\n✓ Hub deployment processed successfully.\n');
 }
 
 forceDeploy().catch((err) => {
