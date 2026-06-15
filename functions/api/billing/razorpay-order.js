@@ -1,18 +1,37 @@
 import { jsonResponse } from '../../_lib/json.mjs';
+import { getBillingConfigDiagnostics, withRazorpayEnv } from '../../_lib/billingEnv.mjs';
 import { getSessionUser } from '../../_lib/session.mjs';
 import { PRO_ORDER_AMOUNT_PAISE, PRO_ORDER_CURRENCY } from '../../_lib/proBilling.mjs';
 import { createProOrder } from '../../_lib/razorpay.mjs';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
+  const billing = getBillingConfigDiagnostics(env);
 
-  if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET) {
-    return jsonResponse({ error: 'Billing is not configured yet.' }, 503);
+  if (!billing.configured) {
+    console.error('[billing/razorpay-order] Billing not configured. Missing:', billing.missing.join(', '));
+    return jsonResponse(
+      {
+        error: 'Billing is not configured yet. Set Razorpay server secrets in Cloudflare Pages.',
+        code: 'BILLING_NOT_CONFIGURED',
+        missing: billing.missing,
+      },
+      503,
+    );
   }
 
   const user = await getSessionUser(request, env);
-  if (!user?.id || !user.email) {
-    return jsonResponse({ error: 'Sign in with Google to upgrade to Pro.' }, 401);
+  if (!user?.id) {
+    console.warn('[billing/razorpay-order] Session missing user.id');
+    return jsonResponse({ error: 'Sign in with Google to upgrade to Pro.', code: 'AUTH_REQUIRED' }, 401);
+  }
+
+  if (!user.email) {
+    console.warn('[billing/razorpay-order] Session missing user.email for user', user.id);
+    return jsonResponse(
+      { error: 'Your account is missing an email address. Re-sign in with Google.', code: 'EMAIL_REQUIRED' },
+      401,
+    );
   }
 
   if (user.plan === 'pro') {
@@ -27,9 +46,10 @@ export async function onRequestPost(context) {
   }
 
   const feature = typeof body.feature === 'string' ? body.feature.slice(0, 120) : 'pro_upgrade';
+  const billingEnv = withRazorpayEnv(env);
 
   try {
-    const order = await createProOrder(env, {
+    const order = await createProOrder(billingEnv, {
       userId: user.id,
       email: user.email,
       feature,
@@ -38,12 +58,12 @@ export async function onRequestPost(context) {
     const orderAmount = Number(order.amount);
     if (orderAmount !== PRO_ORDER_AMOUNT_PAISE) {
       console.error(
-        `Razorpay order amount mismatch: expected ${PRO_ORDER_AMOUNT_PAISE}, got ${orderAmount} (order ${order.id})`,
+        `[billing/razorpay-order] Amount mismatch: expected ${PRO_ORDER_AMOUNT_PAISE}, got ${orderAmount} (order ${order.id})`,
       );
     }
 
     return jsonResponse({
-      keyId: env.RAZORPAY_KEY_ID,
+      keyId: billing.keyId,
       orderId: order.id,
       amount: PRO_ORDER_AMOUNT_PAISE,
       currency: order.currency ?? PRO_ORDER_CURRENCY,
@@ -51,8 +71,22 @@ export async function onRequestPost(context) {
       userEmail: user.email,
     });
   } catch (err) {
-    console.error('Razorpay order error:', err);
-    return jsonResponse({ error: 'Unable to create payment order. Please try again.' }, 500);
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    console.error('[billing/razorpay-order] Razorpay order creation failed', {
+      userId: user.id,
+      email: user.email,
+      feature,
+      message,
+      stack,
+    });
+    return jsonResponse(
+      {
+        error: 'Unable to create payment order. Please try again.',
+        code: 'RAZORPAY_ORDER_FAILED',
+      },
+      500,
+    );
   }
 }
 

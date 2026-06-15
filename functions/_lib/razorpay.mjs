@@ -2,19 +2,19 @@ import {
   PRO_ORDER_AMOUNT_PAISE,
   PRO_ORDER_CURRENCY,
 } from './proBilling.mjs';
+import { withRazorpayEnv } from './billingEnv.mjs';
 
 export { PRO_ORDER_AMOUNT_PAISE, PRO_ORDER_CURRENCY };
 
 /**
- * @param {import('@gramsevamitra/auth').AuthEnv & {
- *   RAZORPAY_KEY_ID: string;
- *   RAZORPAY_KEY_SECRET: string;
- * }} env
+ * @param {import('@gramsevamitra/auth').AuthEnv & Record<string, string | undefined>} env
  */
 function assertRazorpayKeys(env) {
-  if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET) {
+  const billingEnv = withRazorpayEnv(env);
+  if (!billingEnv.RAZORPAY_KEY_ID || !billingEnv.RAZORPAY_KEY_SECRET) {
     throw new Error('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are not configured');
   }
+  return billingEnv;
 }
 
 /**
@@ -24,8 +24,8 @@ function assertRazorpayKeys(env) {
  * }} env
  */
 function razorpayAuthHeader(env) {
-  assertRazorpayKeys(env);
-  return `Basic ${btoa(`${env.RAZORPAY_KEY_ID}:${env.RAZORPAY_KEY_SECRET}`)}`;
+  const billingEnv = assertRazorpayKeys(env);
+  return `Basic ${btoa(`${billingEnv.RAZORPAY_KEY_ID}:${billingEnv.RAZORPAY_KEY_SECRET}`)}`;
 }
 
 /**

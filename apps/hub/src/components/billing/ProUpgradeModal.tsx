@@ -145,6 +145,14 @@ export default function ProUpgradeModal() {
         return;
       }
 
+      if (response.status === 503 && result.error?.includes('not configured')) {
+        setError(
+          'Pro billing is not registered on the server yet. Ask support to set RAZORPAY_KEY_SECRET in Cloudflare Pages.',
+        );
+        setLoading(false);
+        return;
+      }
+
       if (!response.ok || !result.orderId || !result.keyId) {
         setError(result.error ?? 'Unable to start checkout.');
         setLoading(false);
@@ -251,8 +259,8 @@ export default function ProUpgradeModal() {
         </div>
 
         <div className="space-y-4 px-5 py-5">
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800">Pro plan</p>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-600">Pro plan</p>
             <p className="mt-1 text-2xl font-extrabold tabular-nums text-slate-900">
               {PRO_PRICE_LABEL}
               <span className="text-base font-semibold text-slate-500">{PRO_PRICE_INTERVAL}</span>

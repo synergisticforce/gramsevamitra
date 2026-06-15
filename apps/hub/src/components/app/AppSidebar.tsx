@@ -9,8 +9,8 @@ interface Props {
 function linkClass(isActive: boolean): string {
   return `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
     isActive
-      ? 'bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200'
-      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+      ? 'bg-slate-200/80 text-slate-800 ring-1 ring-slate-300'
+      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
   }`;
 }
 

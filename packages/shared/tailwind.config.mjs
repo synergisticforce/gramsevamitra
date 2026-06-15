@@ -16,6 +16,15 @@ export default {
           'sans-serif',
         ],
       },
+      colors: {
+        canvas: {
+          bg: '#f1f5f9',
+          surface: '#ffffff',
+          border: '#cbd5e1',
+          accent: '#64748b',
+          'accent-muted': '#94a3b8',
+        },
+      },
       animation: {
         'gauge-fill': 'gauge-fill 1.2s ease-out forwards',
         'fade-in': 'fade-in 0.4s ease-out forwards',

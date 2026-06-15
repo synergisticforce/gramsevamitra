@@ -1,3 +1,6 @@
+# Day-Zero App Model — root is Document Studio workspace (no legacy landing page)
+/                    /workspace/documents  302
+
 # Legacy tool directory → App Model workspaces (Phase 1)
 /tools              /workspace/documents  301
 /tools/*             /workspace/documents  301

@@ -30,7 +30,7 @@ const ogImage = new URL('/favicon.svg', siteConfig.url).href;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#020617" />
+    <meta name="theme-color" content="#1e293b" />
     <meta name="robots" content={robots} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -51,6 +51,33 @@ const ogImage = new URL('/favicon.svg', siteConfig.url).href;
     <meta name="twitter:image" content={ogImage} />
 
     <slot name="head" />
+    {site === 'hub' && (
+      <script is:inline define:vars={{ buildId: 'DAY-ZERO-V5' }}>
+        (function () {
+          try {
+            var key = 'gsm-sw-purge';
+            if (localStorage.getItem(key) === buildId) return;
+            localStorage.setItem(key, buildId);
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(function (regs) {
+                regs.forEach(function (reg) {
+                  reg.unregister();
+                });
+              });
+            }
+            if ('caches' in window) {
+              caches.keys().then(function (keys) {
+                keys.forEach(function (name) {
+                  caches.delete(name);
+                });
+              });
+            }
+          } catch (_) {
+            /* storage blocked */
+          }
+        })();
+      </script>
+    )}
     <PostHogAnalytics />
   </head>
   <body class="flex min-h-screen flex-col">

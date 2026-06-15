@@ -138,18 +138,18 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
 
   const dropzoneSurface = isDark
     ? [
-        'border-emerald-500/40 bg-slate-900/60 text-white backdrop-blur-sm',
-        isDragging ? 'border-emerald-400 bg-emerald-950/50 shadow-[0_0_40px_rgba(16,185,129,0.15)]' : 'hover:border-emerald-400/70 hover:bg-slate-900/80',
+        'border-slate-600/60 bg-slate-900/60 text-slate-100 backdrop-blur-sm',
+        isDragging ? 'border-slate-500 bg-slate-800/60' : 'hover:border-slate-500/80 hover:bg-slate-900/80',
       ].join(' ')
     : [
-        'border-slate-300 bg-white text-slate-900',
-        isDragging ? 'border-violet-500 bg-violet-50/80 shadow-inner' : 'hover:border-violet-400 hover:bg-violet-50/30',
+        'border-canvas-border bg-canvas-surface text-slate-800',
+        isDragging ? 'border-slate-400 bg-slate-100 shadow-inner' : 'hover:border-slate-400 hover:bg-slate-50',
       ].join(' ');
 
   const subtextClass = isDark ? 'text-slate-400' : 'text-slate-500';
   const panelClass = isDark
-    ? 'rounded-2xl border border-slate-700/80 bg-slate-900/80 text-white shadow-xl backdrop-blur-sm'
-    : 'rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-sm';
+    ? 'rounded-2xl border border-slate-700/80 bg-slate-900/80 text-slate-100 shadow-lg backdrop-blur-sm'
+    : 'rounded-2xl border border-canvas-border bg-canvas-surface text-slate-800 shadow-sm';
 
   if (phase === 'error' && metadata) {
     return (
@@ -199,14 +199,14 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
               <div className="flex min-w-0 items-start gap-3">
                 <span
                   className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl ${
-                    isDark ? 'bg-emerald-500/15' : 'bg-violet-100'
+                    isDark ? 'bg-slate-700/40' : 'bg-slate-100'
                   }`}
                   aria-hidden="true"
                 >
                   {categoryEmoji(metadata.category)}
                 </span>
                 <div className="min-w-0">
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-emerald-400' : 'text-violet-700'}`}>
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                     File detected · {categoryLabel(metadata.category)}
                   </p>
                   <h2 className="mt-1 truncate text-base font-semibold sm:text-lg">{metadata.name}</h2>
@@ -237,7 +237,7 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
             </p>
 
             {redirecting && (
-              <p className={`mt-3 text-sm font-medium ${isDark ? 'text-emerald-300' : 'text-violet-700'}`} role="status">
+              <p className={`mt-3 text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`} role="status">
                 Preparing workspace handoff…
               </p>
             )}
@@ -256,8 +256,8 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
                     onClick={() => handleIntentClick(intent)}
                     className={`group flex w-full items-start gap-3 rounded-xl border px-3.5 py-3 text-left transition ${
                       isDark
-                        ? 'border-slate-700/80 bg-slate-950/30 hover:border-emerald-500/50 hover:bg-emerald-950/20'
-                        : 'border-slate-200 bg-white hover:border-violet-300 hover:bg-violet-50/50'
+                        ? 'border-slate-700/80 bg-slate-950/30 hover:border-slate-500/50 hover:bg-slate-900/40'
+                        : 'border-canvas-border bg-canvas-surface hover:border-slate-400 hover:bg-slate-50'
                     }`}
                   >
                     <span className="text-xl" aria-hidden="true">
@@ -277,11 +277,11 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
                         className={`mt-1.5 inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold ${
                           intent.tier === 'free'
                             ? isDark
-                              ? 'bg-emerald-500/15 text-emerald-300'
-                              : 'bg-emerald-50 text-emerald-800'
+                              ? 'bg-slate-700/30 text-slate-300'
+                              : 'bg-slate-100 text-slate-700'
                             : isDark
-                              ? 'bg-amber-500/15 text-amber-300'
-                              : 'bg-amber-50 text-amber-800'
+                              ? 'bg-amber-900/20 text-amber-200/90'
+                              : 'bg-amber-50 text-amber-900/80'
                         }`}
                       >
                         {intent.quoteLabel}
@@ -364,20 +364,13 @@ export default function OmniDropzone({ variant = 'light', disabled = false, onIn
             disabled={disabled}
             onClick={() => inputRef.current?.click()}
             className={`mt-6 inline-flex w-full max-w-sm items-center justify-center rounded-xl px-6 py-4 text-base font-semibold shadow-sm transition active:scale-[0.98] disabled:opacity-60 ${
-              isDark ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400' : 'bg-violet-600 text-white hover:bg-violet-700'
+              isDark ? 'bg-slate-600 text-white hover:bg-slate-500' : 'bg-slate-700 text-white hover:bg-slate-600'
             }`}
           >
             Tap to Upload
           </button>
         </div>
       </div>
-
-      <p
-        className="mt-4 text-center text-sm font-bold uppercase tracking-wide text-red-600"
-        data-build-version="DAY-ZERO-V4"
-      >
-        BUILD_VERSION: DAY-ZERO-V4 [₹99 ACTIVE]
-      </p>
     </div>
   );
 }

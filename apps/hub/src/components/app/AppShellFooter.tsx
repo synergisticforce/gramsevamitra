@@ -10,7 +10,7 @@ export default function AppShellFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto border-t border-slate-200 bg-white px-4 py-5 sm:px-6">
+    <footer className="mt-auto border-t border-slate-200 bg-canvas-surface px-4 py-5 sm:px-6">
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-3 text-center sm:flex-row sm:flex-wrap sm:justify-between sm:text-left">
         <nav aria-label="Legal and support">
           <ul className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm sm:justify-start">
@@ -35,12 +35,6 @@ export default function AppShellFooter() {
           © {year} GramSeva Mitra · Pro payments via Razorpay
         </p>
       </div>
-      <p
-        className="mx-auto mt-3 max-w-5xl text-center text-sm font-bold uppercase tracking-wide text-red-600"
-        data-build-version="DAY-ZERO-V4"
-      >
-        BUILD_VERSION: DAY-ZERO-V4 [₹99 ACTIVE]
-      </p>
     </footer>
   );
 }
