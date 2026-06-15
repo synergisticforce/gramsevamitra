@@ -1,20 +1,25 @@
 import { jsonResponse } from '../../_lib/json.mjs';
-import { getBillingConfigDiagnostics, withRazorpayEnv } from '../../_lib/billingEnv.mjs';
+import {
+  getBillingConfigDiagnostics,
+  getBillingEnvFromContext,
+  logBillingConfigFailure,
+  withRazorpayEnv,
+} from '../../_lib/billingEnv.mjs';
 import { getSessionUser } from '../../_lib/session.mjs';
 import { PRO_ORDER_AMOUNT_PAISE, PRO_ORDER_CURRENCY } from '../../_lib/proBilling.mjs';
 import { createProOrder } from '../../_lib/razorpay.mjs';
 
 export async function onRequestPost(context) {
-  const { request, env } = context;
+  const { request } = context;
+  const env = getBillingEnvFromContext(context);
   const billing = getBillingConfigDiagnostics(env);
 
   if (!billing.configured) {
-    console.error('[billing/razorpay-order] Billing not configured. Missing:', billing.missing.join(', '));
+    logBillingConfigFailure(context, billing);
     return jsonResponse(
       {
         error: 'Payment gateway temporarily unavailable. Please try again later.',
         code: 'BILLING_NOT_CONFIGURED',
-        missing: billing.missing,
       },
       503,
     );
@@ -79,6 +84,9 @@ export async function onRequestPost(context) {
       feature,
       message,
       stack,
+      razorpayStatus: message.includes('Razorpay order failed')
+        ? message.match(/\((\d{3})\)/)?.[1] ?? 'unknown'
+        : undefined,
     });
     return jsonResponse(
       {

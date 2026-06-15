@@ -1,14 +1,30 @@
 import { jsonResponse } from '../../_lib/json.mjs';
 import {
+  getBillingConfigDiagnostics,
+  getBillingEnvFromContext,
+  logBillingConfigFailure,
+} from '../../_lib/billingEnv.mjs';
+import {
   resolveUserIdFromPayment,
   setUserPlanPro,
   verifyRazorpayWebhookSignature,
 } from '../../_lib/razorpay.mjs';
 
 export async function onRequestPost(context) {
-  const { request, env } = context;
+  const { request } = context;
+  const env = getBillingEnvFromContext(context);
+  const billing = getBillingConfigDiagnostics(env);
 
-  if (!env.RAZORPAY_WEBHOOK_SECRET || !env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET) {
+  const webhookSecret = String(env.RAZORPAY_WEBHOOK_SECRET || '').trim();
+  const missing = [...billing.missing];
+  if (!webhookSecret) missing.push('RAZORPAY_WEBHOOK_SECRET');
+
+  if (missing.length > 0) {
+    logBillingConfigFailure(context, {
+      ...billing,
+      missing,
+      configured: false,
+    });
     return jsonResponse({ error: 'Webhook not configured' }, 503);
   }
 
@@ -16,13 +32,14 @@ export async function onRequestPost(context) {
   const signature = request.headers.get('X-Razorpay-Signature');
 
   try {
-    const valid = await verifyRazorpayWebhookSignature(rawBody, signature, env.RAZORPAY_WEBHOOK_SECRET);
+    const valid = await verifyRazorpayWebhookSignature(rawBody, signature, webhookSecret);
     if (!valid) {
       return new Response('Invalid webhook signature', { status: 401 });
     }
   } catch (err) {
-    console.error('Razorpay webhook signature verification failed:', err.message);
-    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[billing/razorpay-webhook] Signature verification failed:', message);
+    return new Response('Webhook Error', { status: 400 });
   }
 
   let event;
@@ -36,7 +53,7 @@ export async function onRequestPost(context) {
     if (event.event === 'payment.captured') {
       const paymentEntity = event.payload?.payment?.entity;
       if (!paymentEntity) {
-        console.warn('payment.captured without payment entity');
+        console.warn('[billing/razorpay-webhook] payment.captured without payment entity');
         return jsonResponse({ received: true });
       }
 
@@ -45,16 +62,18 @@ export async function onRequestPost(context) {
       if (userId && env.DB) {
         const ok = await setUserPlanPro(env.DB, userId);
         if (!ok) {
-          console.error('D1 plan update failed for user:', userId);
+          console.error('[billing/razorpay-webhook] D1 plan update failed for user:', userId);
           return jsonResponse({ error: 'Database update failed' }, 500);
         }
-        console.log('Pro plan activated for user:', userId, 'payment:', paymentEntity.id);
+        console.log('[billing/razorpay-webhook] Pro plan activated for user:', userId, 'payment:', paymentEntity.id);
       } else {
-        console.warn('payment.captured without resolvable userId', paymentEntity.order_id);
+        console.warn('[billing/razorpay-webhook] payment.captured without resolvable userId', paymentEntity.order_id);
       }
     }
   } catch (err) {
-    console.error('Razorpay webhook handler error:', err);
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    console.error('[billing/razorpay-webhook] Handler error:', { message, stack });
     return jsonResponse({ error: 'Webhook handler failed' }, 500);
   }
 
