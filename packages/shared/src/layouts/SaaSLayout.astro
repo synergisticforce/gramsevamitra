@@ -54,10 +54,10 @@ const brandHref = site === 'pdf' ? '/' : '/';
         </div>
       </main>
     </div>
-  </div>
 
-  <SaaSMobilePill site={site} slot="footer" />
-  <slot name="footer" slot="footer" />
+    <SaaSMobilePill site={site} />
+    <slot name="footer" />
+  </div>
 </BaseLayout>
 
 <script>

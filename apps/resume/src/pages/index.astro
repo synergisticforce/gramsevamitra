@@ -1,8 +1,6 @@
 ---
 import '@shared/styles/global.css';
-import BaseLayout from '@shared/layouts/BaseLayout.astro';
-import Header from '@shared/components/Header.astro';
-import Footer from '@shared/components/Footer.astro';
+import MarketingLayout from '@shared/layouts/MarketingLayout.astro';
 import AtsScannerTool from '../components/AtsScannerTool';
 import { SITE_HOME_SEO } from '@shared/config/seo';
 
@@ -11,14 +9,12 @@ const toolDescription =
   'Upload your resume (PDF, DOCX, or image), paste the job description, and get an instant keyword match score — 100% private, runs in your browser.';
 ---
 
-<BaseLayout
+<MarketingLayout
   title={SITE_HOME_SEO.resume.title}
   description={SITE_HOME_SEO.resume.description}
   site="resume"
-  showCrossPromo={true}
+  active="resume"
 >
-  <Header slot="header" active="resume" />
-
   <section class="relative overflow-hidden">
     <div
       class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/20 via-slate-950 to-slate-950"
@@ -39,6 +35,4 @@ const toolDescription =
       <AtsScannerTool client:load />
     </div>
   </section>
-
-  <Footer slot="footer" />
-</BaseLayout>
+</MarketingLayout>

@@ -1,21 +1,18 @@
 ---
 import { SITES } from '../config/sites';
 import { canonicalUrl, getRobotsDirective } from '../config/seo';
-import InstallAppBanner from '../components/InstallAppBanner';
 import PostHogAnalytics from '../components/PostHogAnalytics.astro';
 
 interface Props {
   title: string;
   description?: string;
   site?: 'hub' | 'optimizer' | 'resume' | 'pdf';
-  showCrossPromo?: boolean;
 }
 
 const {
   title,
   description = 'Privacy-first document and productivity tools for professionals, students, and creators worldwide.',
   site = 'hub',
-  showCrossPromo = false,
 } = Astro.props;
 
 const siteConfig = SITES[site];
@@ -52,7 +49,7 @@ const ogImage = new URL('/favicon.svg', siteConfig.url).href;
 
     <slot name="head" />
     {site === 'hub' && (
-      <script is:inline define:vars={{ buildId: 'DAY-ZERO-V5' }}>
+      <script is:inline define:vars={{ buildId: 'DAY-ZERO-V6' }}>
         (function () {
           try {
             var key = 'gsm-sw-purge';
@@ -80,24 +77,7 @@ const ogImage = new URL('/favicon.svg', siteConfig.url).href;
     )}
     <PostHogAnalytics />
   </head>
-  <body class="flex min-h-screen flex-col">
-    {showCrossPromo && (
-      <div class="border-b border-emerald-900/50 bg-emerald-950/80 px-4 py-2 text-center text-sm text-emerald-100">
-        Need exam photo/signature sizing?
-        <a
-          href={SITES.optimizer.url}
-          data-astro-reload
-          class="ml-1 font-semibold underline decoration-emerald-400 underline-offset-2 hover:text-white"
-        >
-          Try the Document Optimizer →
-        </a>
-      </div>
-    )}
-    <slot name="header" />
-    <main class="flex-1">
-      <slot />
-    </main>
-    <slot name="footer" />
-    <InstallAppBanner client:load />
+  <body class="min-h-screen antialiased">
+    <slot />
   </body>
 </html>

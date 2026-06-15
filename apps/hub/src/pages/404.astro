@@ -1,13 +1,13 @@
 ---
 import '@shared/styles/global.css';
-import SaaSLayout from '../layouts/SaaSLayout.astro';
+import AppShellLayout from '../layouts/AppShellLayout.astro';
 import SaaSNotFoundContent from '../components/saas/SaaSNotFoundContent.astro';
 ---
 
-<SaaSLayout
+<AppShellLayout
   title="Page Not Found | GramSeva Mitra"
   description="The page you requested could not be found on GramSeva Mitra."
-  activeNav="home"
+  activeWorkspace="documents"
 >
   <SaaSNotFoundContent />
-</SaaSLayout>
+</AppShellLayout>

@@ -1,13 +1,12 @@
 ---
 import '@shared/styles/global.css';
-import SaaSLayout from '../layouts/SaaSLayout.astro';
+import AppShellLayout from '../layouts/AppShellLayout.astro';
 ---
 
-<SaaSLayout
+<AppShellLayout
   title="You Are Offline | GramSeva Mitra"
   description="GramSeva Mitra works offline. Most free calculators and client-side PDF tools remain available without a network connection."
-  activeNav="utilities"
-  padMobileNav={false}
+  activeWorkspace="documents"
 >
   <section class="px-4 py-12 text-center sm:px-6 sm:py-16">
     <div class="mx-auto max-w-lg rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -39,4 +38,4 @@ import SaaSLayout from '../layouts/SaaSLayout.astro';
       </div>
     </div>
   </section>
-</SaaSLayout>
+</AppShellLayout>

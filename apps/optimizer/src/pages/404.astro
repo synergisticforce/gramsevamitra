@@ -1,18 +1,16 @@
 ---
 import '@shared/styles/global.css';
-import BaseLayout from '@shared/layouts/BaseLayout.astro';
-import Header from '@shared/components/Header.astro';
-import Footer from '@shared/components/Footer.astro';
+import MarketingLayout from '@shared/layouts/MarketingLayout.astro';
 import NotFoundContent from '@shared/components/NotFoundContent.astro';
 import { SITES } from '@shared/config/sites';
 ---
 
-<BaseLayout
+<MarketingLayout
   title="Page Not Found | Document Optimizer — GramSeva Mitra"
   description="The page you requested could not be found."
   site="optimizer"
+  active="optimizer"
 >
-  <Header slot="header" active="optimizer" />
   <NotFoundContent
     homeHref="/"
     homeLabel="Document Optimizer Home"
@@ -21,5 +19,4 @@ import { SITES } from '@shared/config/sites';
       { href: SITES.pdf.url, label: 'PDF Tools' },
     ]}
   />
-  <Footer slot="footer" />
-</BaseLayout>
+</MarketingLayout>

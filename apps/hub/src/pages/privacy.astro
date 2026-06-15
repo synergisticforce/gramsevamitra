@@ -1,6 +1,6 @@
 ---
 import '@shared/styles/global.css';
-import SaaSLayout from '../layouts/SaaSLayout.astro';
+import AppShellLayout from '../layouts/AppShellLayout.astro';
 import SaaSLegalPage from '../components/saas/SaaSLegalPage.astro';
 import SegmentedControl from '@shared/components/saas/SegmentedControl.astro';
 import PrivacyPolicyContent from '@shared/components/legal/PrivacyPolicyContent.astro';
@@ -8,13 +8,13 @@ import { LEGAL_SEO } from '@shared/config/seo';
 import { LEGAL_SEGMENTS } from '../components/saas/saasNav.ts';
 ---
 
-<SaaSLayout
+<AppShellLayout
   title={LEGAL_SEO.privacy.hub.title}
   description={LEGAL_SEO.privacy.hub.description}
-  activeNav="legal"
+  activeWorkspace="documents"
 >
   <SaaSLegalPage title="Privacy Policy">
     <SegmentedControl slot="nav" items={LEGAL_SEGMENTS} activeId="privacy" />
     <PrivacyPolicyContent />
   </SaaSLegalPage>
-</SaaSLayout>
+</AppShellLayout>

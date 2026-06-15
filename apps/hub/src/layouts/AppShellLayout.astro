@@ -24,7 +24,9 @@ const currentPath = Astro.url.pathname;
 ---
 
 <BaseLayout title={title} description={description} site="hub">
-  <div class="flex min-h-screen flex-col bg-canvas-bg lg:flex-row">
+  <slot name="head" slot="head" />
+
+  <div class="flex min-h-screen flex-col bg-canvas-bg text-slate-800 lg:flex-row">
     <AppSidebar client:load activeWorkspace={activeWorkspace} currentPath={currentPath} />
     <main class="flex min-w-0 flex-1 flex-col">
       <div class="min-h-0 flex-1">
@@ -35,6 +37,6 @@ const currentPath = Astro.url.pathname;
   </div>
 
   <FeedbackWidget client:load />
-  <ProUpgradeModal client:load slot="footer" />
-  <PwaRegister client:load slot="footer" />
+  <ProUpgradeModal client:load />
+  <PwaRegister client:load />
 </BaseLayout>

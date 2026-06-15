@@ -1,12 +1,12 @@
 ---
-import SaaSLayout from '../../layouts/SaaSLayout.astro';
+import AppShellLayout from '../../layouts/AppShellLayout.astro';
 import { formatSeoTitle } from '@shared/config/seo';
 import { SITES } from '@shared/config/sites';
 
 const pageTitle = formatSeoTitle('Welcome to Pro', 'GramSeva Mitra');
 ---
 
-<SaaSLayout title={pageTitle} description="Your GramSeva Mitra Pro subscription is being activated.">
+<AppShellLayout title={pageTitle} description="Your GramSeva Mitra Pro subscription is being activated." activeWorkspace="documents">
   <div class="px-4 py-12 text-center sm:px-6 sm:py-16">
     <p class="text-5xl" aria-hidden="true">⚡</p>
     <h1 class="mt-4 text-2xl font-bold text-slate-900 sm:text-3xl">Payment successful</h1>
@@ -31,7 +31,7 @@ const pageTitle = formatSeoTitle('Welcome to Pro', 'GramSeva Mitra');
       </a>
     </div>
   </div>
-</SaaSLayout>
+</AppShellLayout>
 
 <script>
   const params = new URLSearchParams(window.location.search);
