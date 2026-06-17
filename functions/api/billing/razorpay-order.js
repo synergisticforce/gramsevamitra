@@ -25,7 +25,7 @@ export async function onRequestPost(context) {
     );
   }
 
-  const user = await getSessionUser(request, env);
+  const user = await getSessionUser(request, context);
   if (!user?.id) {
     console.warn('[billing/razorpay-order] Session missing user.id');
     return jsonResponse({ error: 'Sign in with Google to upgrade to Pro.', code: 'AUTH_REQUIRED' }, 401);

@@ -16,7 +16,7 @@ function isImageUpload(file) {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const gate = await requireProCredits(request, env, 'media-process');
+  const gate = await requireProCredits(request, context, 'media-process');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);
   }

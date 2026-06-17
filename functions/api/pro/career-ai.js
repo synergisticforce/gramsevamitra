@@ -12,7 +12,7 @@ import {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const gate = await requireProCredits(request, env, 'career-ai');
+  const gate = await requireProCredits(request, context, 'career-ai');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);
   }

@@ -4,6 +4,7 @@ import {
   getBillingEnvFromContext,
   logBillingConfigFailure,
 } from '../../_lib/billingEnv.mjs';
+import { readEnvString } from '../../_lib/runtimeEnv.mjs';
 import {
   resolveUserIdFromPayment,
   setUserPlanPro,
@@ -15,7 +16,7 @@ export async function onRequestPost(context) {
   const env = getBillingEnvFromContext(context);
   const billing = getBillingConfigDiagnostics(env);
 
-  const webhookSecret = String(env.RAZORPAY_WEBHOOK_SECRET || '').trim();
+  const webhookSecret = readEnvString(env, 'RAZORPAY_WEBHOOK_SECRET');
   const missing = [...billing.missing];
   if (!webhookSecret) missing.push('RAZORPAY_WEBHOOK_SECRET');
 

@@ -12,7 +12,7 @@ const SUPPORTED_FORMATS = new Set(['docx', 'pptx']);
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const gate = await requireProCredits(request, env, 'file-converter');
+  const gate = await requireProCredits(request, context, 'file-converter');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);
   }

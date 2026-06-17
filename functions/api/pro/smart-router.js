@@ -8,7 +8,7 @@ const ALLOWED_DOC_TYPES = new Set(['invoice', 'bank_statement', 'general']);
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const gate = await requireProCredits(request, env, 'smart-router');
+  const gate = await requireProCredits(request, context, 'smart-router');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);
   }

@@ -5,7 +5,7 @@ import { runSmartExtractJob } from '../../_lib/smartExtractHandler.mjs';
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const gate = await requireProCredits(request, env, 'smart-extract');
+  const gate = await requireProCredits(request, context, 'smart-extract');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);
   }

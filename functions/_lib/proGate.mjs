@@ -1,12 +1,14 @@
 import { getSessionUser } from './session.mjs';
+import { getRuntimeEnv, hasD1Binding } from './runtimeEnv.mjs';
 
 /**
  * Enforce Better Auth session + D1 `plan === 'pro'`.
  * @param {Request} request
- * @param {import('@gramsevamitra/auth').AuthEnv} env
+ * @param {Record<string, unknown>} context Pages/Worker handler context
  */
-export async function requireProUser(request, env) {
-  const user = await getSessionUser(request, env);
+export async function requireProUser(request, context) {
+  const env = getRuntimeEnv(context);
+  const user = await getSessionUser(request, context);
 
   if (!user?.id) {
     return {
@@ -16,7 +18,7 @@ export async function requireProUser(request, env) {
     };
   }
 
-  if (!env.DB) {
+  if (!hasD1Binding(env)) {
     return {
       ok: false,
       status: 503,

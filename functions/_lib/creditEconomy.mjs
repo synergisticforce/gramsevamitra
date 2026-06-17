@@ -1,4 +1,5 @@
 import { getOperationCreditCost, PRO_MONTHLY_CREDIT_FUP } from '../../packages/shared/src/lib/aiCredits.mjs';
+import { getRuntimeEnv } from './runtimeEnv.mjs';
 import { requireProUser } from './proGate.mjs';
 
 export { PRO_MONTHLY_CREDIT_FUP, getOperationCreditCost };
@@ -16,11 +17,12 @@ export async function getUserCreditBalance(env, userId) {
 /**
  * Pro session gate + sufficient AI Credits for an operation.
  * @param {Request} request
- * @param {import('@gramsevamitra/auth').AuthEnv} env
+ * @param {Record<string, unknown>} context Pages/Worker handler context
  * @param {string} operationId
  */
-export async function requireProCredits(request, env, operationId) {
-  const gate = await requireProUser(request, env);
+export async function requireProCredits(request, context, operationId) {
+  const env = getRuntimeEnv(context);
+  const gate = await requireProUser(request, context);
   if (!gate.ok) {
     return gate;
   }

@@ -1,43 +1,59 @@
+/** @typedef {Record<string, unknown>} CloudflareBindings */
+
 /**
- * Resolve Cloudflare Pages / Workers bindings from a function handler context.
+ * Read a string binding directly — never enumerate `env` (secrets are not always enumerable).
+ * @param {CloudflareBindings | null | undefined} source
+ * @param {string} key
+ */
+export function readEnvString(source, key) {
+  if (!source || typeof source !== 'object') return '';
+  const value = source[key];
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+/**
+ * @param {CloudflareBindings | null | undefined} env
+ */
+export function hasD1Binding(env) {
+  const db = env?.DB;
+  return Boolean(db && typeof db.prepare === 'function');
+}
+
+/**
+ * Ordered Cloudflare env layers from a Pages/Worker handler context.
+ * @param {Record<string, unknown> | undefined} context
+ * @returns {CloudflareBindings[]}
+ */
+export function getRuntimeEnvLayers(context) {
+  return [
+    context?.env,
+    context?.locals?.runtime?.env,
+    context?.cloudflare?.env,
+    context?.locals?.env,
+  ].filter((layer) => layer && typeof layer === 'object');
+}
+
+/**
+ * Return the native Cloudflare runtime bindings object from a Pages/Worker handler context.
+ * Prefer the layer that includes the D1 `DB` binding so Better Auth never falls back to MemoryAdapter.
+ * Never clone or spread `env` — bindings (D1, R2, secrets) must stay on the native object.
  * Never rely on `process.env` on the edge — it is undefined in production.
  *
  * @param {Record<string, unknown> | undefined} context Handler context from onRequest
- * @returns {Record<string, string | undefined>}
+ * @returns {CloudflareBindings}
  */
 export function getRuntimeEnv(context) {
-  /** @type {Record<string, string | undefined>[]} */
-  const layers = [];
-
-  const pushLayer = (source) => {
-    if (!source || typeof source !== 'object') return;
-    /** @type {Record<string, string | undefined>} */
-    const layer = {};
-    for (const [key, value] of Object.entries(source)) {
-      if (typeof value === 'string' && value.length > 0) {
-        layer[key] = value;
-      }
-    }
-    if (Object.keys(layer).length > 0) layers.push(layer);
-  };
-
-  pushLayer(context?.env);
-  pushLayer(context?.cloudflare?.env);
-
-  const locals = context?.locals;
-  if (locals && typeof locals === 'object') {
-    pushLayer(locals.runtime?.env);
-    pushLayer(locals.env);
+  const layers = getRuntimeEnvLayers(context);
+  const withDb = layers.find(hasD1Binding);
+  if (withDb) {
+    return /** @type {CloudflareBindings} */ (withDb);
   }
 
-  /** @type {Record<string, string | undefined>} */
-  const merged = {};
-  for (const layer of layers) {
-    Object.assign(merged, layer);
-  }
-
-  return merged;
+  return /** @type {CloudflareBindings} */ (layers[0] ?? {});
 }
+
+/** Alias used by auth/billing handlers. */
+export const getHandlerEnv = getRuntimeEnv;
 
 /**
  * @param {Record<string, unknown> | undefined} context
@@ -46,11 +62,36 @@ export function getRuntimeEnv(context) {
 export function getRuntimeEnvSourceLabels(context) {
   /** @type {string[]} */
   const labels = [];
-  if (context?.env && typeof context.env === 'object') labels.push('context.env');
-  if (context?.cloudflare?.env && typeof context.cloudflare.env === 'object') {
-    labels.push('context.cloudflare.env');
+  if (context?.env && typeof context.env === 'object') {
+    labels.push(hasD1Binding(context.env) ? 'context.env (DB)' : 'context.env');
   }
-  if (context?.locals?.runtime?.env) labels.push('context.locals.runtime.env');
-  if (context?.locals?.env) labels.push('context.locals.env');
+  if (context?.locals?.runtime?.env) {
+    labels.push(
+      hasD1Binding(context.locals.runtime.env)
+        ? 'context.locals.runtime.env (DB)'
+        : 'context.locals.runtime.env',
+    );
+  }
+  if (context?.cloudflare?.env && typeof context.cloudflare.env === 'object') {
+    labels.push(
+      hasD1Binding(context.cloudflare.env) ? 'context.cloudflare.env (DB)' : 'context.cloudflare.env',
+    );
+  }
+  if (context?.locals?.env) {
+    labels.push(hasD1Binding(context.locals.env) ? 'context.locals.env (DB)' : 'context.locals.env');
+  }
   return labels;
+}
+
+/**
+ * Server-side probe for Cloudflare logs — checks direct property access without exposing values.
+ * @param {Record<string, unknown> | undefined} context
+ */
+export function probeSecretBindings(context) {
+  const env = getRuntimeEnv(context);
+  return {
+    hasRazorpayKeyId: Boolean(readEnvString(env, 'RAZORPAY_KEY_ID') || readEnvString(env, 'PUBLIC_RAZORPAY_KEY_ID')),
+    hasRazorpayKeySecret: Boolean(readEnvString(env, 'RAZORPAY_KEY_SECRET')),
+    hasRazorpayWebhookSecret: Boolean(readEnvString(env, 'RAZORPAY_WEBHOOK_SECRET')),
+  };
 }
