@@ -87,7 +87,7 @@ npx wrangler pages secret put <NAME> --project-name=gramsevamitra-hub
 | `RAZORPAY_KEY_SECRET` | **Yes** (Pro billing) | Server-side order creation |
 | `RAZORPAY_WEBHOOK_SECRET` | **Yes** (Pro billing) | `POST /api/billing/razorpay-webhook` signature verification |
 | `TURNSTILE_SECRET_KEY` | **Yes** (contact form) | `POST /api/contact` bot verification |
-| `RESEND_API_KEY` | **Yes** (contact form) | Sends mail to `contact@gramsevamitra.com` |
+| `RESEND_API_KEY` | **Yes** (contact form) | Sends mail to `support@gramsevamitra.com` |
 
 `scripts/force-deploy.js` uploads all of the above automatically when `.env` is populated locally.
 
@@ -140,7 +140,7 @@ Copy **Client ID** → `GOOGLE_CLIENT_ID`, **Client secret** → `GOOGLE_CLIENT_
 |---|---|
 | `RESEND_API_KEY` | Resend dashboard → API Keys |
 | From address | `onboarding@resend.dev` (dev) or verified domain in production |
-| To address | `contact@gramsevamitra.com` (code default) |
+| To address | `support@gramsevamitra.com` (code default) |
 
 ---
 

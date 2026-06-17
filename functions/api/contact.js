@@ -1,6 +1,6 @@
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const RESEND_API_URL = 'https://api.resend.com/emails';
-const CONTACT_TO = 'contact@gramsevamitra.com';
+const CONTACT_TO = 'support@gramsevamitra.com';
 const CONTACT_FROM = 'onboarding@resend.dev';
 
 function jsonResponse(body, status = 200) {
