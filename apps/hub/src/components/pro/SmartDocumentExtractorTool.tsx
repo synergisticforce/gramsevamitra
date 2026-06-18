@@ -2,8 +2,8 @@ import { useCallback, useState } from 'react';
 import { authClient } from '@gramsevamitra/auth/client';
 import { openProUpgrade } from '@shared/lib/proUpgrade';
 import {
-  stagesForOutputFormat,
-  type SmartRouterResponse,
+  stagesForOcrOrchestrator,
+  type OcrOrchestratorResponse,
 } from '@shared/lib/proTaskStages';
 import { parseCreditApiError } from '../../lib/auth/creditCheck';
 import { useProCreditConfirm } from '../../lib/auth/useProCreditConfirm';
@@ -11,6 +11,8 @@ import ProTaskLoader from './ProTaskLoader';
 
 type OutputFormat = 'json' | 'csv' | 'docx';
 type DocumentType = 'invoice' | 'bank_statement';
+
+const OCR_ORCHESTRATOR_ENDPOINT = '/api/pro/ocr-orchestrator';
 
 export default function SmartDocumentExtractorTool() {
   const { data: session, isPending } = authClient.useSession();
@@ -20,7 +22,7 @@ export default function SmartDocumentExtractorTool() {
   const [forceFailsafe, setForceFailsafe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<SmartRouterResponse | null>(null);
+  const [result, setResult] = useState<OcrOrchestratorResponse | null>(null);
   const { requestProConfirm, proCreditModal } = useProCreditConfirm();
 
   const userPlan = (session?.user as { plan?: string } | undefined)?.plan;
@@ -31,7 +33,7 @@ export default function SmartDocumentExtractorTool() {
     setResult(null);
     setLoading(true);
     try {
-      const response = await fetch('/api/pro/smart-router', {
+      const response = await fetch(OCR_ORCHESTRATOR_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -39,11 +41,14 @@ export default function SmartDocumentExtractorTool() {
           outputFormat,
           documentType,
           fileName,
+          structuredTool: outputFormat === 'json' || outputFormat === 'csv',
+          tier1Text: `Sample tier-1 text from ${fileName} (client OCR preflight bypassed in test harness).`,
           forceFailsafe,
+          simulateUnreadable: forceFailsafe && outputFormat === 'json',
         }),
       });
 
-      const payload = (await response.json()) as SmartRouterResponse & {
+      const payload = (await response.json()) as OcrOrchestratorResponse & {
         message?: string;
         error?: string;
         requiredCredits?: number;
@@ -64,14 +69,22 @@ export default function SmartDocumentExtractorTool() {
         return;
       }
 
+      if (payload.unreadable) {
+        setError(
+          payload.message ??
+            'Document text is completely unreadable. Please re-upload a sharper capture.',
+        );
+        return;
+      }
+
       if (!response.ok || !payload.success) {
-        setError(payload.message ?? payload.error ?? 'Smart Router request failed.');
+        setError(parseCreditApiError(response.status, payload, 'OCR orchestrator request failed.'));
         return;
       }
 
       setResult(payload);
     } catch {
-      setError('Network error while contacting the Smart Router.');
+      setError('Network error while contacting the OCR orchestrator.');
     } finally {
       setLoading(false);
     }
@@ -86,15 +99,22 @@ export default function SmartDocumentExtractorTool() {
         featureId: 'smart-document-extractor',
         featureName: 'Smart Document Extractor',
         featureDescription:
-          'Extract invoices and bank statements to CSV/JSON, or high-fidelity DOCX — powered by Advanced AI Document Extraction.',
+          'Extract invoices and bank statements to CSV/JSON, or high-fidelity DOCX — powered by the Paddle → GLM → Vision OCR waterfall.',
       });
       return;
     }
 
-    void requestProConfirm('smart-router', 'Smart Document Extractor', () => executeExtraction());
+    void requestProConfirm('ocr-orchestrator', 'Smart Document Extractor', () => executeExtraction());
   }, [executeExtraction, isPro, requestProConfirm]);
 
-  const stages = stagesForOutputFormat(outputFormat);
+  const stages = stagesForOcrOrchestrator();
+
+  const outputPreview =
+    result?.output?.format === 'csv'
+      ? result.output.csv
+      : result?.output?.format === 'text'
+        ? result.output.text
+        : JSON.stringify(result?.output?.data ?? result?.output, null, 2);
 
   return (
     <div className="space-y-5">
@@ -102,8 +122,8 @@ export default function SmartDocumentExtractorTool() {
         <p className="text-xs font-semibold uppercase tracking-wider text-amber-800">Workspace 1 · Pro</p>
         <h2 className="mt-1 text-lg font-bold text-canvas-text">Smart Document Extractor</h2>
         <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-          Test the Tri-Engine Smart Router — Scenario A (JSON/CSV) or Scenario B (DOCX). Mock GPU engines simulate
-          5–10 s latency per stage.
+          Test the Tier 2–3 OCR orchestrator (`/api/pro/ocr-orchestrator`) — Paddle → GLM → Google Vision
+          fallback. Mock GPU engines simulate 4–9 s latency per stage.
         </p>
 
         {!isPending && (
@@ -123,9 +143,9 @@ export default function SmartDocumentExtractorTool() {
               disabled={loading}
               className="w-full rounded-lg border border-canvas-border bg-canvas-surface px-3 py-2 text-sm"
             >
-              <option value="json">JSON (Scenario A)</option>
-              <option value="csv">CSV (Scenario A)</option>
-              <option value="docx">DOCX (Scenario B)</option>
+              <option value="json">JSON (structured)</option>
+              <option value="csv">CSV (structured)</option>
+              <option value="docx">DOCX (layout)</option>
             </select>
           </label>
 
@@ -163,7 +183,7 @@ export default function SmartDocumentExtractorTool() {
             disabled={loading}
             className="rounded border-canvas-border"
           />
-          Force Google Vision failsafe (test low-confidence path)
+          Force Google Vision failsafe (test low-confidence / timeout path)
         </label>
 
         <button
@@ -190,15 +210,18 @@ export default function SmartDocumentExtractorTool() {
         <div className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/60 p-4 sm:p-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent">Complete</p>
           <p className="mt-1 text-sm text-canvas-text">
-            Scenario {result.scenario} — {result.description}
-            {result.usedFailsafe ? ' (Vision failsafe engaged)' : ''}
+            OCR waterfall finished — format: {result.output?.format ?? outputFormat}
+            {result.usedVision ? ' (Google Vision failsafe engaged)' : ''}
           </p>
           <p className="mt-1 text-xs text-canvas-muted">
-            Simulated pipeline time: {Math.round((result.totalProcessingMs ?? 0) / 1000)}s across{' '}
+            Pipeline time: {Math.round((result.processingMs ?? 0) / 1000)}s across{' '}
             {result.pipeline?.length ?? 0} engine calls
+            {typeof result.remainingCredits === 'number'
+              ? ` · ${result.remainingCredits} AI credits remaining`
+              : ''}
           </p>
           <pre className="mt-3 max-h-80 overflow-auto rounded-lg border border-canvas-border bg-canvas-surface p-3 text-xs text-canvas-text">
-            {JSON.stringify(result.output, null, 2)}
+            {outputPreview}
           </pre>
         </div>
       )}

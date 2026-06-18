@@ -21,6 +21,21 @@ export function isImageMimeOrName(type: string, name: string): boolean {
   return /\.(jpe?g|png|webp)$/i.test(name);
 }
 
+const MIN_EMBEDDED_TEXT_CHARS = 200;
+
+/** True when a PDF has little or no selectable text layer (likely a scan). */
+export function isPdfEmbeddedTextThin(extractedText: string, pageCount: number): boolean {
+  const stripped = extractedText
+    .replace(/--- Page \d+ ---/g, '')
+    .replace(/\(no text detected\)/gi, '')
+    .replace(/\s+/g, '')
+    .trim();
+  if (stripped.length >= MIN_EMBEDDED_TEXT_CHARS) return false;
+  const noTextPages = extractedText.match(/\(no text detected\)/gi)?.length ?? 0;
+  if (pageCount > 0 && noTextPages >= Math.ceil(pageCount * 0.5)) return true;
+  return stripped.length < 50;
+}
+
 export function splitFilenameBase(name: string): string {
   return name.replace(/\.pdf$/i, '') || 'document';
 }

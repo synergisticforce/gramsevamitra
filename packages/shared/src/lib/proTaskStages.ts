@@ -35,6 +35,34 @@ export function stagesForOutputFormat(outputFormat: 'json' | 'csv' | 'docx'): st
   return outputFormat === 'docx' ? PRO_TASK_STAGES_SCENARIO_B : PRO_TASK_STAGES_SCENARIO_A;
 }
 
+export function stagesForOcrOrchestrator(): string[] {
+  return PRO_TASK_STAGES_OCR_WATERFALL;
+}
+
+export interface OcrOrchestratorResponse {
+  success: boolean;
+  pipeline?: Array<{ tier: string; step: string; result: unknown }>;
+  stages?: string[];
+  usedVision?: boolean;
+  processingMs?: number;
+  remainingCredits?: number;
+  creditsUsed?: number;
+  tier1Bypassed?: boolean;
+  sourceFile?: string;
+  output?: {
+    format?: string;
+    data?: unknown;
+    csv?: string;
+    text?: string;
+    fileName?: string;
+    mockDownloadToken?: string;
+    hierarchy?: unknown;
+  };
+  unreadable?: boolean;
+  message?: string;
+  error?: string;
+}
+
 export interface SmartRouterResponse {
   success: boolean;
   scenario?: 'A' | 'B';

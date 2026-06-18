@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
+import { OCR_WATERFALL_LOADER_STAGES } from '@shared/utils/ocrQuality';
 import {
   extractPdfTextInBrowser,
+  isPdfEmbeddedTextThin,
   splitFilenameBase,
   triggerTextDownload,
 } from '../../lib/canvas/documentPdfTools';
+import { promptProUpgradeAfterTier1Failure } from '../../lib/ocr/ocrWaterfallPipeline';
+import { runTier1TesseractOcr } from '../../lib/ocr/tesseractTier1';
 import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
 import { runChunkedExtractTextPipeline } from '../../lib/upload/chunkedPipeline';
 
@@ -14,9 +18,14 @@ interface Props {
   onProcessingChange: (active: boolean, label: string, percent: number) => void;
 }
 
+type ExtractionSource = 'embedded' | 'tier1-ocr';
+
 export default function PdfToTextModal({ file, onClose, onSuccess, onProcessingChange }: Props) {
   const [text, setText] = useState('');
   const [pageCount, setPageCount] = useState(0);
+  const [pagesSampled, setPagesSampled] = useState(0);
+  const [extractionSource, setExtractionSource] = useState<ExtractionSource>('embedded');
+  const [needsProOcr, setNeedsProOcr] = useState(false);
   const [busy, setBusy] = useState(true);
   const [copyBusy, setCopyBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +36,10 @@ export default function PdfToTextModal({ file, onClose, onSuccess, onProcessingC
     (async () => {
       setBusy(true);
       setError(null);
+      setNeedsProOcr(false);
       setText('');
+      setPagesSampled(0);
+      setExtractionSource('embedded');
       onProcessingChange(true, 'Extracting text…', 0);
 
       try {
@@ -42,13 +54,38 @@ export default function PdfToTextModal({ file, onClose, onSuccess, onProcessingC
           return;
         }
 
-        const result = await extractPdfTextInBrowser(file, ({ current, total, label }) => {
+        const embedded = await extractPdfTextInBrowser(file, ({ current, total, label }) => {
           const percent = total > 0 ? Math.round((current / total) * 100) : 0;
           onProcessingChange(true, label, percent);
         });
         if (cancelled) return;
-        setText(result.text);
-        setPageCount(result.pageCount);
+
+        if (!isPdfEmbeddedTextThin(embedded.text, embedded.pageCount)) {
+          setText(embedded.text);
+          setPageCount(embedded.pageCount);
+          setExtractionSource('embedded');
+          onProcessingChange(false, '', 0);
+          return;
+        }
+
+        onProcessingChange(true, OCR_WATERFALL_LOADER_STAGES.tier1, 0);
+        const tier1 = await runTier1TesseractOcr(file, (label, percent) =>
+          onProcessingChange(true, label, percent),
+        );
+        if (cancelled) return;
+
+        if (tier1.needsProHandoff) {
+          setNeedsProOcr(true);
+          setPageCount(embedded.pageCount);
+          promptProUpgradeAfterTier1Failure(tier1);
+          onProcessingChange(false, '', 0);
+          return;
+        }
+
+        setText(tier1.text);
+        setPageCount(embedded.pageCount);
+        setPagesSampled(tier1.pagesSampled);
+        setExtractionSource('tier1-ocr');
         onProcessingChange(false, '', 0);
       } catch (err) {
         if (cancelled) return;
@@ -115,6 +152,16 @@ export default function PdfToTextModal({ file, onClose, onSuccess, onProcessingC
 
         {busy ? (
           <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">Extracting text from your PDF…</p>
+        ) : needsProOcr ? (
+          <div className="mt-4 space-y-3">
+            <p className="rounded-lg border border-amber-500/40 bg-amber-950/30 px-3 py-2 text-sm text-amber-100">
+              This PDF appears to be a scan. Free on-device OCR could not reach our 65% confidence bar on the
+              sample pages. Upgrade to Pro for the Paddle → GLM → Vision extraction pipeline.
+            </p>
+            <p className="text-xs font-medium leading-relaxed text-slate-300">
+              The Pro upgrade dialog should be open. If not, use Smart Extract from the toolbar after upgrading.
+            </p>
+          </div>
         ) : error ? (
           <p className="mt-4 rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200">
             {error}
@@ -122,9 +169,19 @@ export default function PdfToTextModal({ file, onClose, onSuccess, onProcessingC
         ) : (
           <>
             <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">
-              Extracted text from{' '}
-              <span className="font-semibold text-canvas-text">{pageCount}</span> page
-              {pageCount === 1 ? '' : 's'}. Copy or download instantly — nothing leaves your device.
+              {extractionSource === 'tier1-ocr' ? (
+                <>
+                  Scanned PDF detected — free OCR extracted text from the first{' '}
+                  <span className="font-semibold text-canvas-text">{pagesSampled}</span> page
+                  {pagesSampled === 1 ? '' : 's'} ({pageCount} total). Copy or download instantly.
+                </>
+              ) : (
+                <>
+                  Extracted text from{' '}
+                  <span className="font-semibold text-canvas-text">{pageCount}</span> page
+                  {pageCount === 1 ? '' : 's'}. Copy or download instantly — nothing leaves your device.
+                </>
+              )}
             </p>
             <textarea
               readOnly
