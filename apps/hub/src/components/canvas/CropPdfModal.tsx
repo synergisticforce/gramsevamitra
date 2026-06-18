@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { cropPdfInBrowser, getPdfPageSize, triggerPdfDownload } from '../../lib/canvas/documentPdfTools';
-import { defaultCropRect, type NormalizedCropRect } from '../../lib/pdf/cropCoords';
+import { defaultCropRect, normalizedCropToPdfBox, type NormalizedCropRect } from '../../lib/pdf/cropCoords';
+import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
+import { runChunkedCropPipeline } from '../../lib/upload/chunkedPipeline';
 import { useModalMetaLoading } from '../../lib/canvas/useModalMetaLoading';
 import ToolProcessingWait from './ToolProcessingWait';
 
@@ -78,6 +80,21 @@ export default function CropPdfModal({ file, onClose, onSuccess, onProcessingCha
 
     try {
       const pageSize = await getPdfPageSize(file, pageIndex + 1);
+      const pdfCrop = normalizedCropToPdfBox(crop, pageSize.width, pageSize.height);
+
+      if (requiresChunkedPipeline(file)) {
+        await runChunkedCropPipeline(
+          file,
+          pageIndex,
+          pdfCrop,
+          ({ label, percent }) => onProcessingChange(true, label, percent),
+        );
+        onProcessingChange(false, '', 0);
+        onSuccess(`Crop applied to page ${pageIndex + 1} via Smart Slicing. Download started.`);
+        onClose();
+        return;
+      }
+
       const { bytes, downloadName } = await cropPdfInBrowser(
         file,
         pageIndex,

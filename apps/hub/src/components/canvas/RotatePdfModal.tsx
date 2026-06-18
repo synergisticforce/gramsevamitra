@@ -4,6 +4,8 @@ import {
   triggerPdfDownload,
   type PageRotationAngle,
 } from '../../lib/canvas/documentPdfTools';
+import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
+import { runChunkedRotatePipeline } from '../../lib/upload/chunkedPipeline';
 import { useModalMetaLoading } from '../../lib/canvas/useModalMetaLoading';
 import ToolProcessingWait from './ToolProcessingWait';
 
@@ -86,6 +88,16 @@ export default function RotatePdfModal({ file, onClose, onSuccess, onProcessingC
     onProcessingChange(true, 'Rotating pages…', 0);
 
     try {
+      if (requiresChunkedPipeline(file)) {
+        const { rotatedCount } = await runChunkedRotatePipeline(file, pageRotations, ({ label, percent }) =>
+          onProcessingChange(true, label, percent),
+        );
+        onProcessingChange(false, '', 0);
+        onSuccess(`Rotated ${rotatedCount} page(s) via Smart Slicing — download started.`);
+        onClose();
+        return;
+      }
+
       const { bytes, downloadName, rotatedCount } = await rotatePdfPagesInBrowser(
         file,
         pageRotations,

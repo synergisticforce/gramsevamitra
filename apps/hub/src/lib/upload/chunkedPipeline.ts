@@ -1,6 +1,9 @@
 import { downloadBlob } from '@shared/utils/fileUtils';
+import { getLocalProcessingLimitBytes } from '../pdf/deviceDetection';
 
 export const CHUNK_BYTES = 20 * 1024 * 1024;
+
+/** @deprecated Use getLocalProcessingLimitBytes() — device-aware (50MB mobile, 1GB desktop). */
 export const SAFE_LOCAL_BYTES = 50 * 1024 * 1024;
 
 export interface ChunkProgress {
@@ -37,7 +40,7 @@ interface FinalizeStageResponse {
 }
 
 export function shouldUseChunkedPipeline(file: File): boolean {
-  return file.size > SAFE_LOCAL_BYTES;
+  return file.size > getLocalProcessingLimitBytes();
 }
 
 function totalChunksForFile(file: File, chunkBytes: number): number {
@@ -289,5 +292,180 @@ export async function runChunkedMergePipeline(
   const fileName = headerFileName(response, `${files[0].name.replace(/\.pdf$/i, '')}_merged.pdf`);
   downloadBlob(blob, fileName, '_merged');
   onProgress({ label: 'Complete', percent: 100 });
+}
+
+export const CHUNKED_RENDER_UNSUPPORTED_MESSAGE =
+  'This tool needs browser rendering and cannot use Smart Slicing. On desktop, files up to 1GB process locally. Try Split or Remove Pages to work on a smaller section first.';
+
+async function runChunkedDocumentProcess(
+  file: File,
+  operation: string,
+  params: Record<string, unknown>,
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<Response> {
+  const staged = await stageFileViaChunks(file, onProgress);
+  onProgress({ label: 'Processing on secure backend…', percent: 97 });
+
+  const response = await fetch('/api/chunked/document/process', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      operation,
+      objectKey: staged.objectKey,
+      fileName: file.name,
+      params,
+    }),
+  });
+
+  if (!response.ok) {
+    let message = 'Chunked processing failed.';
+    try {
+      const payload = (await response.json()) as { message?: string };
+      if (payload.message) message = payload.message;
+    } catch {
+      // ignore json parse failure
+    }
+    throw new Error(message);
+  }
+
+  return response;
+}
+
+async function downloadChunkedPdfResponse(
+  response: Response,
+  file: File,
+  fallbackSuffix: string,
+  downloadTag: string,
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<void> {
+  const blob = await response.blob();
+  const fileName = headerFileName(response, `${file.name.replace(/\.pdf$/i, '')}${fallbackSuffix}.pdf`);
+  downloadBlob(blob, fileName, downloadTag);
+  onProgress({ label: 'Complete', percent: 100 });
+}
+
+export async function runChunkedCompressPipeline(
+  file: File,
+  preset: string,
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<{ savingsPct: number }> {
+  const response = await runChunkedDocumentProcess(file, 'compress', { preset }, onProgress);
+  const savingsPct = Number(response.headers.get('X-GSM-Savings-Pct') || '0');
+  await downloadChunkedPdfResponse(response, file, '_compressed', '_compressed', onProgress);
+  return { savingsPct };
+}
+
+export async function runChunkedRemovePagesPipeline(
+  file: File,
+  rangeInput: string,
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<{ removedCount: number }> {
+  const response = await runChunkedDocumentProcess(
+    file,
+    'remove-pages',
+    { rangeInput },
+    onProgress,
+  );
+  const removedCount = Number(response.headers.get('X-GSM-Removed-Count') || '0');
+  await downloadChunkedPdfResponse(response, file, '_pages-removed', '_pages-removed', onProgress);
+  return { removedCount };
+}
+
+export async function runChunkedReorderPipeline(
+  file: File,
+  order: number[],
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<void> {
+  const response = await runChunkedDocumentProcess(file, 'reorder', { order }, onProgress);
+  await downloadChunkedPdfResponse(response, file, '_reordered', '_reordered', onProgress);
+}
+
+export async function runChunkedRotatePipeline(
+  file: File,
+  pageRotations: { pageIndex: number; angle: number }[],
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<{ rotatedCount: number }> {
+  const response = await runChunkedDocumentProcess(file, 'rotate', { pageRotations }, onProgress);
+  const rotatedCount = Number(response.headers.get('X-GSM-Rotated-Count') || '0');
+  await downloadChunkedPdfResponse(response, file, '_rotated', '_rotated', onProgress);
+  return { rotatedCount };
+}
+
+export async function runChunkedProtectPipeline(
+  file: File,
+  userPassword: string,
+  ownerPassword: string | undefined,
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<void> {
+  const response = await runChunkedDocumentProcess(
+    file,
+    'protect',
+    { userPassword, ownerPassword },
+    onProgress,
+  );
+  await downloadChunkedPdfResponse(response, file, '_protected', '_protected', onProgress);
+}
+
+export async function runChunkedUnlockPipeline(
+  file: File,
+  password: string,
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<void> {
+  const response = await runChunkedDocumentProcess(file, 'unlock', { password }, onProgress);
+  await downloadChunkedPdfResponse(response, file, '_unlocked', '_unlocked', onProgress);
+}
+
+export async function runChunkedWatermarkPipeline(
+  file: File,
+  options: { text: string; position: string; opacity: number; rotation: number },
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<void> {
+  const response = await runChunkedDocumentProcess(file, 'watermark', options, onProgress);
+  await downloadChunkedPdfResponse(response, file, '_watermarked', '_watermarked', onProgress);
+}
+
+export async function runChunkedPageNumbersPipeline(
+  file: File,
+  options: {
+    vertical: string;
+    horizontal: string;
+    format: string;
+    fontSize: number;
+    color: string;
+    startNumber: number;
+  },
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<void> {
+  const response = await runChunkedDocumentProcess(file, 'page-numbers', options, onProgress);
+  await downloadChunkedPdfResponse(response, file, '_numbered', '_numbered', onProgress);
+}
+
+export async function runChunkedCropPipeline(
+  file: File,
+  pageIndex: number,
+  crop: { x: number; y: number; width: number; height: number },
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<void> {
+  const response = await runChunkedDocumentProcess(
+    file,
+    'crop',
+    { pageIndex, crop },
+    onProgress,
+  );
+  await downloadChunkedPdfResponse(response, file, '_cropped', '_cropped', onProgress);
+}
+
+export async function runChunkedExtractTextPipeline(
+  file: File,
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<{ text: string; pageCount: number }> {
+  const response = await runChunkedDocumentProcess(file, 'extract-text', {}, onProgress);
+  const payload = (await response.json()) as { text?: string; pageCount?: number };
+  onProgress({ label: 'Complete', percent: 100 });
+  return {
+    text: payload.text || '',
+    pageCount: payload.pageCount || 0,
+  };
 }
 

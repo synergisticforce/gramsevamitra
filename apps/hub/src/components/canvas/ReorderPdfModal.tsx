@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { reorderPdfPagesInBrowser, triggerPdfDownload } from '../../lib/canvas/documentPdfTools';
+import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
+import { runChunkedReorderPipeline } from '../../lib/upload/chunkedPipeline';
 import { useModalMetaLoading } from '../../lib/canvas/useModalMetaLoading';
 import ToolProcessingWait from './ToolProcessingWait';
 
@@ -68,6 +70,16 @@ export default function ReorderPdfModal({ file, onClose, onSuccess, onProcessing
     onProcessingChange(true, 'Reordering pages…', 0);
 
     try {
+      if (requiresChunkedPipeline(file)) {
+        await runChunkedReorderPipeline(file, pageOrder, ({ label, percent }) =>
+          onProcessingChange(true, label, percent),
+        );
+        onProcessingChange(false, '', 0);
+        onSuccess('Pages reordered via Smart Slicing — download started.');
+        onClose();
+        return;
+      }
+
       const { bytes, downloadName } = await reorderPdfPagesInBrowser(
         file,
         pageOrder,

@@ -4,6 +4,8 @@ import {
   splitFilenameBase,
   triggerTextDownload,
 } from '../../lib/canvas/documentPdfTools';
+import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
+import { runChunkedExtractTextPipeline } from '../../lib/upload/chunkedPipeline';
 
 interface Props {
   file: File;
@@ -29,6 +31,17 @@ export default function PdfToTextModal({ file, onClose, onSuccess, onProcessingC
       onProcessingChange(true, 'Extracting text…', 0);
 
       try {
+        if (requiresChunkedPipeline(file)) {
+          const result = await runChunkedExtractTextPipeline(file, ({ label, percent }) =>
+            onProcessingChange(true, label, percent),
+          );
+          if (cancelled) return;
+          setText(result.text);
+          setPageCount(result.pageCount);
+          onProcessingChange(false, '', 0);
+          return;
+        }
+
         const result = await extractPdfTextInBrowser(file, ({ current, total, label }) => {
           const percent = total > 0 ? Math.round((current / total) * 100) : 0;
           onProcessingChange(true, label, percent);

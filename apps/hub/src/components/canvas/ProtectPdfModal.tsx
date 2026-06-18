@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { formatFileSize } from '../../lib/canvas/documentCanvasStorage';
 import { protectPdfInBrowser, triggerPdfDownload } from '../../lib/canvas/documentPdfTools';
+import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
+import { runChunkedProtectPipeline } from '../../lib/upload/chunkedPipeline';
 import { scorePasswordStrength } from '../../lib/pdf/passwordStrength';
 
 interface Props {
@@ -41,6 +43,19 @@ export default function ProtectPdfModal({ file, onClose, onSuccess, onProcessing
     onProcessingChange(true, 'Encrypting PDF…', 0);
 
     try {
+      if (requiresChunkedPipeline(file)) {
+        await runChunkedProtectPipeline(
+          file,
+          userPassword,
+          ownerPassword.trim() || undefined,
+          ({ label, percent }) => onProcessingChange(true, label, percent),
+        );
+        onProcessingChange(false, '', 0);
+        onSuccess('PDF encrypted via Smart Slicing. Download started — store your passwords safely.');
+        onClose();
+        return;
+      }
+
       const { bytes, downloadName } = await protectPdfInBrowser(
         file,
         {

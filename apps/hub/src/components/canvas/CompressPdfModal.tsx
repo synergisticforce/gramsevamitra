@@ -6,6 +6,8 @@ import {
   triggerPdfDownload,
   type CompressionPreset,
 } from '../../lib/canvas/documentPdfTools';
+import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
+import { runChunkedCompressPipeline } from '../../lib/upload/chunkedPipeline';
 
 interface Props {
   file: File;
@@ -35,6 +37,18 @@ export default function CompressPdfModal({ file, onClose, onSuccess, onProcessin
     onProcessingChange(true, 'Analyzing PDF…', 0);
 
     try {
+      if (requiresChunkedPipeline(file)) {
+        const { savingsPct } = await runChunkedCompressPipeline(file, preset, ({ label, percent }) =>
+          onProcessingChange(true, label, percent),
+        );
+        onProcessingChange(false, '', 0);
+        onSuccess(
+          `${activePreset.label} compression complete via Smart Slicing — saved ~${savingsPct}%. Download started.`,
+        );
+        onClose();
+        return;
+      }
+
       const { bytes, downloadName, savingsLabel } = await compressPdfInBrowser(
         file,
         preset,

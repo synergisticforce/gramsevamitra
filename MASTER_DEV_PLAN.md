@@ -9,7 +9,8 @@
 
 ## 2. The "No Size Limit" Chunking Architecture (Phase 2 - Active)
 * **The Absolute Rule:** FILE SIZE IS NEVER LINKED TO THE PRO PLAN. Free users can upload and process files of ANY size (including 5GB+ files) using Free tools without ever hitting a paywall.
-* **The Architecture:** Implement the background "Smart Slicing Pipeline" using 20MB chunks. If a file exceeds safe local browser memory (~50MB), automatically slice it, stream it to our Cloudflare backend for FREE processing piece-by-piece, and merge the final output back to the user. 
+* **Dynamic local processing limits:** 50MB for mobile/tablets, and 1GB (1024MB) for desktop.
+* **The Architecture:** Implement the background "Smart Slicing Pipeline" using 20MB chunks. If a file exceeds the device-aware local limit above, automatically slice it, stream it to our Cloudflare backend for FREE processing piece-by-piece, and merge the final output back to the user. Device type is detected via `navigator.userAgent` and `navigator.maxTouchPoints` (for iPadOS).
 * **Storage Constraint:** Use `PRO_TRANSIENT` R2 bucket for temporary staging during chunking. The Worker MUST delete chunks immediately after the final file is streamed to prevent storage costs.
 
 ## 3. Advanced OCR Architecture & Fallbacks (Phase 3)

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { formatFileSize } from '../../lib/canvas/documentCanvasStorage';
 import { triggerPdfDownload, unlockPdfInBrowser } from '../../lib/canvas/documentPdfTools';
+import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
+import { runChunkedUnlockPipeline } from '../../lib/upload/chunkedPipeline';
 import { isPdfEncrypted } from '../../lib/pdf/pdfEncryption';
 
 interface Props {
@@ -68,6 +70,16 @@ export default function UnlockPdfModal({
     onProcessingChange(true, 'Decrypting PDF…', 0);
 
     try {
+      if (requiresChunkedPipeline(file)) {
+        await runChunkedUnlockPipeline(file, password, ({ label, percent }) =>
+          onProcessingChange(true, label, percent),
+        );
+        onProcessingChange(false, '', 0);
+        onSuccess('Password removed via Smart Slicing — clean PDF saved. Download started.');
+        onClose();
+        return;
+      }
+
       const { bytes, downloadName } = await unlockPdfInBrowser(
         file,
         password,

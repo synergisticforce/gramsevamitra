@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 import { watermarkPdfInBrowser, triggerPdfDownload } from '../../lib/canvas/documentPdfTools';
+import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
+import { runChunkedWatermarkPipeline } from '../../lib/upload/chunkedPipeline';
 import {
   WATERMARK_POSITIONS,
   type OverlayPosition,
@@ -51,6 +53,18 @@ export default function WatermarkPdfModal({
     onProcessingChange(true, 'Applying watermark…', 0);
 
     try {
+      if (requiresChunkedPipeline(file)) {
+        await runChunkedWatermarkPipeline(
+          file,
+          { text, position, opacity: opacity / 100, rotation: -30 },
+          ({ label, percent }) => onProcessingChange(true, label, percent),
+        );
+        onProcessingChange(false, '', 0);
+        onSuccess('Watermark applied via Smart Slicing — download started.');
+        onClose();
+        return;
+      }
+
       const { bytes, downloadName } = await watermarkPdfInBrowser(
         file,
         {

@@ -3,6 +3,8 @@ import {
   exportPdfToJpgInBrowser,
   exportPdfToPngInBrowser,
 } from '../../lib/canvas/documentPdfTools';
+import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
+import { CHUNKED_RENDER_UNSUPPORTED_MESSAGE } from '../../lib/upload/chunkedPipeline';
 
 type ImageFormat = 'jpg' | 'png';
 
@@ -35,6 +37,12 @@ export default function PdfToImageModal({ file, onClose, onSuccess, onProcessing
   );
 
   const handleExport = useCallback(async () => {
+    if (requiresChunkedPipeline(file)) {
+      setError(CHUNKED_RENDER_UNSUPPORTED_MESSAGE);
+      onProcessingChange(false, '', 0);
+      return;
+    }
+
     setBusy(true);
     setError(null);
     onProcessingChange(true, 'Exporting pages…', 0);

@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1",
+    "docx": "^9.7.1",
     "sharp": "^0.33.5",
     "wrangler": "^3.114.0"
   },
@@ -44,7 +45,9 @@
     "node": ">=18.17.0"
   },
   "dependencies": {
+    "@cantoo/pdf-lib": "^2.7.1",
     "better-auth": "^1.2.9",
+    "pdfjs-dist": "^4.10.38",
     "razorpay": "^2.9.6"
   }
 }

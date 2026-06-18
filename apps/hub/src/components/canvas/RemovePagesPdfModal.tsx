@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { removePagesInBrowser, triggerPdfDownload } from '../../lib/canvas/documentPdfTools';
+import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
+import { runChunkedRemovePagesPipeline } from '../../lib/upload/chunkedPipeline';
 import { useModalMetaLoading } from '../../lib/canvas/useModalMetaLoading';
 import ToolProcessingWait from './ToolProcessingWait';
 
@@ -71,6 +73,16 @@ export default function RemovePagesPdfModal({
     onProcessingChange(true, 'Removing pages…', 0);
 
     try {
+      if (requiresChunkedPipeline(file)) {
+        const { removedCount } = await runChunkedRemovePagesPipeline(file, rangeInput, ({ label, percent }) =>
+          onProcessingChange(true, label, percent),
+        );
+        onProcessingChange(false, '', 0);
+        onSuccess(`Removed ${removedCount} page(s) via Smart Slicing. Download started.`);
+        onClose();
+        return;
+      }
+
       const { bytes, downloadName, removedCount } = await removePagesInBrowser(
         file,
         rangeInput,

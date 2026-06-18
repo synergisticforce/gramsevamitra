@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 import { deskewPdfInBrowser, triggerPdfDownload } from '../../lib/canvas/documentPdfTools';
+import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
+import { CHUNKED_RENDER_UNSUPPORTED_MESSAGE } from '../../lib/upload/chunkedPipeline';
 
 interface Props {
   file: File;
@@ -24,6 +26,11 @@ export default function DeskewPdfModal({ file, onClose, onSuccess, onProcessingC
   const handleApply = useCallback(async () => {
     if (degrees === 0) {
       setError('Adjust the rotation slider to straighten your scan.');
+      return;
+    }
+
+    if (requiresChunkedPipeline(file)) {
+      setError(CHUNKED_RENDER_UNSUPPORTED_MESSAGE);
       return;
     }
 

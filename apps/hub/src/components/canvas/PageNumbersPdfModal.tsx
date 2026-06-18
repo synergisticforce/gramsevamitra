@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 import { addPageNumbersInBrowser, triggerPdfDownload } from '../../lib/canvas/documentPdfTools';
+import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
+import { runChunkedPageNumbersPipeline } from '../../lib/upload/chunkedPipeline';
 import {
   PAGE_NUMBER_FORMATS,
   PAGE_NUMBER_HORIZONTAL_OPTIONS,
@@ -51,6 +53,25 @@ export default function PageNumbersPdfModal({
     onProcessingChange(true, 'Adding page numbers…', 0);
 
     try {
+      if (requiresChunkedPipeline(file)) {
+        await runChunkedPageNumbersPipeline(
+          file,
+          {
+            vertical,
+            horizontal,
+            format,
+            fontSize: 11,
+            color: '#333333',
+            startNumber: Math.max(1, startNumber),
+          },
+          ({ label, percent }) => onProcessingChange(true, label, percent),
+        );
+        onProcessingChange(false, '', 0);
+        onSuccess('Page numbers added via Smart Slicing — download started.');
+        onClose();
+        return;
+      }
+
       const { bytes, downloadName } = await addPageNumbersInBrowser(
         file,
         {
