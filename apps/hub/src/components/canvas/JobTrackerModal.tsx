@@ -15,6 +15,7 @@ import {
 interface Props {
   onClose: () => void;
   onSuccess: (message: string) => void;
+  embedded?: boolean;
 }
 
 interface FormState {
@@ -31,7 +32,7 @@ const EMPTY_FORM: FormState = {
   dateApplied: new Date().toISOString().slice(0, 10),
 };
 
-export default function JobTrackerModal({ onClose, onSuccess }: Props) {
+export default function JobTrackerModal({ onClose, onSuccess, embedded = false }: Props) {
   const [board, setBoard] = useState<JobTrackerBoard>(emptyJobBoard);
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -179,17 +180,88 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
     setFormOpen(false);
   };
 
-  return (
+  const formOverlay = formOpen ? (
+    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-canvas-accent-muted/40 p-4 sm:items-center">
+      <form
+        onSubmit={submitForm}
+        className="w-full max-w-md rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none"
+      >
+        <h3 className="text-base font-bold text-canvas-text">
+          {editingId ? 'Edit application' : 'Add job application'}
+        </h3>
+        <div className="mt-4 space-y-3">
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
+              Company
+            </span>
+            <input
+              required
+              value={form.company}
+              onChange={(event) => setForm({ ...form, company: event.target.value })}
+              className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
+              Role
+            </span>
+            <input
+              required
+              value={form.role}
+              onChange={(event) => setForm({ ...form, role: event.target.value })}
+              className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
+              Date applied
+            </span>
+            <input
+              type="date"
+              value={form.dateApplied}
+              onChange={(event) => setForm({ ...form, dateApplied: event.target.value })}
+              className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
+              Notes (optional)
+            </span>
+            <textarea
+              rows={2}
+              value={form.notes}
+              onChange={(event) => setForm({ ...form, notes: event.target.value })}
+              className="mt-1.5 w-full resize-y rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
+            />
+          </label>
+        </div>
+        <div className="mt-5 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setFormOpen(false)}
+            className="flex-1 rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="flex-1 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-canvas-text"
+          >
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+  ) : null;
+
+  const panel = (
     <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-2 sm:items-center sm:p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="job-tracker-title"
-      onClick={(event) => {
-        if (event.target === event.currentTarget && !formOpen) onClose();
-      }}
+      className={
+        embedded
+          ? 'flex min-h-[420px] flex-col overflow-hidden rounded-xl border border-canvas-border bg-canvas-surface'
+          : 'flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-canvas-border bg-canvas-surface shadow-none'
+      }
     >
-      <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-canvas-border bg-canvas-surface shadow-none">
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-5">
           <div>
             <h2 id="job-tracker-title" className="text-lg font-bold text-canvas-text">
@@ -207,14 +279,16 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
             >
               + Add job
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted"
-              aria-label="Close"
-            >
-              ✕
-            </button>
+            {!embedded && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            )}
           </div>
         </div>
 
@@ -292,80 +366,29 @@ export default function JobTrackerModal({ onClose, onSuccess }: Props) {
           ))}
         </div>
       </div>
+  );
 
-      {formOpen && (
-        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-canvas-accent-muted/40 p-4 sm:items-center">
-          <form
-            onSubmit={submitForm}
-            className="w-full max-w-md rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none"
-          >
-            <h3 className="text-base font-bold text-canvas-text">
-              {editingId ? 'Edit application' : 'Add job application'}
-            </h3>
-            <div className="mt-4 space-y-3">
-              <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
-                  Company
-                </span>
-                <input
-                  required
-                  value={form.company}
-                  onChange={(event) => setForm({ ...form, company: event.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
-                  Role
-                </span>
-                <input
-                  required
-                  value={form.role}
-                  onChange={(event) => setForm({ ...form, role: event.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
-                  Date applied
-                </span>
-                <input
-                  type="date"
-                  value={form.dateApplied}
-                  onChange={(event) => setForm({ ...form, dateApplied: event.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
-                  Notes (optional)
-                </span>
-                <textarea
-                  rows={2}
-                  value={form.notes}
-                  onChange={(event) => setForm({ ...form, notes: event.target.value })}
-                  className="mt-1.5 w-full resize-y rounded-xl border border-canvas-border px-3 py-2.5 text-sm"
-                />
-              </label>
-            </div>
-            <div className="mt-5 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setFormOpen(false)}
-                className="flex-1 rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-canvas-text"
-              >
-                Save
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+  if (embedded) {
+    return (
+      <>
+        {panel}
+        {formOverlay}
+      </>
+    );
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-2 sm:items-center sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="job-tracker-title"
+      onClick={(event) => {
+        if (event.target === event.currentTarget && !formOpen) onClose();
+      }}
+    >
+      {panel}
+      {formOverlay}
     </div>
   );
 }

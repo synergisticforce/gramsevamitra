@@ -30,29 +30,10 @@ export function isCareerDocumentMimeOrName(type: string, name: string): boolean 
 }
 
 export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
-  // Standalone — visible before any document is uploaded
-  {
-    id: 'job-tracker',
-    label: 'Job Tracker',
-    icon: '📋',
-    tier: 'free',
-  },
-  {
-    id: 'salary-calculator',
-    label: 'Salary Calc',
-    icon: '💰',
-    tier: 'free',
-  },
   {
     id: 'legal-templates',
     label: 'Legal Docs',
     icon: '📜',
-    tier: 'free',
-  },
-  {
-    id: 'salary-benchmarking',
-    label: 'Salary Bench',
-    icon: '📊',
     tier: 'free',
   },
   {
@@ -62,18 +43,11 @@ export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
     tier: 'free',
   },
   {
-    id: 'cold-email-builder',
-    label: 'Cold Email',
-    icon: '✉️',
-    tier: 'free',
-  },
-  {
     id: 'business-card',
     label: 'Biz Card',
     icon: '🪪',
     tier: 'free',
   },
-  // Document-dependent — only after a successful upload
   {
     id: 'ats-scanner',
     label: 'ATS Scanner',
@@ -140,6 +114,8 @@ export function mimeMatchesPattern(mimeType: string, pattern: string): boolean {
 }
 
 export function careerToolbarActions(hasDocument: boolean, mimeType = '', fileName = ''): CareerCanvasAction[] {
+  if (!hasDocument) return [];
+
   const resolvedMime =
     mimeType && mimeType !== 'application/octet-stream'
       ? mimeType

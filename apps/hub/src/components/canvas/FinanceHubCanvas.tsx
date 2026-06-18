@@ -16,6 +16,8 @@ import FinanceInvoiceBuilder from './FinanceInvoiceBuilder';
 import FinanceLoanRepaymentCalculator from './FinanceLoanRepaymentCalculator';
 import FinanceMeetingCostCalculator from './FinanceMeetingCostCalculator';
 import FinancePayStubGenerator from './FinancePayStubGenerator';
+import FinanceSalaryBenchmark from './FinanceSalaryBenchmark';
+import FinanceSalaryCalculator from './FinanceSalaryCalculator';
 import FinanceSipCalculator from './FinanceSipCalculator';
 import FinanceTaxDeductionCalculator from './FinanceTaxDeductionCalculator';
 import FinanceTipSplitCalculator from './FinanceTipSplitCalculator';
@@ -53,6 +55,10 @@ function renderTool(toolId: FinanceToolId) {
       return <FinanceEnvelopeBudgetPlanner />;
     case 'gig-income-tracker':
       return <FinanceGigIncomeTracker />;
+    case 'salary-calculator':
+      return <FinanceSalaryCalculator />;
+    case 'salary-benchmarking':
+      return <FinanceSalaryBenchmark />;
     default:
       return null;
   }
@@ -100,7 +106,7 @@ export default function FinanceHubCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Finance Hub</h1>
               <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-                EMI, SIP, GST, invoices, crypto gains, budgeting, and 14 client-side money tools.
+                EMI, SIP, GST, salary tools, invoices, crypto gains, budgeting, and 16 client-side money tools.
               </p>
             </div>
           </div>

@@ -26,21 +26,13 @@ import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
 import CareerActionToolbar from './CareerActionToolbar';
 import CareerMagicDropzone from './CareerMagicDropzone';
-import ColdEmailModal from './ColdEmailModal';
 import CoverLetterModal from './CoverLetterModal';
-import JobTrackerModal from './JobTrackerModal';
 import LegalTemplatesModal from './LegalTemplatesModal';
-import SalaryBenchmarkModal from './SalaryBenchmarkModal';
-import SalaryCalculatorModal from './SalaryCalculatorModal';
 import SkillGapModal from './SkillGapModal';
 
 type CanvasPhase = 'empty' | 'active';
 type CareerToolModal =
-  | 'job-tracker'
-  | 'salary-calculator'
-  | 'cold-email'
   | 'business-card'
-  | 'salary-benchmarking'
   | 'skill-gap-analyzer'
   | 'legal-templates'
   | 'ats-scanner'
@@ -113,24 +105,8 @@ export default function CareerPrepCanvas() {
 
   const onFreeAction = useCallback(
     (action: CareerCanvasAction) => {
-      if (action.id === 'job-tracker') {
-        setCareerModal('job-tracker');
-        return;
-      }
-      if (action.id === 'salary-calculator') {
-        setCareerModal('salary-calculator');
-        return;
-      }
-      if (action.id === 'cold-email-builder') {
-        setCareerModal('cold-email');
-        return;
-      }
       if (action.id === 'business-card') {
         setCareerModal('business-card');
-        return;
-      }
-      if (action.id === 'salary-benchmarking') {
-        setCareerModal('salary-benchmarking');
         return;
       }
       if (action.id === 'skill-gap-analyzer') {
@@ -367,21 +343,18 @@ export default function CareerPrepCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Career Prep</h1>
               <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-                Job tracking, salary tools, ATS scanning, and AI resume helpers — drop a document or
-                pick a tool below.
+                ATS scanning, cover letters, and AI resume helpers — drop your resume or cover letter
+                to begin.
               </p>
             </div>
           </div>
         </header>
 
         {phase === 'empty' && (
-          <div className="space-y-4">
-            <CareerMagicDropzone
-              onFileSelect={activateFile}
-              onInvalidFile={() => setToastMessage('Please upload a PDF or Word (DOCX) document.')}
-            />
-            <CareerActionToolbar actions={toolbarActions} onActionClick={handleActionClick} />
-          </div>
+          <CareerMagicDropzone
+            onFileSelect={activateFile}
+            onInvalidFile={() => setToastMessage('Please upload a PDF or Word (DOCX) document.')}
+          />
         )}
 
         {phase === 'active' && activeFile && (
@@ -443,28 +416,12 @@ export default function CareerPrepCanvas() {
         )}
       </div>
 
-      {careerModal === 'job-tracker' && (
-        <JobTrackerModal onClose={() => setCareerModal(null)} onSuccess={setToastMessage} />
-      )}
-
-      {careerModal === 'salary-calculator' && (
-        <SalaryCalculatorModal onClose={() => setCareerModal(null)} onSuccess={setToastMessage} />
-      )}
-
-      {careerModal === 'cold-email' && (
-        <ColdEmailModal onClose={() => setCareerModal(null)} onSuccess={setToastMessage} />
-      )}
-
       {careerModal === 'business-card' && (
         <BusinessCardModal
           onClose={() => setCareerModal(null)}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
-      )}
-
-      {careerModal === 'salary-benchmarking' && (
-        <SalaryBenchmarkModal onClose={() => setCareerModal(null)} onSuccess={setToastMessage} />
       )}
 
       {careerModal === 'skill-gap-analyzer' && (

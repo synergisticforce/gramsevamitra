@@ -38,6 +38,10 @@ function renderVideoTool(
     case 'format-converter':
     case 'mute-video':
     case 'video-to-gif':
+    case 'trim-video':
+    case 'video-watermark':
+    case 'video-speed':
+    case 'extract-frame':
       return (
         <VideoToolPanel
           toolId={toolId}
@@ -124,7 +128,7 @@ export default function VideoHubCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-white sm:text-3xl">Video Studio</h1>
               <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-                Five video tools — compress, convert, extract audio, mute, or create GIFs. Processed
+                Nine video tools — trim, compress, convert, watermark, change speed, extract audio or frames, mute, or create GIFs. Processed
                 privately on your device; videos never touch our servers.
               </p>
             </div>

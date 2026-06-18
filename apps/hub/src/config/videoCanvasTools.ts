@@ -7,7 +7,11 @@ export type VideoToolId =
   | 'video-compressor'
   | 'format-converter'
   | 'mute-video'
-  | 'video-to-gif';
+  | 'video-to-gif'
+  | 'trim-video'
+  | 'video-watermark'
+  | 'video-speed'
+  | 'extract-frame';
 
 export interface VideoCanvasTool {
   id: VideoToolId;
@@ -20,11 +24,11 @@ export interface VideoCanvasTool {
 export const VIDEO_CATEGORY_META: Record<VideoToolCategory, { label: string; description: string }> = {
   extract: {
     label: 'Extract',
-    description: 'Pull audio tracks from video files without uploading to a server.',
+    description: 'Pull audio tracks or export a still frame from any point in the clip.',
   },
   transform: {
     label: 'Transform',
-    description: 'Compress, mute, or turn clips into GIFs — all in-browser.',
+    description: 'Compress, trim, mute, watermark, change speed, or turn clips into GIFs.',
   },
   convert: {
     label: 'Convert',
@@ -67,6 +71,34 @@ export const VIDEO_CANVAS_TOOLS: VideoCanvasTool[] = [
     icon: '✨',
     category: 'transform',
     description: 'Trim a segment and export an animated GIF with palette optimization.',
+  },
+  {
+    id: 'trim-video',
+    label: 'Trim Video',
+    icon: '✂️',
+    category: 'transform',
+    description: 'Cut a clip by selecting start and end times — processed on your device.',
+  },
+  {
+    id: 'video-watermark',
+    label: 'Add Watermark',
+    icon: '💧',
+    category: 'transform',
+    description: 'Overlay text on your video for branding or copyright notice.',
+  },
+  {
+    id: 'video-speed',
+    label: 'Change Speed',
+    icon: '⏩',
+    category: 'transform',
+    description: 'Slow down to 0.5× or speed up to 1.5× or 2× while keeping audio in sync.',
+  },
+  {
+    id: 'extract-frame',
+    label: 'Extract Frame',
+    icon: '📸',
+    category: 'extract',
+    description: 'Scrub to any second and export a high-quality JPG still image.',
   },
 ];
 

@@ -10,11 +10,19 @@ import {
   convertVideoFormat,
   extractMp3FromVideo,
   muteVideo,
+  trimVideo,
+  changeVideoSpeed,
+  watermarkVideo,
   videoToGif,
   type CompressPreset,
   type VideoJobProgress,
   type VideoOutputFormat,
+  type VideoSpeedPreset,
 } from '../../lib/video/videoProcess';
+import {
+  extractVideoFrameAsJpg,
+  triggerFrameDownload,
+} from '../../lib/video/videoFrameExtract';
 
 interface Props {
   toolId: VideoToolId;
@@ -56,6 +64,26 @@ export default function VideoToolPanel({
       }),
     [],
   );
+  const initialTrim = useMemo(
+    () =>
+      loadPersistedJson(VIDEO_STORAGE_KEYS.trimOptions, {
+        startSec: '0',
+        endSec: '30',
+      }),
+    [],
+  );
+  const initialWatermark = useMemo(
+    () => loadPersistedJson(VIDEO_STORAGE_KEYS.watermarkText, { text: '© GramSeva Mitra' }),
+    [],
+  );
+  const initialSpeed = useMemo(
+    () => loadPersistedJson<{ speed: VideoSpeedPreset }>(VIDEO_STORAGE_KEYS.speedPreset, { speed: 1.5 }),
+    [],
+  );
+  const initialFrame = useMemo(
+    () => loadPersistedJson(VIDEO_STORAGE_KEYS.frameSecond, { second: '1' }),
+    [],
+  );
 
   const [compressPreset, setCompressPreset] = useState<CompressPreset>(initialCompress.preset);
   const [outputFormat, setOutputFormat] = useState<VideoOutputFormat>(initialFormat.format);
@@ -63,6 +91,11 @@ export default function VideoToolPanel({
   const [gifDuration, setGifDuration] = useState(initialGif.durationSec);
   const [gifFps, setGifFps] = useState(initialGif.fps);
   const [gifWidth, setGifWidth] = useState(initialGif.width);
+  const [trimStart, setTrimStart] = useState(initialTrim.startSec);
+  const [trimEnd, setTrimEnd] = useState(initialTrim.endSec);
+  const [watermarkText, setWatermarkText] = useState(initialWatermark.text);
+  const [speedPreset, setSpeedPreset] = useState<VideoSpeedPreset>(initialSpeed.speed);
+  const [frameSecond, setFrameSecond] = useState(initialFrame.second);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -81,6 +114,22 @@ export default function VideoToolPanel({
       width: gifWidth,
     });
   }, [gifDuration, gifFps, gifStart, gifWidth]);
+
+  useEffect(() => {
+    savePersistedJson(VIDEO_STORAGE_KEYS.trimOptions, { startSec: trimStart, endSec: trimEnd });
+  }, [trimEnd, trimStart]);
+
+  useEffect(() => {
+    savePersistedJson(VIDEO_STORAGE_KEYS.watermarkText, { text: watermarkText });
+  }, [watermarkText]);
+
+  useEffect(() => {
+    savePersistedJson(VIDEO_STORAGE_KEYS.speedPreset, { speed: speedPreset });
+  }, [speedPreset]);
+
+  useEffect(() => {
+    savePersistedJson(VIDEO_STORAGE_KEYS.frameSecond, { second: frameSecond });
+  }, [frameSecond]);
 
   const process = async () => {
     if (busy || disabled) return;
@@ -118,6 +167,30 @@ export default function VideoToolPanel({
           );
           resultFilename = 'output.gif';
           break;
+        case 'trim-video':
+          await trimVideo(
+            file,
+            { startSec: Number(trimStart) || 0, endSec: Number(trimEnd) || 30 },
+            onProgress,
+          );
+          resultFilename = 'trimmed.mp4';
+          break;
+        case 'video-watermark':
+          await watermarkVideo(file, watermarkText, onProgress);
+          resultFilename = 'watermarked.mp4';
+          break;
+        case 'video-speed':
+          await changeVideoSpeed(file, speedPreset, onProgress);
+          resultFilename = `speed_${speedPreset}x.mp4`;
+          break;
+        case 'extract-frame': {
+          onProgress({ label: 'Seeking to frame…', percent: 40 });
+          const { blob, downloadName } = await extractVideoFrameAsJpg(file, Number(frameSecond) || 0);
+          triggerFrameDownload(blob, downloadName);
+          onProgress({ label: 'Complete', percent: 100 });
+          resultFilename = downloadName;
+          break;
+        }
         default:
           throw new Error('Unknown video tool.');
       }
@@ -224,6 +297,87 @@ export default function VideoToolPanel({
             />
           </label>
         </div>
+      )}
+
+      {toolId === 'trim-video' && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block text-sm">
+            <span className="mb-1 block font-medium text-slate-200">Start (seconds)</span>
+            <input
+              type="number"
+              min={0}
+              step="0.1"
+              value={trimStart}
+              disabled={isDisabled}
+              onChange={(e) => setTrimStart(e.target.value)}
+              className={INPUT_CLASS}
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block font-medium text-slate-200">End (seconds)</span>
+            <input
+              type="number"
+              min={0.5}
+              step="0.1"
+              value={trimEnd}
+              disabled={isDisabled}
+              onChange={(e) => setTrimEnd(e.target.value)}
+              className={INPUT_CLASS}
+            />
+          </label>
+        </div>
+      )}
+
+      {toolId === 'video-watermark' && (
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium text-slate-200">Watermark text</span>
+          <input
+            type="text"
+            value={watermarkText}
+            disabled={isDisabled}
+            onChange={(e) => setWatermarkText(e.target.value)}
+            placeholder="Your name or copyright notice"
+            className={INPUT_CLASS}
+          />
+        </label>
+      )}
+
+      {toolId === 'video-speed' && (
+        <div className="flex flex-wrap gap-2">
+          {([0.5, 1.5, 2] as const).map((speed) => (
+            <button
+              key={speed}
+              type="button"
+              disabled={isDisabled}
+              onClick={() => setSpeedPreset(speed)}
+              className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                speedPreset === speed
+                  ? 'bg-canvas-accent-muted text-white'
+                  : 'border border-canvas-border bg-canvas-surface text-slate-200 hover:bg-canvas-elevated'
+              }`}
+            >
+              {speed}×
+            </button>
+          ))}
+        </div>
+      )}
+
+      {toolId === 'extract-frame' && (
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium text-slate-200">
+            Frame at second: {frameSecond}
+          </span>
+          <input
+            type="range"
+            min={0}
+            max={120}
+            step={0.1}
+            value={frameSecond}
+            disabled={isDisabled}
+            onChange={(e) => setFrameSecond(e.target.value)}
+            className="w-full accent-violet-500"
+          />
+        </label>
       )}
 
       {(toolId === 'mp4-to-mp3' || toolId === 'mute-video') && (

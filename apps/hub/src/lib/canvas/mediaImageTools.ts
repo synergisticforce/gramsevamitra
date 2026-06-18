@@ -251,7 +251,178 @@ export async function convertImageFormatInBrowser(
 export function triggerImageDownload(
   blob: Blob,
   filename: string,
-  toolSuffix: '_optimized' | '_converted' | '_scanned' | '_restored'
+  toolSuffix: '_optimized' | '_converted' | '_scanned' | '_restored' | '_cropped' | '_watermarked' | '_filtered'
 ): void {
   downloadBlob(blob, filename, toolSuffix);
+}
+
+export interface CropRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export type WatermarkPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+
+export interface WatermarkOptions {
+  text: string;
+  fontSize: number;
+  opacity: number;
+  position: WatermarkPosition;
+  logoFile?: File | null;
+}
+
+export type ImageFilterMode = 'grayscale' | 'bw-threshold';
+
+export async function cropImageInBrowser(
+  file: File,
+  crop: CropRect,
+  onProgress?: (progress: MediaProgress) => void
+): Promise<{ blob: Blob; downloadName: string }> {
+  onProgress?.({ label: 'Loading image…', percent: 15 });
+  const img = await loadImageFromFile(file);
+  const x = Math.max(0, Math.min(img.naturalWidth - 1, Math.round(crop.x)));
+  const y = Math.max(0, Math.min(img.naturalHeight - 1, Math.round(crop.y)));
+  const width = Math.max(1, Math.min(img.naturalWidth - x, Math.round(crop.width)));
+  const height = Math.max(1, Math.min(img.naturalHeight - y, Math.round(crop.height)));
+
+  onProgress?.({ label: 'Cropping…', percent: 55 });
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas is not supported in this browser.');
+  ctx.drawImage(img, x, y, width, height, 0, 0, width, height);
+
+  const mimeType = resolveOutputMime(file);
+  onProgress?.({ label: 'Exporting…', percent: 85 });
+  const blob = await canvasToBlob(canvas, mimeType, 0.92);
+  const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg';
+  return { blob, downloadName: `${splitImageBaseName(file.name)}-cropped.${ext}` };
+}
+
+function drawWatermarkPosition(
+  ctx: CanvasRenderingContext2D,
+  canvasW: number,
+  canvasH: number,
+  position: WatermarkPosition,
+  blockW: number,
+  blockH: number
+): { x: number; y: number } {
+  const pad = Math.round(Math.min(canvasW, canvasH) * 0.03);
+  switch (position) {
+    case 'top-left':
+      return { x: pad, y: pad + blockH };
+    case 'top-right':
+      return { x: canvasW - pad - blockW, y: pad + blockH };
+    case 'bottom-left':
+      return { x: pad, y: canvasH - pad };
+    case 'center':
+      return { x: (canvasW - blockW) / 2, y: (canvasH + blockH) / 2 };
+    default:
+      return { x: canvasW - pad - blockW, y: canvasH - pad };
+  }
+}
+
+export async function watermarkImageInBrowser(
+  file: File,
+  options: WatermarkOptions,
+  onProgress?: (progress: MediaProgress) => void
+): Promise<{ blob: Blob; downloadName: string }> {
+  onProgress?.({ label: 'Loading image…', percent: 10 });
+  const img = await loadImageFromFile(file);
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas is not supported in this browser.');
+  ctx.drawImage(img, 0, 0);
+
+  onProgress?.({ label: 'Applying watermark…', percent: 45 });
+
+  if (options.logoFile) {
+    const logo = await loadImageFromFile(options.logoFile);
+    const maxLogoW = canvas.width * 0.25;
+    const scale = Math.min(1, maxLogoW / logo.naturalWidth);
+    const logoW = logo.naturalWidth * scale;
+    const logoH = logo.naturalHeight * scale;
+    const { x, y } = drawWatermarkPosition(ctx, canvas.width, canvas.height, options.position, logoW, logoH);
+    ctx.globalAlpha = options.opacity;
+    ctx.drawImage(logo, x, y - logoH, logoW, logoH);
+    ctx.globalAlpha = 1;
+  }
+
+  const text = options.text.trim();
+  if (text) {
+    const fontSize = Math.max(12, Math.min(canvas.height * 0.08, options.fontSize));
+    ctx.font = `600 ${fontSize}px system-ui, sans-serif`;
+    ctx.fillStyle = `rgba(255,255,255,${options.opacity})`;
+    ctx.strokeStyle = `rgba(0,0,0,${options.opacity * 0.6})`;
+    ctx.lineWidth = Math.max(1, fontSize * 0.06);
+    const metrics = ctx.measureText(text);
+    const { x, y } = drawWatermarkPosition(
+      ctx,
+      canvas.width,
+      canvas.height,
+      options.position,
+      metrics.width,
+      fontSize
+    );
+    ctx.strokeText(text, x, y);
+    ctx.fillText(text, x, y);
+  }
+
+  const mimeType = resolveOutputMime(file);
+  onProgress?.({ label: 'Exporting…', percent: 88 });
+  const blob = await canvasToBlob(canvas, mimeType, 0.92);
+  const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg';
+  return { blob, downloadName: `${splitImageBaseName(file.name)}-watermarked.${ext}` };
+}
+
+export async function filterImageInBrowser(
+  file: File,
+  mode: ImageFilterMode,
+  threshold = 128,
+  onProgress?: (progress: MediaProgress) => void
+): Promise<{ blob: Blob; downloadName: string }> {
+  onProgress?.({ label: 'Loading image…', percent: 15 });
+  const img = await loadImageFromFile(file);
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas is not supported in this browser.');
+  ctx.drawImage(img, 0, 0);
+
+  onProgress?.({ label: 'Applying filter…', percent: 50 });
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  const t = Math.max(0, Math.min(255, threshold));
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    if (mode === 'grayscale') {
+      const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+      data[i] = gray;
+      data[i + 1] = gray;
+      data[i + 2] = gray;
+    } else {
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      const v = lum >= t ? 255 : 0;
+      data[i] = v;
+      data[i + 1] = v;
+      data[i + 2] = v;
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
+
+  const mimeType = resolveOutputMime(file);
+  onProgress?.({ label: 'Exporting…', percent: 90 });
+  const blob = await canvasToBlob(canvas, mimeType, 0.92);
+  const suffix = mode === 'grayscale' ? 'grayscale' : 'bw';
+  const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg';
+  return { blob, downloadName: `${splitImageBaseName(file.name)}-${suffix}.${ext}` };
 }

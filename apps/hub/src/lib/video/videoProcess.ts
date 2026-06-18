@@ -167,3 +167,97 @@ export async function videoToGif(file: File, options: GifOptions, onProgress: Pr
     'image/gif',
   );
 }
+
+export interface TrimOptions {
+  startSec: number;
+  endSec: number;
+}
+
+export async function trimVideo(
+  file: File,
+  options: TrimOptions,
+  onProgress: ProgressFn,
+): Promise<void> {
+  const start = Math.max(0, options.startSec);
+  const end = Math.max(start + 0.5, options.endSec);
+
+  await runJob(
+    file,
+    'trimmed.mp4',
+    (input) => [
+      '-ss',
+      String(start),
+      '-to',
+      String(end),
+      '-i',
+      input,
+      '-c:v',
+      'libx264',
+      '-preset',
+      'fast',
+      '-crf',
+      '23',
+      '-c:a',
+      'aac',
+      '-b:a',
+      '128k',
+      'trimmed.mp4',
+    ],
+    onProgress,
+    'video/mp4',
+  );
+}
+
+export type VideoSpeedPreset = 0.5 | 1.5 | 2;
+
+export async function changeVideoSpeed(
+  file: File,
+  speed: VideoSpeedPreset,
+  onProgress: ProgressFn,
+): Promise<void> {
+  const ptsFactor = 1 / speed;
+  const outputName = `speed_${speed}x.mp4`;
+
+  await runJob(
+    file,
+    outputName,
+    (input) => [
+      '-i',
+      input,
+      '-filter:v',
+      `setpts=${ptsFactor}*PTS`,
+      '-filter:a',
+      `atempo=${speed}`,
+      '-c:v',
+      'libx264',
+      '-preset',
+      'fast',
+      '-crf',
+      '23',
+      outputName,
+    ],
+    onProgress,
+    'video/mp4',
+  );
+}
+
+function escapeDrawtext(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/:/g, '\\:').replace(/%/g, '\\%');
+}
+
+export async function watermarkVideo(
+  file: File,
+  text: string,
+  onProgress: ProgressFn,
+): Promise<void> {
+  const label = escapeDrawtext(text.trim() || 'Watermark');
+  const filter = `drawtext=text='${label}':fontsize=28:fontcolor=white@0.55:x=(w-text_w-24):y=(h-th-24):shadowcolor=black@0.4:shadowx=1:shadowy=1`;
+
+  await runJob(
+    file,
+    'watermarked.mp4',
+    (input) => ['-i', input, '-vf', filter, '-c:a', 'copy', 'watermarked.mp4'],
+    onProgress,
+    'video/mp4',
+  );
+}

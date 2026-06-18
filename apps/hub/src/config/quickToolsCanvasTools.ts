@@ -33,7 +33,9 @@ export type QuickToolId =
   | 'typing-speed-test'
   | 'pomodoro-timer'
   | 'event-countdown'
-  | 'random-number-generator';
+  | 'random-number-generator'
+  | 'job-tracker'
+  | 'cold-email-builder';
 
 export interface QuickCanvasTool {
   id: QuickToolId;
@@ -77,7 +79,7 @@ export const QUICK_CATEGORY_META: Record<
   },
   productivity: {
     label: 'Productivity',
-    description: 'Typing drills, Pomodoro focus, and live event countdowns.',
+    description: 'Job tracking, cold outreach, typing drills, Pomodoro focus, and countdowns.',
   },
   'home-diy': {
     label: 'Home & DIY',
@@ -239,6 +241,20 @@ export const QUICK_CANVAS_TOOLS: QuickCanvasTool[] = [
     icon: '🏠',
     category: 'home-diy',
     description: 'Plan room-by-room renovation line items and expense breakdowns.',
+  },
+  {
+    id: 'job-tracker',
+    label: 'Job Tracker',
+    icon: '📋',
+    category: 'productivity',
+    description: 'Kanban board for applications — drag cards across pipeline stages.',
+  },
+  {
+    id: 'cold-email-builder',
+    label: 'Cold Email Builder',
+    icon: '✉️',
+    category: 'productivity',
+    description: 'Outreach, follow-up, and thank-you email templates — copy locally.',
   },
 ];
 

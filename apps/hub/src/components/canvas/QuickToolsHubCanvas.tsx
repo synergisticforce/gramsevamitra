@@ -15,6 +15,8 @@ import QuickEventCountdown from './QuickEventCountdown';
 import QuickFormatConverter from './QuickFormatConverter';
 import QuickGardenPlantingPlanner from './QuickGardenPlantingPlanner';
 import QuickHashGenerator from './QuickHashGenerator';
+import QuickJobTracker from './QuickJobTracker';
+import QuickColdEmailBuilder from './QuickColdEmailBuilder';
 import QuickPasswordGenerator from './QuickPasswordGenerator';
 import QuickPercentageCalculator from './QuickPercentageCalculator';
 import QuickPetCareScheduler from './QuickPetCareScheduler';
@@ -78,6 +80,10 @@ function renderTool(toolId: QuickToolId, onToast: (message: string) => void) {
       return <QuickConstructionEstimator />;
     case 'renovation-budgeter':
       return <QuickRenovationBudgeter />;
+    case 'job-tracker':
+      return <QuickJobTracker onToast={onToast} />;
+    case 'cold-email-builder':
+      return <QuickColdEmailBuilder onToast={onToast} />;
     default:
       return null;
   }
@@ -128,7 +134,7 @@ export default function QuickToolsHubCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Quick Tools</h1>
               <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-                22 client-side utilities — converters, productivity tools, encoders, and home DIY, all offline.
+                24 client-side utilities — converters, productivity tools, encoders, and home DIY, all offline.
               </p>
             </div>
           </div>

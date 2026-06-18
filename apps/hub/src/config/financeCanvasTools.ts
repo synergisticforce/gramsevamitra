@@ -23,7 +23,9 @@ export type FinanceToolId =
   | 'pay-stub-generator'
   | 'crypto-gains-calculator'
   | 'envelope-budget-planner'
-  | 'gig-income-tracker';
+  | 'gig-income-tracker'
+  | 'salary-calculator'
+  | 'salary-benchmarking';
 
 export interface FinanceCanvasTool {
   id: FinanceToolId;
@@ -165,6 +167,20 @@ export const FINANCE_CANVAS_TOOLS: FinanceCanvasTool[] = [
     icon: '🛵',
     category: 'planning',
     description: 'Log freelance income with monthly and category breakdowns.',
+  },
+  {
+    id: 'salary-calculator',
+    label: 'Salary Calculator',
+    icon: '💰',
+    category: 'planning',
+    description: 'Estimate monthly in-hand pay from CTC with EPF and tax deductions.',
+  },
+  {
+    id: 'salary-benchmarking',
+    label: 'Salary Benchmarking',
+    icon: '📊',
+    category: 'planning',
+    description: 'Compare your role against regional salary benchmarks across India.',
   },
 ];
 

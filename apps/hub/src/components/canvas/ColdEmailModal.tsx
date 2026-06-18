@@ -13,9 +13,10 @@ import {
 interface Props {
   onClose: () => void;
   onSuccess: (message: string) => void;
+  embedded?: boolean;
 }
 
-export default function ColdEmailModal({ onClose, onSuccess }: Props) {
+export default function ColdEmailModal({ onClose, onSuccess, embedded = false }: Props) {
   const [form, setForm] = useState<ColdEmailInput>(DEFAULT_COLD_EMAIL_INPUT);
   const [activeTemplate, setActiveTemplate] = useState<ColdEmailTemplateId>('cold');
   const [copied, setCopied] = useState(false);
@@ -47,17 +48,9 @@ export default function ColdEmailModal({ onClose, onSuccess }: Props) {
     }
   }, [activeTemplate, onSuccess, templates]);
 
-  return (
-    <div
-      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="cold-email-title"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
+  const content = (
+    <div className={embedded ? 'space-y-4' : 'max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none'}>
+      {!embedded && (
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 id="cold-email-title" className="text-lg font-bold text-canvas-text">
@@ -76,8 +69,9 @@ export default function ColdEmailModal({ onClose, onSuccess }: Props) {
             ✕
           </button>
         </div>
+      )}
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <div className={`grid gap-4 lg:grid-cols-2 ${embedded ? '' : 'mt-4'}`}>
           <div className="space-y-3">
             <label className="block">
               <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
@@ -206,16 +200,33 @@ export default function ColdEmailModal({ onClose, onSuccess }: Props) {
           </p>
         )}
 
-        <div className="mt-5 flex justify-end">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated"
-          >
-            Done
-          </button>
-        </div>
+        {!embedded && (
+          <div className="mt-5 flex justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated"
+            >
+              Done
+            </button>
+          </div>
+        )}
       </div>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <div
+      className="fixed inset-0 z-[65] flex items-end justify-center bg-canvas-accent-muted/50 p-4 sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cold-email-title"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      {content}
     </div>
   );
 }

@@ -6,6 +6,10 @@ export const VIDEO_STORAGE_KEYS = {
   compressPreset: 'gsm-video-compress-preset',
   outputFormat: 'gsm-video-output-format',
   gifOptions: 'gsm-video-gif-options',
+  trimOptions: 'gsm-video-trim-options',
+  watermarkText: 'gsm-video-watermark-text',
+  speedPreset: 'gsm-video-speed-preset',
+  frameSecond: 'gsm-video-frame-second',
 } as const;
 
 export function loadVideoActiveTool(): VideoToolId | null {

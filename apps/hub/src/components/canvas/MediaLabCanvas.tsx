@@ -21,12 +21,24 @@ import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
 import ConvertFormatModal from './ConvertFormatModal';
 import ExamPhotoOptimizerModal from './ExamPhotoOptimizerModal';
+import ImageCropperModal from './ImageCropperModal';
+import ImageFilterModal from './ImageFilterModal';
+import ImageToPdfModal from './ImageToPdfModal';
+import ImageWatermarkModal from './ImageWatermarkModal';
 import MediaActionToolbar from './MediaActionToolbar';
 import MediaMagicDropzone from './MediaMagicDropzone';
 import ResizeCompressModal from './ResizeCompressModal';
 
 type CanvasPhase = 'empty' | 'active';
-type MediaToolModal = 'exam-photo-optimizer' | 'resize-compress' | 'convert-format' | null;
+type MediaToolModal =
+  | 'exam-photo-optimizer'
+  | 'resize-compress'
+  | 'convert-format'
+  | 'image-cropper'
+  | 'image-watermark'
+  | 'image-to-pdf'
+  | 'image-filters'
+  | null;
 
 interface ActiveFile {
   file: File | null;
@@ -170,6 +182,26 @@ export default function MediaLabCanvas() {
         setMediaModal('convert-format');
         return;
       }
+      if (action.id === 'image-cropper') {
+        if (!requireCanvasFile()) return;
+        setMediaModal('image-cropper');
+        return;
+      }
+      if (action.id === 'image-watermark') {
+        if (!requireCanvasFile()) return;
+        setMediaModal('image-watermark');
+        return;
+      }
+      if (action.id === 'image-to-pdf') {
+        if (!requireCanvasFile()) return;
+        setMediaModal('image-to-pdf');
+        return;
+      }
+      if (action.id === 'image-filters') {
+        if (!requireCanvasFile()) return;
+        setMediaModal('image-filters');
+        return;
+      }
       setToastMessage(`${action.label} is coming soon.`);
     },
     [requireCanvasFile]
@@ -289,7 +321,7 @@ export default function MediaLabCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Image Studio</h1>
               <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-                Resize, compress, convert, or AI-enhance — drop an image to begin.
+                Resize, crop, watermark, convert, filter, or AI-enhance — drop an image to begin.
               </p>
             </div>
           </div>
@@ -381,6 +413,42 @@ export default function MediaLabCanvas() {
 
       {mediaModal === 'convert-format' && canvasImageFile && (
         <ConvertFormatModal
+          file={canvasImageFile}
+          onClose={() => setMediaModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {mediaModal === 'image-cropper' && canvasImageFile && (
+        <ImageCropperModal
+          file={canvasImageFile}
+          onClose={() => setMediaModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {mediaModal === 'image-watermark' && canvasImageFile && (
+        <ImageWatermarkModal
+          file={canvasImageFile}
+          onClose={() => setMediaModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {mediaModal === 'image-to-pdf' && canvasImageFile && (
+        <ImageToPdfModal
+          file={canvasImageFile}
+          onClose={() => setMediaModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {mediaModal === 'image-filters' && canvasImageFile && (
+        <ImageFilterModal
           file={canvasImageFile}
           onClose={() => setMediaModal(null)}
           onSuccess={setToastMessage}

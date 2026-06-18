@@ -46,3 +46,7 @@ Implement a tiered, fail-safe OCR engine system:
 ## 8. Master Refactor Bible — Phases 1–2 (Active)
 * **Phase 1 — To Editable Format patch:** Expanded outputs to `.txt`, `.md`, `.docx`, `.xlsx`, `.csv`, `.xml`. Raw text formats bypass `COMPLEX_LAYOUT` Pro gates; structural formats always use `/api/pro/reconstruct-layout`.
 * **Phase 2 — Workspace UX sync:** Video Studio dropzone-first layout; removed FFmpeg/WASM user-facing jargon; sidebar order: Document → Image → Video → Career → Lifestyle → Finance → Quick Tools.
+
+## 9. Master Refactor Bible — Phases 3–4 (Active)
+* **Phase 3 — Career Prep migration:** Salary Calculator and Salary Benchmarking moved to Finance Hub (Planning). Job Tracker and Cold Email Builder moved to Quick Tools (Productivity). Career Prep is document-first — dropzone-only empty state, toolbar hidden until resume/cover letter upload.
+* **Phase 4 — Media tool expansion:** Image Studio adds Crop, Watermark, Image to PDF, and Filter Suite (Grayscale / B&W Threshold). Video Studio adds Trim, Watermark, Speed (0.5×/1.5×/2×), and Extract Frame — all registered in `mediaCanvasActions.ts` and `videoCanvasTools.ts`.
