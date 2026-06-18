@@ -323,8 +323,8 @@ function buildFeatureNote(tool, workspace, wired) {
     parts.push('Requires document on canvas');
   }
 
-  if (workspace === 'documents' && tool.tier === 'free' && tool.id === 'extract-to-word') {
-    parts.push('Tier 1 Tesseract OCR → client-side DOCX when confidence ≥ 65%');
+  if (workspace === 'documents' && tool.id === 'to-editable-format') {
+    parts.push('Auto-orchestrated pipeline: native text → free Tesseract OCR → Pro layout reconstruction');
   }
   if (workspace === 'documents' && tool.tier === 'pro') {
     if (tool.id === 'smart-extract') {

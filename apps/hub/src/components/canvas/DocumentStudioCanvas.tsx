@@ -10,11 +10,7 @@ import {
 } from '../../lib/canvas/documentCanvasStorage';
 import { isImageMimeOrName, isPdfMimeOrName } from '../../lib/canvas/documentPdfTools';
 import { useDocumentActionHandler } from '../../lib/canvas/useDocumentActionHandler';
-import {
-  OcrProUpgradeRequiredError,
-  promptProUpgradeAfterTier1Failure,
-} from '../../lib/ocr/ocrWaterfallPipeline';
-import { openProUpgrade } from '@shared/lib/proUpgrade';
+import type { ProOperationId } from '../../lib/auth/creditCheck';
 import type { OmniHandoffPayload } from '../../lib/omni/handoff';
 import {
   DOCUMENT_PDF_ONLY_MODALS,
@@ -31,12 +27,10 @@ import MagicDropzone from './MagicDropzone';
 import CompressPdfModal from './CompressPdfModal';
 import CropPdfModal from './CropPdfModal';
 import DeskewPdfModal from './DeskewPdfModal';
-import HiFiConverterModal from './HiFiConverterModal';
 import ImageToPdfModal from './ImageToPdfModal';
 import MergePdfModal from './MergePdfModal';
 import PageNumbersPdfModal from './PageNumbersPdfModal';
 import PdfToImageModal from './PdfToImageModal';
-import PdfToTextModal from './PdfToTextModal';
 import ProtectPdfModal from './ProtectPdfModal';
 import RemovePagesPdfModal from './RemovePagesPdfModal';
 import ReorderPdfModal from './ReorderPdfModal';
@@ -51,7 +45,6 @@ import PhotoScannedPdfModal from './PhotoScannedPdfModal';
 import StripMetadataPdfModal from './StripMetadataPdfModal';
 import SignPdfModal from './SignPdfModal';
 import RedactPdfModal from './RedactPdfModal';
-import ExtractToWordModal from './ExtractToWordModal';
 
 type CanvasPhase = 'empty' | 'active';
 type ToolModal =
@@ -66,7 +59,6 @@ type ToolModal =
   | 'crop'
   | 'image-to-pdf'
   | 'pdf-to-image'
-  | 'pdf-to-text'
   | 'type-save'
   | 'rotate'
   | 'reorder'
@@ -77,8 +69,6 @@ type ToolModal =
   | 'strip-metadata'
   | 'sign-pdf'
   | 'redact-pdf'
-  | 'extract-to-word'
-  | 'hifi-convert'
   | null;
 
 interface ActiveFile {
@@ -106,7 +96,7 @@ export default function DocumentStudioCanvas() {
     label: '',
     percent: 0,
   });
-  const [smartExtractBusy, setSmartExtractBusy] = useState(false);
+  const [editableBusy, setEditableBusy] = useState(false);
   const { requestProConfirm, proCreditModal } = useProCreditConfirm();
   const pendingOmniIntentRef = useRef<string | null>(null);
   const handleActionClickRef = useRef<(actionId: string) => void>(() => {});
@@ -159,70 +149,11 @@ export default function DocumentStudioCanvas() {
     [setProcessingProgress]
   );
 
-  const runSmartExtractJob = useCallback(
-    async (file: File, opts: { skipTier1?: boolean; tier1Text?: string } = {}) => {
-      setSmartExtractBusy(true);
-      setProcessingProgress(
-        true,
-        'Preparing Smart Extract…',
-        5,
-        'Pro processing uses secure temporary storage — deleted immediately after extraction.',
-      );
-
-      try {
-        const { runSmartExtractPipeline } = await import('../../lib/canvas/documentSmartExtract');
-        const result = await runSmartExtractPipeline(file, ({ label, percent }) => {
-          setProcessingProgress(
-            true,
-            label,
-            percent,
-            'Pro OCR uses Paddle → GLM → Vision fallback on secure transient storage.',
-          );
-        }, { isPro: true, skipTier1: opts.skipTier1, tier1Text: opts.tier1Text });
-        setProcessingProgress(false, '', 0);
-        const seconds =
-          result.processingMs != null ? Math.round(result.processingMs / 1000) : 3;
-        const creditsNote =
-          result.remainingCredits != null ? ` · ${result.remainingCredits} AI Credits left` : '';
-        setToastMessage(
-          `Smart Extract complete — ${result.fileName} downloaded (${seconds}s)${creditsNote}.`,
-        );
-      } catch (err) {
-        setProcessingProgress(false, '', 0);
-        if (err instanceof OcrProUpgradeRequiredError) {
-          return;
-        }
-        setToastMessage(
-          err instanceof Error ? err.message : 'Smart Extract failed. Please try again.',
-        );
-      } finally {
-        setSmartExtractBusy(false);
-      }
-    },
-    [setProcessingProgress],
-  );
-
-  const onProAction = useCallback(
-    async (action: DocumentCanvasAction) => {
-      if (action.id === 'hifi-convert') {
-        if (!requirePdfCanvasFile()) return;
-        setPdfModal('hifi-convert');
-        return;
-      }
-
-      if (action.id !== 'smart-extract') return;
-      if (smartExtractBusy) return;
-
-      const file = requireCanvasFile();
-      if (!file) return;
-
-      void requestProConfirm('ocr-orchestrator', action.label, () => runSmartExtractJob(file));
-    },
-    [requireCanvasFile, requirePdfCanvasFile, requestProConfirm, runSmartExtractJob, smartExtractBusy],
-  );
-
   const onFreeAction = useCallback(
     (action: DocumentCanvasAction) => {
+      if (action.id === 'to-editable-format') {
+        return;
+      }
       if (action.id === 'split') {
         if (!requirePdfCanvasFile()) return;
         setPdfModal('split');
@@ -278,24 +209,6 @@ export default function DocumentStudioCanvas() {
         setPdfModal('pdf-to-image');
         return;
       }
-      if (action.id === 'pdf-to-text') {
-        if (!requirePdfCanvasFile()) return;
-        setPdfModal('pdf-to-text');
-        return;
-      }
-      if (action.id === 'extract-to-word') {
-        const file = requireCanvasFile();
-        if (!file) return;
-        if (
-          !isPdfMimeOrName(activeFile!.meta.type, activeFile!.meta.name) &&
-          !isImageMimeOrName(activeFile!.meta.type, activeFile!.meta.name)
-        ) {
-          setToastMessage('Extract to Word works with PDF or image files.');
-          return;
-        }
-        setPdfModal('extract-to-word');
-        return;
-      }
       if (action.id === 'type-save') {
         setPdfModal('type-save');
         return;
@@ -347,76 +260,26 @@ export default function DocumentStudioCanvas() {
       }
       setToastMessage(`${action.label} is coming soon.`);
     },
-    [requireCanvasFile, requireImageCanvasFile, requirePdfCanvasFile, activeFile]
+    [requireImageCanvasFile, requirePdfCanvasFile]
   );
 
-  const { handleActionClick: dispatchAction, isPro } = useDocumentActionHandler({
+  const { handleActionClick, isPro } = useDocumentActionHandler({
     onFreeAction,
-    onProAction,
   });
 
-  const handleSmartExtractPreflight = useCallback(async () => {
-    if (smartExtractBusy) return;
-    const file = requireCanvasFile();
-    if (!file) return;
-
-    setSmartExtractBusy(true);
-    setProcessingProgress(true, 'Enhancing text clarity…', 0);
-
-    try {
-      const { isImageMimeOrName, isPdfMimeOrName } = await import('../../lib/canvas/documentPdfTools');
-      const likelyScan =
-        isImageMimeOrName(activeFile!.meta.type, activeFile!.meta.name) ||
-        isPdfMimeOrName(activeFile!.meta.type, activeFile!.meta.name);
-
-      let tier1Text = '';
-
-      if (likelyScan) {
-        const { runTier1TesseractOcr } = await import('../../lib/ocr/tesseractTier1');
-        const tier1 = await runTier1TesseractOcr(file, (label, percent) =>
-          setProcessingProgress(true, label, percent),
-        );
-        tier1Text = tier1.text;
-        if (tier1.needsProHandoff) {
-          setProcessingProgress(false, '', 0);
-          promptProUpgradeAfterTier1Failure(tier1);
-          return;
-        }
-      }
-
-      setProcessingProgress(false, '', 0);
-
-      if (!isPro) {
-        openProUpgrade({
-          featureId: 'smart-document-extractor',
-          featureName: 'Smart Document Extractor',
-          featureDescription:
-            'Extract invoices and bank statements to CSV/JSON with the Paddle → GLM → Vision OCR waterfall.',
-        });
-        return;
-      }
-
-      const fileRef = file;
-      void requestProConfirm('ocr-orchestrator', 'Smart Extract', () =>
-        runSmartExtractJob(fileRef, { skipTier1: true, tier1Text }),
-      );
-    } catch (err) {
-      setProcessingProgress(false, '', 0);
-      setToastMessage(err instanceof Error ? err.message : 'OCR pre-check failed.');
-    } finally {
-      setSmartExtractBusy(false);
-    }
-  }, [activeFile, isPro, requestProConfirm, requireCanvasFile, runSmartExtractJob, setProcessingProgress, smartExtractBusy]);
-
-  const handleActionClick = useCallback(
-    (actionId: string) => {
-      if (actionId === 'smart-extract') {
-        void handleSmartExtractPreflight();
-        return;
-      }
-      dispatchAction(actionId);
+  const onEditableProcessingChange = useCallback(
+    (active: boolean, label: string, percent: number, subtitle?: string) => {
+      setEditableBusy(active);
+      setProcessingProgress(active, label, percent, subtitle);
     },
-    [dispatchAction, handleSmartExtractPreflight],
+    [setProcessingProgress],
+  );
+
+  const requestLayoutProConfirm = useCallback(
+    (operationId: ProOperationId, label: string, onConfirm: () => void) => {
+      void requestProConfirm(operationId, label, onConfirm);
+    },
+    [requestProConfirm],
   );
 
   const activateFile = useCallback((file: File) => {
@@ -558,7 +421,7 @@ export default function DocumentStudioCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Document Studio</h1>
               <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-                Merge, split, compress, protect, or smart-extract — drop a file to begin.
+                Merge, split, compress, protect, or convert to editable formats — drop a file to begin.
               </p>
             </div>
           </div>
@@ -625,7 +488,17 @@ export default function DocumentStudioCanvas() {
               </div>
             </div>
 
-            <DocumentActionToolbar actions={toolbarActions} onActionClick={handleActionClick} />
+            <DocumentActionToolbar
+              actions={toolbarActions}
+              onActionClick={handleActionClick}
+              editableFile={activeFile.file}
+              editableIsPro={isPro}
+              editableDisabled={editableBusy}
+              onEditableProcessingChange={onEditableProcessingChange}
+              onEditableSuccess={setToastMessage}
+              onEditableError={setToastMessage}
+              requestProConfirm={requestLayoutProConfirm}
+            />
           </div>
         )}
       </div>
@@ -731,15 +604,6 @@ export default function DocumentStudioCanvas() {
         />
       )}
 
-      {pdfModal === 'pdf-to-text' && canvasPdfFile && (
-        <PdfToTextModal
-          file={canvasPdfFile}
-          onClose={closePdfModal}
-          onSuccess={setToastMessage}
-          onProcessingChange={onProcessingChange}
-        />
-      )}
-
       {pdfModal === 'type-save' && (
         <TypeSavePdfModal
           onClose={closePdfModal}
@@ -826,24 +690,6 @@ export default function DocumentStudioCanvas() {
           onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
-        />
-      )}
-
-      {pdfModal === 'extract-to-word' && activeFile?.file && (
-        <ExtractToWordModal
-          file={activeFile.file}
-          onClose={closePdfModal}
-          onSuccess={setToastMessage}
-          onProcessingChange={onProcessingChange}
-        />
-      )}
-
-      {pdfModal === 'hifi-convert' && canvasPdfFile && (
-        <HiFiConverterModal
-          file={canvasPdfFile}
-          onClose={closePdfModal}
-          onSuccess={setToastMessage}
-          onProcessingChange={setProcessingProgress}
         />
       )}
 

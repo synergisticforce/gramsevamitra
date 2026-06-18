@@ -7,7 +7,7 @@ let workerLoad: Promise<WorkerInstance> | null = null;
 
 function getWorker(): Promise<WorkerInstance> {
   if (!workerLoad) {
-    workerLoad = createWorker('eng', 1, {
+    workerLoad = createWorker(['eng', 'hin'], 1, {
       logger: (message) => {
         if (message.status) {
           const payload: TesseractWorkerInbound = {

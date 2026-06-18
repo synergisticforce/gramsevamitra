@@ -36,3 +36,9 @@ Implement a tiered, fail-safe OCR engine system:
 * **Document Studio UX:** On initial load, show only the primary dropzone — the 23-tool grid reveals after a single file upload (compact file summary bar). Multi-file PDF selection skips the grid and opens Merge PDF directly with a reorderable queue.
 * **Workspace Navigation:** Renamed **Media Lab → Image Studio** (`/workspace/image`, legacy `/workspace/media` redirects). Sidebar order: Document Studio → Image Studio → Video Studio → Health & Lifestyle → Career Prep → Finance Hub → Quick Tools.
 * **Extract to Word (Free):** New Document Studio tool — Tier 1 Tesseract preprocessing + local DOCX download when confidence ≥ 65%; Pro upgrade modal (Paddle/GLM messaging) on low quality — Razorpay only on explicit upgrade click.
+
+## 7. Unified "To Editable Format" Pipeline (Phase 8 — Active)
+* **Toolbar consolidation:** Replaced Extract Text, Extract to Word, Smart Extract, and Hi-Fi Convert with a single **To Editable Format** card (`Auto-Orchestrated` badge) plus segmented output toggle: `.txt` | `.docx` | `.xlsx` (PRO).
+* **Layout heuristics:** `layoutAnalyzer.ts` flags `SCANNED` vs native text and `COMPLEX_LAYOUT` within 300ms before routing.
+* **Waterfall paths:** Path A (native simple → free instant), Path B (scanned → Tesseract eng+hin with worker terminate per job), Path C (complex layout / low OCR confidence / xlsx → Pro `/api/pro/reconstruct-layout`).
+* **UX:** Large scan notice (>5 pages or >10MB) with optional Pro speed-up link; sequential Pro loader stages for cloud reconstruction.

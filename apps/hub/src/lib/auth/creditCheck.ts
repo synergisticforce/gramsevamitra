@@ -12,7 +12,8 @@ export type ProOperationId =
   | 'media-process'
   | 'file-converter'
   | 'smart-router'
-  | 'ocr-orchestrator';
+  | 'ocr-orchestrator'
+  | 'reconstruct-layout';
 
 export interface UserCreditsResponse {
   success?: boolean;

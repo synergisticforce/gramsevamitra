@@ -23,12 +23,13 @@ export const DOCUMENT_OMNI_MODAL: Partial<Record<string, DocumentOmniModal>> = {
   merge: 'merge',
   split: 'split',
   protect: 'protect',
-  'extract-text': 'pdf-to-text',
 };
 
 /** Omni intent → Document Studio toolbar action id (Pro or special). */
 export const DOCUMENT_OMNI_ACTION: Partial<Record<string, string>> = {
-  'smart-extract': 'smart-extract',
+  'smart-extract': 'to-editable-format',
+  'extract-text': 'to-editable-format',
+  'to-editable-format': 'to-editable-format',
 };
 
 /** Omni intent → Image Studio tool modal. */

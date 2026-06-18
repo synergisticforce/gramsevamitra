@@ -11,6 +11,7 @@ export const PRO_OPERATION_COSTS = {
   'file-converter': 2,
   'smart-router': 2,
   'ocr-orchestrator': 2,
+  'reconstruct-layout': 2,
 };
 
 export const PRO_OPERATION_LABELS = {
@@ -21,6 +22,7 @@ export const PRO_OPERATION_LABELS = {
   'file-converter': 'High-Fidelity Converter',
   'smart-router': 'Smart Router',
   'ocr-orchestrator': 'Advanced OCR Pipeline',
+  'reconstruct-layout': 'Layout Reconstruction',
 };
 
 /**

@@ -9,6 +9,8 @@ export interface DocumentCanvasAction {
   tier: DocumentActionTier;
   /** When set, action only appears for matching MIME types (supports `image/*` prefix). */
   mimePatterns?: string[];
+  /** Optional badge on the tool card (e.g. Auto-Orchestrated). */
+  badge?: string;
   /** Pro upgrade modal copy (Component D). */
   featureId?: string;
   featureName?: string;
@@ -87,25 +89,23 @@ export const DOCUMENT_CANVAS_ACTIONS: DocumentCanvasAction[] = [
     mimePatterns: ['image/'],
   },
   {
+    id: 'to-editable-format',
+    label: 'To Editable Format',
+    icon: '📝',
+    tier: 'free',
+    badge: 'Auto-Orchestrated',
+    mimePatterns: ['application/pdf', 'image/'],
+    featureId: 'reconstruct-layout',
+    featureName: 'Advanced Layout Reconstruction',
+    featureDescription:
+      'Advanced Layout Detected: structured table columns, multi-column metrics, or complex scan quality require deep AI layout reconstruction.',
+  },
+  {
     id: 'pdf-to-image',
     label: 'To JPG/PNG',
     icon: '📸',
     tier: 'free',
     mimePatterns: ['application/pdf'],
-  },
-  {
-    id: 'pdf-to-text',
-    label: 'Extract Text',
-    icon: '📝',
-    tier: 'free',
-    mimePatterns: ['application/pdf'],
-  },
-  {
-    id: 'extract-to-word',
-    label: 'Extract to Word',
-    icon: '📃',
-    tier: 'free',
-    mimePatterns: ['application/pdf', 'image/'],
   },
   {
     id: 'type-save',
@@ -175,28 +175,6 @@ export const DOCUMENT_CANVAS_ACTIONS: DocumentCanvasAction[] = [
     icon: '⬛',
     tier: 'free',
     mimePatterns: ['application/pdf'],
-  },
-  {
-    id: 'smart-extract',
-    label: 'Smart Extract',
-    icon: '⚡',
-    tier: 'pro',
-    mimePatterns: ['application/pdf', 'image/'],
-    featureId: 'smart-document-extractor',
-    featureName: 'Smart Document Extractor',
-    featureDescription:
-      'Extract invoices and bank statements to CSV/JSON, or high-fidelity DOCX — powered by Advanced AI Document Extraction.',
-  },
-  {
-    id: 'hifi-convert',
-    label: 'Hi-Fi Convert',
-    icon: '⚡',
-    tier: 'pro',
-    mimePatterns: ['application/pdf'],
-    featureId: 'high-fidelity-converter',
-    featureName: 'High-Fidelity File Converter',
-    featureDescription:
-      'Convert PDFs to editable DOCX or PPTX with layout preservation — powered by our advanced Pro conversion pipeline.',
   },
 ];
 
