@@ -592,3 +592,132 @@ export async function watermarkPdfInBrowser(
   const baseName = splitFilenameBase(file.name);
   return { bytes, downloadName: `${baseName}-watermarked.pdf` };
 }
+
+export async function stripPdfMetadataInBrowser(
+  file: File,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  const { runPdfWorkerWithStreamedFile } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorkerWithStreamedFile<Uint8Array>(
+    'strip-metadata',
+    file,
+    {},
+    onProgress
+  );
+  const baseName = splitFilenameBase(file.name);
+  return { bytes, downloadName: `${baseName}-metadata-stripped.pdf` };
+}
+
+export async function repairPdfInBrowser(
+  file: File,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  const { runPdfWorkerWithStreamedFile } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorkerWithStreamedFile<Uint8Array>(
+    'repair-pdf',
+    file,
+    {},
+    onProgress
+  );
+  const baseName = splitFilenameBase(file.name);
+  return { bytes, downloadName: `${baseName}-repaired.pdf` };
+}
+
+export async function photoToScannedPdfInBrowser(
+  file: File,
+  options: { contrast?: number; threshold?: number } = {},
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  onProgress?.({ current: 0, total: 3, label: 'Applying scanner effect…' });
+  const { applyScannerEffectToImageFile } = await import('../pdf/scannerEffect');
+  const scanned = await applyScannerEffectToImageFile(file, options);
+  onProgress?.({ current: 1, total: 3, label: 'Building scanned PDF…' });
+  const { runPdfWorker } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorker<Uint8Array>('images-to-pdf', { images: [scanned] }, onProgress);
+  const baseName = splitImageFilenameBase(file.name);
+  return { bytes, downloadName: `${baseName}-scanned.pdf` };
+}
+
+export interface SignPdfOptions {
+  signatureBytes: Uint8Array;
+  pageIndices?: number[];
+  width?: number;
+}
+
+export async function signPdfInBrowser(
+  file: File,
+  options: SignPdfOptions,
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  if (!options.signatureBytes?.length) {
+    throw new Error('Draw or type a signature first.');
+  }
+  const { runPdfWorkerWithStreamedFile } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorkerWithStreamedFile<Uint8Array>(
+    'sign-pdf',
+    file,
+    {
+      signatureBytes: options.signatureBytes,
+      pageIndices: options.pageIndices,
+      width: options.width ?? 140,
+    },
+    onProgress
+  );
+  const baseName = splitFilenameBase(file.name);
+  return { bytes, downloadName: `${baseName}-signed.pdf` };
+}
+
+export async function redactPdfInBrowser(
+  file: File,
+  redactions: import('../pdf/redactionTypes').PageRedactions[],
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  const { runPdfWorkerWithStreamedFile } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorkerWithStreamedFile<Uint8Array>(
+    'redact-pdf',
+    file,
+    { redactions },
+    onProgress
+  );
+  const baseName = splitFilenameBase(file.name);
+  return { bytes, downloadName: `${baseName}-redacted.pdf` };
+}
+
+export async function organisePdfPagesInBrowser(
+  file: File,
+  pageOrder: number[],
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  if (!pageOrder.length) throw new Error('Keep at least one page.');
+  const { runPdfWorkerWithStreamedFile } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorkerWithStreamedFile<Uint8Array>(
+    'reorder-pages',
+    file,
+    { order: pageOrder },
+    onProgress
+  );
+  const baseName = splitFilenameBase(file.name);
+  return { bytes, downloadName: `${baseName}-organised.pdf` };
+}
+
+/** Render a typed signature to PNG bytes for stamping. */
+export async function renderTypedSignaturePng(text: string, fontSize = 42): Promise<Uint8Array> {
+  const label = text.trim();
+  if (!label) throw new Error('Type your name to create a signature.');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(280, label.length * (fontSize * 0.55));
+  canvas.height = Math.round(fontSize * 1.8);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas not supported');
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#0f172a';
+  ctx.font = `italic ${fontSize}px Georgia, serif`;
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, 12, canvas.height / 2);
+
+  const { canvasToPngBlob } = await import('../pdf/pdfRender');
+  const blob = await canvasToPngBlob(canvas);
+  return new Uint8Array(await blob.arrayBuffer());
+}

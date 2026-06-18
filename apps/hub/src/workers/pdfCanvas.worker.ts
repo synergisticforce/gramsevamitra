@@ -443,6 +443,115 @@ async function watermarkPdf(id: string, buffer: ArrayBuffer, opts: TextWatermark
   return doc.save({ useObjectStreams: true });
 }
 
+async function repairPdf(id: string, buffer: ArrayBuffer) {
+  postProgress(id, 1, 4, 'Scanning file structure…');
+  let bytes = sanitizePdfForExtremeCompression(new Uint8Array(buffer));
+
+  postProgress(id, 2, 4, 'Rebuilding cross-reference table…');
+  let source;
+  try {
+    source = await PDFDocument.load(bytes, { ignoreEncryption: true });
+  } catch {
+    throw new Error('Could not repair this PDF — the file may be too severely damaged.');
+  }
+
+  postProgress(id, 3, 4, 'Copying recovered pages…');
+  const out = await PDFDocument.create();
+  const copied = await out.copyPages(source, source.getPageIndices());
+  copied.forEach((page) => out.addPage(page));
+
+  postProgress(id, 4, 4, 'Saving repaired PDF…');
+  return out.save({ useObjectStreams: true });
+}
+
+interface SignPdfOptions {
+  signatureBytes: Uint8Array;
+  pageIndices?: number[];
+  marginX?: number;
+  marginY?: number;
+  width?: number;
+}
+
+async function signPdf(id: string, buffer: ArrayBuffer, opts: SignPdfOptions) {
+  const doc = await PDFDocument.load(buffer, { ignoreEncryption: true });
+  const embedded = await doc.embedPng(opts.signatureBytes);
+  const pages = doc.getPages();
+  const targets =
+    opts.pageIndices?.length && opts.pageIndices.length > 0
+      ? opts.pageIndices
+      : pages.map((_, i) => i);
+  const drawWidth = opts.width ?? 140;
+  const aspect = embedded.height / embedded.width;
+  const drawHeight = drawWidth * aspect;
+  const marginX = opts.marginX ?? 36;
+  const marginY = opts.marginY ?? 36;
+
+  for (let i = 0; i < targets.length; i++) {
+    const pageIndex = targets[i];
+    const page = pages[pageIndex];
+    if (!page) continue;
+    postProgress(id, i + 1, targets.length, `Signing page ${pageIndex + 1}…`);
+    page.drawImage(embedded, {
+      x: marginX,
+      y: marginY,
+      width: drawWidth,
+      height: drawHeight,
+    });
+    await yieldToGc();
+  }
+  return doc.save({ useObjectStreams: true });
+}
+
+interface RedactBoxInput {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+interface PageRedactInput {
+  pageIndex: number;
+  boxes: RedactBoxInput[];
+}
+
+function normalizedBoxToPdf(box: RedactBoxInput, pageWidth: number, pageHeight: number) {
+  const width = box.w * pageWidth;
+  const height = box.h * pageHeight;
+  const x = box.x * pageWidth;
+  const y = pageHeight - (box.y + box.h) * pageHeight;
+  return { x, y, width, height };
+}
+
+async function redactPdf(id: string, buffer: ArrayBuffer, redactions: PageRedactInput[]) {
+  const doc = await PDFDocument.load(buffer, { ignoreEncryption: true });
+  const pages = doc.getPages();
+  const active = redactions.filter((r) => r.boxes?.length);
+  if (!active.length) throw new Error('Draw at least one redaction box.');
+
+  let step = 0;
+  const total = active.reduce((sum, r) => sum + r.boxes.length, 0);
+  for (const { pageIndex, boxes } of active) {
+    const page = pages[pageIndex];
+    if (!page) continue;
+    const { width, height } = page.getSize();
+    for (const box of boxes) {
+      step += 1;
+      postProgress(id, step, total, `Redacting page ${pageIndex + 1}…`);
+      const rect = normalizedBoxToPdf(box, width, height);
+      page.drawRectangle({
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        color: rgb(0, 0, 0),
+        borderWidth: 0,
+      });
+    }
+    await yieldToGc();
+  }
+  return doc.save({ useObjectStreams: true });
+}
+
 async function dispatchOperation(
   id: string,
   op: string,
@@ -512,6 +621,18 @@ async function dispatchOperation(
         rotation: payload.rotation as number | undefined,
         opacity: payload.opacity as number | undefined,
       });
+    case 'repair-pdf':
+      return repairPdf(id, payload.buffer as ArrayBuffer);
+    case 'sign-pdf':
+      return signPdf(id, payload.buffer as ArrayBuffer, {
+        signatureBytes: payload.signatureBytes as Uint8Array,
+        pageIndices: payload.pageIndices as number[] | undefined,
+        marginX: payload.marginX as number | undefined,
+        marginY: payload.marginY as number | undefined,
+        width: payload.width as number | undefined,
+      });
+    case 'redact-pdf':
+      return redactPdf(id, payload.buffer as ArrayBuffer, payload.redactions as PageRedactInput[]);
     default:
       throw new Error(`Unknown worker operation: ${op}`);
   }

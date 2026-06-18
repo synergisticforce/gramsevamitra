@@ -469,3 +469,52 @@ export async function runChunkedExtractTextPipeline(
   };
 }
 
+export async function runChunkedStripMetadataPipeline(
+  file: File,
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<void> {
+  const response = await runChunkedDocumentProcess(file, 'strip-metadata', {}, onProgress);
+  await downloadChunkedPdfResponse(response, file, '_metadata-stripped', '_stripped', onProgress);
+}
+
+export async function runChunkedRepairPipeline(
+  file: File,
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<void> {
+  const response = await runChunkedDocumentProcess(file, 'repair', {}, onProgress);
+  await downloadChunkedPdfResponse(response, file, '_repaired', '_repaired', onProgress);
+}
+
+export async function runChunkedOrganisePipeline(
+  file: File,
+  order: number[],
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<void> {
+  const response = await runChunkedDocumentProcess(file, 'organise', { order }, onProgress);
+  await downloadChunkedPdfResponse(response, file, '_organised', '_organised', onProgress);
+}
+
+export async function runChunkedSignPipeline(
+  file: File,
+  signatureBase64: string,
+  pageIndices: number[] | undefined,
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<void> {
+  const response = await runChunkedDocumentProcess(
+    file,
+    'sign',
+    { signatureBase64, pageIndices, width: 140 },
+    onProgress,
+  );
+  await downloadChunkedPdfResponse(response, file, '_signed', '_signed', onProgress);
+}
+
+export async function runChunkedRedactPipeline(
+  file: File,
+  redactions: { pageIndex: number; boxes: { x: number; y: number; w: number; h: number }[] }[],
+  onProgress: (progress: ChunkProgress) => void,
+): Promise<void> {
+  const response = await runChunkedDocumentProcess(file, 'redact', { redactions }, onProgress);
+  await downloadChunkedPdfResponse(response, file, '_redacted', '_redacted', onProgress);
+}
+

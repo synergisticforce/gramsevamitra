@@ -40,6 +40,12 @@ import SplitPdfModal from './SplitPdfModal';
 import TypeSavePdfModal from './TypeSavePdfModal';
 import UnlockPdfModal from './UnlockPdfModal';
 import WatermarkPdfModal from './WatermarkPdfModal';
+import OrganisePdfModal from './OrganisePdfModal';
+import RepairPdfModal from './RepairPdfModal';
+import PhotoScannedPdfModal from './PhotoScannedPdfModal';
+import StripMetadataPdfModal from './StripMetadataPdfModal';
+import SignPdfModal from './SignPdfModal';
+import RedactPdfModal from './RedactPdfModal';
 
 type CanvasPhase = 'empty' | 'active';
 type ToolModal =
@@ -59,6 +65,12 @@ type ToolModal =
   | 'rotate'
   | 'reorder'
   | 'watermark'
+  | 'organise-pages'
+  | 'repair-pdf'
+  | 'photo-scanned-pdf'
+  | 'strip-metadata'
+  | 'sign-pdf'
+  | 'redact-pdf'
   | 'hifi-convert'
   | null;
 
@@ -277,6 +289,36 @@ export default function DocumentStudioCanvas() {
       if (action.id === 'watermark') {
         if (!requirePdfCanvasFile()) return;
         setPdfModal('watermark');
+        return;
+      }
+      if (action.id === 'organise-pages') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('organise-pages');
+        return;
+      }
+      if (action.id === 'repair-pdf') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('repair-pdf');
+        return;
+      }
+      if (action.id === 'photo-scanned-pdf') {
+        if (!requireImageCanvasFile()) return;
+        setPdfModal('photo-scanned-pdf');
+        return;
+      }
+      if (action.id === 'strip-metadata') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('strip-metadata');
+        return;
+      }
+      if (action.id === 'sign-pdf') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('sign-pdf');
+        return;
+      }
+      if (action.id === 'redact-pdf') {
+        if (!requirePdfCanvasFile()) return;
+        setPdfModal('redact-pdf');
         return;
       }
       setToastMessage(`${action.label} is coming soon.`);
@@ -617,6 +659,60 @@ export default function DocumentStudioCanvas() {
 
       {pdfModal === 'watermark' && canvasPdfFile && (
         <WatermarkPdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'organise-pages' && canvasPdfFile && (
+        <OrganisePdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'repair-pdf' && canvasPdfFile && (
+        <RepairPdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'photo-scanned-pdf' && canvasImageFile && (
+        <PhotoScannedPdfModal
+          file={canvasImageFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'strip-metadata' && canvasPdfFile && (
+        <StripMetadataPdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'sign-pdf' && canvasPdfFile && (
+        <SignPdfModal
+          file={canvasPdfFile}
+          onClose={() => setPdfModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'redact-pdf' && canvasPdfFile && (
+        <RedactPdfModal
           file={canvasPdfFile}
           onClose={() => setPdfModal(null)}
           onSuccess={setToastMessage}

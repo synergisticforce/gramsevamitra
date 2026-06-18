@@ -382,6 +382,140 @@ export async function cropChunkedPdf({ bucket, objectKey, pageIndex, crop, fileN
   return pdfResponse(outBytes, `${baseName}_cropped.pdf`);
 }
 
+export async function stripMetadataChunkedPdf({ bucket, objectKey, fileName }) {
+  const srcBytes = await loadPdfBytes(bucket, objectKey);
+  const outBytes = await stripPdfMetadataBytes(srcBytes);
+  const baseName = (fileName || 'document.pdf').replace(/\.pdf$/i, '') || 'document';
+  return pdfResponse(outBytes, `${baseName}_metadata-stripped.pdf`);
+}
+
+function truncateIncrementalUpdates(input) {
+  const eofMarker = new TextEncoder().encode('%%EOF');
+  let lastEof = -1;
+  outer: for (let i = input.length - eofMarker.length; i >= 0; i -= 1) {
+    for (let j = 0; j < eofMarker.length; j += 1) {
+      if (input[i + j] !== eofMarker[j]) continue outer;
+    }
+    lastEof = i;
+    break;
+  }
+  if (lastEof < 0) return input;
+  return input.subarray(0, lastEof + eofMarker.length);
+}
+
+export async function repairChunkedPdf({ bucket, objectKey, fileName }) {
+  let bytes = await loadPdfBytes(bucket, objectKey);
+  bytes = truncateIncrementalUpdates(bytes);
+
+  const { PDFDocument } = await import('@cantoo/pdf-lib');
+  let source;
+  try {
+    source = await PDFDocument.load(bytes, { ignoreEncryption: true });
+  } catch {
+    throw new Error('Could not repair this PDF — the file may be too severely damaged.');
+  }
+
+  const out = await PDFDocument.create();
+  const copied = await out.copyPages(source, source.getPageIndices());
+  for (const page of copied) out.addPage(page);
+  const outBytes = await out.save({ useObjectStreams: true });
+  const baseName = (fileName || 'document.pdf').replace(/\.pdf$/i, '') || 'document';
+  return pdfResponse(outBytes, `${baseName}_repaired.pdf`);
+}
+
+export async function organiseChunkedPdf({ bucket, objectKey, order, fileName }) {
+  if (!Array.isArray(order) || !order.length) {
+    throw new Error('Page order is required.');
+  }
+
+  const source = await loadPdfDoc(bucket, objectKey);
+  const { PDFDocument } = await import('@cantoo/pdf-lib');
+  const out = await PDFDocument.create();
+  const copied = await out.copyPages(source, order);
+  for (const page of copied) out.addPage(page);
+  const outBytes = await out.save({ useObjectStreams: true });
+  const baseName = (fileName || 'document.pdf').replace(/\.pdf$/i, '') || 'document';
+  return pdfResponse(outBytes, `${baseName}_organised.pdf`);
+}
+
+function decodeBase64ToBytes(base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+function normalizedBoxToPdf(box, pageWidth, pageHeight) {
+  const width = box.w * pageWidth;
+  const height = box.h * pageHeight;
+  const x = box.x * pageWidth;
+  const y = pageHeight - (box.y + box.h) * pageHeight;
+  return { x, y, width, height };
+}
+
+export async function signChunkedPdf({
+  bucket,
+  objectKey,
+  fileName,
+  signatureBase64,
+  pageIndices,
+  width = 140,
+}) {
+  if (!signatureBase64) throw new Error('Signature image is required.');
+
+  const { PDFDocument } = await import('@cantoo/pdf-lib');
+  const doc = await loadPdfDoc(bucket, objectKey);
+  const signatureBytes = decodeBase64ToBytes(signatureBase64);
+  const embedded = await doc.embedPng(signatureBytes);
+  const pages = doc.getPages();
+  const targets =
+    Array.isArray(pageIndices) && pageIndices.length
+      ? pageIndices
+      : pages.map((_, i) => i);
+  const drawWidth = width;
+  const drawHeight = drawWidth * (embedded.height / embedded.width);
+
+  for (const pageIndex of targets) {
+    const page = pages[pageIndex];
+    if (!page) continue;
+    page.drawImage(embedded, { x: 36, y: 36, width: drawWidth, height: drawHeight });
+  }
+
+  const outBytes = await doc.save({ useObjectStreams: true });
+  const baseName = (fileName || 'document.pdf').replace(/\.pdf$/i, '') || 'document';
+  return pdfResponse(outBytes, `${baseName}_signed.pdf`);
+}
+
+export async function redactChunkedPdf({ bucket, objectKey, fileName, redactions }) {
+  const active = Array.isArray(redactions) ? redactions.filter((r) => r.boxes?.length) : [];
+  if (!active.length) throw new Error('Draw at least one redaction box.');
+
+  const { PDFDocument, rgb } = await import('@cantoo/pdf-lib');
+  const doc = await loadPdfDoc(bucket, objectKey);
+  const pages = doc.getPages();
+
+  for (const { pageIndex, boxes } of active) {
+    const page = pages[pageIndex];
+    if (!page) continue;
+    const { width, height } = page.getSize();
+    for (const box of boxes) {
+      const rect = normalizedBoxToPdf(box, width, height);
+      page.drawRectangle({
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        color: rgb(0, 0, 0),
+        borderWidth: 0,
+      });
+    }
+  }
+
+  const outBytes = await doc.save({ useObjectStreams: true });
+  const baseName = (fileName || 'document.pdf').replace(/\.pdf$/i, '') || 'document';
+  return pdfResponse(outBytes, `${baseName}_redacted.pdf`);
+}
+
 export async function extractTextChunkedPdf({ bucket, objectKey }) {
   const srcBytes = await loadPdfBytes(bucket, objectKey);
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
@@ -423,6 +557,11 @@ const OPERATION_HANDLERS = {
   watermark: watermarkChunkedPdf,
   'page-numbers': pageNumbersChunkedPdf,
   crop: cropChunkedPdf,
+  organise: organiseChunkedPdf,
+  'strip-metadata': stripMetadataChunkedPdf,
+  repair: repairChunkedPdf,
+  sign: signChunkedPdf,
+  redact: redactChunkedPdf,
   'extract-text': extractTextChunkedPdf,
 };
 
