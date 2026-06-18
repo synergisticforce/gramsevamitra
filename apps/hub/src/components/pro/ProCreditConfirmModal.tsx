@@ -1,4 +1,5 @@
 import type { CreditQuote } from '../../lib/auth/creditCheck';
+import { openProUpgrade } from '@shared/lib/proUpgrade';
 
 interface Props {
   open: boolean;
@@ -78,6 +79,24 @@ export default function ProCreditConfirmModal({
                 </p>
               )}
             </div>
+          )}
+
+          {quote && !loadingQuote && !quote.canAfford && (
+            <button
+              type="button"
+              disabled={confirmBusy}
+              onClick={() =>
+                openProUpgrade({
+                  featureId: quote.operationId,
+                  featureName: 'GramSeva Mitra Pro',
+                  featureDescription:
+                    'Unlock advanced AI layout reconstruction, Excel export, and unlimited complex document conversions.',
+                })
+              }
+              className="inline-flex w-full items-center justify-center rounded-xl border border-canvas-border bg-canvas-surface px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-canvas-elevated disabled:opacity-50"
+            >
+              Upgrade to Pro — ₹99/year
+            </button>
           )}
 
           <div className="flex flex-col gap-2 sm:flex-row-reverse">
