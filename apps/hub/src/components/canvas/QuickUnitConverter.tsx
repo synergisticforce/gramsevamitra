@@ -5,11 +5,13 @@ import {
   savePersistedJson,
 } from '../../lib/canvas/quickToolsCanvasStorage';
 import {
+  ALL_UNIT_CATEGORIES,
   convertUnits,
   DEFAULT_UNITS,
   formatConverted,
   getUnit,
   UNIT_CATEGORIES,
+  UNIT_CATEGORY_LABELS,
   type UnitCategory,
 } from '../../lib/convert/unitEngine';
 
@@ -98,7 +100,7 @@ export default function QuickUnitConverter() {
   return (
     <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Conversion category">
-        {(['length', 'weight', 'temperature'] as UnitCategory[]).map((cat) => (
+        {ALL_UNIT_CATEGORIES.map((cat) => (
           <button
             key={cat}
             type="button"
@@ -107,7 +109,7 @@ export default function QuickUnitConverter() {
             onClick={() => switchCategory(cat)}
             className={pillClass(category === cat)}
           >
-            {cat}
+            {UNIT_CATEGORY_LABELS[cat]}
           </button>
         ))}
       </div>

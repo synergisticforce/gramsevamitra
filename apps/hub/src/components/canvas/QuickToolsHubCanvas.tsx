@@ -11,17 +11,22 @@ import QuickBase64Tool from './QuickBase64Tool';
 import QuickColorPalette from './QuickColorPalette';
 import QuickConstructionEstimator from './QuickConstructionEstimator';
 import QuickDecisionWheel from './QuickDecisionWheel';
+import QuickEventCountdown from './QuickEventCountdown';
+import QuickFormatConverter from './QuickFormatConverter';
 import QuickGardenPlantingPlanner from './QuickGardenPlantingPlanner';
 import QuickHashGenerator from './QuickHashGenerator';
 import QuickPasswordGenerator from './QuickPasswordGenerator';
 import QuickPercentageCalculator from './QuickPercentageCalculator';
 import QuickPetCareScheduler from './QuickPetCareScheduler';
+import QuickPomodoroTimer from './QuickPomodoroTimer';
 import QuickQrGenerator from './QuickQrGenerator';
+import QuickRandomNumberGenerator from './QuickRandomNumberGenerator';
 import QuickRecipeScaler from './QuickRecipeScaler';
 import QuickRenovationBudgeter from './QuickRenovationBudgeter';
 import QuickScientificCalculator from './QuickScientificCalculator';
 import QuickSeoMetaGenerator from './QuickSeoMetaGenerator';
 import QuickToolsToolGrid from './QuickToolsToolGrid';
+import QuickTypingSpeedTest from './QuickTypingSpeedTest';
 import QuickUnitConverter from './QuickUnitConverter';
 import QuickUrlEncoder from './QuickUrlEncoder';
 
@@ -35,6 +40,16 @@ function renderTool(toolId: QuickToolId, onToast: (message: string) => void) {
       return <QuickPasswordGenerator onToast={onToast} />;
     case 'unit-converter':
       return <QuickUnitConverter />;
+    case 'format-converter':
+      return <QuickFormatConverter />;
+    case 'typing-speed-test':
+      return <QuickTypingSpeedTest />;
+    case 'pomodoro-timer':
+      return <QuickPomodoroTimer />;
+    case 'event-countdown':
+      return <QuickEventCountdown />;
+    case 'random-number-generator':
+      return <QuickRandomNumberGenerator />;
     case 'percentage-calculator':
       return <QuickPercentageCalculator />;
     case 'scientific-calculator':
@@ -113,7 +128,7 @@ export default function QuickToolsHubCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Quick Tools</h1>
               <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-                17 client-side utilities — calculators, planners, encoders, and home DIY tools, all offline.
+                22 client-side utilities — converters, productivity tools, encoders, and home DIY, all offline.
               </p>
             </div>
           </div>

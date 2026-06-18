@@ -17,6 +17,7 @@ const CATEGORY_ORDER: QuickToolCategory[] = [
   'design',
   'web',
   'lifestyle',
+  'productivity',
   'home-diy',
 ];
 

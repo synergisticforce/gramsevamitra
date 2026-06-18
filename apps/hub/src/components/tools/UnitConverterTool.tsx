@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  ALL_UNIT_CATEGORIES,
   convertUnits,
   DEFAULT_UNITS,
   formatConverted,
   getUnit,
   UNIT_CATEGORIES,
+  UNIT_CATEGORY_LABELS,
   type UnitCategory,
 } from '../../lib/convert/unitEngine';
 
@@ -53,20 +55,20 @@ export default function UnitConverterTool() {
   return (
     <section className="rounded-2xl border border-slate-800 bg-canvas-accent-muted/60 p-5 shadow-none sm:p-6">
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Conversion category">
-        {(['length', 'weight', 'temperature'] as UnitCategory[]).map((cat) => (
+        {ALL_UNIT_CATEGORIES.map((cat) => (
           <button
             key={cat}
             type="button"
             role="tab"
             aria-selected={category === cat}
             onClick={() => switchCategory(cat)}
-            className={`rounded-full border px-4 py-2 text-sm font-semibold capitalize transition ${
+            className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
               category === cat
                 ? 'border-canvas-accent bg-canvas-accent-muted text-canvas-text'
                 : 'border-canvas-border bg-slate-950/50 text-canvas-subtle hover:border-emerald-600 hover:text-canvas-text'
             }`}
           >
-            {cat}
+            {UNIT_CATEGORY_LABELS[cat]}
           </button>
         ))}
       </div>

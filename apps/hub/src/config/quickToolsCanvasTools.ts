@@ -8,12 +8,14 @@ export type QuickToolCategory =
   | 'design'
   | 'web'
   | 'lifestyle'
+  | 'productivity'
   | 'home-diy';
 
 export type QuickToolId =
   | 'qr-generator'
   | 'password-generator'
   | 'unit-converter'
+  | 'format-converter'
   | 'percentage-calculator'
   | 'scientific-calculator'
   | 'base64-encoder'
@@ -27,7 +29,11 @@ export type QuickToolId =
   | 'pet-care-scheduler'
   | 'garden-planting-planner'
   | 'construction-estimator'
-  | 'renovation-budgeter';
+  | 'renovation-budgeter'
+  | 'typing-speed-test'
+  | 'pomodoro-timer'
+  | 'event-countdown'
+  | 'random-number-generator';
 
 export interface QuickCanvasTool {
   id: QuickToolId;
@@ -43,11 +49,11 @@ export const QUICK_CATEGORY_META: Record<
 > = {
   generators: {
     label: 'Generators',
-    description: 'Create QR codes and secure passwords instantly.',
+    description: 'QR codes, passwords, and cryptographically secure random numbers.',
   },
   converters: {
     label: 'Converters',
-    description: 'Convert between common units without leaving the page.',
+    description: 'Units, data formats (JSON/CSV/XML), and encoding utilities.',
   },
   math: {
     label: 'Math',
@@ -68,6 +74,10 @@ export const QUICK_CATEGORY_META: Record<
   lifestyle: {
     label: 'Lifestyle',
     description: 'Pets, gardens, recipes, baby names, and everyday planning tools.',
+  },
+  productivity: {
+    label: 'Productivity',
+    description: 'Typing drills, Pomodoro focus, and live event countdowns.',
   },
   'home-diy': {
     label: 'Home & DIY',
@@ -91,11 +101,25 @@ export const QUICK_CANVAS_TOOLS: QuickCanvasTool[] = [
     description: 'Generate cryptographically random passwords with custom rules.',
   },
   {
+    id: 'random-number-generator',
+    label: 'Random Number Generator',
+    icon: '🎲',
+    category: 'generators',
+    description: 'Bulk random integers in a custom range with optional unique values.',
+  },
+  {
     id: 'unit-converter',
     label: 'Unit Converter',
     icon: '📏',
     category: 'converters',
-    description: 'Two-way conversion for length, weight, and temperature.',
+    description: 'Length, weight, temperature, area, volume, speed, and time — 40+ units.',
+  },
+  {
+    id: 'format-converter',
+    label: 'Format Converter',
+    icon: '🔄',
+    category: 'converters',
+    description: 'Convert and validate JSON, CSV, and XML entirely in the browser.',
   },
   {
     id: 'percentage-calculator',
@@ -145,6 +169,27 @@ export const QUICK_CANVAS_TOOLS: QuickCanvasTool[] = [
     icon: '🎡',
     category: 'lifestyle',
     description: 'Spin a canvas wheel to pick randomly from your custom options.',
+  },
+  {
+    id: 'typing-speed-test',
+    label: 'Typing Speed Test',
+    icon: '⌨️',
+    category: 'productivity',
+    description: 'Real-time WPM and accuracy using official-correspondence practice text.',
+  },
+  {
+    id: 'pomodoro-timer',
+    label: 'Pomodoro Focus Timer',
+    icon: '🍅',
+    category: 'productivity',
+    description: 'Customizable focus/break cycles with visual ring and audio alerts.',
+  },
+  {
+    id: 'event-countdown',
+    label: 'Event Countdown',
+    icon: '⏳',
+    category: 'productivity',
+    description: 'Live Days:Hours:Minutes:Seconds countdown to exams or deadlines.',
   },
   {
     id: 'seo-meta-generator',
@@ -210,6 +255,7 @@ export function quickToolsByCategory(): Record<QuickToolCategory, QuickCanvasToo
     design: [],
     web: [],
     lifestyle: [],
+    productivity: [],
     'home-diy': [],
   };
   for (const tool of QUICK_CANVAS_TOOLS) {

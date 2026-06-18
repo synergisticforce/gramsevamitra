@@ -22,6 +22,11 @@ export const QUICK_TOOLS_STORAGE_KEYS = {
   garden: 'gsm-quick-tools-garden',
   construction: 'gsm-quick-tools-construction',
   renovation: 'gsm-quick-tools-renovation',
+  typingSpeed: 'gsm-quick-tools-typing-speed',
+  pomodoro: 'gsm-quick-tools-pomodoro',
+  eventCountdown: 'gsm-quick-tools-event-countdown',
+  randomNumber: 'gsm-quick-tools-random-number',
+  formatConverter: 'gsm-quick-tools-format-converter',
 } as const;
 
 export function loadQuickActiveTool(): QuickToolId | null {
