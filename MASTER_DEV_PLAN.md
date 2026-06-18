@@ -29,5 +29,5 @@ Implement a tiered, fail-safe OCR engine system:
 ## 5. Workspace Expansion & Tool Injections
 * **Document Studio:** Build 'Organise PDF Pages' (Drag & Drop), 'Repair Corrupt PDF', 'Photo to Scanned PDF', 'Strip PDF Metadata', 'Sign PDF', and 'Secure Document Redactor'. *(Completed — all six tools wired in Document Studio with local/chunked sizing.)*
 * **Quick Tools:** Expand the 'Unit Converter' globally. Add 'Typing Speed Test', 'Pomodoro Focus Timer', 'Event Countdown', 'Random Number Generator', and 'Format Converter (JSON/CSV/XML)'.
-* **New Health & Lifestyle Workspace:** Build 'BMI Calculator', 'Body Fat Calculator', 'Age & Date Calculator', 'Exam Age Eligibility', 'Menstrual & Ovulation Calculator', 'Mood & Daily Log', and 'Macro & Calorie Calculator'.
+* **New Health & Lifestyle Workspace:** Build 'BMI Calculator', 'Body Fat Calculator', 'Age & Date Calculator', 'Exam Age Eligibility', 'Menstrual & Ovulation Calculator', 'Mood & Daily Log', and 'Macro & Calorie Calculator'. *(Completed — `/workspace/lifestyle` with 7 client-side tools.)*
 * **New Video Workspace:** Build a dedicated workspace for Video File Conversion tools.

@@ -1,5 +1,5 @@
-/** Phase 1 App Model — five consolidated workspace canvases. */
-export type AppWorkspaceId = 'documents' | 'media' | 'career' | 'finance' | 'quick-tools';
+/** Phase 1 App Model — six consolidated workspace canvases. */
+export type AppWorkspaceId = 'documents' | 'media' | 'career' | 'finance' | 'quick-tools' | 'lifestyle';
 
 export interface AppWorkspace {
   id: AppWorkspaceId;
@@ -44,6 +44,13 @@ export const APP_WORKSPACES: AppWorkspace[] = [
     href: '/workspace/quick-tools',
     description: 'Calculators, generators, and transient utilities.',
     emoji: '⚡',
+  },
+  {
+    id: 'lifestyle',
+    label: 'Health & Lifestyle',
+    href: '/workspace/lifestyle',
+    description: 'BMI, macros, exam age checks, cycle tracking, and mood journaling.',
+    emoji: '🧘',
   },
 ];
 
