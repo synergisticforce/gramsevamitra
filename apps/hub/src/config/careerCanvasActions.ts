@@ -30,6 +30,7 @@ export function isCareerDocumentMimeOrName(type: string, name: string): boolean 
 }
 
 export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
+  // Standalone — visible before any document is uploaded
   {
     id: 'job-tracker',
     label: 'Job Tracker',
@@ -43,15 +44,9 @@ export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
     tier: 'free',
   },
   {
-    id: 'cold-email-builder',
-    label: 'Cold Email',
-    icon: '✉️',
-    tier: 'free',
-  },
-  {
-    id: 'business-card',
-    label: 'Biz Card',
-    icon: '🪪',
+    id: 'legal-templates',
+    label: 'Legal Docs',
+    icon: '📜',
     tier: 'free',
   },
   {
@@ -67,11 +62,18 @@ export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
     tier: 'free',
   },
   {
-    id: 'legal-templates',
-    label: 'Legal Docs',
-    icon: '📜',
+    id: 'cold-email-builder',
+    label: 'Cold Email',
+    icon: '✉️',
     tier: 'free',
   },
+  {
+    id: 'business-card',
+    label: 'Biz Card',
+    icon: '🪪',
+    tier: 'free',
+  },
+  // Document-dependent — only after a successful upload
   {
     id: 'ats-scanner',
     label: 'ATS Scanner',
@@ -137,13 +139,22 @@ export function mimeMatchesPattern(mimeType: string, pattern: string): boolean {
   return mimeType === pattern;
 }
 
-export function careerToolbarActions(hasDocument: boolean, mimeType = ''): CareerCanvasAction[] {
+export function careerToolbarActions(hasDocument: boolean, mimeType = '', fileName = ''): CareerCanvasAction[] {
+  const resolvedMime =
+    mimeType && mimeType !== 'application/octet-stream'
+      ? mimeType
+      : /\.pdf$/i.test(fileName)
+        ? 'application/pdf'
+        : /\.docx?$/i.test(fileName)
+          ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+          : mimeType;
+
   return CAREER_CANVAS_ACTIONS.filter((action) => {
     const needsDoc = action.requiresDocument ?? false;
     if (needsDoc && !hasDocument) return false;
     if (!needsDoc) return true;
     if (!action.mimePatterns?.length) return hasDocument;
-    return action.mimePatterns.some((pattern) => mimeMatchesPattern(mimeType, pattern));
+    return action.mimePatterns.some((pattern) => mimeMatchesPattern(resolvedMime, pattern));
   });
 }
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DocumentCanvasAction } from '../../config/documentCanvasActions';
-import { actionsForMimeType } from '../../config/documentCanvasActions';
+import { documentToolbarActions } from '../../config/documentCanvasActions';
 import {
   clearDocumentCanvasState,
   formatFileSize,
@@ -378,8 +378,11 @@ export default function DocumentStudioCanvas() {
   );
 
   const toolbarActions = useMemo(() => {
-    if (!activeFile) return [];
-    return actionsForMimeType(activeFile.meta.type);
+    if (!activeFile) {
+      return documentToolbarActions(false);
+    }
+    const hasFile = Boolean(activeFile.file);
+    return documentToolbarActions(hasFile, activeFile.meta.type, activeFile.meta.name);
   }, [activeFile]);
 
   const canvasPdfFile = activeFile?.file ?? null;
@@ -411,7 +414,12 @@ export default function DocumentStudioCanvas() {
           </div>
         </header>
 
-        {phase === 'empty' && <MagicDropzone onFileSelect={activateFile} />}
+        {phase === 'empty' && (
+          <div className="space-y-4">
+            <MagicDropzone onFileSelect={activateFile} />
+            <DocumentActionToolbar actions={toolbarActions} onActionClick={handleActionClick} />
+          </div>
+        )}
 
         {phase === 'active' && activeFile && (
           <div className="space-y-4">

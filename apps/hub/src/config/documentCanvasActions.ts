@@ -158,11 +158,38 @@ export function mimeMatchesPattern(mimeType: string, pattern: string): boolean {
   return mimeType === pattern;
 }
 
-export function actionsForMimeType(mimeType: string): DocumentCanvasAction[] {
+/** Resolve MIME from type + filename when the browser reports octet-stream or empty. */
+export function resolveDocumentMime(mimeType: string, fileName: string): string {
+  const name = fileName.toLowerCase();
+  if (mimeType && mimeType !== 'application/octet-stream') {
+    if (mimeType === 'application/pdf' || name.endsWith('.pdf')) return 'application/pdf';
+    if (mimeType.startsWith('image/')) return mimeType;
+  }
+  if (name.endsWith('.pdf')) return 'application/pdf';
+  if (name.endsWith('.png')) return 'image/png';
+  if (name.endsWith('.webp')) return 'image/webp';
+  if (/\.(jpe?g)$/.test(name)) return 'image/jpeg';
+  return mimeType || 'application/octet-stream';
+}
+
+export function actionsForMimeType(mimeType: string, fileName = ''): DocumentCanvasAction[] {
+  const resolved = resolveDocumentMime(mimeType, fileName);
   return DOCUMENT_CANVAS_ACTIONS.filter((action) => {
     if (!action.mimePatterns?.length) return true;
-    return action.mimePatterns.some((pattern) => mimeMatchesPattern(mimeType, pattern));
+    return action.mimePatterns.some((pattern) => mimeMatchesPattern(resolved, pattern));
   });
+}
+
+/** Toolbar actions for empty canvas (full catalog) or after a file is loaded (MIME-filtered). */
+export function documentToolbarActions(
+  hasFile: boolean,
+  mimeType = '',
+  fileName = '',
+): DocumentCanvasAction[] {
+  if (!hasFile) {
+    return DOCUMENT_CANVAS_ACTIONS;
+  }
+  return actionsForMimeType(mimeType, fileName);
 }
 
 export function getDocumentCanvasAction(actionId: string): DocumentCanvasAction | undefined {

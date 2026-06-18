@@ -1,9 +1,18 @@
 import { useCallback, useRef, useState } from 'react';
 import { DOCUMENT_ACCEPT } from '../../config/documentCanvasActions';
+import { isPdfMimeOrName } from '../../lib/canvas/documentPdfTools';
 
 interface Props {
   onFileSelect: (file: File) => void;
   disabled?: boolean;
+}
+
+/** When multiple files are dropped, prefer a PDF so PDF tools (e.g. Compress) stay available. */
+function pickPrimaryFile(files: FileList | null): File | null {
+  if (!files?.length) return null;
+  const list = Array.from(files);
+  const pdf = list.find((file) => isPdfMimeOrName(file.type, file.name));
+  return pdf ?? list[0];
 }
 
 export default function MagicDropzone({ onFileSelect, disabled = false }: Props) {
@@ -12,7 +21,7 @@ export default function MagicDropzone({ onFileSelect, disabled = false }: Props)
 
   const handleFiles = useCallback(
     (files: FileList | null) => {
-      const file = files?.[0];
+      const file = pickPrimaryFile(files);
       if (file) onFileSelect(file);
     },
     [onFileSelect],

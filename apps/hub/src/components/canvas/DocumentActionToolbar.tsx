@@ -34,12 +34,12 @@ export default function DocumentActionToolbar({ actions, onActionClick }: Props)
                 onClick={() => onActionClick?.(action.id)}
                 className={`group relative flex w-full flex-col items-start gap-2 rounded-xl border px-3 py-3 text-left transition active:scale-[0.98] ${
                   isPro
-                    ? 'border-canvas-border bg-gradient-to-br from-amber-50 to-white hover:border-amber-300 hover:shadow-none'
-                    : 'border-canvas-border bg-canvas-elevated hover:border-emerald-300 hover:bg-canvas-surface hover:shadow-none'
+                    ? 'border-amber-700/40 bg-gradient-to-br from-amber-950/50 to-canvas-elevated hover:border-amber-500/60 hover:shadow-none'
+                    : 'border-canvas-border bg-canvas-elevated hover:border-emerald-500/50 hover:bg-canvas-surface hover:shadow-none'
                 }`}
               >
                 {isPro && (
-                  <span className="absolute right-2 top-2 rounded-full bg-canvas-accent-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-canvas-text">
+                  <span className="absolute right-2 top-2 rounded-full bg-amber-900/70 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-100">
                     ⚡ Pro
                   </span>
                 )}
@@ -47,7 +47,7 @@ export default function DocumentActionToolbar({ actions, onActionClick }: Props)
                   {action.icon}
                 </span>
                 <span
-                  className={`text-sm font-semibold ${isPro ? 'text-amber-950 pr-10' : 'text-canvas-text'}`}
+                  className={`text-sm font-semibold ${isPro ? 'pr-10 text-amber-100' : 'text-canvas-text'}`}
                 >
                   {action.label}
                 </span>

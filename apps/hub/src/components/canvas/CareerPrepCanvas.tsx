@@ -340,9 +340,10 @@ export default function CareerPrepCanvas() {
   );
 
   const toolbarActions = useMemo(() => {
-    const hasDocument = Boolean(activeFile);
+    const hasDocument = Boolean(activeFile?.file);
     const mimeType = activeFile?.meta.type ?? '';
-    return careerToolbarActions(hasDocument, mimeType);
+    const fileName = activeFile?.meta.name ?? '';
+    return careerToolbarActions(hasDocument, mimeType, fileName);
   }, [activeFile]);
 
   const atsFile =
@@ -358,7 +359,7 @@ export default function CareerPrepCanvas() {
     <section className="px-4 py-6 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-4xl">
         <header className="mb-6">
-          <p className="text-xs font-semibold uppercase tracking-wider text-sky-700">Workspace</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent">Workspace</p>
           <div className="mt-2 flex items-start gap-3">
             <span className="text-3xl" aria-hidden="true">
               🎯
