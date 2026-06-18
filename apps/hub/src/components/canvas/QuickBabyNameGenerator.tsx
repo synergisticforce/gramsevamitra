@@ -4,6 +4,7 @@ import {
   loadPersistedJson,
   savePersistedJson,
 } from '../../lib/canvas/quickToolsCanvasStorage';
+import ToolProcessingWait from './ToolProcessingWait';
 
 export interface BabyNameEntry {
   name: string;
@@ -229,12 +230,7 @@ export default function QuickBabyNameGenerator() {
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-canvas-subtle">
           Names ({loading ? '…' : filtered.length.toLocaleString()})
         </h2>
-        {loading && (
-          <p className="flex items-center gap-2 text-sm text-canvas-accent">
-            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-violet-400 border-t-transparent" />
-            Loading name database…
-          </p>
-        )}
+        {loading && <ToolProcessingWait label="Loading name database…" className="mb-3" />}
         {loadError && <p className="text-sm text-rose-600">{loadError}</p>}
         {!loading && !loadError && filtered.length === 0 && (
           <p className="text-sm font-medium leading-relaxed text-slate-200">No names match your filters.</p>

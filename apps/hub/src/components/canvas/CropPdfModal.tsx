@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { cropPdfInBrowser, getPdfPageSize, triggerPdfDownload } from '../../lib/canvas/documentPdfTools';
 import { defaultCropRect, type NormalizedCropRect } from '../../lib/pdf/cropCoords';
+import { useModalMetaLoading } from '../../lib/canvas/useModalMetaLoading';
+import ToolProcessingWait from './ToolProcessingWait';
 
 interface Props {
   file: File;
@@ -16,6 +18,8 @@ export default function CropPdfModal({ file, onClose, onSuccess, onProcessingCha
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useModalMetaLoading(loadingMeta, busy, onProcessingChange, 'Reading document… Please wait');
 
   useEffect(() => {
     let cancelled = false;
@@ -126,7 +130,7 @@ export default function CropPdfModal({ file, onClose, onSuccess, onProcessingCha
         </div>
 
         {loadingMeta ? (
-          <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">Reading document…</p>
+          <ToolProcessingWait label="Reading document…" className="mt-4" />
         ) : (
           <>
             <label className="mt-4 block">

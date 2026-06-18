@@ -6,6 +6,7 @@ import {
   triggerPdfDownload,
 } from '../../lib/canvas/documentPdfTools';
 import { validateUploadFile } from '../../lib/pdf/fileUploadLimits';
+import ToolProcessingWait from './ToolProcessingWait';
 
 interface AdditionalPdf {
   id: string;
@@ -36,6 +37,7 @@ export default function MergePdfModal({
 
     setError(null);
     setAdding(true);
+    onProcessingChange(true, 'Reading PDFs… Please wait', 15);
 
     try {
       const { getPdfPageCountFromFile } = await import('../../lib/pdf/pdfWorkerClient');
@@ -62,8 +64,9 @@ export default function MergePdfModal({
       setError(err instanceof Error ? err.message : 'Could not read one of the PDFs.');
     } finally {
       setAdding(false);
+      onProcessingChange(false, '', 0);
     }
-  }, []);
+  }, [onProcessingChange]);
 
   const removeItem = useCallback((id: string) => {
     setAdditional((prev) => prev.filter((item) => item.id !== id));
@@ -175,9 +178,11 @@ export default function MergePdfModal({
           ))}
         </div>
 
+        {adding && <ToolProcessingWait label="Reading additional PDFs…" className="mt-3" />}
+
         <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-canvas-border px-4 py-5 text-center transition hover:border-emerald-300 hover:bg-canvas-accent-soft/50">
           <span className="text-sm font-semibold text-canvas-muted">
-            {adding ? 'Reading PDFs…' : 'Tap to add PDFs to append'}
+            {adding ? 'Please wait…' : 'Tap to add PDFs to append'}
           </span>
           <span className="mt-1 text-xs font-medium leading-relaxed text-slate-300">Processed locally — nothing uploaded</span>
           <input

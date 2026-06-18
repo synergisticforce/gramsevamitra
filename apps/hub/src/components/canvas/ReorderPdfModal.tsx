@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { reorderPdfPagesInBrowser, triggerPdfDownload } from '../../lib/canvas/documentPdfTools';
+import { useModalMetaLoading } from '../../lib/canvas/useModalMetaLoading';
+import ToolProcessingWait from './ToolProcessingWait';
 
 interface Props {
   file: File;
@@ -14,6 +16,8 @@ export default function ReorderPdfModal({ file, onClose, onSuccess, onProcessing
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useModalMetaLoading(loadingMeta, busy, onProcessingChange, 'Reading page count… Please wait');
 
   useEffect(() => {
     let cancelled = false;
@@ -111,7 +115,7 @@ export default function ReorderPdfModal({ file, onClose, onSuccess, onProcessing
         </div>
 
         {loadingMeta ? (
-          <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">Reading page count…</p>
+          <ToolProcessingWait label="Reading page count…" className="mt-4" />
         ) : (
           <>
             <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">

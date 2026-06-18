@@ -6,6 +6,8 @@ import {
   triggerImageDownload,
   type ResizeCompressMode,
 } from '../../lib/canvas/mediaImageTools';
+import { useModalMetaLoading } from '../../lib/canvas/useModalMetaLoading';
+import ToolProcessingWait from './ToolProcessingWait';
 
 interface Props {
   file: File;
@@ -29,6 +31,8 @@ export default function ResizeCompressModal({
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useModalMetaLoading(loadingMeta, busy, onProcessingChange, 'Reading image dimensions… Please wait');
 
   useEffect(() => {
     let cancelled = false;
@@ -156,7 +160,7 @@ export default function ResizeCompressModal({
         </p>
 
         {loadingMeta ? (
-          <p className="mt-3 text-sm font-medium leading-relaxed text-slate-200">Reading image dimensions…</p>
+          <ToolProcessingWait label="Reading image dimensions…" className="mt-3" />
         ) : naturalSize ? (
           <p className="mt-3 text-xs font-medium leading-relaxed text-slate-300">
             Original: {naturalSize.width} × {naturalSize.height} px

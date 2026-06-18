@@ -11,6 +11,7 @@ import {
   formatFxRate,
   POPULAR_INR_REFS,
 } from '../../lib/finance/currencyFxEngine';
+import ToolProcessingWait from './ToolProcessingWait';
 
 interface CurrencyFormState {
   amount: number;
@@ -78,14 +79,14 @@ export default function FinanceCurrencyConverter() {
   }, [from, to]);
 
   const inputClass =
-    'w-full rounded-xl border border-canvas-border px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/50/30 focus:border-canvas-accent focus:ring-2 tabular-nums';
+    'w-full rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/30 focus:border-canvas-accent focus:ring-2 tabular-nums';
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <section className="rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-subtle">Convert</h2>
-        {loading && <p className="mt-2 text-sm font-medium leading-relaxed text-slate-200">Loading live rates…</p>}
-        {error && <p className="mt-2 text-sm text-rose-600">{error}</p>}
+        {loading && <ToolProcessingWait label="Loading live exchange rates…" className="mt-4" />}
+        {error && <p className="mt-2 text-sm text-rose-400">{error}</p>}
         {!loading && meta && <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">{meta}</p>}
         <div className="mt-4 space-y-4">
           <label className="block text-sm font-medium text-canvas-muted">
@@ -124,20 +125,20 @@ export default function FinanceCurrencyConverter() {
       </section>
       <section className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/80 p-5">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Result</h2>
-        <p className="mt-3 text-3xl font-bold tabular-nums text-emerald-900">
+        <p className="mt-3 text-3xl font-bold tabular-nums text-slate-100">
           {result ? formatFxAmount(result.converted, to) : '—'}
         </p>
         {result && (
-          <p className="mt-2 text-sm text-canvas-accent">
+          <p className="mt-2 text-sm text-slate-200">
             1 {from} = {formatFxRate(result.rate)} {to}
           </p>
         )}
         {rates?.INR && (
-          <ul className="mt-4 space-y-1 text-xs text-canvas-muted">
+          <ul className="mt-4 space-y-1 text-xs text-slate-300">
             {POPULAR_INR_REFS.filter((c) => rates[c]).map((code) => (
               <li key={code} className="flex justify-between">
                 <span>{code} → INR</span>
-                <span className="font-semibold">{formatFxAmount(rates.INR / rates[code], 'INR')}</span>
+                <span className="font-semibold text-slate-100">{formatFxAmount(rates.INR / rates[code], 'INR')}</span>
               </li>
             ))}
           </ul>
