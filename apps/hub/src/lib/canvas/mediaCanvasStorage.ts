@@ -11,7 +11,7 @@ export interface StoredFileMeta {
 
 export interface StoredMediaCanvasState {
   version: 1;
-  workspaceId: 'media';
+  workspaceId: 'image' | 'media';
   file: StoredFileMeta;
   savedAt: string;
 }
@@ -31,7 +31,10 @@ export function loadMediaCanvasState(): StoredMediaCanvasState | null {
     const raw = sessionStorage.getItem(MEDIA_CANVAS_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as StoredMediaCanvasState;
-    if (parsed.version !== 1 || parsed.workspaceId !== 'media' || !parsed.file?.name) {
+    if (parsed.version !== 1 || !parsed.file?.name) {
+      return null;
+    }
+    if (parsed.workspaceId !== 'image' && parsed.workspaceId !== 'media') {
       return null;
     }
     return parsed;
@@ -44,7 +47,7 @@ export function saveMediaCanvasState(file: File): void {
   if (typeof window === 'undefined') return;
   const payload: StoredMediaCanvasState = {
     version: 1,
-    workspaceId: 'media',
+    workspaceId: 'image',
     file: fileToMeta(file),
     savedAt: new Date().toISOString(),
   };

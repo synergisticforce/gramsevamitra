@@ -31,3 +31,8 @@ Implement a tiered, fail-safe OCR engine system:
 * **Quick Tools:** Expand the 'Unit Converter' globally. Add 'Typing Speed Test', 'Pomodoro Focus Timer', 'Event Countdown', 'Random Number Generator', and 'Format Converter (JSON/CSV/XML)'. *(Completed — 22 tools in Quick Tools workspace.)*
 * **New Health & Lifestyle Workspace:** Build 'BMI Calculator', 'Body Fat Calculator', 'Age & Date Calculator', 'Exam Age Eligibility', 'Menstrual & Ovulation Calculator', 'Mood & Daily Log', and 'Macro & Calorie Calculator'. *(Completed — `/workspace/lifestyle` with 7 client-side tools.)*
 * **New Video Workspace:** Build a dedicated workspace for Video File Conversion tools. *(Completed — `/workspace/video` with FFmpeg.wasm, client-only.)*
+
+## 6. Final Master Integration (Phase 7 — Active)
+* **Document Studio UX:** On initial load, show only the primary dropzone — the 23-tool grid reveals after a single file upload (compact file summary bar). Multi-file PDF selection skips the grid and opens Merge PDF directly with a reorderable queue.
+* **Workspace Navigation:** Renamed **Media Lab → Image Studio** (`/workspace/image`, legacy `/workspace/media` redirects). Sidebar order: Document Studio → Image Studio → Video Studio → Health & Lifestyle → Career Prep → Finance Hub → Quick Tools.
+* **Extract to Word (Free):** New Document Studio tool — Tier 1 Tesseract preprocessing + local DOCX download when confidence ≥ 65%; Pro upgrade modal (Paddle/GLM messaging) on low quality — Razorpay only on explicit upgrade click.

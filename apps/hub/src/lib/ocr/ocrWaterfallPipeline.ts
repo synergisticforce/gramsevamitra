@@ -242,3 +242,14 @@ export function promptProUpgradeAfterTier1Failure(tier1?: Tier1OcrResult): void 
         : 'This scan needs Pro AI OCR (Paddle + GLM + Vision fallback) for reliable extraction.',
   });
 }
+
+export function promptProUpgradeForExtractToWord(tier1?: Tier1OcrResult): void {
+  openProUpgrade({
+    featureId: 'extract-to-word',
+    featureName: 'Extract to Word (Pro)',
+    featureDescription:
+      tier1 && tier1.averageConfidence > 0
+        ? `This document format or quality requires advanced processing (free OCR confidence ${Math.round(tier1.averageConfidence)}%). Upgrade to GramSeva Mitra Pro to deploy high-fidelity AI formatting engines (Paddle OCR/GLM OCR) to reconstruct this Word file.`
+        : 'This document format or quality requires advanced processing. Upgrade to GramSeva Mitra Pro to deploy high-fidelity AI formatting engines (Paddle OCR/GLM OCR) to reconstruct this Word file.',
+  });
+}

@@ -1,12 +1,12 @@
 /** Phase 1 App Model — seven consolidated workspace canvases. */
 export type AppWorkspaceId =
   | 'documents'
-  | 'media'
+  | 'image'
+  | 'video'
+  | 'lifestyle'
   | 'career'
   | 'finance'
-  | 'quick-tools'
-  | 'lifestyle'
-  | 'video';
+  | 'quick-tools';
 
 export interface AppWorkspace {
   id: AppWorkspaceId;
@@ -25,11 +25,25 @@ export const APP_WORKSPACES: AppWorkspace[] = [
     emoji: '📄',
   },
   {
-    id: 'media',
-    label: 'Media Lab',
-    href: '/workspace/media',
+    id: 'image',
+    label: 'Image Studio',
+    href: '/workspace/image',
     description: 'Resize exam photos, convert formats, and optimize images.',
     emoji: '🖼️',
+  },
+  {
+    id: 'video',
+    label: 'Video Studio',
+    href: '/workspace/video',
+    description: 'Compress, convert, extract audio, mute, and GIF tools via FFmpeg.wasm.',
+    emoji: '🎬',
+  },
+  {
+    id: 'lifestyle',
+    label: 'Health & Lifestyle',
+    href: '/workspace/lifestyle',
+    description: 'BMI, macros, exam age checks, cycle tracking, and mood journaling.',
+    emoji: '🧘',
   },
   {
     id: 'career',
@@ -52,20 +66,6 @@ export const APP_WORKSPACES: AppWorkspace[] = [
     description: 'Calculators, generators, and transient utilities.',
     emoji: '⚡',
   },
-  {
-    id: 'lifestyle',
-    label: 'Health & Lifestyle',
-    href: '/workspace/lifestyle',
-    description: 'BMI, macros, exam age checks, cycle tracking, and mood journaling.',
-    emoji: '🧘',
-  },
-  {
-    id: 'video',
-    label: 'Video Studio',
-    href: '/workspace/video',
-    description: 'Compress, convert, extract audio, mute, and GIF tools via FFmpeg.wasm.',
-    emoji: '🎬',
-  },
 ];
 
 export const DEFAULT_APP_WORKSPACE = APP_WORKSPACES[0];
@@ -76,3 +76,6 @@ export function resolveWorkspaceId(pathname: string): AppWorkspaceId | null {
   );
   return match?.id ?? null;
 }
+
+/** Legacy route alias — `/workspace/media` redirects to Image Studio. */
+export const LEGACY_MEDIA_WORKSPACE_HREF = '/workspace/media';

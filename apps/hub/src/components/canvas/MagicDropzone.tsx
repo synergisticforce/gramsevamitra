@@ -1,13 +1,14 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DOCUMENT_ACCEPT } from '../../config/documentCanvasActions';
 import { isPdfMimeOrName } from '../../lib/canvas/documentPdfTools';
 
 interface Props {
   onFileSelect: (file: File) => void;
+  /** When 2+ files are selected at once, route to merge flow instead of single-file canvas. */
+  onMultipleFilesSelect?: (files: File[]) => void;
   disabled?: boolean;
 }
 
-/** When multiple files are dropped, prefer a PDF so PDF tools (e.g. Compress) stay available. */
 function pickPrimaryFile(files: FileList | null): File | null {
   if (!files?.length) return null;
   const list = Array.from(files);
@@ -15,16 +16,24 @@ function pickPrimaryFile(files: FileList | null): File | null {
   return pdf ?? list[0];
 }
 
-export default function MagicDropzone({ onFileSelect, disabled = false }: Props) {
+export default function MagicDropzone({ onFileSelect, onMultipleFilesSelect, disabled = false }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const handleFiles = useCallback(
     (files: FileList | null) => {
+      if (!files?.length) return;
+      const list = Array.from(files);
+
+      if (list.length > 1 && onMultipleFilesSelect) {
+        onMultipleFilesSelect(list);
+        return;
+      }
+
       const file = pickPrimaryFile(files);
       if (file) onFileSelect(file);
     },
-    [onFileSelect],
+    [onFileSelect, onMultipleFilesSelect],
   );
 
   const onDragEnter = (event: React.DragEvent) => {
@@ -67,6 +76,7 @@ export default function MagicDropzone({ onFileSelect, disabled = false }: Props)
         ref={inputRef}
         type="file"
         accept={DOCUMENT_ACCEPT}
+        multiple
         className="sr-only"
         disabled={disabled}
         onChange={(event) => {
@@ -75,12 +85,11 @@ export default function MagicDropzone({ onFileSelect, disabled = false }: Props)
         }}
       />
 
-      {/* Desktop: drag-and-drop canvas (hidden on mobile) */}
       <div
         className={`${dropzoneClass} hidden md:flex`}
         role="button"
         tabIndex={disabled ? -1 : 0}
-        aria-label="Drop a document to begin"
+        aria-label="Drop documents to begin"
         onDragEnter={onDragEnter}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
@@ -101,11 +110,11 @@ export default function MagicDropzone({ onFileSelect, disabled = false }: Props)
           {isDragging ? 'Release to load your document' : 'Drop your document here'}
         </p>
         <p className="mt-2 max-w-md text-sm font-medium leading-relaxed text-slate-200">
-          PDF, Word, or image files — processed locally in your browser. Or click to browse.
+          PDF, Word, or image files — processed locally in your browser. Select multiple PDFs to
+          merge instantly.
         </p>
       </div>
 
-      {/* Mobile: native tap-to-upload (replaces unreliable drag-and-drop) */}
       <div className="md:hidden">
         <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-6 text-center shadow-none">
           <span className="text-5xl" aria-hidden="true">
@@ -113,7 +122,7 @@ export default function MagicDropzone({ onFileSelect, disabled = false }: Props)
           </span>
           <p className="mt-4 text-lg font-semibold text-canvas-text">Add a document</p>
           <p className="mt-2 text-sm font-medium leading-relaxed text-slate-200">
-            Tap below to pick a PDF, Word file, or image from your device.
+            Tap below to pick files — select multiple PDFs to merge instantly.
           </p>
           <button
             type="button"

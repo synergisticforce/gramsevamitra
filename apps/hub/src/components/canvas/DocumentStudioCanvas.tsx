@@ -51,6 +51,7 @@ import PhotoScannedPdfModal from './PhotoScannedPdfModal';
 import StripMetadataPdfModal from './StripMetadataPdfModal';
 import SignPdfModal from './SignPdfModal';
 import RedactPdfModal from './RedactPdfModal';
+import ExtractToWordModal from './ExtractToWordModal';
 
 type CanvasPhase = 'empty' | 'active';
 type ToolModal =
@@ -76,6 +77,7 @@ type ToolModal =
   | 'strip-metadata'
   | 'sign-pdf'
   | 'redact-pdf'
+  | 'extract-to-word'
   | 'hifi-convert'
   | null;
 
@@ -98,6 +100,7 @@ export default function DocumentStudioCanvas() {
   const [hydrated, setHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [pdfModal, setPdfModal] = useState<ToolModal>(null);
+  const [mergeInitialQueue, setMergeInitialQueue] = useState<File[] | null>(null);
   const [processing, setProcessing] = useState<ProcessingState>({
     active: false,
     label: '',
@@ -280,6 +283,19 @@ export default function DocumentStudioCanvas() {
         setPdfModal('pdf-to-text');
         return;
       }
+      if (action.id === 'extract-to-word') {
+        const file = requireCanvasFile();
+        if (!file) return;
+        if (
+          !isPdfMimeOrName(activeFile!.meta.type, activeFile!.meta.name) &&
+          !isImageMimeOrName(activeFile!.meta.type, activeFile!.meta.name)
+        ) {
+          setToastMessage('Extract to Word works with PDF or image files.');
+          return;
+        }
+        setPdfModal('extract-to-word');
+        return;
+      }
       if (action.id === 'type-save') {
         setPdfModal('type-save');
         return;
@@ -331,7 +347,7 @@ export default function DocumentStudioCanvas() {
       }
       setToastMessage(`${action.label} is coming soon.`);
     },
-    [requireImageCanvasFile, requirePdfCanvasFile]
+    [requireCanvasFile, requireImageCanvasFile, requirePdfCanvasFile, activeFile]
   );
 
   const { handleActionClick: dispatchAction, isPro } = useDocumentActionHandler({
@@ -418,6 +434,22 @@ export default function DocumentStudioCanvas() {
     setPhase('active');
   }, []);
 
+  const handleMultipleFilesFromDropzone = useCallback((files: File[]) => {
+    const pdfs = files.filter((file) => isPdfMimeOrName(file.type, file.name));
+    if (pdfs.length < 2) {
+      setToastMessage('Select at least two PDF files to merge.');
+      if (pdfs.length === 1) activateFile(pdfs[0]);
+      return;
+    }
+    setMergeInitialQueue(pdfs);
+    setPdfModal('merge');
+  }, [activateFile]);
+
+  const closePdfModal = useCallback(() => {
+    setPdfModal(null);
+    setMergeInitialQueue(null);
+  }, []);
+
   useEffect(() => {
     const stored = loadDocumentCanvasState();
     if (stored) {
@@ -485,8 +517,8 @@ export default function DocumentStudioCanvas() {
     clearDocumentCanvasState();
     setActiveFile(null);
     setPhase('empty');
-    setPdfModal(null);
-  }, []);
+    closePdfModal();
+  }, [closePdfModal]);
 
   const replaceFile = useCallback(
     (file: File) => {
@@ -533,10 +565,10 @@ export default function DocumentStudioCanvas() {
         </header>
 
         {phase === 'empty' && (
-          <div className="space-y-4">
-            <MagicDropzone onFileSelect={activateFile} />
-            <DocumentActionToolbar actions={toolbarActions} onActionClick={handleActionClick} />
-          </div>
+          <MagicDropzone
+            onFileSelect={activateFile}
+            onMultipleFilesSelect={handleMultipleFilesFromDropzone}
+          />
         )}
 
         {phase === 'active' && activeFile && (
@@ -601,16 +633,17 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'split' && canvasPdfFile && (
         <SplitPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
       )}
 
-      {pdfModal === 'merge' && canvasPdfFile && (
+      {pdfModal === 'merge' && (canvasPdfFile || mergeInitialQueue) && (
         <MergePdfModal
-          canvasFile={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          canvasFile={canvasPdfFile ?? undefined}
+          initialQueue={mergeInitialQueue ?? undefined}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -619,7 +652,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'compress' && canvasPdfFile && (
         <CompressPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -628,7 +661,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'protect' && canvasPdfFile && (
         <ProtectPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -637,7 +670,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'unlock' && canvasPdfFile && (
         <UnlockPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onError={setToastMessage}
           onProcessingChange={onProcessingChange}
@@ -647,7 +680,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'deskew' && canvasPdfFile && (
         <DeskewPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -656,7 +689,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'remove-pages' && canvasPdfFile && (
         <RemovePagesPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -665,7 +698,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'page-numbers' && canvasPdfFile && (
         <PageNumbersPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -674,7 +707,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'crop' && canvasPdfFile && (
         <CropPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -683,7 +716,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'image-to-pdf' && canvasImageFile && (
         <ImageToPdfModal
           file={canvasImageFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -692,7 +725,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'pdf-to-image' && canvasPdfFile && (
         <PdfToImageModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -701,7 +734,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'pdf-to-text' && canvasPdfFile && (
         <PdfToTextModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -709,7 +742,7 @@ export default function DocumentStudioCanvas() {
 
       {pdfModal === 'type-save' && (
         <TypeSavePdfModal
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -718,7 +751,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'rotate' && canvasPdfFile && (
         <RotatePdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -727,7 +760,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'reorder' && canvasPdfFile && (
         <ReorderPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -736,7 +769,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'watermark' && canvasPdfFile && (
         <WatermarkPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -745,7 +778,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'organise-pages' && canvasPdfFile && (
         <OrganisePdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -754,7 +787,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'repair-pdf' && canvasPdfFile && (
         <RepairPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -763,7 +796,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'photo-scanned-pdf' && canvasImageFile && (
         <PhotoScannedPdfModal
           file={canvasImageFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -772,7 +805,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'strip-metadata' && canvasPdfFile && (
         <StripMetadataPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -781,7 +814,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'sign-pdf' && canvasPdfFile && (
         <SignPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -790,7 +823,16 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'redact-pdf' && canvasPdfFile && (
         <RedactPdfModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'extract-to-word' && activeFile?.file && (
+        <ExtractToWordModal
+          file={activeFile.file}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
         />
@@ -799,7 +841,7 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'hifi-convert' && canvasPdfFile && (
         <HiFiConverterModal
           file={canvasPdfFile}
-          onClose={() => setPdfModal(null)}
+          onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={setProcessingProgress}
         />

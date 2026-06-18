@@ -16,7 +16,7 @@ export const MARKETING_ROUTES = [
 /** Seven core workspace canvases */
 export const WORKSPACE_ROUTES = [
   '/workspace/documents',
-  '/workspace/media',
+  '/workspace/image',
   '/workspace/career',
   '/workspace/finance',
   '/workspace/quick-tools',

@@ -323,6 +323,9 @@ function buildFeatureNote(tool, workspace, wired) {
     parts.push('Requires document on canvas');
   }
 
+  if (workspace === 'documents' && tool.tier === 'free' && tool.id === 'extract-to-word') {
+    parts.push('Tier 1 Tesseract OCR → client-side DOCX when confidence ≥ 65%');
+  }
   if (workspace === 'documents' && tool.tier === 'pro') {
     if (tool.id === 'smart-extract') {
       parts.push('Pro API pipeline: /api/pro/smart-extract with CSV/JSON/DOCX output');
@@ -331,7 +334,7 @@ function buildFeatureNote(tool, workspace, wired) {
       parts.push('HiFiConverterModal + Pro conversion API for PDF→DOCX/PPTX');
     }
   }
-  if (workspace === 'media' && tool.tier === 'pro') {
+  if (workspace === 'image' && tool.tier === 'pro') {
     parts.push('Pro API: /api/pro/media-process (background removal, upscale, restore)');
   }
   if (workspace === 'career' && tool.tier === 'pro') {
@@ -422,14 +425,38 @@ function auditWorkspace() {
       })),
     },
     {
-      id: 'media',
-      label: 'Media Lab',
-      route: '/workspace/media',
+      id: 'image',
+      label: 'Image Studio',
+      route: '/workspace/image',
       tools: mediaActions.map((t) => ({
         ...t,
         category: mediaCategory(t),
         wired: mediaWired.has(t.id),
-        featureNote: buildFeatureNote(t, 'media', mediaWired.has(t.id)),
+        featureNote: buildFeatureNote(t, 'image', mediaWired.has(t.id)),
+      })),
+    },
+    {
+      id: 'video',
+      label: 'Video Studio',
+      route: '/workspace/video',
+      categoryMeta: videoMeta,
+      tools: videoTools.map((t) => ({
+        ...t,
+        tier: 'free',
+        wired: videoWired.has(t.id),
+        featureNote: buildFeatureNote(t, 'video', videoWired.has(t.id)),
+      })),
+    },
+    {
+      id: 'lifestyle',
+      label: 'Health & Lifestyle',
+      route: '/workspace/lifestyle',
+      categoryMeta: lifestyleMeta,
+      tools: lifestyleTools.map((t) => ({
+        ...t,
+        tier: 'free',
+        wired: lifestyleWired.has(t.id),
+        featureNote: buildFeatureNote(t, 'lifestyle', lifestyleWired.has(t.id)),
       })),
     },
     {
@@ -465,30 +492,6 @@ function auditWorkspace() {
         tier: 'free',
         wired: quickWired.has(t.id),
         featureNote: buildFeatureNote(t, 'quick-tools', quickWired.has(t.id)),
-      })),
-    },
-    {
-      id: 'lifestyle',
-      label: 'Health & Lifestyle',
-      route: '/workspace/lifestyle',
-      categoryMeta: lifestyleMeta,
-      tools: lifestyleTools.map((t) => ({
-        ...t,
-        tier: 'free',
-        wired: lifestyleWired.has(t.id),
-        featureNote: buildFeatureNote(t, 'lifestyle', lifestyleWired.has(t.id)),
-      })),
-    },
-    {
-      id: 'video',
-      label: 'Video Studio',
-      route: '/workspace/video',
-      categoryMeta: videoMeta,
-      tools: videoTools.map((t) => ({
-        ...t,
-        tier: 'free',
-        wired: videoWired.has(t.id),
-        featureNote: buildFeatureNote(t, 'video', videoWired.has(t.id)),
       })),
     },
   ];
@@ -577,7 +580,7 @@ async function writeDocx(audit) {
     heading('GramSeva Mitra — Application Baseline Audit'),
     body(`Generated: ${generatedAt} (UTC)`),
     body(
-      'Scope: Document Studio, Media Lab, Career Prep, Finance Hub, and Quick Tools workspaces in the App Model (/workspace/* routes).',
+      'Scope: Document Studio, Image Studio, Video Studio, Health & Lifestyle, Career Prep, Finance Hub, and Quick Tools workspaces in the App Model (/workspace/* routes).',
     ),
     heading('Executive Summary', HeadingLevel.HEADING_2),
     body(

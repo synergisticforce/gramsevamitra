@@ -68,7 +68,7 @@ export default function MediaLabCanvas() {
       return null;
     }
     if (!isImageMimeOrName(activeFile.meta.type, activeFile.meta.name)) {
-      setToastMessage('Media Lab accepts JPG, PNG, and WebP images only.');
+      setToastMessage('Image Studio accepts JPG, PNG, and WebP images only.');
       return null;
     }
     return activeFile.file;
@@ -229,7 +229,7 @@ export default function MediaLabCanvas() {
   const onOmniHandoff = useCallback(
     ({ file, intentId }: OmniHandoffPayload) => {
       if (!isImageMimeOrName(file.type, file.name)) {
-        setToastMessage('Media Lab accepts JPG, PNG, and WebP images. Upload from the homepage or drop here.');
+        setToastMessage('Image Studio accepts JPG, PNG, and WebP images. Upload from the homepage or drop here.');
         return;
       }
       pendingOmniIntentRef.current = intentId;
@@ -239,7 +239,7 @@ export default function MediaLabCanvas() {
   );
 
   const omniHandoffStatus = useOmniWorkspaceHandoff({
-    workspaceId: 'media',
+    workspaceId: 'image',
     enabled: hydrated,
     onHandoff: onOmniHandoff,
     onError: setToastMessage,
@@ -287,7 +287,7 @@ export default function MediaLabCanvas() {
               🖼️
             </span>
             <div>
-              <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Media Lab</h1>
+              <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Image Studio</h1>
               <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
                 Resize, compress, convert, or AI-enhance — drop an image to begin.
               </p>

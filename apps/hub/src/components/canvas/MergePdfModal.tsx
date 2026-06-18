@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { formatFileSize } from '../../lib/canvas/documentCanvasStorage';
 import {
   isPdfMimeOrName,
@@ -9,68 +9,137 @@ import { requiresChunkedPipeline, validateUploadFile } from '../../lib/pdf/fileU
 import { runChunkedMergePipeline } from '../../lib/upload/chunkedPipeline';
 import ToolProcessingWait from './ToolProcessingWait';
 
-interface AdditionalPdf {
+interface QueueItem {
   id: string;
   file: File;
   pageCount: number;
 }
 
 interface Props {
-  canvasFile: File;
+  /** Canvas file when opened from toolbar (legacy: first in merge order). */
+  canvasFile?: File;
+  /** Full merge queue when opened from multi-file drop (all items reorderable). */
+  initialQueue?: File[];
   onClose: () => void;
   onSuccess: (message: string) => void;
   onProcessingChange: (active: boolean, label: string, percent: number) => void;
 }
 
+async function buildQueueFromFiles(files: File[]): Promise<QueueItem[]> {
+  const { getPdfPageCountFromFile } = await import('../../lib/pdf/pdfWorkerClient');
+  const next: QueueItem[] = [];
+
+  for (const file of files) {
+    if (!isPdfMimeOrName(file.type, file.name)) {
+      throw new Error('Only PDF files can be merged.');
+    }
+    const validation = validateUploadFile(file);
+    if (!validation.ok) {
+      throw new Error(validation.message);
+    }
+    const pageCount = await getPdfPageCountFromFile(file);
+    next.push({ id: crypto.randomUUID(), file, pageCount });
+  }
+
+  return next;
+}
+
 export default function MergePdfModal({
   canvasFile,
+  initialQueue,
   onClose,
   onSuccess,
   onProcessingChange,
 }: Props) {
-  const [additional, setAdditional] = useState<AdditionalPdf[]>([]);
+  const queueMode = Boolean(initialQueue?.length);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [hydrating, setHydrating] = useState(queueMode);
 
-  const handleAddFiles = useCallback(async (fileList: FileList | null) => {
-    if (!fileList?.length) return;
-
-    setError(null);
-    setAdding(true);
-    onProcessingChange(true, 'Reading PDFs… Please wait', 15);
-
-    try {
-      const { getPdfPageCountFromFile } = await import('../../lib/pdf/pdfWorkerClient');
-      const next: AdditionalPdf[] = [];
-
-      for (const file of Array.from(fileList)) {
-        if (!isPdfMimeOrName(file.type, file.name)) {
-          setError('Only PDF files can be merged.');
-          continue;
+  useEffect(() => {
+    if (!queueMode && canvasFile) {
+      void (async () => {
+        setHydrating(true);
+        setError(null);
+        onProcessingChange(true, 'Reading PDF…', 10);
+        try {
+          const items = await buildQueueFromFiles([canvasFile]);
+          setQueue(items);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Could not read PDF.');
+        } finally {
+          setHydrating(false);
+          onProcessingChange(false, '', 0);
         }
-        const validation = validateUploadFile(file);
-        if (!validation.ok) {
-          setError(validation.message);
-          continue;
-        }
-        const pageCount = await getPdfPageCountFromFile(file);
-        next.push({ id: crypto.randomUUID(), file, pageCount });
-      }
-
-      if (next.length > 0) {
-        setAdditional((prev) => [...prev, ...next]);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not read one of the PDFs.');
-    } finally {
-      setAdding(false);
-      onProcessingChange(false, '', 0);
+      })();
+      return;
     }
-  }, [onProcessingChange]);
+
+    if (!initialQueue?.length) return;
+
+    let cancelled = false;
+    void (async () => {
+      setHydrating(true);
+      setError(null);
+      onProcessingChange(true, 'Reading PDFs…', 10);
+      try {
+        const items = await buildQueueFromFiles(initialQueue);
+        if (!cancelled) setQueue(items);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Could not read one of the PDFs.');
+        }
+      } finally {
+        if (!cancelled) {
+          setHydrating(false);
+          onProcessingChange(false, '', 0);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [canvasFile, initialQueue, onProcessingChange, queueMode]);
+
+  const handleAddFiles = useCallback(
+    async (fileList: FileList | null) => {
+      if (!fileList?.length) return;
+
+      setError(null);
+      setAdding(true);
+      onProcessingChange(true, 'Reading PDFs… Please wait', 15);
+
+      try {
+        const next = await buildQueueFromFiles(Array.from(fileList));
+        setQueue((prev) => [...prev, ...next]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Could not read one of the PDFs.');
+      } finally {
+        setAdding(false);
+        onProcessingChange(false, '', 0);
+      }
+    },
+    [onProcessingChange],
+  );
 
   const removeItem = useCallback((id: string) => {
-    setAdditional((prev) => prev.filter((item) => item.id !== id));
+    setQueue((prev) => prev.filter((item) => item.id !== id));
+  }, []);
+
+  const moveItem = useCallback((id: string, direction: -1 | 1) => {
+    setQueue((prev) => {
+      const index = prev.findIndex((item) => item.id === id);
+      if (index < 0) return prev;
+      const target = index + direction;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.splice(target, 0, item);
+      return next;
+    });
   }, []);
 
   const reportProgress = useCallback(
@@ -78,12 +147,12 @@ export default function MergePdfModal({
       const percent = total > 0 ? Math.round((current / total) * 100) : 0;
       onProcessingChange(true, label, percent);
     },
-    [onProcessingChange]
+    [onProcessingChange],
   );
 
   const handleMerge = useCallback(async () => {
-    if (additional.length < 1) {
-      setError('Add at least one more PDF to append to the canvas file.');
+    if (queue.length < 2) {
+      setError('Add at least two PDFs to merge.');
       return;
     }
 
@@ -91,7 +160,7 @@ export default function MergePdfModal({
     setError(null);
     onProcessingChange(true, 'Preparing merge…', 0);
 
-    const filesInOrder = [canvasFile, ...additional.map((item) => item.file)];
+    const filesInOrder = queue.map((item) => item.file);
 
     try {
       if (filesInOrder.some((item) => requiresChunkedPipeline(item))) {
@@ -99,20 +168,20 @@ export default function MergePdfModal({
           onProcessingChange(true, label, percent),
         );
         onProcessingChange(false, '', 0);
-        onSuccess(`Merge complete — ${filesInOrder.length} PDFs combined with Smart Slicing. Download started.`);
+        onSuccess(
+          `Merge complete — ${filesInOrder.length} PDFs combined with Smart Slicing. Download started.`,
+        );
         onClose();
         return;
       }
 
       const { bytes, downloadName } = await mergePdfsInBrowser(filesInOrder, ({ current, total, label }) =>
-        reportProgress(current, total, label)
+        reportProgress(current, total, label),
       );
 
       triggerPdfDownload(bytes, downloadName, '_merged');
       onProcessingChange(false, '', 0);
-      onSuccess(
-        `Merge complete — ${filesInOrder.length} PDFs combined. Download started.`
-      );
+      onSuccess(`Merge complete — ${filesInOrder.length} PDFs combined. Download started.`);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Merge failed.');
@@ -120,7 +189,7 @@ export default function MergePdfModal({
     } finally {
       setBusy(false);
     }
-  }, [additional, canvasFile, onClose, onProcessingChange, onSuccess, reportProgress]);
+  }, [onClose, onProcessingChange, onSuccess, queue, reportProgress]);
 
   return (
     <div
@@ -139,7 +208,9 @@ export default function MergePdfModal({
               Merge PDF
             </h2>
             <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
-              Canvas file is first; add PDFs to append after it.
+              {queueMode
+                ? 'Reorder files below, then merge into one PDF.'
+                : 'Canvas file is first — add PDFs or reorder before merging.'}
             </p>
           </div>
           <button
@@ -153,22 +224,14 @@ export default function MergePdfModal({
           </button>
         </div>
 
-        <div className="mt-4 rounded-xl border border-canvas-border bg-canvas-accent-soft px-3 py-2.5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-canvas-accent">
-            Canvas file (first)
-          </p>
-          <p className="mt-0.5 truncate text-sm font-medium text-canvas-text">{canvasFile.name}</p>
-          <p className="text-xs font-medium leading-relaxed text-slate-300">{formatFileSize(canvasFile.size)}</p>
-        </div>
-
-        <div className="mt-3 space-y-2">
-          {additional.map((item, index) => (
+        <div className="mt-4 space-y-2">
+          {queue.map((item, index) => (
             <div
               key={item.id}
-              className="flex items-center gap-3 rounded-xl border border-canvas-border px-3 py-2.5"
+              className="flex items-center gap-2 rounded-xl border border-canvas-border px-3 py-2.5 sm:gap-3"
             >
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-canvas-elevated text-xs font-bold text-canvas-muted">
-                {index + 2}
+                {index + 1}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-canvas-text">{item.file.name}</p>
@@ -177,10 +240,30 @@ export default function MergePdfModal({
                   {formatFileSize(item.file.size)}
                 </p>
               </div>
+              <div className="flex shrink-0 flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => moveItem(item.id, -1)}
+                  disabled={busy || index === 0}
+                  className="rounded px-1.5 py-0.5 text-xs font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-40"
+                  aria-label={`Move ${item.file.name} up`}
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveItem(item.id, 1)}
+                  disabled={busy || index === queue.length - 1}
+                  className="rounded px-1.5 py-0.5 text-xs font-semibold text-canvas-muted transition hover:bg-canvas-elevated disabled:opacity-40"
+                  aria-label={`Move ${item.file.name} down`}
+                >
+                  ↓
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={() => removeItem(item.id)}
-                disabled={busy}
+                disabled={busy || queue.length <= 1}
                 className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-rose-600 transition hover:bg-canvas-danger-soft/30 disabled:opacity-50"
               >
                 Remove
@@ -189,11 +272,13 @@ export default function MergePdfModal({
           ))}
         </div>
 
-        {adding && <ToolProcessingWait label="Reading additional PDFs…" className="mt-3" />}
+        {(adding || hydrating) && (
+          <ToolProcessingWait label="Reading PDFs…" className="mt-3" />
+        )}
 
         <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-canvas-border px-4 py-5 text-center transition hover:border-emerald-300 hover:bg-canvas-accent-soft/50">
           <span className="text-sm font-semibold text-canvas-muted">
-            {adding ? 'Please wait…' : 'Tap to add PDFs to append'}
+            {adding ? 'Please wait…' : 'Tap to add more PDFs'}
           </span>
           <span className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
             Small files process locally. Large files auto-switch to Smart Slicing.
@@ -203,7 +288,7 @@ export default function MergePdfModal({
             accept="application/pdf,.pdf"
             multiple
             className="sr-only"
-            disabled={busy || adding}
+            disabled={busy || adding || hydrating}
             onChange={(event) => {
               void handleAddFiles(event.target.files);
               event.target.value = '';
@@ -229,10 +314,10 @@ export default function MergePdfModal({
           <button
             type="button"
             onClick={() => void handleMerge()}
-            disabled={busy || additional.length < 1}
+            disabled={busy || hydrating || queue.length < 2}
             className="rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {busy ? 'Merging…' : `Merge & download (${1 + additional.length} PDFs)`}
+            {busy ? 'Merging…' : `Merge & download (${queue.length} PDFs)`}
           </button>
         </div>
       </div>

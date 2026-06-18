@@ -79,7 +79,7 @@ const IMAGE_INTENTS: OmniIntent[] = [
     icon: '📐',
     tier: 'free',
     quoteLabel: 'Instant & Free',
-    workspaceId: 'media',
+    workspaceId: 'image',
   },
   {
     id: 'convert-format',
@@ -88,7 +88,7 @@ const IMAGE_INTENTS: OmniIntent[] = [
     icon: '🔄',
     tier: 'free',
     quoteLabel: 'Instant & Free',
-    workspaceId: 'media',
+    workspaceId: 'image',
   },
   {
     id: 'remove-background',
@@ -97,7 +97,7 @@ const IMAGE_INTENTS: OmniIntent[] = [
     icon: '✨',
     tier: 'pro',
     quoteLabel: '2 AI Credits',
-    workspaceId: 'media',
+    workspaceId: 'image',
   },
 ];
 
@@ -109,7 +109,7 @@ const VIDEO_INTENTS: OmniIntent[] = [
     icon: '🗜️',
     tier: 'free',
     quoteLabel: 'Instant & Free',
-    workspaceId: 'media',
+    workspaceId: 'image',
   },
   {
     id: 'convert-video',
@@ -118,7 +118,7 @@ const VIDEO_INTENTS: OmniIntent[] = [
     icon: '🔄',
     tier: 'free',
     quoteLabel: 'Instant & Free',
-    workspaceId: 'media',
+    workspaceId: 'image',
   },
 ];
 
@@ -130,7 +130,7 @@ const AUDIO_INTENTS: OmniIntent[] = [
     icon: '🗜️',
     tier: 'free',
     quoteLabel: 'Instant & Free',
-    workspaceId: 'media',
+    workspaceId: 'image',
   },
   {
     id: 'transcribe',
@@ -139,7 +139,7 @@ const AUDIO_INTENTS: OmniIntent[] = [
     icon: '🎙️',
     tier: 'pro',
     quoteLabel: '3 AI Credits',
-    workspaceId: 'media',
+    workspaceId: 'image',
   },
 ];
 

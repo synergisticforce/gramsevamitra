@@ -13,7 +13,7 @@ const PAGES_ROOT = path.join(ROOT, 'apps/hub/src/pages/workspace');
 
 const WORKSPACE_ROUTES = [
   'documents',
-  'media',
+  'image',
   'career',
   'finance',
   'quick-tools',

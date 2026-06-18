@@ -11,7 +11,7 @@ export type DocumentOmniModal =
   | 'pdf-to-image'
   | 'image-to-pdf';
 
-/** Media Lab modal ids. */
+/** Image Studio modal ids. */
 export type MediaOmniModal = 'resize-compress' | 'convert-format' | 'exam-photo-optimizer';
 
 /** Career Prep modal ids. */
@@ -31,13 +31,13 @@ export const DOCUMENT_OMNI_ACTION: Partial<Record<string, string>> = {
   'smart-extract': 'smart-extract',
 };
 
-/** Omni intent → Media Lab tool modal. */
+/** Omni intent → Image Studio tool modal. */
 export const MEDIA_OMNI_MODAL: Partial<Record<string, MediaOmniModal>> = {
   'resize-compress': 'resize-compress',
   'convert-format': 'convert-format',
 };
 
-/** Omni intent → Media Lab Pro toolbar action id. */
+/** Omni intent → Image Studio Pro toolbar action id. */
 export const MEDIA_OMNI_ACTION: Partial<Record<string, string>> = {
   'remove-background': 'remove-background',
 };
@@ -81,7 +81,7 @@ export function isOmniIntentForWorkspace(intentId: string, workspaceId: AppWorks
   switch (workspaceId) {
     case 'documents':
       return Boolean(resolveDocumentOmniModal(intentId) || resolveDocumentOmniAction(intentId));
-    case 'media':
+    case 'image':
       return Boolean(resolveMediaOmniModal(intentId) || resolveMediaOmniAction(intentId));
     case 'career':
       return Boolean(resolveCareerOmniModal(intentId));

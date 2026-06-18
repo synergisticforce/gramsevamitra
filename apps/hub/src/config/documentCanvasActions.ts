@@ -101,6 +101,13 @@ export const DOCUMENT_CANVAS_ACTIONS: DocumentCanvasAction[] = [
     mimePatterns: ['application/pdf'],
   },
   {
+    id: 'extract-to-word',
+    label: 'Extract to Word',
+    icon: '📃',
+    tier: 'free',
+    mimePatterns: ['application/pdf', 'image/'],
+  },
+  {
     id: 'type-save',
     label: 'Type & Save',
     icon: '✍️',

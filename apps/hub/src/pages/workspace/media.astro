@@ -1,16 +1,3 @@
 ---
-import AppShellLayout from '../../layouts/AppShellLayout.astro';
-import MediaLabCanvas from '../../components/canvas/MediaLabCanvas';
-import { APP_WORKSPACES } from '../../config/appWorkspaces';
-import { formatSeoTitle } from '@shared/config/seo';
-
-const workspace = APP_WORKSPACES.find((ws) => ws.id === 'media')!;
+return Astro.redirect('/workspace/image', 301);
 ---
-
-<AppShellLayout
-  title={formatSeoTitle(workspace.label, 'GramSeva Mitra App')}
-  description={workspace.description}
-  activeWorkspace="media"
->
-  <MediaLabCanvas client:load />
-</AppShellLayout>
