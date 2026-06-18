@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { splitPdfInBrowser, triggerPdfDownload } from '../../lib/canvas/documentPdfTools';
+import { requiresChunkedPipeline } from '../../lib/pdf/fileUploadLimits';
+import { runChunkedSplitPipeline } from '../../lib/upload/chunkedPipeline';
 import { useModalMetaLoading } from '../../lib/canvas/useModalMetaLoading';
 import ToolProcessingWait from './ToolProcessingWait';
 
@@ -68,6 +70,16 @@ export default function SplitPdfModal({ file, onClose, onSuccess, onProcessingCh
     onProcessingChange(true, 'Extracting pages…', 0);
 
     try {
+      if (requiresChunkedPipeline(file)) {
+        await runChunkedSplitPipeline(file, rangeInput, ({ label, percent }) =>
+          onProcessingChange(true, label, percent),
+        );
+        onProcessingChange(false, '', 0);
+        onSuccess('Split complete — large file processed with Smart Slicing. Download started.');
+        onClose();
+        return;
+      }
+
       const { bytes, pageIndices, downloadName } = await splitPdfInBrowser(
         file,
         rangeInput,

@@ -3,6 +3,7 @@ import {
   MOBILE_MAX_BYTES,
   isMobileDevice,
 } from './deviceDetection';
+import { SAFE_LOCAL_BYTES } from '../upload/chunkedPipeline';
 
 export const MOBILE_LIMIT_MESSAGE =
   'File too large for a mobile phone. To safely process files up to 2GB, please open GramSeva Mitra on a computer or laptop.';
@@ -23,7 +24,9 @@ export function getUploadLimitMessage(bytes: number): string | null {
 export function validateUploadFile(
   file: File
 ): { ok: true; file: File } | { ok: false; message: string } {
-  const message = getUploadLimitMessage(file.size);
-  if (message) return { ok: false, message };
   return { ok: true, file };
+}
+
+export function requiresChunkedPipeline(file: File): boolean {
+  return file.size > SAFE_LOCAL_BYTES;
 }

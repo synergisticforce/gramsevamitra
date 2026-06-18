@@ -5,7 +5,8 @@ import {
   mergePdfsInBrowser,
   triggerPdfDownload,
 } from '../../lib/canvas/documentPdfTools';
-import { validateUploadFile } from '../../lib/pdf/fileUploadLimits';
+import { requiresChunkedPipeline, validateUploadFile } from '../../lib/pdf/fileUploadLimits';
+import { runChunkedMergePipeline } from '../../lib/upload/chunkedPipeline';
 import ToolProcessingWait from './ToolProcessingWait';
 
 interface AdditionalPdf {
@@ -93,6 +94,16 @@ export default function MergePdfModal({
     const filesInOrder = [canvasFile, ...additional.map((item) => item.file)];
 
     try {
+      if (filesInOrder.some((item) => requiresChunkedPipeline(item))) {
+        await runChunkedMergePipeline(filesInOrder, ({ label, percent }) =>
+          onProcessingChange(true, label, percent),
+        );
+        onProcessingChange(false, '', 0);
+        onSuccess(`Merge complete — ${filesInOrder.length} PDFs combined with Smart Slicing. Download started.`);
+        onClose();
+        return;
+      }
+
       const { bytes, downloadName } = await mergePdfsInBrowser(filesInOrder, ({ current, total, label }) =>
         reportProgress(current, total, label)
       );
@@ -184,7 +195,9 @@ export default function MergePdfModal({
           <span className="text-sm font-semibold text-canvas-muted">
             {adding ? 'Please wait…' : 'Tap to add PDFs to append'}
           </span>
-          <span className="mt-1 text-xs font-medium leading-relaxed text-slate-300">Processed locally — nothing uploaded</span>
+          <span className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
+            Small files process locally. Large files auto-switch to Smart Slicing.
+          </span>
           <input
             type="file"
             accept="application/pdf,.pdf"
