@@ -11,6 +11,7 @@ import {
   formatFxRate,
   POPULAR_INR_REFS,
 } from '../../lib/finance/currencyFxEngine';
+import { formatCurrencyLabel } from '../../lib/finance/currencyDisplay';
 import ToolProcessingWait from './ToolProcessingWait';
 
 interface CurrencyFormState {
@@ -79,7 +80,9 @@ export default function FinanceCurrencyConverter() {
   }, [from, to]);
 
   const inputClass =
-    'w-full rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent/30 focus:border-canvas-accent focus:ring-2 tabular-nums';
+    'w-full rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 text-sm text-slate-200 outline-none ring-canvas-accent/30 focus:border-canvas-accent focus:ring-2 tabular-nums';
+
+  const selectClass = `${inputClass} mt-1.5 max-w-full truncate sm:whitespace-normal sm:text-wrap`;
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -100,20 +103,34 @@ export default function FinanceCurrencyConverter() {
               className={`${inputClass} mt-1.5`}
             />
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block text-sm font-medium text-canvas-muted">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="block min-w-0 text-sm font-medium text-canvas-muted">
               From
-              <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={!rates} className={`${inputClass} mt-1.5`}>
+              <select
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+                disabled={!rates}
+                className={selectClass}
+              >
                 {codes.map((code) => (
-                  <option key={code} value={code}>{code}</option>
+                  <option key={code} value={code}>
+                    {formatCurrencyLabel(code)}
+                  </option>
                 ))}
               </select>
             </label>
-            <label className="block text-sm font-medium text-canvas-muted">
+            <label className="block min-w-0 text-sm font-medium text-canvas-muted">
               To
-              <select value={to} onChange={(e) => setTo(e.target.value)} disabled={!rates} className={`${inputClass} mt-1.5`}>
+              <select
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+                disabled={!rates}
+                className={selectClass}
+              >
                 {codes.map((code) => (
-                  <option key={code} value={code}>{code}</option>
+                  <option key={code} value={code}>
+                    {formatCurrencyLabel(code)}
+                  </option>
                 ))}
               </select>
             </label>
@@ -125,20 +142,30 @@ export default function FinanceCurrencyConverter() {
       </section>
       <section className="rounded-2xl border border-canvas-border bg-canvas-accent-soft/80 p-5">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-canvas-accent">Result</h2>
-        <p className="mt-3 text-3xl font-bold tabular-nums text-slate-100">
+        <p className="mt-3 break-words text-2xl font-bold tabular-nums text-slate-100 sm:text-3xl">
           {result ? formatFxAmount(result.converted, to) : '—'}
         </p>
         {result && (
-          <p className="mt-2 text-sm text-slate-200">
-            1 {from} = {formatFxRate(result.rate)} {to}
+          <p className="mt-1.5 break-words text-sm font-medium leading-relaxed text-slate-200">
+            {formatCurrencyLabel(to)}
+          </p>
+        )}
+        {result && (
+          <p className="mt-3 break-words text-sm leading-relaxed text-slate-200">
+            1 {formatCurrencyLabel(from)} = {formatFxRate(result.rate)}{' '}
+            {formatCurrencyLabel(to)}
           </p>
         )}
         {rates?.INR && (
-          <ul className="mt-4 space-y-1 text-xs text-slate-300">
+          <ul className="mt-4 space-y-2 text-xs text-slate-300">
             {POPULAR_INR_REFS.filter((c) => rates[c]).map((code) => (
-              <li key={code} className="flex justify-between">
-                <span>{code} → INR</span>
-                <span className="font-semibold text-slate-100">{formatFxAmount(rates.INR / rates[code], 'INR')}</span>
+              <li key={code} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between">
+                <span className="break-words leading-relaxed text-slate-300">
+                  {formatCurrencyLabel(code)} → {formatCurrencyLabel('INR')}
+                </span>
+                <span className="shrink-0 font-semibold tabular-nums text-slate-100">
+                  {formatFxAmount(rates.INR / rates[code], 'INR')}
+                </span>
               </li>
             ))}
           </ul>
