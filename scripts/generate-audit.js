@@ -324,7 +324,7 @@ function buildFeatureNote(tool, workspace, wired) {
   }
 
   if (workspace === 'documents' && tool.id === 'to-editable-format') {
-    parts.push('Auto-orchestrated pipeline: native text → free Tesseract OCR → Pro layout reconstruction');
+    parts.push('Outputs: txt/md (always free), docx (smart route), xlsx/csv/xml (Pro reconstruct-layout)');
   }
   if (workspace === 'documents' && tool.tier === 'pro') {
     if (tool.id === 'smart-extract') {
@@ -344,7 +344,7 @@ function buildFeatureNote(tool, workspace, wired) {
     parts.push('Grid dashboard panel with dedicated React component');
   }
   if (workspace === 'video') {
-    parts.push('FFmpeg.wasm client-side only — no server upload');
+    parts.push('Client-side local video processing — no server upload');
   }
 
   return parts.join(' · ');
@@ -448,6 +448,17 @@ function auditWorkspace() {
       })),
     },
     {
+      id: 'career',
+      label: 'Career Prep',
+      route: '/workspace/career',
+      tools: careerActions.map((t) => ({
+        ...t,
+        category: careerCategory(t),
+        wired: careerWired.has(t.id),
+        featureNote: buildFeatureNote(t, 'career', careerWired.has(t.id)),
+      })),
+    },
+    {
       id: 'lifestyle',
       label: 'Health & Lifestyle',
       route: '/workspace/lifestyle',
@@ -457,17 +468,6 @@ function auditWorkspace() {
         tier: 'free',
         wired: lifestyleWired.has(t.id),
         featureNote: buildFeatureNote(t, 'lifestyle', lifestyleWired.has(t.id)),
-      })),
-    },
-    {
-      id: 'career',
-      label: 'Career Prep',
-      route: '/workspace/career',
-      tools: careerActions.map((t) => ({
-        ...t,
-        category: careerCategory(t),
-        wired: careerWired.has(t.id),
-        featureNote: buildFeatureNote(t, 'career', careerWired.has(t.id)),
       })),
     },
     {

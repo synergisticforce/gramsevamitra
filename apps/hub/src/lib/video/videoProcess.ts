@@ -33,7 +33,7 @@ async function runJob(
   const inputName = `input.${inputExt(file)}`;
   const base = splitVideoBaseName(file.name);
 
-  onProgress({ label: 'Loading FFmpeg.wasm engine…', percent: 8 });
+  onProgress({ label: 'Preparing video engine…', percent: 8 });
   const ffmpeg = await getFfmpeg((ratio) => {
     onProgress({
       label: 'Encoding video locally…',
@@ -44,11 +44,11 @@ async function runJob(
   onProgress({ label: 'Writing video to memory…', percent: 14 });
   await writeInputFile(ffmpeg, inputName, file);
 
-  onProgress({ label: 'Running FFmpeg…', percent: 18 });
+  onProgress({ label: 'Processing video…', percent: 18 });
   const exit = await ffmpeg.exec(buildArgs(inputName));
   if (exit !== 0) {
     await cleanupFiles(ffmpeg, [inputName, outputName]);
-    throw new Error('FFmpeg could not process this video. Try a shorter clip or different format.');
+    throw new Error('Could not process this video. Try a shorter clip or different format.');
   }
 
   onProgress({ label: 'Preparing download…', percent: 96 });

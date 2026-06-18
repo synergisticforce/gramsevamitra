@@ -1,4 +1,4 @@
-/** Video workspace tool registry (Phase 6 — FFmpeg.wasm, client-only). */
+/** Video workspace tool registry (Phase 6 — client-only local processing). */
 
 export type VideoToolCategory = 'extract' | 'transform' | 'convert';
 
@@ -28,7 +28,7 @@ export const VIDEO_CATEGORY_META: Record<VideoToolCategory, { label: string; des
   },
   convert: {
     label: 'Convert',
-    description: 'Switch between MP4, WebM, and MOV using FFmpeg.wasm.',
+    description: 'Switch between MP4, WebM, and MOV on your device.',
   },
 };
 
@@ -52,7 +52,7 @@ export const VIDEO_CANVAS_TOOLS: VideoCanvasTool[] = [
     label: 'Format Converter',
     icon: '🔁',
     category: 'convert',
-    description: 'Convert between MP4, WebM, and MOV — processed locally via WASM.',
+    description: 'Convert between MP4, WebM, and MOV — processed privately on your device.',
   },
   {
     id: 'mute-video',

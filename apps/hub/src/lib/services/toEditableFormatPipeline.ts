@@ -4,13 +4,14 @@ import { textToDocxBlob } from '../canvas/extractToWord';
 import {
   extractPdfTextInBrowser,
   isPdfEmbeddedTextThin,
+  isPdfMimeOrName,
   splitFilenameBase,
   triggerTextDownload,
 } from '../canvas/documentPdfTools';
 import { analyzeDocumentLayout, isLargeScannedDocument, type LayoutAnalysisResult } from './layoutAnalyzer';
 import { runTesseractWithMemoryFlush, type Tier1OcrResult } from './tesseractWrapper';
 
-export type EditableFormatTarget = 'txt' | 'docx' | 'xlsx';
+export type EditableFormatTarget = 'txt' | 'md' | 'docx' | 'xlsx' | 'csv' | 'xml';
 
 export interface ToEditableFormatProgress {
   label: string;
@@ -33,6 +34,14 @@ export class EditableFormatProRequiredError extends Error {
 const PRO_LAYOUT_MESSAGE =
   'Advanced Layout Detected: This file contains structured table columns, multi-column metrics, or complex scan quality that require deep AI layout reconstruction. Upgrade to GramSeva Mitra Pro to perfectly preserve your text formatting grids, rows, and margins.';
 
+export function isProStructuralFormat(target: EditableFormatTarget): boolean {
+  return target === 'xlsx' || target === 'csv' || target === 'xml';
+}
+
+export function isRawTextFormat(target: EditableFormatTarget): boolean {
+  return target === 'txt' || target === 'md';
+}
+
 export function promptProUpgradeForComplexLayout(): void {
   openProUpgrade({
     featureId: 'reconstruct-layout',
@@ -49,13 +58,17 @@ function cleanEmbeddedText(raw: string): string {
     .trim();
 }
 
-async function compileNativeOutput(text: string, target: 'txt' | 'docx', fileName: string): Promise<void> {
-  const base = splitFilenameBase(fileName);
-  if (target === 'txt') {
-    triggerTextDownload(text, `${base}.txt`);
-    return;
-  }
-  const blob = await textToDocxBlob(text, base);
+function fileExtensionForTarget(target: EditableFormatTarget): string {
+  if (target === 'md') return 'md';
+  if (target === 'docx') return 'docx';
+  if (target === 'xlsx') return 'xlsx';
+  if (target === 'csv') return 'csv';
+  if (target === 'xml') return 'xml';
+  return 'txt';
+}
+
+async function compileDocxOutput(text: string, fileName: string): Promise<void> {
+  const blob = await textToDocxBlob(text, splitFilenameBase(fileName));
   triggerDocxDownload(blob, fileName);
 }
 
@@ -70,6 +83,11 @@ function triggerDocxDownload(blob: Blob, baseName: string): void {
   anchor.click();
   anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function compileRawTextOutput(text: string, target: 'txt' | 'md', fileName: string): void {
+  const base = splitFilenameBase(fileName);
+  triggerTextDownload(text, `${base}.${target === 'md' ? 'md' : 'txt'}`);
 }
 
 function downloadBase64File(base64: string, fileName: string, contentType: string): void {
@@ -88,6 +106,30 @@ function downloadBase64File(base64: string, fileName: string, contentType: strin
   anchor.click();
   anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+/** Extract plain text locally — never escalates to Pro (used for .txt / .md). */
+async function extractRawTextLocally(
+  file: File,
+  onProgress: (progress: ToEditableFormatProgress) => void,
+): Promise<{ text: string; viaOcr: boolean }> {
+  if (isPdfMimeOrName(file.type, file.name)) {
+    onProgress({ label: 'Reading text stream…', percent: 20 });
+    const embedded = await extractPdfTextInBrowser(file, ({ current, total, label }) => {
+      const percent = total > 0 ? 20 + Math.round((current / total) * 45) : 30;
+      onProgress({ label, percent });
+    });
+    const text = cleanEmbeddedText(embedded.text);
+    if (!isPdfEmbeddedTextThin(embedded.text, embedded.pageCount) && text.length > 0) {
+      return { text, viaOcr: false };
+    }
+  }
+
+  onProgress({ label: 'Running local OCR for plain text…', percent: 55 });
+  const tier1 = await runTesseractWithMemoryFlush(file, (label, percent) => {
+    onProgress({ label, percent: Math.max(55, Math.min(88, percent)) });
+  });
+  return { text: tier1.text, viaOcr: true };
 }
 
 async function uploadForProReconstruction(file: File): Promise<{ objectKey: string; fileName: string }> {
@@ -185,13 +227,38 @@ export async function runToEditableFormatPipeline(
   onProgress({ label: 'Analyzing document structure…', percent: 4 });
   const layout = await analyzeDocumentLayout(file);
 
-  if (target === 'xlsx') {
+  if (isProStructuralFormat(target)) {
     if (!isPro) {
       if (autoPromptPro) promptProUpgradeForComplexLayout();
-      throw new EditableFormatProRequiredError('Excel export requires Pro layout reconstruction.', layout);
+      throw new EditableFormatProRequiredError(
+        `${target.toUpperCase()} export requires Pro layout reconstruction.`,
+        layout,
+      );
     }
     const result = await runProLayoutReconstruction(file, target, onProgress);
     return { path: 'C', fileName: result.fileName };
+  }
+
+  if (isRawTextFormat(target)) {
+    const largeScan = isLargeScannedDocument(file, layout.pageCount, layout.profile);
+    onLargeFileNotice?.(largeScan);
+    if (largeScan) {
+      onProgress({
+        label: 'Extracting plain text…',
+        percent: 12,
+        subtitle:
+          'Large file processing. Local conversion is completely free but will take a few minutes. Please keep this tab open.',
+      });
+    }
+
+    const { text, viaOcr } = await extractRawTextLocally(file, onProgress);
+    onProgress({ label: `Building ${target === 'md' ? 'Markdown' : 'text'} file…`, percent: 92 });
+    compileRawTextOutput(text || '(no text detected)', target, file.name);
+    onProgress({ label: 'Download started', percent: 100 });
+    return {
+      path: viaOcr ? 'B' : 'A',
+      fileName: `${splitFilenameBase(file.name)}.${fileExtensionForTarget(target)}`,
+    };
   }
 
   if (layout.profile === 'NATIVE' && layout.complexLayout) {
@@ -212,12 +279,12 @@ export async function runToEditableFormatPipeline(
 
     const text = cleanEmbeddedText(embedded.text);
     if (!isPdfEmbeddedTextThin(embedded.text, embedded.pageCount) && text.length > 0) {
-      onProgress({ label: `Building ${target === 'docx' ? 'Word' : 'text'} file…`, percent: 88 });
-      await compileNativeOutput(text, target, file.name);
+      onProgress({ label: 'Building Word document…', percent: 88 });
+      await compileDocxOutput(text, file.name);
       onProgress({ label: 'Download started', percent: 100 });
       return {
         path: 'A',
-        fileName: `${splitFilenameBase(file.name)}.${target === 'docx' ? 'docx' : 'txt'}`,
+        fileName: `${splitFilenameBase(file.name)}.docx`,
       };
     }
   }
@@ -242,16 +309,16 @@ export async function runToEditableFormatPipeline(
       if (autoPromptPro) promptProUpgradeForComplexLayout();
       throw new EditableFormatProRequiredError('Scan quality requires Pro layout reconstruction.', layout, tier1);
     }
-    const result = await runProLayoutReconstruction(file, target, onProgress);
+    const result = await runProLayoutReconstruction(file, 'docx', onProgress);
     return { path: 'C', fileName: result.fileName };
   }
 
-  onProgress({ label: `Building ${target === 'docx' ? 'Word' : 'text'} file…`, percent: 90 });
-  await compileNativeOutput(tier1.text, target, file.name);
+  onProgress({ label: 'Building Word document…', percent: 90 });
+  await compileDocxOutput(tier1.text, file.name);
   onProgress({ label: 'Download started', percent: 100 });
 
   return {
     path: 'B',
-    fileName: `${splitFilenameBase(file.name)}.${target === 'docx' ? 'docx' : 'txt'}`,
+    fileName: `${splitFilenameBase(file.name)}.docx`,
   };
 }

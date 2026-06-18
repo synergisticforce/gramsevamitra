@@ -76,6 +76,37 @@ export async function runLayoutReconstruction(opts = {}) {
     };
   }
 
+  if (outputFormat === 'csv') {
+    const csvLines = rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','));
+    const csvBody = ['"Column A","Column B","Column C"', ...csvLines].join('\n');
+    const encoded = new TextEncoder().encode(csvBody);
+    return {
+      format: 'csv',
+      fileName: `${baseName}.csv`,
+      contentType: 'text/csv;charset=utf-8',
+      bytes: encoded,
+      pipeline: paddle.pipeline ?? [],
+    };
+  }
+
+  if (outputFormat === 'xml') {
+    const xmlRows = rows
+      .map(
+        (row, index) =>
+          `  <row id="${index + 1}">${row.map((cell) => `<cell>${String(cell).replace(/[<>&]/g, '')}</cell>`).join('')}</row>`,
+      )
+      .join('\n');
+    const xmlBody = `<?xml version="1.0" encoding="UTF-8"?>\n<document>\n${xmlRows}\n</document>`;
+    const encoded = new TextEncoder().encode(xmlBody);
+    return {
+      format: 'xml',
+      fileName: `${baseName}.xml`,
+      contentType: 'application/xml;charset=utf-8',
+      bytes: encoded,
+      pipeline: paddle.pipeline ?? [],
+    };
+  }
+
   if (outputFormat === 'xlsx') {
     const csvLines = rows.map((row) => row.join(','));
     const csvBody = ['Column A,Column B,Column C', ...csvLines].join('\n');

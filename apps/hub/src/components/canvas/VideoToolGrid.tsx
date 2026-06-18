@@ -57,7 +57,7 @@ export default function VideoToolGrid({ onSelectTool }: Props) {
       })}
 
       <p className="rounded-xl border border-canvas-border bg-canvas-elevated px-4 py-3 text-center text-xs font-medium leading-relaxed text-slate-300">
-        {VIDEO_CANVAS_TOOLS.length} video tools · FFmpeg.wasm · never uploaded to our servers
+        {VIDEO_CANVAS_TOOLS.length} video tools · processed on your device · never uploaded to our servers
       </p>
     </div>
   );

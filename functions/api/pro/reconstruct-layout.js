@@ -3,7 +3,7 @@ import { deductOperationCredits, requireProCredits } from '../../_lib/creditEcon
 import { assertProObjectKeyForUser } from '../../_lib/proTransientStorage.mjs';
 import { runLayoutReconstruction } from '../../_lib/reconstructLayout.mjs';
 
-const ALLOWED_FORMATS = new Set(['txt', 'docx', 'xlsx']);
+const ALLOWED_FORMATS = new Set(['txt', 'docx', 'xlsx', 'csv', 'xml']);
 
 export async function onRequestPost(context) {
   const { request, env } = context;

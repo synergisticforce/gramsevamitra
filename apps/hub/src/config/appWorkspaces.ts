@@ -35,15 +35,8 @@ export const APP_WORKSPACES: AppWorkspace[] = [
     id: 'video',
     label: 'Video Studio',
     href: '/workspace/video',
-    description: 'Compress, convert, extract audio, mute, and GIF tools via FFmpeg.wasm.',
+    description: 'Compress, convert, extract audio, mute, and GIF tools — processed privately on your device.',
     emoji: '🎬',
-  },
-  {
-    id: 'lifestyle',
-    label: 'Health & Lifestyle',
-    href: '/workspace/lifestyle',
-    description: 'BMI, macros, exam age checks, cycle tracking, and mood journaling.',
-    emoji: '🧘',
   },
   {
     id: 'career',
@@ -51,6 +44,13 @@ export const APP_WORKSPACES: AppWorkspace[] = [
     href: '/workspace/career',
     description: 'ATS scanning, resume rewriting, and job-search utilities.',
     emoji: '🎯',
+  },
+  {
+    id: 'lifestyle',
+    label: 'Health & Lifestyle',
+    href: '/workspace/lifestyle',
+    description: 'BMI, macros, exam age checks, cycle tracking, and mood journaling.',
+    emoji: '🧘',
   },
   {
     id: 'finance',

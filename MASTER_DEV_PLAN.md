@@ -42,3 +42,7 @@ Implement a tiered, fail-safe OCR engine system:
 * **Layout heuristics:** `layoutAnalyzer.ts` flags `SCANNED` vs native text and `COMPLEX_LAYOUT` within 300ms before routing.
 * **Waterfall paths:** Path A (native simple → free instant), Path B (scanned → Tesseract eng+hin with worker terminate per job), Path C (complex layout / low OCR confidence / xlsx → Pro `/api/pro/reconstruct-layout`).
 * **UX:** Large scan notice (>5 pages or >10MB) with optional Pro speed-up link; sequential Pro loader stages for cloud reconstruction.
+
+## 8. Master Refactor Bible — Phases 1–2 (Active)
+* **Phase 1 — To Editable Format patch:** Expanded outputs to `.txt`, `.md`, `.docx`, `.xlsx`, `.csv`, `.xml`. Raw text formats bypass `COMPLEX_LAYOUT` Pro gates; structural formats always use `/api/pro/reconstruct-layout`.
+* **Phase 2 — Workspace UX sync:** Video Studio dropzone-first layout; removed FFmpeg/WASM user-facing jargon; sidebar order: Document → Image → Video → Career → Lifestyle → Finance → Quick Tools.

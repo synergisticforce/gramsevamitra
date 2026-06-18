@@ -4,6 +4,7 @@ import type { ProOperationId } from '../../lib/auth/creditCheck';
 import type { EditableFormatTarget } from '../../lib/services/toEditableFormatPipeline';
 import {
   EditableFormatProRequiredError,
+  isProStructuralFormat,
   promptProUpgradeForComplexLayout,
   runProLayoutReconstruction,
   runToEditableFormatPipeline,
@@ -25,8 +26,11 @@ const FORMAT_OPTIONS: Array<{
   proOnly?: boolean;
 }> = [
   { id: 'txt', label: 'Text File (.txt)' },
+  { id: 'md', label: 'Markdown (.md)' },
   { id: 'docx', label: 'Word Doc (.docx)' },
   { id: 'xlsx', label: 'Excel Spreadsheet (.xlsx)', proOnly: true },
+  { id: 'csv', label: 'CSV Spreadsheet (.csv)', proOnly: true },
+  { id: 'xml', label: 'Structured XML (.xml)', proOnly: true },
 ];
 
 function segmentClass(active: boolean, proOnly?: boolean): string {
@@ -56,7 +60,7 @@ export default function ToEditableFormatPanel({
   const runConversion = useCallback(async () => {
     if (busy || disabled) return;
 
-    if (target === 'xlsx' && !isPro) {
+    if (isProStructuralFormat(target) && !isPro) {
       promptProUpgradeForComplexLayout();
       return;
     }
@@ -100,8 +104,14 @@ export default function ToEditableFormatPanel({
   }, [busy, disabled, file, isPro, onError, onProcessingChange, onSuccess, target]);
 
   const handleConvertClick = useCallback(() => {
-    if (target === 'xlsx' && isPro) {
-      requestProConfirm('reconstruct-layout', 'Excel layout reconstruction', () => {
+    if (isProStructuralFormat(target) && isPro) {
+      const label =
+        target === 'xlsx'
+          ? 'Excel layout reconstruction'
+          : target === 'csv'
+            ? 'CSV matrix reconstruction'
+            : 'XML structure reconstruction';
+      requestProConfirm('reconstruct-layout', label, () => {
         void runConversion();
       });
       return;
@@ -124,7 +134,7 @@ export default function ToEditableFormatPanel({
               </span>
             </div>
             <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
-              One smart pipeline — native text, free local OCR, or Pro layout reconstruction.
+              Plain text and Markdown are always free. Word uses smart routing; spreadsheets need Pro.
             </p>
           </div>
         </div>
@@ -174,11 +184,13 @@ export default function ToEditableFormatPanel({
           <button
             type="button"
             className="font-semibold text-canvas-accent underline-offset-2 hover:underline"
-            onClick={() => openProUpgrade({
-              featureId: 'reconstruct-layout',
-              featureName: 'Pro Server Cloud Extraction',
-              featureDescription: PRO_SPEEDUP_COPY,
-            })}
+            onClick={() =>
+              openProUpgrade({
+                featureId: 'reconstruct-layout',
+                featureName: 'Pro Server Cloud Extraction',
+                featureDescription: PRO_SPEEDUP_COPY,
+              })
+            }
           >
             ⚡ Speed up instantly with Pro Server Cloud Extraction
           </button>
