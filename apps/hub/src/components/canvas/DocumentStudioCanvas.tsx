@@ -10,6 +10,11 @@ import {
 } from '../../lib/canvas/documentCanvasStorage';
 import { isImageMimeOrName, isPdfMimeOrName } from '../../lib/canvas/documentPdfTools';
 import { useDocumentActionHandler } from '../../lib/canvas/useDocumentActionHandler';
+import {
+  OcrProUpgradeRequiredError,
+  promptProUpgradeAfterTier1Failure,
+} from '../../lib/ocr/ocrWaterfallPipeline';
+import { openProUpgrade } from '@shared/lib/proUpgrade';
 import type { OmniHandoffPayload } from '../../lib/omni/handoff';
 import {
   DOCUMENT_PDF_ONLY_MODALS,
@@ -152,7 +157,7 @@ export default function DocumentStudioCanvas() {
   );
 
   const runSmartExtractJob = useCallback(
-    async (file: File) => {
+    async (file: File, opts: { skipTier1?: boolean; tier1Text?: string } = {}) => {
       setSmartExtractBusy(true);
       setProcessingProgress(
         true,
@@ -168,9 +173,9 @@ export default function DocumentStudioCanvas() {
             true,
             label,
             percent,
-            'Pro processing uses secure temporary storage — deleted immediately after extraction.',
+            'Pro OCR uses Paddle → GLM → Vision fallback on secure transient storage.',
           );
-        });
+        }, { isPro: true, skipTier1: opts.skipTier1, tier1Text: opts.tier1Text });
         setProcessingProgress(false, '', 0);
         const seconds =
           result.processingMs != null ? Math.round(result.processingMs / 1000) : 3;
@@ -181,6 +186,9 @@ export default function DocumentStudioCanvas() {
         );
       } catch (err) {
         setProcessingProgress(false, '', 0);
+        if (err instanceof OcrProUpgradeRequiredError) {
+          return;
+        }
         setToastMessage(
           err instanceof Error ? err.message : 'Smart Extract failed. Please try again.',
         );
@@ -205,7 +213,7 @@ export default function DocumentStudioCanvas() {
       const file = requireCanvasFile();
       if (!file) return;
 
-      void requestProConfirm('smart-extract', action.label, () => runSmartExtractJob(file));
+      void requestProConfirm('ocr-orchestrator', action.label, () => runSmartExtractJob(file));
     },
     [requireCanvasFile, requirePdfCanvasFile, requestProConfirm, runSmartExtractJob, smartExtractBusy],
   );
@@ -326,6 +334,75 @@ export default function DocumentStudioCanvas() {
     [requireImageCanvasFile, requirePdfCanvasFile]
   );
 
+  const { handleActionClick: dispatchAction, isPro } = useDocumentActionHandler({
+    onFreeAction,
+    onProAction,
+  });
+
+  const handleSmartExtractPreflight = useCallback(async () => {
+    if (smartExtractBusy) return;
+    const file = requireCanvasFile();
+    if (!file) return;
+
+    setSmartExtractBusy(true);
+    setProcessingProgress(true, 'Enhancing text clarity…', 0);
+
+    try {
+      const { isImageMimeOrName, isPdfMimeOrName } = await import('../../lib/canvas/documentPdfTools');
+      const likelyScan =
+        isImageMimeOrName(activeFile!.meta.type, activeFile!.meta.name) ||
+        isPdfMimeOrName(activeFile!.meta.type, activeFile!.meta.name);
+
+      let tier1Text = '';
+
+      if (likelyScan) {
+        const { runTier1TesseractOcr } = await import('../../lib/ocr/tesseractTier1');
+        const tier1 = await runTier1TesseractOcr(file, (label, percent) =>
+          setProcessingProgress(true, label, percent),
+        );
+        tier1Text = tier1.text;
+        if (tier1.needsProHandoff) {
+          setProcessingProgress(false, '', 0);
+          promptProUpgradeAfterTier1Failure(tier1);
+          return;
+        }
+      }
+
+      setProcessingProgress(false, '', 0);
+
+      if (!isPro) {
+        openProUpgrade({
+          featureId: 'smart-document-extractor',
+          featureName: 'Smart Document Extractor',
+          featureDescription:
+            'Extract invoices and bank statements to CSV/JSON with the Paddle → GLM → Vision OCR waterfall.',
+        });
+        return;
+      }
+
+      const fileRef = file;
+      void requestProConfirm('ocr-orchestrator', 'Smart Extract', () =>
+        runSmartExtractJob(fileRef, { skipTier1: true, tier1Text }),
+      );
+    } catch (err) {
+      setProcessingProgress(false, '', 0);
+      setToastMessage(err instanceof Error ? err.message : 'OCR pre-check failed.');
+    } finally {
+      setSmartExtractBusy(false);
+    }
+  }, [activeFile, isPro, requestProConfirm, requireCanvasFile, runSmartExtractJob, setProcessingProgress, smartExtractBusy]);
+
+  const handleActionClick = useCallback(
+    (actionId: string) => {
+      if (actionId === 'smart-extract') {
+        void handleSmartExtractPreflight();
+        return;
+      }
+      dispatchAction(actionId);
+    },
+    [dispatchAction, handleSmartExtractPreflight],
+  );
+
   const activateFile = useCallback((file: File) => {
     saveDocumentCanvasState(file);
     setActiveFile({
@@ -354,7 +431,6 @@ export default function DocumentStudioCanvas() {
     setHydrated(true);
   }, []);
 
-  const { handleActionClick } = useDocumentActionHandler({ onFreeAction, onProAction });
   handleActionClickRef.current = handleActionClick;
 
   const applyOmniIntent = useCallback(

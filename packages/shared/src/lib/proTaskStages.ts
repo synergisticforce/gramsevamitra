@@ -15,6 +15,14 @@ export const PRO_TASK_STAGES_SCENARIO_A = [
   'Finalizing export…',
 ];
 
+export const PRO_TASK_STAGES_OCR_WATERFALL = [
+  'Enhancing text clarity…',
+  'Parsing layout matrix…',
+  'Applying deep AI reconstruction…',
+  'Applying premium vision fallback…',
+  'Finalizing extraction…',
+];
+
 export const PRO_TASK_STAGES_SCENARIO_B = [
   'Starting advanced AI engine…',
   'Detecting text and layout regions…',

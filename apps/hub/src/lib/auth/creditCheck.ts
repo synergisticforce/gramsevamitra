@@ -11,7 +11,8 @@ export type ProOperationId =
   | 'career-ai'
   | 'media-process'
   | 'file-converter'
-  | 'smart-router';
+  | 'smart-router'
+  | 'ocr-orchestrator';
 
 export interface UserCreditsResponse {
   success?: boolean;

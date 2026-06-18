@@ -10,6 +10,7 @@ export const PRO_OPERATION_COSTS = {
   'media-process': 2,
   'file-converter': 2,
   'smart-router': 2,
+  'ocr-orchestrator': 2,
 };
 
 export const PRO_OPERATION_LABELS = {
@@ -19,6 +20,7 @@ export const PRO_OPERATION_LABELS = {
   'media-process': 'Media Pro GPU',
   'file-converter': 'High-Fidelity Converter',
   'smart-router': 'Smart Router',
+  'ocr-orchestrator': 'Advanced OCR Pipeline',
 };
 
 /**
