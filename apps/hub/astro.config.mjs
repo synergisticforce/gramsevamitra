@@ -122,6 +122,7 @@ export default defineConfig({
     },
     optimizeDeps: {
       include: ['browser-image-compression', '@huggingface/transformers', '@cantoo/pdf-lib', 'pdfjs-dist', 'compromise'],
+      exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
     },
     worker: {
       format: 'es',

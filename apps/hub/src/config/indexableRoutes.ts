@@ -13,7 +13,7 @@ export const MARKETING_ROUTES = [
   '/disclaimer',
 ] as const;
 
-/** Six core workspace canvases */
+/** Seven core workspace canvases */
 export const WORKSPACE_ROUTES = [
   '/workspace/documents',
   '/workspace/media',
@@ -21,6 +21,7 @@ export const WORKSPACE_ROUTES = [
   '/workspace/finance',
   '/workspace/quick-tools',
   '/workspace/lifestyle',
+  '/workspace/video',
 ] as const;
 
 /** In-app legal hub (Razorpay / compliance) */

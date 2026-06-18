@@ -337,8 +337,11 @@ function buildFeatureNote(tool, workspace, wired) {
   if (workspace === 'career' && tool.tier === 'pro') {
     parts.push('Pro API: career AI pipeline (resume rewrite / cover letter generation)');
   }
-  if (workspace === 'finance' || workspace === 'quick-tools' || workspace === 'lifestyle') {
+  if (workspace === 'finance' || workspace === 'quick-tools' || workspace === 'lifestyle' || workspace === 'video') {
     parts.push('Grid dashboard panel with dedicated React component');
+  }
+  if (workspace === 'video') {
+    parts.push('FFmpeg.wasm client-side only — no server upload');
   }
 
   return parts.join(' · ');
@@ -381,6 +384,11 @@ function auditWorkspace() {
   const financeWired = wiredSwitchIds(path.join(CANVAS, 'FinanceHubCanvas.tsx'));
   const quickWired = wiredSwitchIds(path.join(CANVAS, 'QuickToolsHubCanvas.tsx'));
   const lifestyleWired = wiredSwitchIds(path.join(CANVAS, 'LifestyleHubCanvas.tsx'));
+
+  const videoSource = read(path.join(CONFIG, 'videoCanvasTools.ts'));
+  const videoTools = parseRegistry('VIDEO_CANVAS_TOOLS', path.join(CONFIG, 'videoCanvasTools.ts'));
+  const videoMeta = parseCategoryMeta(videoSource, 'VIDEO_CATEGORY_META');
+  const videoWired = wiredSwitchIds(path.join(CANVAS, 'VideoHubCanvas.tsx'));
 
   const mediaProApi = readToolbarApiMap(
     path.join(HUB, 'src/lib/canvas/mediaProProcess.ts'),
@@ -469,6 +477,18 @@ function auditWorkspace() {
         tier: 'free',
         wired: lifestyleWired.has(t.id),
         featureNote: buildFeatureNote(t, 'lifestyle', lifestyleWired.has(t.id)),
+      })),
+    },
+    {
+      id: 'video',
+      label: 'Video Studio',
+      route: '/workspace/video',
+      categoryMeta: videoMeta,
+      tools: videoTools.map((t) => ({
+        ...t,
+        tier: 'free',
+        wired: videoWired.has(t.id),
+        featureNote: buildFeatureNote(t, 'video', videoWired.has(t.id)),
       })),
     },
   ];
