@@ -20,11 +20,19 @@ export interface RazorpaySuccessResponse {
   razorpay_signature: string;
 }
 
+export interface PaymentStatusResponse {
+  orderId?: string;
+  processed?: boolean;
+  plan?: string;
+  proActive?: boolean;
+  error?: string;
+}
+
 declare global {
   interface Window {
     Razorpay?: new (options: Record<string, unknown>) => {
       open: () => void;
-      on: (event: string, handler: () => void) => void;
+      on: (event: string, handler: (response?: { error?: { description?: string } }) => void) => void;
     };
   }
 }
@@ -69,7 +77,7 @@ export async function createRazorpayOrder(feature: string): Promise<RazorpayOrde
   const result = (await response.json()) as RazorpayOrderResponse;
 
   if (response.status === 401) {
-    throw new Error('Please sign in with Google to upgrade to Pro.');
+    throw new Error('Please sign in to upgrade to Pro.');
   }
 
   if (response.status === 409 && result.alreadyPro) {
@@ -94,25 +102,36 @@ export async function createRazorpayOrder(feature: string): Promise<RazorpayOrde
   return result;
 }
 
-export async function verifyRazorpayPaymentOnServer(
-  payment: RazorpaySuccessResponse,
-): Promise<void> {
-  const response = await fetch('/api/billing/razorpay-webhook', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+export async function fetchPaymentStatus(orderId?: string): Promise<PaymentStatusResponse> {
+  const query = orderId ? `?orderId=${encodeURIComponent(orderId)}` : '';
+  const response = await fetch(`/api/billing/payment-status${query}`, {
     credentials: 'include',
-    body: JSON.stringify({
-      razorpay_payment_id: payment.razorpay_payment_id,
-      razorpay_order_id: payment.razorpay_order_id,
-      razorpay_signature: payment.razorpay_signature,
-    }),
   });
+  return (await response.json()) as PaymentStatusResponse;
+}
 
-  const payload = (await response.json()) as { error?: string; success?: boolean };
+export async function pollProActivation(
+  orderId: string,
+  options?: { maxMs?: number; intervalMs?: number; onSessionRefresh?: () => Promise<void> },
+): Promise<boolean> {
+  const maxMs = options?.maxMs ?? 45000;
+  const intervalMs = options?.intervalMs ?? 1500;
+  const started = Date.now();
 
-  if (!response.ok || !payload.success) {
-    throw new Error(payload.error ?? 'Payment verification failed. Please contact support.');
+  while (Date.now() - started < maxMs) {
+    if (options?.onSessionRefresh) {
+      await options.onSessionRefresh();
+    }
+
+    const status = await fetchPaymentStatus(orderId);
+    if (status.proActive) {
+      return true;
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, intervalMs));
   }
+
+  return false;
 }
 
 export interface OpenRazorpayCheckoutInput {
@@ -122,7 +141,7 @@ export interface OpenRazorpayCheckoutInput {
   userEmail?: string;
   onSuccess: (payment: RazorpaySuccessResponse) => void | Promise<void>;
   onDismiss?: () => void;
-  onPaymentFailed?: () => void;
+  onPaymentFailed?: (message: string) => void;
 }
 
 export async function openRazorpayCheckout(input: OpenRazorpayCheckoutInput): Promise<void> {
@@ -152,7 +171,7 @@ export async function openRazorpayCheckout(input: OpenRazorpayCheckoutInput): Pr
             await input.onSuccess(paymentResponse);
             resolve();
           } catch (err) {
-            reject(err instanceof Error ? err : new Error('Payment verification failed.'));
+            reject(err instanceof Error ? err : new Error('Payment confirmation failed.'));
           }
         })();
       },
@@ -164,9 +183,12 @@ export async function openRazorpayCheckout(input: OpenRazorpayCheckoutInput): Pr
       },
     });
 
-    rzp.on('payment.failed', () => {
-      input.onPaymentFailed?.();
-      reject(new Error('Payment failed. Please try again or use another method.'));
+    rzp.on('payment.failed', (response) => {
+      const message =
+        response?.error?.description ??
+        'Payment failed. Please try again or use another method.';
+      input.onPaymentFailed?.(message);
+      reject(new Error(message));
     });
 
     rzp.open();
@@ -193,9 +215,9 @@ export function useRazorpay() {
           input.onDismiss?.();
           setLoading(false);
         },
-        onPaymentFailed: () => {
-          input.onPaymentFailed?.();
-          setError('Payment failed. Please try again or use another method.');
+        onPaymentFailed: (message) => {
+          input.onPaymentFailed?.(message);
+          setError(message);
           setLoading(false);
         },
       });

@@ -1,24 +1,61 @@
 import { getOperationCreditCost, PRO_MONTHLY_CREDIT_FUP } from '../../packages/shared/src/lib/aiCredits.mjs';
 import { getRuntimeEnv } from './runtimeEnv.mjs';
 import { requireProUser } from './proGate.mjs';
+import { getUserCreditBalance, getUserRow } from './userDb.mjs';
+import { hasD1Binding } from './runtimeEnv.mjs';
+import { getNeonSql } from './neonDb.mjs';
 
 export { PRO_MONTHLY_CREDIT_FUP, getOperationCreditCost };
 
 /**
- * @param {import('@gramsevamitra/auth').AuthEnv} env
+ * @param {Record<string, unknown>} env
  * @param {string} userId
  */
-export async function getUserCreditBalance(env, userId) {
-  if (!env.DB) return 0;
-  const row = await env.DB.prepare('SELECT credits FROM users WHERE id = ?').bind(userId).first();
-  return typeof row?.credits === 'number' ? row.credits : Number(row?.credits ?? 0);
+export async function deductUserCredits(env, userId, amount) {
+  if (amount <= 0) return null;
+
+  const sql = getNeonSql(env);
+  const now = new Date().toISOString();
+
+  if (sql) {
+    const rows = await sql`
+      UPDATE users
+      SET credits = credits - ${amount}, "updatedAt" = NOW()
+      WHERE id = ${userId} AND credits >= ${amount}
+      RETURNING credits
+    `;
+    if (rows.length === 0) return null;
+    return Number(rows[0].credits);
+  }
+
+  if (hasD1Binding(env)) {
+    const result = await env.DB.prepare(
+      `UPDATE users SET credits = credits - ?, updatedAt = ? WHERE id = ? AND credits >= ?`,
+    )
+      .bind(amount, now, userId, amount)
+      .run();
+
+    if (!result.success || (result.meta?.changes ?? 0) === 0) {
+      return null;
+    }
+    return getUserCreditBalance(env, userId);
+  }
+
+  return null;
+}
+
+/**
+ * @param {Record<string, unknown>} env
+ * @param {string} userId
+ * @param {string} operationId
+ */
+export async function deductOperationCredits(env, userId, operationId) {
+  const cost = getOperationCreditCost(operationId);
+  return deductUserCredits(env, userId, cost);
 }
 
 /**
  * Pro session gate + sufficient AI Credits for an operation.
- * @param {Request} request
- * @param {Record<string, unknown>} context Pages/Worker handler context
- * @param {string} operationId
  */
 export async function requireProCredits(request, context, operationId) {
   const env = getRuntimeEnv(context);
@@ -53,52 +90,4 @@ export async function requireProCredits(request, context, operationId) {
   };
 }
 
-/**
- * Atomically deduct credits after a successful Pro operation.
- * @param {import('@gramsevamitra/auth').AuthEnv} env
- * @param {string} userId
- * @param {number} amount
- * @returns {Promise<number | null>} new balance or null if deduction failed
- */
-export async function deductUserCredits(env, userId, amount) {
-  if (!env.DB || amount <= 0) {
-    return null;
-  }
-
-  const now = new Date().toISOString();
-  const result = await env.DB.prepare(
-    `UPDATE users SET credits = credits - ?, updatedAt = ? WHERE id = ? AND credits >= ?`,
-  )
-    .bind(amount, now, userId, amount)
-    .run();
-
-  if (!result.success || (result.meta?.changes ?? 0) === 0) {
-    return null;
-  }
-
-  return getUserCreditBalance(env, userId);
-}
-
-/**
- * @param {import('@gramsevamitra/auth').AuthEnv} env
- * @param {string} userId
- * @param {string} operationId
- */
-export async function deductOperationCredits(env, userId, operationId) {
-  const cost = getOperationCreditCost(operationId);
-  return deductUserCredits(env, userId, cost);
-}
-
-/**
- * Grant monthly FUP credits when activating Pro.
- * @param {D1Database} db
- * @param {string} userId
- */
-export async function grantProMonthlyCredits(db, userId) {
-  const now = new Date().toISOString();
-  const result = await db
-    .prepare(`UPDATE users SET credits = ?, updatedAt = ? WHERE id = ?`)
-    .bind(PRO_MONTHLY_CREDIT_FUP, now, userId)
-    .run();
-  return result.success;
-}
+export { getUserCreditBalance, getUserRow };

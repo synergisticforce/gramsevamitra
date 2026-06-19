@@ -6,9 +6,11 @@ import {
   PRO_UPGRADE_OPEN_EVENT,
   type ProUpgradeDetail,
 } from '@shared/lib/proUpgrade';
+import { openAuthModal } from './AuthModal';
+import { prepareAuthRedirectForProUpgrade } from '../../lib/auth/prepareAuthRedirect';
 import {
+  pollProActivation,
   useRazorpay,
-  verifyRazorpayPaymentOnServer,
   type RazorpaySuccessResponse,
 } from '../../lib/billing/useRazorpay';
 
@@ -26,19 +28,20 @@ const PRO_FEATURES = [
 ] as const;
 
 export default function ProPricingModal() {
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending, refetch } = authClient.useSession();
   const { preload, startCheckout, loading, error, setError } = useRazorpay();
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<ProUpgradeDetail>(DEFAULT_DETAIL);
   const [successToast, setSuccessToast] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
 
   const close = useCallback(() => {
-    if (loading || authLoading) return;
+    if (loading || authLoading || verifyingPayment) return;
     setOpen(false);
     setError(null);
     setSuccessToast(null);
-  }, [authLoading, loading, setError]);
+  }, [authLoading, loading, setError, verifyingPayment]);
 
   useEffect(() => {
     const onOpen = (event: Event) => {
@@ -67,23 +70,40 @@ export default function ProPricingModal() {
     };
   }, [close, open, preload]);
 
-  const signInWithGoogle = async () => {
+  const promptSignIn = async () => {
     setError(null);
     setAuthLoading(true);
     try {
-      await authClient.signIn.social({
-        provider: 'google',
-        callbackURL: window.location.href,
-      });
-    } catch {
-      setError('Could not start Google sign-in. Please try again.');
+      await prepareAuthRedirectForProUpgrade();
+      openAuthModal();
+    } finally {
       setAuthLoading(false);
     }
   };
 
+  const refreshSession = useCallback(async () => {
+    await refetch?.();
+  }, [refetch]);
+
   const handlePaymentSuccess = useCallback(
     async (payment: RazorpaySuccessResponse) => {
-      await verifyRazorpayPaymentOnServer(payment);
+      setVerifyingPayment(true);
+      setError(null);
+
+      const activated = await pollProActivation(payment.razorpay_order_id, {
+        onSessionRefresh: refreshSession,
+      });
+
+      if (!activated) {
+        setVerifyingPayment(false);
+        setError(
+          'Payment received — Pro activation is still processing. Refresh in a moment or contact support if this persists.',
+        );
+        return;
+      }
+
+      await refreshSession();
+      setVerifyingPayment(false);
       setSuccessToast('Welcome to Pro! Premium AI engines are now unlocked.');
       window.setTimeout(() => {
         setOpen(false);
@@ -91,13 +111,13 @@ export default function ProPricingModal() {
         window.location.reload();
       }, 2200);
     },
-    [],
+    [refreshSession, setError],
   );
 
   const handleUpgrade = async () => {
     const user = session?.user as { email?: string; name?: string; plan?: string } | undefined;
     if (!user) {
-      await signInWithGoogle();
+      await promptSignIn();
       return;
     }
 
@@ -108,6 +128,7 @@ export default function ProPricingModal() {
         userName: user.name,
         userEmail: user.email,
         onSuccess: handlePaymentSuccess,
+        onPaymentFailed: (message) => setError(message),
       });
     } catch {
       /* errors surfaced via hook */
@@ -119,7 +140,7 @@ export default function ProPricingModal() {
   const user = session?.user as { email?: string; name?: string; plan?: string } | undefined;
   const isPro = user?.plan === 'pro';
   const signedIn = Boolean(user);
-  const busy = loading || authLoading || isPending;
+  const busy = loading || authLoading || isPending || verifyingPayment;
 
   return (
     <>
@@ -129,12 +150,25 @@ export default function ProPricingModal() {
         onClick={close}
       >
         <div
-          className="w-full max-w-md overflow-hidden rounded-2xl border border-canvas-border bg-canvas-surface shadow-2xl"
+          className="relative w-full max-w-md overflow-hidden rounded-2xl border border-canvas-border bg-canvas-surface shadow-2xl"
           role="dialog"
           aria-modal="true"
           aria-labelledby="pro-pricing-title"
           onClick={(event) => event.stopPropagation()}
         >
+          {verifyingPayment && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-canvas-surface/95 px-6 text-center backdrop-blur-sm">
+              <div
+                className="h-10 w-10 animate-spin rounded-full border-2 border-canvas-border border-t-canvas-accent"
+                aria-hidden="true"
+              />
+              <p className="text-sm font-semibold text-canvas-text">Confirming your Pro upgrade…</p>
+              <p className="text-xs font-medium text-slate-300">
+                Waiting for secure payment verification. Do not close this window.
+              </p>
+            </div>
+          )}
+
           <div className="border-b border-canvas-border bg-canvas-elevated px-5 py-5">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -192,7 +226,7 @@ export default function ProPricingModal() {
               </p>
             ) : (
               <p className="text-xs font-medium leading-relaxed text-slate-300">
-                Sign in with Google to link Pro to your account.
+                Sign in with Google or email to link Pro to your account.
               </p>
             )}
 
@@ -213,9 +247,11 @@ export default function ProPricingModal() {
                 className="inline-flex w-full items-center justify-center rounded-xl bg-canvas-accent-muted px-4 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {busy
-                  ? signedIn
-                    ? 'Opening Razorpay…'
-                    : 'Redirecting to Google…'
+                  ? verifyingPayment
+                    ? 'Confirming payment…'
+                    : signedIn
+                      ? 'Opening Razorpay…'
+                      : 'Preparing sign-in…'
                   : signedIn
                     ? `Upgrade Now - ${PRO_PRICE_LABEL}${PRO_PRICE_INTERVAL}`
                     : 'Sign in & Upgrade →'}

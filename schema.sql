@@ -56,3 +56,15 @@ CREATE TABLE IF NOT EXISTS verifications (
 CREATE INDEX IF NOT EXISTS sessions_userId_idx ON sessions (userId);
 CREATE INDEX IF NOT EXISTS accounts_userId_idx ON accounts (userId);
 CREATE INDEX IF NOT EXISTS verifications_identifier_idx ON verifications (identifier);
+
+CREATE TABLE IF NOT EXISTS billing_events (
+  id TEXT NOT NULL PRIMARY KEY,
+  razorpay_order_id TEXT NOT NULL UNIQUE,
+  razorpay_payment_id TEXT,
+  user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  amount_paise INTEGER NOT NULL DEFAULT 9900,
+  status TEXT NOT NULL DEFAULT 'captured',
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS billing_events_user_id_idx ON billing_events (user_id);

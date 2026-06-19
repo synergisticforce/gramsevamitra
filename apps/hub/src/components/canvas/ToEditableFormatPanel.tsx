@@ -14,6 +14,7 @@ interface Props {
   file: File;
   isPro: boolean;
   disabled?: boolean;
+  badge?: string;
   onProcessingChange: (active: boolean, label: string, percent: number, subtitle?: string) => void;
   onSuccess: (message: string) => void;
   onError: (message: string) => void;
@@ -25,12 +26,12 @@ const FORMAT_OPTIONS: Array<{
   label: string;
   proOnly?: boolean;
 }> = [
-  { id: 'txt', label: 'Text File (.txt)' },
-  { id: 'md', label: 'Markdown (.md)' },
-  { id: 'docx', label: 'Word Doc (.docx)' },
-  { id: 'xlsx', label: 'Excel Spreadsheet (.xlsx)', proOnly: true },
-  { id: 'csv', label: 'CSV Spreadsheet (.csv)', proOnly: true },
-  { id: 'xml', label: 'Structured XML (.xml)', proOnly: true },
+  { id: 'txt', label: '.txt' },
+  { id: 'md', label: '.md' },
+  { id: 'docx', label: '.docx' },
+  { id: 'xlsx', label: '.xlsx', proOnly: true },
+  { id: 'csv', label: '.csv', proOnly: true },
+  { id: 'xml', label: '.xml', proOnly: true },
 ];
 
 function segmentClass(active: boolean, proOnly?: boolean): string {
@@ -40,14 +41,15 @@ function segmentClass(active: boolean, proOnly?: boolean): string {
       : 'border-canvas-accent bg-canvas-accent-soft text-canvas-text';
   }
   return proOnly
-    ? 'border-amber-800/40 bg-canvas-elevated text-amber-100/80 hover:border-amber-500/50'
-    : 'border-canvas-border bg-canvas-elevated text-canvas-muted hover:border-canvas-accent hover:text-canvas-text';
+    ? 'border-amber-800/40 bg-canvas-surface text-amber-100/80 hover:border-amber-500/50'
+    : 'border-canvas-border bg-canvas-surface text-canvas-muted hover:border-emerald-500/50 hover:text-canvas-text';
 }
 
 export default function ToEditableFormatPanel({
   file,
   isPro,
   disabled = false,
+  badge = 'Auto-Orchestrated',
   onProcessingChange,
   onSuccess,
   onError,
@@ -120,21 +122,20 @@ export default function ToEditableFormatPanel({
   }, [isPro, requestProConfirm, runConversion, target]);
 
   return (
-    <div className="rounded-2xl border border-canvas-border bg-canvas-surface p-4 shadow-none sm:p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-3">
-          <span className="text-3xl leading-none" aria-hidden="true">
+    <div className="group relative flex w-full flex-col items-start gap-3 rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-3 text-left transition hover:border-emerald-500/50 hover:bg-canvas-surface">
+      <span className="absolute right-2 top-2 rounded-full bg-canvas-accent-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-canvas-accent">
+        {badge}
+      </span>
+
+      <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-2 pr-16">
+          <span className="text-2xl leading-none" aria-hidden="true">
             📝
           </span>
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base font-bold text-canvas-text sm:text-lg">To Editable Format</h2>
-              <span className="rounded-full bg-canvas-accent-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-canvas-accent">
-                Auto-Orchestrated
-              </span>
-            </div>
-            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
-              Plain text and Markdown are always free. Word uses smart routing; spreadsheets need Pro.
+            <span className="text-sm font-semibold text-canvas-text">To Editable Format</span>
+            <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-300">
+              Plain text &amp; Markdown free · Word smart-routed · spreadsheets Pro
             </p>
           </div>
         </div>
@@ -142,17 +143,13 @@ export default function ToEditableFormatPanel({
           type="button"
           disabled={busy || disabled}
           onClick={handleConvertClick}
-          className="inline-flex shrink-0 items-center justify-center rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex shrink-0 items-center justify-center rounded-xl border border-canvas-border bg-canvas-surface px-3 py-2 text-xs font-semibold text-canvas-text transition hover:border-emerald-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
         >
           {busy ? 'Converting…' : 'Convert & download'}
         </button>
       </div>
 
-      <div
-        className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap"
-        role="group"
-        aria-label="Output format"
-      >
+      <div className="flex w-full flex-wrap gap-2" role="group" aria-label="Output format">
         {FORMAT_OPTIONS.map((option) => (
           <button
             key={option.id}
@@ -165,12 +162,12 @@ export default function ToEditableFormatPanel({
               }
               setTarget(option.id);
             }}
-            className={`rounded-xl border px-3 py-2 text-left text-xs font-semibold transition sm:text-sm ${segmentClass(target === option.id, option.proOnly)}`}
+            className={`rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition ${segmentClass(target === option.id, option.proOnly)}`}
           >
             {option.label}
             {option.proOnly && (
-              <span className="ml-1.5 rounded bg-amber-900/60 px-1 py-0.5 text-[9px] font-bold uppercase text-amber-100">
-                PRO
+              <span className="ml-1 rounded bg-amber-900/60 px-1 py-0.5 text-[8px] font-bold uppercase text-amber-100">
+                Pro
               </span>
             )}
           </button>
@@ -178,7 +175,7 @@ export default function ToEditableFormatPanel({
       </div>
 
       {largeFileNote && (
-        <p className="mt-3 rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 text-xs font-medium leading-relaxed text-slate-200">
+        <p className="w-full rounded-xl border border-canvas-border bg-canvas-surface px-3 py-2.5 text-xs font-medium leading-relaxed text-slate-200">
           Large file processing. Local conversion is completely free but will take a few minutes. Please
           keep this tab open or{' '}
           <button

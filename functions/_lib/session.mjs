@@ -4,19 +4,18 @@ import {
   getRuntimeEnvSourceLabels,
   hasD1Binding,
 } from './runtimeEnv.mjs';
+import { hasNeonDatabase } from './neonDb.mjs';
 
 /**
  * Resolve the signed-in Better Auth user from request cookies/headers.
- * Always pass the full Pages/Worker handler `context` so D1 bindings resolve correctly.
- *
  * @param {Request} request
  * @param {Record<string, unknown>} context Handler context from onRequest
  */
 export async function getSessionUser(request, context) {
   const env = getRuntimeEnv(context);
 
-  if (!hasD1Binding(env)) {
-    console.error('[auth] Session lookup aborted: D1 DB binding missing', {
+  if (!hasNeonDatabase(env) && !hasD1Binding(env)) {
+    console.error('[auth] Session lookup aborted: database not configured', {
       envSources: getRuntimeEnvSourceLabels(context),
     });
     return null;
@@ -30,7 +29,6 @@ export async function getSessionUser(request, context) {
     console.error('[auth] getSession failed', {
       message: err instanceof Error ? err.message : String(err),
       envSources: getRuntimeEnvSourceLabels(context),
-      hasDbBinding: hasD1Binding(env),
     });
     return null;
   }

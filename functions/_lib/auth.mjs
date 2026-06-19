@@ -1,10 +1,12 @@
 import { env as workersEnv } from 'cloudflare:workers';
 import { betterAuth } from 'better-auth';
+import { emailOTP, magicLink } from 'better-auth/plugins';
+import { Pool } from '@neondatabase/serverless';
 import { hasD1Binding, readEnvString } from './runtimeEnv.mjs';
+import { sendEmailOtp, sendMagicLinkEmail } from './sesMail.mjs';
 
 /**
- * Resolve a string binding from handler env and/or the Workers module env.
- * @param {import('@gramsevamitra/auth').AuthEnv | Record<string, unknown> | undefined} handlerEnv
+ * @param {Record<string, unknown> | undefined} handlerEnv
  * @param {string} key
  */
 function resolveBinding(handlerEnv, key) {
@@ -14,10 +16,13 @@ function resolveBinding(handlerEnv, key) {
 }
 
 /**
- * Resolve the D1 database binding from handler context env or cloudflare:workers.
- * @param {import('@gramsevamitra/auth').AuthEnv | Record<string, unknown> | undefined} handlerEnv
+ * @param {Record<string, unknown> | undefined} handlerEnv
  */
 function resolveDbBinding(handlerEnv) {
+  const databaseUrl = resolveBinding(handlerEnv, 'DATABASE_URL');
+  if (databaseUrl) {
+    return new Pool({ connectionString: databaseUrl });
+  }
   if (hasD1Binding(handlerEnv)) {
     return handlerEnv.DB;
   }
@@ -28,14 +33,52 @@ function resolveDbBinding(handlerEnv) {
 }
 
 /**
+ * @param {Record<string, unknown>} env
+ */
+function buildAuthPlugins(env) {
+  return [
+    magicLink({
+      sendMagicLink: async ({ email, url }) => {
+        try {
+          await sendMagicLinkEmail(env, { email, url });
+        } catch (err) {
+          if (err instanceof Error && err.code === 'SES_SANDBOX_ERROR') {
+            const sandbox = new Error('SES_SANDBOX_ERROR');
+            sandbox.code = 'SES_SANDBOX_ERROR';
+            throw sandbox;
+          }
+          throw err;
+        }
+      },
+    }),
+    emailOTP({
+      async sendVerificationOTP({ email, otp }) {
+        try {
+          await sendEmailOtp(env, { email, otp });
+        } catch (err) {
+          if (err instanceof Error && err.code === 'SES_SANDBOX_ERROR') {
+            const sandbox = new Error('SES_SANDBOX_ERROR');
+            sandbox.code = 'SES_SANDBOX_ERROR';
+            throw sandbox;
+          }
+          throw err;
+        }
+      },
+    }),
+  ];
+}
+
+/**
  * Runtime Better Auth factory for Cloudflare Pages Functions / Workers.
- * @param {import('@gramsevamitra/auth').AuthEnv | Record<string, unknown> | undefined} handlerEnv
+ * @param {Record<string, unknown> | undefined} handlerEnv
  */
 export function createAuth(handlerEnv) {
   const db = resolveDbBinding(handlerEnv);
+  const env = /** @type {Record<string, unknown>} */ (handlerEnv ?? {});
 
   if (!db) {
-    console.error('[auth] D1 DB binding missing — Better Auth will fall back to MemoryAdapter', {
+    console.error('[auth] Database missing — set DATABASE_URL (Neon) or bind D1', {
+      hasDatabaseUrl: Boolean(resolveBinding(handlerEnv, 'DATABASE_URL')),
       handlerHasDb: hasD1Binding(handlerEnv),
       workersHasDb: hasD1Binding(workersEnv),
     });
@@ -47,6 +90,7 @@ export function createAuth(handlerEnv) {
     secret: resolveBinding(handlerEnv, 'BETTER_AUTH_SECRET'),
     basePath: '/api/auth',
     database: db,
+    plugins: buildAuthPlugins(env),
     user: {
       modelName: 'users',
       additionalFields: {

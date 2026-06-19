@@ -1,8 +1,10 @@
 import { getSessionUser } from './session.mjs';
 import { getRuntimeEnv, hasD1Binding } from './runtimeEnv.mjs';
+import { getUserRow } from './userDb.mjs';
+import { hasNeonDatabase } from './neonDb.mjs';
 
 /**
- * Enforce Better Auth session + D1 `plan === 'pro'`.
+ * Enforce Better Auth session + `plan === 'pro'`.
  * @param {Request} request
  * @param {Record<string, unknown>} context Pages/Worker handler context
  */
@@ -18,17 +20,15 @@ export async function requireProUser(request, context) {
     };
   }
 
-  if (!hasD1Binding(env)) {
+  if (!hasNeonDatabase(env) && !hasD1Binding(env)) {
     return {
       ok: false,
       status: 503,
-      body: { error: 'Service Unavailable', message: 'Identity database is not bound.' },
+      body: { error: 'Service Unavailable', message: 'Identity database is not configured.' },
     };
   }
 
-  const row = await env.DB.prepare('SELECT id, email, plan FROM users WHERE id = ?')
-    .bind(user.id)
-    .first();
+  const row = await getUserRow(env, user.id);
 
   if (!row || row.plan !== 'pro') {
     return {

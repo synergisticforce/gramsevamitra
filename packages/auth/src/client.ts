@@ -1,4 +1,5 @@
 import { createAuthClient } from 'better-auth/react';
+import { emailOTPClient, magicLinkClient } from 'better-auth/client/plugins';
 
 function resolveBaseUrl(): string {
   if (typeof window !== 'undefined') return window.location.origin;
@@ -7,6 +8,7 @@ function resolveBaseUrl(): string {
 
 export const authClient = createAuthClient({
   baseURL: resolveBaseUrl(),
+  plugins: [magicLinkClient(), emailOTPClient()],
 });
 
 export type { Session } from 'better-auth/types';

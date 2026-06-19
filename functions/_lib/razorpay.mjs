@@ -95,38 +95,6 @@ export async function verifyRazorpayWebhookSignature(rawBody, signature, secret)
 }
 
 /**
- * Verify Razorpay Checkout `handler` callback signature (order_id|payment_id).
- * @param {string} orderId
- * @param {string} paymentId
- * @param {string | null | undefined} signature
- * @param {string} secret
- */
-export async function verifyRazorpayCheckoutSignature(orderId, paymentId, signature, secret) {
-  if (!signature) {
-    throw new Error('Missing razorpay_signature');
-  }
-  if (!secret) {
-    throw new Error('RAZORPAY_KEY_SECRET is not configured');
-  }
-
-  const payload = `${orderId}|${paymentId}`;
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-  const digest = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
-  const expected = Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
-
-  return expected === signature;
-}
-
-/**
  * @param {import('@gramsevamitra/auth').AuthEnv & {
  *   RAZORPAY_KEY_ID: string;
  *   RAZORPAY_KEY_SECRET: string;
@@ -146,21 +114,6 @@ export async function fetchRazorpayOrder(env, orderId) {
   }
 
   return response.json();
-}
-
-import { PRO_MONTHLY_CREDIT_FUP } from '../../packages/shared/src/lib/aiCredits.mjs';
-
-/**
- * @param {D1Database} db
- * @param {string} userId
- */
-export async function setUserPlanPro(db, userId) {
-  const now = new Date().toISOString();
-  const result = await db
-    .prepare(`UPDATE users SET plan = 'pro', credits = ?, updatedAt = ? WHERE id = ?`)
-    .bind(PRO_MONTHLY_CREDIT_FUP, now, userId)
-    .run();
-  return result.success;
 }
 
 /**

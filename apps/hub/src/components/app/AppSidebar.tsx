@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { APP_WORKSPACES, type AppWorkspaceId } from '../../config/appWorkspaces';
+import AppSessionHeader from './AppSessionHeader';
 
 interface Props {
   activeWorkspace: AppWorkspaceId;
@@ -59,13 +60,10 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
   return (
     <>
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-canvas-border bg-canvas-surface px-4 py-3 lg:hidden">
-        <a href="/workspace/documents" className="text-sm font-bold text-canvas-text">
-          Gram<span className="text-canvas-accent">Seva</span> Mitra
-        </a>
+      <header className="sticky top-0 z-40 flex items-center justify-between gap-2 border-b border-canvas-border bg-canvas-surface px-4 py-3 lg:hidden">
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-canvas-border text-canvas-muted"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-canvas-border text-canvas-muted"
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={mobileOpen}
           onClick={() => setMobileOpen((open) => !open)}
@@ -81,6 +79,12 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
             </svg>
           )}
         </button>
+        <a href="/workspace/documents" className="min-w-0 flex-1 truncate text-center text-sm font-bold text-canvas-text">
+          Gram<span className="text-canvas-accent">Seva</span> Mitra
+        </a>
+        <div className="shrink-0">
+          <AppSessionHeader compact />
+        </div>
       </header>
 
       {/* Mobile drawer */}
@@ -127,8 +131,9 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
           <div className="mt-2">{navLinks}</div>
         </nav>
 
-        <div className="border-t border-canvas-border px-4 py-4 text-xs font-medium leading-relaxed text-slate-300">
-          <a href="/contact" className="font-medium text-canvas-muted hover:text-canvas-accent">
+        <div className="space-y-4 border-t border-canvas-border px-4 py-4">
+          <AppSessionHeader />
+          <a href="/contact" className="block text-xs font-medium leading-relaxed text-slate-300 hover:text-canvas-accent">
             Contact &amp; support →
           </a>
         </div>

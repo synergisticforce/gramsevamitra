@@ -46,6 +46,8 @@
   },
   "dependencies": {
     "@cantoo/pdf-lib": "^2.7.1",
+    "@neondatabase/serverless": "^1.1.0",
+    "aws4fetch": "^1.0.20",
     "better-auth": "^1.2.9",
     "pdfjs-dist": "^4.10.38",
     "razorpay": "^2.9.6"

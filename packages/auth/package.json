@@ -9,6 +9,7 @@
     "./client": "./src/client.ts"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "better-auth": "^1.2.9"
   }
 }

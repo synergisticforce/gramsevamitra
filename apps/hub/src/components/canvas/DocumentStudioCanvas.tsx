@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { openProUpgrade } from '@shared/lib/proUpgrade';
 import type { DocumentCanvasAction } from '../../config/documentCanvasActions';
 import { documentToolbarActions } from '../../config/documentCanvasActions';
 import {
@@ -19,6 +20,11 @@ import {
 } from '../../lib/omni/omniDispatch';
 import { useOmniWorkspaceHandoff } from '../../lib/omni/useOmniWorkspaceHandoff';
 import { useProCreditConfirm } from '../../lib/auth/useProCreditConfirm';
+import { registerWorkspaceFileProvider } from '../../lib/auth/workspaceFileRegistry';
+import {
+  consumeProUpgradeResume,
+  snapshotToFile,
+} from '../../lib/auth/workspaceResumeCache';
 import OmniHandoffLoading from '../omni/OmniHandoffLoading';
 import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
@@ -325,6 +331,44 @@ export default function DocumentStudioCanvas() {
     }
     setHydrated(true);
   }, []);
+
+  useEffect(() => {
+    return registerWorkspaceFileProvider(() => activeFile?.file ?? null);
+  }, [activeFile?.file]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    void (async () => {
+      const snapshot = await consumeProUpgradeResume();
+      if (!snapshot || snapshot.workspaceId !== 'documents') return;
+
+      const file = snapshotToFile(snapshot);
+      saveDocumentCanvasState(file);
+      setActiveFile({
+        file,
+        meta: {
+          name: file.name,
+          size: file.size,
+          type: file.type || 'application/octet-stream',
+          lastModified: file.lastModified,
+        },
+        restoredFromSession: false,
+      });
+      setPhase('active');
+
+      if (snapshot.intent === 'PRO_UPGRADE') {
+        window.setTimeout(() => {
+          openProUpgrade({
+            featureId: 'reconstruct-layout',
+            featureName: 'GramSeva Mitra Pro',
+            featureDescription:
+              'Restore your document workflow — upgrade to unlock advanced layout reconstruction and spreadsheet exports.',
+          });
+        }, 300);
+      }
+    })();
+  }, [hydrated]);
 
   handleActionClickRef.current = handleActionClick;
 
