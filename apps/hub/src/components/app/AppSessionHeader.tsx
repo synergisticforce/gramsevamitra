@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { authClient } from '@gramsevamitra/auth/client';
 import { openAuthModal } from '../../lib/auth/triggers';
+import { performSignOut } from '../../lib/auth/signOutSession';
 
 interface Props {
   compact?: boolean;
@@ -15,8 +16,7 @@ export default function AppSessionHeader({ compact = false, variant = 'sidebar' 
 
   const signOut = async () => {
     setMenuOpen(false);
-    await authClient.signOut();
-    window.location.reload();
+    await performSignOut();
   };
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);

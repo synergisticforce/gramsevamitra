@@ -8,18 +8,23 @@ import FeedbackWidget from '../components/app/FeedbackWidget';
 import ProPricingModal from '../components/billing/ProPricingModal.tsx';
 import AuthModal from '../components/billing/AuthModal.tsx';
 import PwaRegister from '../components/tools/PwaRegister';
+import WorkspaceAuthGate from '../components/app/WorkspaceAuthGate';
+import { resolveWorkspaceId } from '../config/appWorkspaces';
 import type { AppWorkspaceId } from '../config/appWorkspaces';
 
 interface Props {
   title: string;
   description?: string;
   activeWorkspace: AppWorkspaceId;
+  /** When true, unauthenticated users are redirected to home with AuthModal open. */
+  requireAuth?: boolean;
 }
 
 const {
   title,
   description = 'GramSeva Mitra — unified workspace for documents, media, career, finance, and quick tools.',
   activeWorkspace,
+  requireAuth = Boolean(resolveWorkspaceId(Astro.url.pathname)),
 } = Astro.props;
 
 const currentPath = Astro.url.pathname;
@@ -29,6 +34,7 @@ const currentPath = Astro.url.pathname;
   <slot name="head" slot="head" />
 
   <div class="flex min-h-screen flex-col bg-canvas-bg text-slate-200 leading-relaxed">
+    <WorkspaceAuthGate client:load requireAuth={requireAuth} />
     <AppGlobalHeader client:load />
     <div class="flex min-h-0 flex-1 flex-col lg:flex-row">
       <AppSidebar client:load activeWorkspace={activeWorkspace} currentPath={currentPath} />

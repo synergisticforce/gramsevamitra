@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { authClient } from '@gramsevamitra/auth/client';
 import { prepareAuthRedirectForProUpgrade } from '../../lib/auth/prepareAuthRedirect';
+import {
+  cleanSignInQueryFromUrl,
+  finishAuthSuccessNavigation,
+  peekAuthReturnTo,
+  stashAuthReturnTo,
+} from '../../lib/auth/returnTo';
 
 export const AUTH_MODAL_OPEN_EVENT = 'gsm:auth-modal-open';
 
@@ -172,6 +178,18 @@ export default function AuthModal() {
   }, [resetForm]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('signIn') !== '1') return;
+
+    const returnTo = params.get('returnTo');
+    if (returnTo) stashAuthReturnTo(returnTo);
+
+    resetForm();
+    setOpen(true);
+    cleanSignInQueryFromUrl();
+  }, [resetForm]);
+
+  useEffect(() => {
     if (!open) return;
     document.body.style.overflow = 'hidden';
     const onEscape = (event: KeyboardEvent) => {
@@ -226,9 +244,13 @@ export default function AuthModal() {
     setIsGoogleLoading(true);
     try {
       await prepareAuthRedirectForProUpgrade();
+      const returnPath = peekAuthReturnTo();
+      const callbackURL = returnPath
+        ? `${window.location.origin}${returnPath}`
+        : window.location.href;
       await authClient.signIn.social({
         provider: 'google',
-        callbackURL: window.location.href,
+        callbackURL,
         rememberMe: keepSignedIn,
       });
     } catch (err) {
@@ -330,7 +352,7 @@ export default function AuthModal() {
       setRateLimitedUntil(null);
       setRateLimitReady(false);
       setMessage('Signed in successfully.');
-      window.setTimeout(() => close(), 800);
+      window.setTimeout(() => finishAuthSuccessNavigation(), 400);
     } catch (err) {
       setOtp('');
       if (!handleSesError(err)) {

@@ -1,6 +1,23 @@
 ---
+import AppShellLayout from '../layouts/AppShellLayout.astro';
 import { DEFAULT_APP_WORKSPACE } from '../config/appWorkspaces';
 
-/** Day-Zero: root is the App Model — no legacy marketing / product grid. */
-return Astro.redirect(DEFAULT_APP_WORKSPACE.href, 302);
+const signIn = Astro.url.searchParams.get('signIn');
+if (!signIn) {
+  return Astro.redirect(DEFAULT_APP_WORKSPACE.href, 302);
+}
 ---
+
+<AppShellLayout
+  title="Sign in — GramSeva Mitra"
+  description="Sign in to access your GramSeva Mitra workspace."
+  activeWorkspace="documents"
+  requireAuth={false}
+>
+  <div class="flex flex-1 flex-col items-center justify-center px-4 py-16 text-center">
+    <h1 class="text-2xl font-bold text-canvas-text">Sign in to continue</h1>
+    <p class="mt-2 max-w-md text-sm font-medium leading-relaxed text-slate-300">
+      This workspace requires an account. Use the sign-in dialog to access Document Studio and your other tools.
+    </p>
+  </div>
+</AppShellLayout>
