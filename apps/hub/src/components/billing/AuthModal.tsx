@@ -4,30 +4,85 @@ import { prepareAuthRedirectForProUpgrade } from '../../lib/auth/prepareAuthRedi
 
 export const AUTH_MODAL_OPEN_EVENT = 'gsm:auth-modal-open';
 
+/** Slightly longer than Better Auth's 60s OTP endpoint rate-limit window. */
+const OTP_RATE_LIMIT_MS = 61_000;
+
 type EmailMode = 'magic-link' | 'otp';
+
+type OtpErrorKind =
+  | 'invalid'
+  | 'expired'
+  | 'rate_limited'
+  | 'too_many_attempts'
+  | 'needs_fresh_code'
+  | 'generic';
 
 type AuthFetchResult = {
   data?: { user?: unknown; token?: string | null } | null;
   error?: { message?: string; code?: string; status?: number; statusText?: string } | null;
 };
 
-function resolveOtpErrorMessage(result: AuthFetchResult, fallback: string): string {
+function classifyOtpError(result: AuthFetchResult, needsFreshCode: boolean): {
+  kind: OtpErrorKind;
+  message: string;
+  requiresFreshCode: boolean;
+} {
   const error = result.error;
-  if (!error) return fallback;
+  if (!error) {
+    return {
+      kind: 'generic',
+      message: 'Sign-in failed. Please try again.',
+      requiresFreshCode: false,
+    };
+  }
 
+  const status = error.status ?? 0;
   const code = String(error.code ?? error.message ?? '').toUpperCase();
 
-  if (code.includes('INVALID_OTP') || code.includes('INVALID')) {
-    return 'Incorrect code. Please try again.';
-  }
-  if (code.includes('OTP_EXPIRED') || code.includes('EXPIRED')) {
-    return 'This code has expired. Please send a new one.';
-  }
-  if (code.includes('TOO_MANY_ATTEMPTS')) {
-    return 'Too many attempts. Please wait a moment and try again.';
+  if (status === 429 || code.includes('RATE') || code.includes('TOO_MANY_REQUESTS')) {
+    return {
+      kind: 'rate_limited',
+      message: 'Too many attempts. Wait about a minute, then tap Resend code.',
+      requiresFreshCode: true,
+    };
   }
 
-  return error.message?.trim() || fallback;
+  if (code.includes('TOO_MANY_ATTEMPTS')) {
+    return {
+      kind: 'too_many_attempts',
+      message: 'Too many wrong tries. Tap Resend code to get a fresh code.',
+      requiresFreshCode: true,
+    };
+  }
+
+  if (code.includes('OTP_EXPIRED') || code.includes('EXPIRED')) {
+    return {
+      kind: 'expired',
+      message: 'This code has expired. Tap Resend code for a new one.',
+      requiresFreshCode: true,
+    };
+  }
+
+  if (code.includes('INVALID_OTP') || code.includes('INVALID')) {
+    if (needsFreshCode) {
+      return {
+        kind: 'needs_fresh_code',
+        message: 'Your previous code is no longer valid. Tap Resend code for a new one.',
+        requiresFreshCode: true,
+      };
+    }
+    return {
+      kind: 'invalid',
+      message: 'Incorrect code. Please try again.',
+      requiresFreshCode: false,
+    };
+  }
+
+  return {
+    kind: 'generic',
+    message: error.message?.trim() || 'Sign-in failed. Please try again.',
+    requiresFreshCode: false,
+  };
 }
 
 function isSuccessfulOtpSignIn(result: AuthFetchResult): boolean {
@@ -44,25 +99,42 @@ export default function AuthModal() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [needsFreshCode, setNeedsFreshCode] = useState(false);
+  const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
+  const [rateLimitSecondsLeft, setRateLimitSecondsLeft] = useState(0);
+
+  const resetOtpChallenge = useCallback((options?: { keepEmail?: boolean }) => {
+    setOtp('');
+    setOtpSent(false);
+    setNeedsFreshCode(false);
+    setRateLimitedUntil(null);
+    setRateLimitSecondsLeft(0);
+    setError(null);
+    setMessage(null);
+    if (!options?.keepEmail) {
+      setEmail('');
+    }
+  }, []);
+
+  const restartSignIn = useCallback(() => {
+    resetOtpChallenge();
+    setEmailMode('otp');
+  }, [resetOtpChallenge]);
 
   const close = useCallback(() => {
     if (busy) return;
     setOpen(false);
-    setError(null);
-    setMessage(null);
-    setOtp('');
-    setOtpSent(false);
-  }, [busy]);
+    resetOtpChallenge();
+  }, [busy, resetOtpChallenge]);
 
   useEffect(() => {
     const onOpen = () => {
-      setError(null);
-      setMessage(null);
+      resetOtpChallenge();
       setOpen(true);
     };
     window.addEventListener(AUTH_MODAL_OPEN_EVENT, onOpen);
     return () => window.removeEventListener(AUTH_MODAL_OPEN_EVENT, onOpen);
-  }, []);
+  }, [resetOtpChallenge]);
 
   useEffect(() => {
     if (!open) return;
@@ -76,6 +148,32 @@ export default function AuthModal() {
       window.removeEventListener('keydown', onEscape);
     };
   }, [close, open]);
+
+  useEffect(() => {
+    if (!rateLimitedUntil) {
+      setRateLimitSecondsLeft(0);
+      return;
+    }
+
+    const tick = () => {
+      const remainingMs = rateLimitedUntil - Date.now();
+      if (remainingMs <= 0) {
+        setRateLimitedUntil(null);
+        setRateLimitSecondsLeft(0);
+        setError((current) =>
+          current?.includes('Wait about a minute')
+            ? 'You can resend a new code now.'
+            : current,
+        );
+        return;
+      }
+      setRateLimitSecondsLeft(Math.ceil(remainingMs / 1000));
+    };
+
+    tick();
+    const interval = window.setInterval(tick, 500);
+    return () => window.clearInterval(interval);
+  }, [rateLimitedUntil]);
 
   const handleSesError = (err: unknown): boolean => {
     const text = err instanceof Error ? err.message : String(err);
@@ -96,6 +194,7 @@ export default function AuthModal() {
       await authClient.signIn.social({
         provider: 'google',
         callbackURL: window.location.href,
+        rememberMe: true,
       });
     } catch (err) {
       if (!handleSesError(err)) {
@@ -136,6 +235,12 @@ export default function AuthModal() {
       setError('Enter your email address.');
       return;
     }
+
+    if (rateLimitedUntil && Date.now() < rateLimitedUntil) {
+      setError(`Please wait ${rateLimitSecondsLeft}s before requesting another code.`);
+      return;
+    }
+
     setError(null);
     setMessage(null);
     setBusy(true);
@@ -146,12 +251,19 @@ export default function AuthModal() {
       })) as AuthFetchResult;
 
       if (result.error) {
+        const classified = classifyOtpError(result, false);
+        if (classified.kind === 'rate_limited') {
+          setRateLimitedUntil(Date.now() + OTP_RATE_LIMIT_MS);
+          setNeedsFreshCode(true);
+        }
         if (!handleSesError(result.error)) {
-          setError(result.error.message ?? 'Could not send verification code.');
+          setError(classified.message);
         }
         return;
       }
 
+      setNeedsFreshCode(false);
+      setRateLimitedUntil(null);
       setOtpSent(true);
       setOtp('');
       setMessage('Enter the 6-digit code we emailed you.');
@@ -170,6 +282,13 @@ export default function AuthModal() {
       setError('Enter your email and verification code.');
       return;
     }
+
+    if (needsFreshCode) {
+      setError('Tap Resend code to get a fresh code before verifying.');
+      setOtp('');
+      return;
+    }
+
     setError(null);
     setMessage(null);
     setBusy(true);
@@ -180,12 +299,21 @@ export default function AuthModal() {
       })) as AuthFetchResult;
 
       if (!isSuccessfulOtpSignIn(result)) {
-        setError(resolveOtpErrorMessage(result, 'Incorrect code. Please try again.'));
+        const classified = classifyOtpError(result, needsFreshCode);
+        if (classified.requiresFreshCode) {
+          setNeedsFreshCode(true);
+        }
+        if (classified.kind === 'rate_limited') {
+          setRateLimitedUntil(Date.now() + OTP_RATE_LIMIT_MS);
+        }
+        setError(classified.message);
         setOtp('');
         return;
       }
 
       await prepareAuthRedirectForProUpgrade();
+      setNeedsFreshCode(false);
+      setRateLimitedUntil(null);
       setMessage('Signed in successfully.');
       window.setTimeout(() => close(), 800);
     } catch (err) {
@@ -197,6 +325,8 @@ export default function AuthModal() {
       setBusy(false);
     }
   };
+
+  const resendBlocked = Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil);
 
   if (!open) return null;
 
@@ -263,10 +393,7 @@ export default function AuthModal() {
                 disabled={busy}
                 onClick={() => {
                   setEmailMode(mode);
-                  setOtpSent(false);
-                  setOtp('');
-                  setError(null);
-                  setMessage(null);
+                  resetOtpChallenge({ keepEmail: true });
                 }}
                 className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition ${
                   emailMode === mode
@@ -318,9 +445,37 @@ export default function AuthModal() {
           )}
 
           {error && (
-            <p className="rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm font-medium text-rose-200" role="alert">
+            <p
+              className="rounded-lg border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm font-medium text-rose-200"
+              role="alert"
+            >
               {error}
             </p>
+          )}
+
+          {emailMode === 'otp' && otpSent && (
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                disabled={busy || resendBlocked}
+                onClick={() => void sendOtp()}
+                className="inline-flex flex-1 items-center justify-center rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 text-xs font-semibold text-canvas-text transition hover:border-emerald-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
+              >
+                {resendBlocked
+                  ? `Resend code (${rateLimitSecondsLeft}s)`
+                  : needsFreshCode
+                    ? 'Resend new code'
+                    : 'Resend code'}
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={restartSignIn}
+                className="inline-flex flex-1 items-center justify-center rounded-xl border border-canvas-border bg-canvas-surface px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-canvas-accent hover:text-canvas-text disabled:opacity-50 sm:text-sm"
+              >
+                Restart sign-in
+              </button>
+            </div>
           )}
 
           {emailMode === 'magic-link' ? (
@@ -335,11 +490,11 @@ export default function AuthModal() {
           ) : otpSent ? (
             <button
               type="button"
-              disabled={busy}
+              disabled={busy || needsFreshCode}
               onClick={() => void verifyOtp()}
-              className="inline-flex w-full items-center justify-center rounded-xl bg-canvas-accent-muted px-4 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-canvas-accent-muted px-4 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {busy ? 'Verifying…' : 'Verify & sign in'}
+              {busy ? 'Verifying…' : needsFreshCode ? 'Resend a new code first' : 'Verify & sign in'}
             </button>
           ) : (
             <button

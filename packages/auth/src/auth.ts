@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { emailOTP, magicLink } from 'better-auth/plugins';
 import { Pool } from '@neondatabase/serverless';
+import { authSessionConfig } from './sessionConfig';
 
 /**
  * Better Auth configuration for GramSeva Mitra (Astro / local tooling).
@@ -48,6 +49,8 @@ export function createAuth(env: AuthEnv) {
     },
     session: {
       modelName: 'sessions',
+      expiresIn: authSessionConfig.expiresIn,
+      updateAge: authSessionConfig.updateAge,
     },
     account: {
       modelName: 'accounts',

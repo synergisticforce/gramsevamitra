@@ -1,7 +1,10 @@
 import { env as workersEnv } from 'cloudflare:workers';
 import { betterAuth } from 'better-auth';
+import { createAuthMiddleware } from 'better-auth/api';
+import { expireCookie, setSessionCookie } from 'better-auth/cookies';
 import { emailOTP, magicLink } from 'better-auth/plugins';
 import { Pool } from '@neondatabase/serverless';
+import { authSessionConfig } from './authSession.mjs';
 import { hasD1Binding, readEnvString } from './runtimeEnv.mjs';
 import { sendEmailOtp, sendMagicLinkEmail } from './sesMail.mjs';
 
@@ -110,6 +113,8 @@ export function createAuth(handlerEnv) {
     },
     session: {
       modelName: 'sessions',
+      expiresIn: authSessionConfig.expiresIn,
+      updateAge: authSessionConfig.updateAge,
     },
     account: {
       modelName: 'accounts',
@@ -129,5 +134,24 @@ export function createAuth(handlerEnv) {
       'http://localhost:4321',
       'http://127.0.0.1:4321',
     ],
+    hooks: {
+      after: [
+        {
+          matcher(ctx) {
+            const path = ctx.path ?? '';
+            return (
+              path === '/sign-in/email-otp' ||
+              path.includes('/callback/') ||
+              path === '/magic-link/verify'
+            );
+          },
+          handler: createAuthMiddleware(async (ctx) => {
+            if (!ctx.context.newSession) return;
+            expireCookie(ctx, ctx.context.authCookies.dontRememberToken);
+            await setSessionCookie(ctx, ctx.context.newSession, false);
+          }),
+        },
+      ],
+    },
   });
 }
