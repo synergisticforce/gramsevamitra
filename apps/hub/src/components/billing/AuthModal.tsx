@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { authClient } from '@gramsevamitra/auth/client';
 import { prepareAuthRedirectForProUpgrade } from '../../lib/auth/prepareAuthRedirect';
+import { isStorageAccessError } from '../../lib/storage/safeStorage';
 import {
   cleanSignInQueryFromUrl,
   finishAuthSuccessNavigation,
@@ -242,8 +243,8 @@ export default function AuthModal() {
     setError(null);
     setMessage(null);
     setIsGoogleLoading(true);
-    try {
-      await prepareAuthRedirectForProUpgrade();
+
+    const startGoogleOAuth = async () => {
       const returnPath = peekAuthReturnTo();
       const callbackURL = returnPath
         ? `${window.location.origin}${returnPath}`
@@ -253,7 +254,26 @@ export default function AuthModal() {
         callbackURL,
         rememberMe: keepSignedIn,
       });
+    };
+
+    try {
+      await prepareAuthRedirectForProUpgrade();
+      await startGoogleOAuth();
     } catch (err) {
+      if (isStorageAccessError(err)) {
+        console.warn('[auth] Google sign-in retrying without local resume cache', err);
+        try {
+          await startGoogleOAuth();
+          return;
+        } catch (retryErr) {
+          if (!handleSesError(retryErr)) {
+            setError(
+              'Could not start Google sign-in. If you are in Private Browsing, try the email code option.',
+            );
+          }
+          return;
+        }
+      }
       if (!handleSesError(err)) {
         setError('Could not start Google sign-in. Please try again.');
       }

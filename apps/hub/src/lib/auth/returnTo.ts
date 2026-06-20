@@ -1,4 +1,13 @@
+import {
+  safeSessionStorageGet,
+  safeSessionStorageRemove,
+  safeSessionStorageSet,
+} from '../storage/safeStorage';
+
 const AUTH_RETURN_TO_KEY = 'gsm:auth-return-to';
+
+/** In-memory fallback when Safari Private Mode blocks sessionStorage. */
+let memoryReturnTo: string | null = null;
 
 function isSafeReturnPath(path: string): boolean {
   return path.startsWith('/') && !path.startsWith('//') && !path.includes('://');
@@ -7,13 +16,14 @@ function isSafeReturnPath(path: string): boolean {
 /** Persist a post-login destination across the sign-in redirect flow. */
 export function stashAuthReturnTo(path: string): void {
   if (typeof window === 'undefined' || !isSafeReturnPath(path)) return;
-  sessionStorage.setItem(AUTH_RETURN_TO_KEY, path);
+  memoryReturnTo = path;
+  safeSessionStorageSet(AUTH_RETURN_TO_KEY, path);
 }
 
 /** Read the stored post-login destination without clearing it. */
 export function peekAuthReturnTo(): string | null {
   if (typeof window === 'undefined') return null;
-  const raw = sessionStorage.getItem(AUTH_RETURN_TO_KEY);
+  const raw = safeSessionStorageGet(AUTH_RETURN_TO_KEY) ?? memoryReturnTo;
   if (!raw || !isSafeReturnPath(raw)) return null;
   return raw;
 }
@@ -21,8 +31,9 @@ export function peekAuthReturnTo(): string | null {
 /** Read and clear the stored post-login destination, if any. */
 export function consumeAuthReturnTo(): string | null {
   if (typeof window === 'undefined') return null;
-  const raw = sessionStorage.getItem(AUTH_RETURN_TO_KEY);
-  sessionStorage.removeItem(AUTH_RETURN_TO_KEY);
+  const raw = safeSessionStorageGet(AUTH_RETURN_TO_KEY) ?? memoryReturnTo;
+  memoryReturnTo = null;
+  safeSessionStorageRemove(AUTH_RETURN_TO_KEY);
   if (!raw || !isSafeReturnPath(raw)) return null;
   return raw;
 }

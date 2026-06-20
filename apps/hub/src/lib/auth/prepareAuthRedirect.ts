@@ -1,3 +1,4 @@
+import { isStorageAccessError } from '../storage/safeStorage';
 import { getActiveWorkspaceFile } from './workspaceFileRegistry';
 import { saveProUpgradeResume } from './workspaceResumeCache';
 
@@ -5,5 +6,14 @@ import { saveProUpgradeResume } from './workspaceResumeCache';
 export async function prepareAuthRedirectForProUpgrade(): Promise<void> {
   const file = getActiveWorkspaceFile();
   if (!file) return;
-  await saveProUpgradeResume(file);
+
+  try {
+    await saveProUpgradeResume(file);
+  } catch (err) {
+    if (isStorageAccessError(err)) {
+      console.warn('[auth] Pro upgrade resume skipped — browser storage restricted', err);
+      return;
+    }
+    console.warn('[auth] Pro upgrade resume skipped', err);
+  }
 }
