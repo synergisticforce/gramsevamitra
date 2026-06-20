@@ -1,9 +1,8 @@
 import { jsonResponse } from '../../_lib/json.mjs';
 import { handleRazorpayWebhookPost } from '../../_lib/razorpayWebhook.mjs';
 
-/** Legacy webhook URL — canonical endpoint is POST /api/webhooks/razorpay */
 export async function onRequestPost(context) {
-  return handleRazorpayWebhookPost(context, 'billing/razorpay-webhook');
+  return handleRazorpayWebhookPost(context, 'webhooks/razorpay');
 }
 
 export async function onRequest(context) {

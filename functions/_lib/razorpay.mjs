@@ -65,6 +65,41 @@ export async function createProOrder(env, input) {
 }
 
 /**
+ * Constant-time hex string comparison (mitigates timing attacks on HMAC verify).
+ * @param {string} a
+ * @param {string} b
+ */
+function timingSafeEqualHex(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) {
+    return false;
+  }
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+/**
+ * @param {string} payload
+ * @param {string} secret
+ */
+async function hmacSha256Hex(payload, secret) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const digest = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+/**
  * Verify Razorpay webhook HMAC-SHA256 (edge-compatible Web Crypto).
  * @param {string} rawBody
  * @param {string | null} signature
@@ -78,20 +113,27 @@ export async function verifyRazorpayWebhookSignature(rawBody, signature, secret)
     throw new Error('RAZORPAY_WEBHOOK_SECRET is not configured');
   }
 
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-  const digest = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody));
-  const expected = Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
+  const expected = await hmacSha256Hex(rawBody, secret);
+  return timingSafeEqualHex(expected, signature);
+}
 
-  return expected === signature;
+/**
+ * Verify Razorpay Checkout payment signature (order_id|payment_id HMAC with key secret).
+ * @param {string} orderId
+ * @param {string} paymentId
+ * @param {string | null} signature
+ * @param {string} keySecret
+ */
+export async function verifyRazorpayCheckoutSignature(orderId, paymentId, signature, keySecret) {
+  if (!orderId || !paymentId || !signature) {
+    return false;
+  }
+  if (!keySecret) {
+    throw new Error('RAZORPAY_KEY_SECRET is not configured');
+  }
+
+  const expected = await hmacSha256Hex(`${orderId}|${paymentId}`, keySecret);
+  return timingSafeEqualHex(expected, signature);
 }
 
 /**
@@ -130,6 +172,31 @@ export async function resolveUserIdFromPayment(env, paymentEntity) {
   }
 
   const orderId = paymentEntity?.order_id;
+  if (typeof orderId === 'string' && orderId) {
+    const order = await fetchRazorpayOrder(env, orderId);
+    const orderNotes = order?.notes;
+    if (orderNotes && typeof orderNotes.userId === 'string' && orderNotes.userId) {
+      return orderNotes.userId;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * @param {import('@gramsevamitra/auth').AuthEnv & {
+ *   RAZORPAY_KEY_ID: string;
+ *   RAZORPAY_KEY_SECRET: string;
+ * }} env
+ * @param {Record<string, unknown>} orderEntity
+ */
+export async function resolveUserIdFromOrder(env, orderEntity) {
+  const notes = orderEntity?.notes;
+  if (notes && typeof notes === 'object' && typeof notes.userId === 'string' && notes.userId) {
+    return notes.userId;
+  }
+
+  const orderId = orderEntity?.id;
   if (typeof orderId === 'string' && orderId) {
     const order = await fetchRazorpayOrder(env, orderId);
     const orderNotes = order?.notes;

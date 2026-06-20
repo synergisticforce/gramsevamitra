@@ -13,6 +13,7 @@ import {
   useRazorpay,
   type RazorpaySuccessResponse,
 } from '../../lib/billing/useRazorpay';
+import CanvasToast from '../canvas/CanvasToast';
 
 const DEFAULT_DETAIL: ProUpgradeDetail = {
   featureName: 'GramSeva Mitra Pro',
@@ -33,13 +34,17 @@ export default function ProPricingModal() {
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<ProUpgradeDetail>(DEFAULT_DETAIL);
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  const [infoToast, setInfoToast] = useState<string | null>(null);
   const [verifyingPayment, setVerifyingPayment] = useState(false);
+
+  const dismissInfoToast = useCallback(() => setInfoToast(null), []);
 
   const close = useCallback(() => {
     if (loading || verifyingPayment) return;
     setOpen(false);
     setError(null);
     setSuccessToast(null);
+    setInfoToast(null);
   }, [loading, setError, verifyingPayment]);
 
   useEffect(() => {
@@ -48,6 +53,7 @@ export default function ProPricingModal() {
       setDetail({ ...DEFAULT_DETAIL, ...custom.detail });
       setError(null);
       setSuccessToast(null);
+      setInfoToast(null);
       setOpen(true);
     };
 
@@ -90,6 +96,7 @@ export default function ProPricingModal() {
       setError(null);
 
       const activated = await pollProActivation(payment.razorpay_order_id, {
+        payment,
         onSessionRefresh: refreshSession,
       });
 
@@ -107,7 +114,6 @@ export default function ProPricingModal() {
       window.setTimeout(() => {
         setOpen(false);
         setSuccessToast(null);
-        window.location.reload();
       }, 2200);
     },
     [refreshSession, setError],
@@ -127,10 +133,17 @@ export default function ProPricingModal() {
         userName: user.name,
         userEmail: user.email,
         onSuccess: handlePaymentSuccess,
-        onPaymentFailed: (message) => setError(message),
+        onDismiss: () => {
+          setError(null);
+          setInfoToast('Payment cancelled.');
+        },
+        onPaymentFailed: () => {
+          setError(null);
+          setInfoToast('Payment failed. Please try again or use another method.');
+        },
       });
     } catch {
-      /* errors surfaced via hook */
+      /* errors surfaced via hook / toasts */
     }
   };
 
@@ -288,6 +301,8 @@ export default function ProPricingModal() {
           {successToast}
         </div>
       )}
+
+      <CanvasToast message={infoToast} onDismiss={dismissInfoToast} durationMs={3200} />
     </>
   );
 }

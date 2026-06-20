@@ -110,10 +110,64 @@ export async function fetchPaymentStatus(orderId?: string): Promise<PaymentStatu
   return (await response.json()) as PaymentStatusResponse;
 }
 
+export interface VerifyPaymentResponse {
+  proActive?: boolean;
+  plan?: string;
+  duplicate?: boolean;
+  alreadyPro?: boolean;
+  error?: string;
+  code?: string;
+}
+
+/** Server-side checkout signature verification — activates Pro without waiting for webhook. */
+export async function verifyRazorpayPayment(
+  payment: RazorpaySuccessResponse,
+): Promise<VerifyPaymentResponse> {
+  const response = await fetch('/api/billing/verify-payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({
+      orderId: payment.razorpay_order_id,
+      paymentId: payment.razorpay_payment_id,
+      signature: payment.razorpay_signature,
+    }),
+  });
+
+  const result = (await response.json()) as VerifyPaymentResponse;
+
+  if (response.status === 401) {
+    throw new Error('Please sign in to complete your Pro upgrade.');
+  }
+
+  if (!response.ok && !result.proActive) {
+    throw new Error(result.error ?? 'Payment verification failed.');
+  }
+
+  return result;
+}
+
 export async function pollProActivation(
   orderId: string,
-  options?: { maxMs?: number; intervalMs?: number; onSessionRefresh?: () => Promise<void> },
+  options?: {
+    maxMs?: number;
+    intervalMs?: number;
+    onSessionRefresh?: () => Promise<void>;
+    payment?: RazorpaySuccessResponse;
+  },
 ): Promise<boolean> {
+  if (options?.payment) {
+    try {
+      const verified = await verifyRazorpayPayment(options.payment);
+      if (verified.proActive || verified.alreadyPro) {
+        await options.onSessionRefresh?.();
+        return true;
+      }
+    } catch (err) {
+      console.warn('[billing] Server verify-payment did not complete immediately:', err);
+    }
+  }
+
   const maxMs = options?.maxMs ?? 45000;
   const intervalMs = options?.intervalMs ?? 1500;
   const started = Date.now();
@@ -184,9 +238,7 @@ export async function openRazorpayCheckout(input: OpenRazorpayCheckoutInput): Pr
     });
 
     rzp.on('payment.failed', (response) => {
-      const message =
-        response?.error?.description ??
-        'Payment failed. Please try again or use another method.';
+      const message = 'Payment failed. Please try again or use another method.';
       input.onPaymentFailed?.(message);
       reject(new Error(message));
     });
@@ -217,7 +269,6 @@ export function useRazorpay() {
         },
         onPaymentFailed: (message) => {
           input.onPaymentFailed?.(message);
-          setError(message);
           setLoading(false);
         },
       });
