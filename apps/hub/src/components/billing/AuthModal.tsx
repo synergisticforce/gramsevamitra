@@ -6,6 +6,35 @@ export const AUTH_MODAL_OPEN_EVENT = 'gsm:auth-modal-open';
 
 type EmailMode = 'magic-link' | 'otp';
 
+type AuthFetchResult = {
+  data?: { user?: unknown; token?: string | null } | null;
+  error?: { message?: string; code?: string; status?: number; statusText?: string } | null;
+};
+
+function resolveOtpErrorMessage(result: AuthFetchResult, fallback: string): string {
+  const error = result.error;
+  if (!error) return fallback;
+
+  const code = String(error.code ?? error.message ?? '').toUpperCase();
+
+  if (code.includes('INVALID_OTP') || code.includes('INVALID')) {
+    return 'Incorrect code. Please try again.';
+  }
+  if (code.includes('OTP_EXPIRED') || code.includes('EXPIRED')) {
+    return 'This code has expired. Please send a new one.';
+  }
+  if (code.includes('TOO_MANY_ATTEMPTS')) {
+    return 'Too many attempts. Please wait a moment and try again.';
+  }
+
+  return error.message?.trim() || fallback;
+}
+
+function isSuccessfulOtpSignIn(result: AuthFetchResult): boolean {
+  if (result.error) return false;
+  return Boolean(result.data?.user || result.data?.token);
+}
+
 export default function AuthModal() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
@@ -111,11 +140,20 @@ export default function AuthModal() {
     setMessage(null);
     setBusy(true);
     try {
-      await authClient.emailOtp.sendVerificationOtp({
+      const result = (await authClient.emailOtp.sendVerificationOtp({
         email: trimmed,
         type: 'sign-in',
-      });
+      })) as AuthFetchResult;
+
+      if (result.error) {
+        if (!handleSesError(result.error)) {
+          setError(result.error.message ?? 'Could not send verification code.');
+        }
+        return;
+      }
+
       setOtpSent(true);
+      setOtp('');
       setMessage('Enter the 6-digit code we emailed you.');
     } catch (err) {
       if (!handleSesError(err)) {
@@ -133,18 +171,27 @@ export default function AuthModal() {
       return;
     }
     setError(null);
+    setMessage(null);
     setBusy(true);
     try {
-      await prepareAuthRedirectForProUpgrade();
-      await authClient.signIn.emailOtp({
+      const result = (await authClient.signIn.emailOtp({
         email: trimmed,
         otp: otp.trim(),
-      });
+      })) as AuthFetchResult;
+
+      if (!isSuccessfulOtpSignIn(result)) {
+        setError(resolveOtpErrorMessage(result, 'Incorrect code. Please try again.'));
+        setOtp('');
+        return;
+      }
+
+      await prepareAuthRedirectForProUpgrade();
       setMessage('Signed in successfully.');
       window.setTimeout(() => close(), 800);
     } catch (err) {
+      setOtp('');
       if (!handleSesError(err)) {
-        setError(err instanceof Error ? err.message : 'Invalid or expired code.');
+        setError(err instanceof Error ? err.message : 'Incorrect code. Please try again.');
       }
     } finally {
       setBusy(false);
@@ -254,7 +301,10 @@ export default function AuthModal() {
                 autoComplete="one-time-code"
                 value={otp}
                 disabled={busy}
-                onChange={(event) => setOtp(event.target.value)}
+                onChange={(event) => {
+                  setOtp(event.target.value);
+                  if (error) setError(null);
+                }}
                 className="mt-1 w-full rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent focus:ring-2"
                 placeholder="6-digit code"
               />
