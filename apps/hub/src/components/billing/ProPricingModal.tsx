@@ -6,7 +6,7 @@ import {
   PRO_UPGRADE_OPEN_EVENT,
   type ProUpgradeDetail,
 } from '@shared/lib/proUpgrade';
-import { openAuthModal } from './AuthModal';
+import { openAuthModal } from '../../lib/auth/triggers';
 import { prepareAuthRedirectForProUpgrade } from '../../lib/auth/prepareAuthRedirect';
 import {
   pollProActivation,
@@ -28,20 +28,19 @@ const PRO_FEATURES = [
 ] as const;
 
 export default function ProPricingModal() {
-  const { data: session, isPending, refetch } = authClient.useSession();
+  const { data: session, refetch } = authClient.useSession();
   const { preload, startCheckout, loading, error, setError } = useRazorpay();
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<ProUpgradeDetail>(DEFAULT_DETAIL);
   const [successToast, setSuccessToast] = useState<string | null>(null);
-  const [authLoading, setAuthLoading] = useState(false);
   const [verifyingPayment, setVerifyingPayment] = useState(false);
 
   const close = useCallback(() => {
-    if (loading || authLoading || verifyingPayment) return;
+    if (loading || verifyingPayment) return;
     setOpen(false);
     setError(null);
     setSuccessToast(null);
-  }, [authLoading, loading, setError, verifyingPayment]);
+  }, [loading, setError, verifyingPayment]);
 
   useEffect(() => {
     const onOpen = (event: Event) => {
@@ -58,6 +57,7 @@ export default function ProPricingModal() {
 
   useEffect(() => {
     if (!open) return;
+    void refetch?.();
     preload();
     document.body.style.overflow = 'hidden';
     const onEscape = (event: KeyboardEvent) => {
@@ -68,16 +68,15 @@ export default function ProPricingModal() {
       document.body.style.overflow = '';
       window.removeEventListener('keydown', onEscape);
     };
-  }, [close, open, preload]);
+  }, [close, open, preload, refetch]);
 
   const promptSignIn = async () => {
     setError(null);
-    setAuthLoading(true);
     try {
       await prepareAuthRedirectForProUpgrade();
       openAuthModal();
-    } finally {
-      setAuthLoading(false);
+    } catch {
+      setError('Could not prepare sign-in. Please try again.');
     }
   };
 
@@ -140,7 +139,7 @@ export default function ProPricingModal() {
   const user = session?.user as { email?: string; name?: string; plan?: string } | undefined;
   const isPro = user?.plan === 'pro';
   const signedIn = Boolean(user);
-  const busy = loading || authLoading || isPending || verifyingPayment;
+  const checkoutBusy = loading || verifyingPayment;
 
   return (
     <>
@@ -185,7 +184,7 @@ export default function ProPricingModal() {
               <button
                 type="button"
                 onClick={close}
-                disabled={busy}
+                disabled={checkoutBusy}
                 className="rounded-lg border border-canvas-border px-2 py-1 text-sm font-medium leading-relaxed text-slate-200 transition hover:bg-canvas-elevated disabled:opacity-50"
                 aria-label="Close"
               >
@@ -239,22 +238,28 @@ export default function ProPricingModal() {
               </p>
             )}
 
-            {!isPro && (
+            {!isPro && !signedIn && (
+              <button
+                type="button"
+                onClick={() => void promptSignIn()}
+                className="inline-flex w-full items-center justify-center rounded-xl bg-canvas-accent-muted px-4 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40"
+              >
+                Sign in to continue →
+              </button>
+            )}
+
+            {!isPro && signedIn && (
               <button
                 type="button"
                 onClick={() => void handleUpgrade()}
-                disabled={busy}
+                disabled={checkoutBusy}
                 className="inline-flex w-full items-center justify-center rounded-xl bg-canvas-accent-muted px-4 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {busy
+                {checkoutBusy
                   ? verifyingPayment
                     ? 'Confirming payment…'
-                    : signedIn
-                      ? 'Opening Razorpay…'
-                      : 'Preparing sign-in…'
-                  : signedIn
-                    ? `Upgrade Now - ${PRO_PRICE_LABEL}${PRO_PRICE_INTERVAL}`
-                    : 'Sign in & Upgrade →'}
+                    : 'Opening Razorpay…'
+                  : `Upgrade Now - ${PRO_PRICE_LABEL}${PRO_PRICE_INTERVAL}`}
               </button>
             )}
 

@@ -1,6 +1,7 @@
 ---
 import '@shared/styles/global.css';
 import BaseLayout from '@shared/layouts/BaseLayout.astro';
+import AppGlobalHeader from '../components/app/AppGlobalHeader';
 import AppSidebar from '../components/app/AppSidebar';
 import AppShellFooter from '../components/app/AppShellFooter';
 import FeedbackWidget from '../components/app/FeedbackWidget';
@@ -27,14 +28,17 @@ const currentPath = Astro.url.pathname;
 <BaseLayout title={title} description={description} site="hub">
   <slot name="head" slot="head" />
 
-  <div class="flex min-h-screen flex-col bg-canvas-bg text-slate-200 leading-relaxed lg:flex-row">
-    <AppSidebar client:load activeWorkspace={activeWorkspace} currentPath={currentPath} />
-    <main class="flex min-w-0 flex-1 flex-col">
+  <div class="flex min-h-screen flex-col bg-canvas-bg text-slate-200 leading-relaxed">
+    <AppGlobalHeader client:load />
+    <div class="flex min-h-0 flex-1 flex-col lg:flex-row">
+      <AppSidebar client:load activeWorkspace={activeWorkspace} currentPath={currentPath} />
+      <main class="flex min-w-0 flex-1 flex-col">
       <div class="min-h-0 flex-1">
         <slot />
       </div>
       <AppShellFooter client:load />
-    </main>
+      </main>
+    </div>
   </div>
 
   <FeedbackWidget client:load />
