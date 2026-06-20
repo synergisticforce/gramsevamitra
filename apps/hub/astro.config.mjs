@@ -76,6 +76,10 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
           {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/auth/'),
+            handler: 'NetworkOnly',
+          },
+          {
             urlPattern: ({ url }) => url.pathname.startsWith('/data/') && url.pathname.endsWith('.json'),
             handler: 'NetworkFirst',
             options: {

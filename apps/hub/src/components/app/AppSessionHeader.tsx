@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { authClient } from '@gramsevamitra/auth/client';
 import { openAuthModal } from '../../lib/auth/triggers';
 import { performSignOut } from '../../lib/auth/signOutSession';
+import { useSafeSession } from '../../lib/auth/useSafeSession';
 
 interface Props {
   compact?: boolean;
@@ -9,8 +9,7 @@ interface Props {
 }
 
 export default function AppSessionHeader({ compact = false, variant = 'sidebar' }: Props) {
-  const { data: session, isPending } = authClient.useSession();
-  const user = session?.user as { name?: string; email?: string; plan?: string } | undefined;
+  const { user, isPending } = useSafeSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -37,6 +36,8 @@ export default function AppSessionHeader({ compact = false, variant = 'sidebar' 
     };
   }, [closeMenu, menuOpen]);
 
+  const typedUser = user as { name?: string; email?: string; plan?: string } | undefined;
+
   if (isPending) {
     return (
       <div
@@ -46,7 +47,7 @@ export default function AppSessionHeader({ compact = false, variant = 'sidebar' 
     );
   }
 
-  if (!user) {
+  if (!typedUser) {
     return (
       <button
         type="button"
@@ -60,8 +61,8 @@ export default function AppSessionHeader({ compact = false, variant = 'sidebar' 
     );
   }
 
-  const isPro = user.plan === 'pro';
-  const label = user.name?.trim() || user.email?.split('@')[0] || 'Account';
+  const isPro = typedUser.plan === 'pro';
+  const label = typedUser.name?.trim() || typedUser.email?.split('@')[0] || 'Account';
   const initial = label.charAt(0).toUpperCase();
 
   if (variant === 'global') {
@@ -108,8 +109,8 @@ export default function AppSessionHeader({ compact = false, variant = 'sidebar' 
             >
               <div className="border-b border-canvas-border px-3 py-2.5">
                 <p className="truncate text-sm font-semibold text-canvas-text">{label}</p>
-                {user.email && (
-                  <p className="truncate text-xs font-medium text-slate-300">{user.email}</p>
+                {typedUser.email && (
+                  <p className="truncate text-xs font-medium text-slate-300">{typedUser.email}</p>
                 )}
               </div>
               <div className="px-3 py-2">
@@ -143,8 +144,8 @@ export default function AppSessionHeader({ compact = false, variant = 'sidebar' 
     <div className={`flex ${compact ? 'flex-row items-center gap-2' : 'flex-col gap-2'}`}>
       <div className={`min-w-0 ${compact ? 'text-right' : ''}`}>
         <p className="truncate text-sm font-semibold text-canvas-text">{label}</p>
-        {!compact && user.email && (
-          <p className="truncate text-xs font-medium text-slate-300">{user.email}</p>
+        {!compact && typedUser.email && (
+          <p className="truncate text-xs font-medium text-slate-300">{typedUser.email}</p>
         )}
       </div>
 

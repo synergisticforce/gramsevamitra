@@ -23,9 +23,9 @@
   Cache-Control: public, max-age=0, must-revalidate
 
 /workspace/*
-  Cache-Control: no-store, no-cache, must-revalidate
+  Cache-Control: private, no-cache, must-revalidate
   Pragma: no-cache
 
 /billing/*
-  Cache-Control: no-store, no-cache, must-revalidate
+  Cache-Control: private, no-cache, must-revalidate
   Pragma: no-cache
