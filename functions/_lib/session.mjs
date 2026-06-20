@@ -1,10 +1,9 @@
 import { createAuth } from './auth.mjs';
 import {
-  getRuntimeEnv,
   getRuntimeEnvSourceLabels,
   hasD1Binding,
+  hasNeonDatabaseInContext,
 } from './runtimeEnv.mjs';
-import { hasNeonDatabase } from './neonDb.mjs';
 
 /**
  * Resolve the signed-in Better Auth user from request cookies/headers.
@@ -12,9 +11,7 @@ import { hasNeonDatabase } from './neonDb.mjs';
  * @param {Record<string, unknown>} context Handler context from onRequest
  */
 export async function getSessionUser(request, context) {
-  const env = getRuntimeEnv(context);
-
-  if (!hasNeonDatabase(env) && !hasD1Binding(env)) {
+  if (!hasNeonDatabaseInContext(context) && !hasD1Binding(context?.env ?? context?.cloudflare?.env)) {
     console.error('[auth] Session lookup aborted: database not configured', {
       envSources: getRuntimeEnvSourceLabels(context),
     });
@@ -22,7 +19,7 @@ export async function getSessionUser(request, context) {
   }
 
   try {
-    const auth = createAuth(env);
+    const auth = createAuth(context);
     const session = await auth.api.getSession({ headers: request.headers });
     return session?.user ?? null;
   } catch (err) {

@@ -18,9 +18,32 @@ type OtpErrorKind =
   | 'generic';
 
 type AuthFetchResult = {
-  data?: { user?: unknown; token?: string | null } | null;
+  data?: { user?: unknown; token?: string | null; success?: boolean } | null;
   error?: { message?: string; code?: string; status?: number; statusText?: string } | null;
 };
+
+function parseAuthError(result: AuthFetchResult, fallback: string): string {
+  const error = result.error;
+  if (!error) return fallback;
+
+  const message = error.message?.trim();
+  if (message) return message;
+
+  const code = String(error.code ?? '').trim();
+  if (code) return code;
+
+  if (error.status === 500) {
+    return 'Authentication service is temporarily unavailable. Please try again in a moment.';
+  }
+  if (error.status === 429) {
+    return 'Too many attempts. Please wait about a minute and try again.';
+  }
+  if (error.status === 403 && code.includes('SES')) {
+    return 'Email could not be delivered. Verify the address in Amazon SES or use Google sign-in.';
+  }
+
+  return fallback;
+}
 
 function classifyOtpError(result: AuthFetchResult, needsFreshCode: boolean): {
   kind: OtpErrorKind;
@@ -31,7 +54,7 @@ function classifyOtpError(result: AuthFetchResult, needsFreshCode: boolean): {
   if (!error) {
     return {
       kind: 'generic',
-      message: 'Sign-in failed. Please try again.',
+      message: parseAuthError(result, 'Sign-in failed. Please try again.'),
       requiresFreshCode: false,
     };
   }
@@ -80,7 +103,7 @@ function classifyOtpError(result: AuthFetchResult, needsFreshCode: boolean): {
 
   return {
     kind: 'generic',
-    message: error.message?.trim() || 'Sign-in failed. Please try again.',
+    message: parseAuthError(result, 'Sign-in failed. Please try again.'),
     requiresFreshCode: false,
   };
 }
@@ -90,20 +113,31 @@ function isSuccessfulOtpSignIn(result: AuthFetchResult): boolean {
   return Boolean(result.data?.user || result.data?.token);
 }
 
+function isSuccessfulOtpSend(result: AuthFetchResult): boolean {
+  if (result.error) return false;
+  return result.data?.success === true;
+}
+
 export default function AuthModal() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [emailMode, setEmailMode] = useState<EmailMode>('magic-link');
   const [otpSent, setOtpSent] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isMagicLinkLoading, setIsMagicLinkLoading] = useState(false);
+  const [isOtpLoading, setIsOtpLoading] = useState(false);
+  const [isOtpVerifyLoading, setIsOtpVerifyLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [needsFreshCode, setNeedsFreshCode] = useState(false);
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
   const [rateLimitSecondsLeft, setRateLimitSecondsLeft] = useState(0);
 
-  const resetOtpChallenge = useCallback((options?: { keepEmail?: boolean }) => {
+  const anyLoading = isGoogleLoading || isMagicLinkLoading || isOtpLoading || isOtpVerifyLoading;
+
+  const resetEmailAuthState = useCallback(() => {
+    setEmail('');
     setOtp('');
     setOtpSent(false);
     setNeedsFreshCode(false);
@@ -111,30 +145,45 @@ export default function AuthModal() {
     setRateLimitSecondsLeft(0);
     setError(null);
     setMessage(null);
-    if (!options?.keepEmail) {
-      setEmail('');
-    }
+    setIsMagicLinkLoading(false);
+    setIsOtpLoading(false);
+    setIsOtpVerifyLoading(false);
   }, []);
 
+  const resetOtpChallenge = useCallback(() => {
+    resetEmailAuthState();
+  }, [resetEmailAuthState]);
+
   const restartSignIn = useCallback(() => {
-    resetOtpChallenge();
+    resetEmailAuthState();
     setEmailMode('otp');
-  }, [resetOtpChallenge]);
+  }, [resetEmailAuthState]);
+
+  const switchEmailMode = useCallback(
+    (mode: EmailMode) => {
+      setEmailMode(mode);
+      resetEmailAuthState();
+    },
+    [resetEmailAuthState],
+  );
 
   const close = useCallback(() => {
-    if (busy) return;
+    if (anyLoading) return;
     setOpen(false);
-    resetOtpChallenge();
-  }, [busy, resetOtpChallenge]);
+    setIsGoogleLoading(false);
+    resetEmailAuthState();
+  }, [anyLoading, resetEmailAuthState]);
 
   useEffect(() => {
     const onOpen = () => {
-      resetOtpChallenge();
+      setIsGoogleLoading(false);
+      resetEmailAuthState();
+      setEmailMode('magic-link');
       setOpen(true);
     };
     window.addEventListener(AUTH_MODAL_OPEN_EVENT, onOpen);
     return () => window.removeEventListener(AUTH_MODAL_OPEN_EVENT, onOpen);
-  }, [resetOtpChallenge]);
+  }, [resetEmailAuthState]);
 
   useEffect(() => {
     if (!open) return;
@@ -188,7 +237,8 @@ export default function AuthModal() {
 
   const signInWithGoogle = async () => {
     setError(null);
-    setBusy(true);
+    setMessage(null);
+    setIsGoogleLoading(true);
     try {
       await prepareAuthRedirectForProUpgrade();
       await authClient.signIn.social({
@@ -200,7 +250,7 @@ export default function AuthModal() {
       if (!handleSesError(err)) {
         setError('Could not start Google sign-in. Please try again.');
       }
-      setBusy(false);
+      setIsGoogleLoading(false);
     }
   };
 
@@ -212,25 +262,31 @@ export default function AuthModal() {
     }
     setError(null);
     setMessage(null);
-    setBusy(true);
+    setIsMagicLinkLoading(true);
     try {
       await prepareAuthRedirectForProUpgrade();
-      await authClient.signIn.magicLink({
+      const result = (await authClient.signIn.magicLink({
         email: trimmed,
         callbackURL: window.location.href,
-      });
+      })) as AuthFetchResult;
+
+      if (result.error) {
+        setError(parseAuthError(result, 'Could not send magic link.'));
+        return;
+      }
+
       setMessage('Check your inbox — we sent a secure sign-in link.');
     } catch (err) {
       if (!handleSesError(err)) {
         setError(err instanceof Error ? err.message : 'Could not send magic link.');
       }
     } finally {
-      setBusy(false);
+      setIsMagicLinkLoading(false);
     }
   };
 
   const sendOtp = async () => {
-    const trimmed = email.trim();
+    const trimmed = email.trim().toLowerCase();
     if (!trimmed) {
       setError('Enter your email address.');
       return;
@@ -243,14 +299,14 @@ export default function AuthModal() {
 
     setError(null);
     setMessage(null);
-    setBusy(true);
+    setIsOtpLoading(true);
     try {
       const result = (await authClient.emailOtp.sendVerificationOtp({
         email: trimmed,
         type: 'sign-in',
       })) as AuthFetchResult;
 
-      if (result.error) {
+      if (!isSuccessfulOtpSend(result)) {
         const classified = classifyOtpError(result, false);
         if (classified.kind === 'rate_limited') {
           setRateLimitedUntil(Date.now() + OTP_RATE_LIMIT_MS);
@@ -272,12 +328,12 @@ export default function AuthModal() {
         setError(err instanceof Error ? err.message : 'Could not send verification code.');
       }
     } finally {
-      setBusy(false);
+      setIsOtpLoading(false);
     }
   };
 
   const verifyOtp = async () => {
-    const trimmed = email.trim();
+    const trimmed = email.trim().toLowerCase();
     if (!trimmed || !otp.trim()) {
       setError('Enter your email and verification code.');
       return;
@@ -291,7 +347,7 @@ export default function AuthModal() {
 
     setError(null);
     setMessage(null);
-    setBusy(true);
+    setIsOtpVerifyLoading(true);
     try {
       const result = (await authClient.signIn.emailOtp({
         email: trimmed,
@@ -322,7 +378,7 @@ export default function AuthModal() {
         setError(err instanceof Error ? err.message : 'Incorrect code. Please try again.');
       }
     } finally {
-      setBusy(false);
+      setIsOtpVerifyLoading(false);
     }
   };
 
@@ -356,7 +412,7 @@ export default function AuthModal() {
             <button
               type="button"
               onClick={close}
-              disabled={busy}
+              disabled={anyLoading}
               className="rounded-lg border border-canvas-border px-2 py-1 text-sm font-medium text-slate-200 transition hover:bg-canvas-elevated disabled:opacity-50"
               aria-label="Close"
             >
@@ -368,12 +424,12 @@ export default function AuthModal() {
         <div className="space-y-4 px-5 py-5">
           <button
             type="button"
-            disabled={busy}
+            disabled={anyLoading}
             onClick={() => void signInWithGoogle()}
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-canvas-border bg-canvas-elevated px-4 py-3 text-sm font-semibold text-canvas-text transition hover:border-emerald-500/50 hover:bg-canvas-surface disabled:opacity-60"
           >
             <span aria-hidden="true">G</span>
-            Continue with Google
+            {isGoogleLoading ? 'Redirecting to Google…' : 'Continue with Google'}
           </button>
 
           <div className="relative py-1">
@@ -390,11 +446,8 @@ export default function AuthModal() {
               <button
                 key={mode}
                 type="button"
-                disabled={busy}
-                onClick={() => {
-                  setEmailMode(mode);
-                  resetOtpChallenge({ keepEmail: true });
-                }}
+                disabled={anyLoading}
+                onClick={() => switchEmailMode(mode)}
                 className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition ${
                   emailMode === mode
                     ? 'border-canvas-accent bg-canvas-accent-soft text-canvas-text'
@@ -412,7 +465,7 @@ export default function AuthModal() {
               type="email"
               autoComplete="email"
               value={email}
-              disabled={busy}
+              disabled={anyLoading}
               onChange={(event) => setEmail(event.target.value)}
               className="mt-1 w-full rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 text-sm text-canvas-text outline-none ring-canvas-accent focus:ring-2"
               placeholder="you@example.com"
@@ -427,7 +480,7 @@ export default function AuthModal() {
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 value={otp}
-                disabled={busy}
+                disabled={anyLoading}
                 onChange={(event) => {
                   setOtp(event.target.value);
                   if (error) setError(null);
@@ -457,19 +510,21 @@ export default function AuthModal() {
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"
-                disabled={busy || resendBlocked}
+                disabled={anyLoading || resendBlocked}
                 onClick={() => void sendOtp()}
                 className="inline-flex flex-1 items-center justify-center rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-2.5 text-xs font-semibold text-canvas-text transition hover:border-emerald-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
               >
-                {resendBlocked
-                  ? `Resend code (${rateLimitSecondsLeft}s)`
-                  : needsFreshCode
-                    ? 'Resend new code'
-                    : 'Resend code'}
+                {isOtpLoading
+                  ? 'Sending code…'
+                  : resendBlocked
+                    ? `Resend code (${rateLimitSecondsLeft}s)`
+                    : needsFreshCode
+                      ? 'Resend new code'
+                      : 'Resend code'}
               </button>
               <button
                 type="button"
-                disabled={busy}
+                disabled={anyLoading}
                 onClick={restartSignIn}
                 className="inline-flex flex-1 items-center justify-center rounded-xl border border-canvas-border bg-canvas-surface px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-canvas-accent hover:text-canvas-text disabled:opacity-50 sm:text-sm"
               >
@@ -481,29 +536,33 @@ export default function AuthModal() {
           {emailMode === 'magic-link' ? (
             <button
               type="button"
-              disabled={busy}
+              disabled={anyLoading}
               onClick={() => void sendMagicLink()}
               className="inline-flex w-full items-center justify-center rounded-xl bg-canvas-accent-muted px-4 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:opacity-60"
             >
-              {busy ? 'Sending link…' : 'Continue with Email →'}
+              {isMagicLinkLoading ? 'Sending link…' : 'Continue with Email →'}
             </button>
           ) : otpSent ? (
             <button
               type="button"
-              disabled={busy || needsFreshCode}
+              disabled={anyLoading || needsFreshCode}
               onClick={() => void verifyOtp()}
               className="inline-flex w-full items-center justify-center rounded-xl bg-canvas-accent-muted px-4 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {busy ? 'Verifying…' : needsFreshCode ? 'Resend a new code first' : 'Verify & sign in'}
+              {isOtpVerifyLoading
+                ? 'Verifying…'
+                : needsFreshCode
+                  ? 'Resend a new code first'
+                  : 'Verify & sign in'}
             </button>
           ) : (
             <button
               type="button"
-              disabled={busy}
+              disabled={anyLoading}
               onClick={() => void sendOtp()}
               className="inline-flex w-full items-center justify-center rounded-xl bg-canvas-accent-muted px-4 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:opacity-60"
             >
-              {busy ? 'Sending code…' : 'Send email code'}
+              {isOtpLoading ? 'Sending code…' : 'Send email code'}
             </button>
           )}
         </div>

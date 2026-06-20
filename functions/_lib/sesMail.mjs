@@ -172,5 +172,15 @@ export async function sendEmailOtp(env, input) {
   const subject = 'Your GramSeva Mitra sign-in code';
   const text = `Your verification code is ${input.otp}. It expires in 10 minutes.`;
   const html = `<p>Your verification code is <strong>${input.otp}</strong>.</p><p>It expires in 10 minutes.</p>`;
-  return sendSesAuthEmail({ to: input.email, subject, html, text }, env);
+  const result = await sendSesAuthEmail({ to: input.email, subject, html, text }, env);
+  if (!result.ok) {
+    if (result.skipped) {
+      const err = new Error('Email service is not configured.');
+      err.code = 'SES_NOT_CONFIGURED';
+      throw err;
+    }
+    const err = new Error('Could not send verification email.');
+    throw err;
+  }
+  return result;
 }

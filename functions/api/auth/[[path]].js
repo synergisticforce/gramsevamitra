@@ -1,10 +1,16 @@
 import { jsonResponse } from '../../_lib/json.mjs';
 import { createAuth } from '../../_lib/auth.mjs';
-import { getRuntimeEnv } from '../../_lib/runtimeEnv.mjs';
 
 export async function onRequest(context) {
-  const auth = createAuth(getRuntimeEnv(context));
-  const response = await auth.handler(context.request);
+  let response;
+  try {
+    const auth = createAuth(context);
+    response = await auth.handler(context.request);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[auth] Handler failed', { message });
+    return jsonResponse({ error: 'Authentication service error.', code: 'AUTH_HANDLER_ERROR' }, 500);
+  }
 
   if (!response.ok) {
     const bodyText = await response.clone().text();

@@ -5,27 +5,29 @@ import { expireCookie, setSessionCookie } from 'better-auth/cookies';
 import { emailOTP, magicLink } from 'better-auth/plugins';
 import { Pool } from '@neondatabase/serverless';
 import { authSessionConfig } from './authSession.mjs';
-import { hasD1Binding, readEnvString } from './runtimeEnv.mjs';
+import { getRuntimeEnv, hasD1Binding, readEnvFromContext, readEnvString } from './runtimeEnv.mjs';
 import { sendEmailOtp, sendMagicLinkEmail } from './sesMail.mjs';
 
 /**
- * @param {Record<string, unknown> | undefined} handlerEnv
+ * @param {Record<string, unknown> | undefined} context
  * @param {string} key
  */
-function resolveBinding(handlerEnv, key) {
-  const fromHandler = readEnvString(handlerEnv, key);
-  if (fromHandler) return fromHandler;
+function resolveBinding(context, key) {
+  const fromContext = readEnvFromContext(context, key);
+  if (fromContext) return fromContext;
   return readEnvString(workersEnv, key);
 }
 
 /**
- * @param {Record<string, unknown> | undefined} handlerEnv
+ * @param {Record<string, unknown> | undefined} context
  */
-function resolveDbBinding(handlerEnv) {
-  const databaseUrl = resolveBinding(handlerEnv, 'DATABASE_URL');
+function resolveDbBinding(context) {
+  const databaseUrl = resolveBinding(context, 'DATABASE_URL');
   if (databaseUrl) {
     return new Pool({ connectionString: databaseUrl });
   }
+
+  const handlerEnv = context?.env ?? context?.cloudflare?.env;
   if (hasD1Binding(handlerEnv)) {
     return handlerEnv.DB;
   }
@@ -55,9 +57,9 @@ function buildAuthPlugins(env) {
       },
     }),
     emailOTP({
-      async sendVerificationOTP({ email, otp }) {
+      async sendVerificationOTP({ email, otp, type }) {
         try {
-          await sendEmailOtp(env, { email, otp });
+          await sendEmailOtp(env, { email, otp, type });
         } catch (err) {
           if (err instanceof Error && err.code === 'SES_SANDBOX_ERROR') {
             const sandbox = new Error('SES_SANDBOX_ERROR');
@@ -73,15 +75,15 @@ function buildAuthPlugins(env) {
 
 /**
  * Runtime Better Auth factory for Cloudflare Pages Functions / Workers.
- * @param {Record<string, unknown> | undefined} handlerEnv
+ * @param {Record<string, unknown> | undefined} context Handler context from onRequest
  */
-export function createAuth(handlerEnv) {
-  const db = resolveDbBinding(handlerEnv);
-  const env = /** @type {Record<string, unknown>} */ (handlerEnv ?? {});
+export function createAuth(context) {
+  const handlerEnv = getRuntimeEnv(context);
+  const db = resolveDbBinding(context);
 
   if (!db) {
     console.error('[auth] Database missing — set DATABASE_URL (Neon) or bind D1', {
-      hasDatabaseUrl: Boolean(resolveBinding(handlerEnv, 'DATABASE_URL')),
+      hasDatabaseUrl: Boolean(resolveBinding(context, 'DATABASE_URL')),
       handlerHasDb: hasD1Binding(handlerEnv),
       workersHasDb: hasD1Binding(workersEnv),
     });
@@ -89,11 +91,11 @@ export function createAuth(handlerEnv) {
 
   return betterAuth({
     appName: 'GramSeva Mitra',
-    baseURL: resolveBinding(handlerEnv, 'BETTER_AUTH_URL'),
-    secret: resolveBinding(handlerEnv, 'BETTER_AUTH_SECRET'),
+    baseURL: resolveBinding(context, 'BETTER_AUTH_URL'),
+    secret: resolveBinding(context, 'BETTER_AUTH_SECRET'),
     basePath: '/api/auth',
     database: db,
-    plugins: buildAuthPlugins(env),
+    plugins: buildAuthPlugins(handlerEnv),
     user: {
       modelName: 'users',
       additionalFields: {
@@ -124,8 +126,8 @@ export function createAuth(handlerEnv) {
     },
     socialProviders: {
       google: {
-        clientId: resolveBinding(handlerEnv, 'GOOGLE_CLIENT_ID'),
-        clientSecret: resolveBinding(handlerEnv, 'GOOGLE_CLIENT_SECRET'),
+        clientId: resolveBinding(context, 'GOOGLE_CLIENT_ID'),
+        clientSecret: resolveBinding(context, 'GOOGLE_CLIENT_SECRET'),
       },
     },
     trustedOrigins: [
