@@ -1,9 +1,13 @@
 import { authClient } from '@gramsevamitra/auth/client';
 import { safeLocalStorageClear, safeSessionStorageClear } from '../storage/safeStorage';
-import { markSigningOut } from './signOutState';
+import { markPostSignOutRedirect, markSigningOut } from './signOutState';
 import { clearWorkspaceResume } from './workspaceResumeCache';
+import { DEFAULT_APP_WORKSPACE } from '../../config/appWorkspaces';
 
 const APP_INDEXED_DB_NAMES = ['gsm-workspace-resume', 'gsm-omni-handoff'] as const;
+
+/** App home — `/` server-redirects here; direct navigation avoids an extra hop. */
+const SIGN_OUT_LANDING_PATH = DEFAULT_APP_WORKSPACE.href;
 
 function deleteIndexedDb(name: string): Promise<void> {
   return new Promise((resolve) => {
@@ -36,7 +40,7 @@ export async function wipeClientUserState(): Promise<void> {
 
 function waitForPendingWork(): Promise<void> {
   return new Promise((resolve) => {
-    window.setTimeout(resolve, 0);
+    window.setTimeout(resolve, 50);
   });
 }
 
@@ -54,6 +58,7 @@ export async function performSignOut(): Promise<void> {
   }
 
   await wipeClientUserState();
+  markPostSignOutRedirect();
   await waitForPendingWork();
-  window.location.replace('/?signIn=1');
+  window.location.replace(SIGN_OUT_LANDING_PATH);
 }

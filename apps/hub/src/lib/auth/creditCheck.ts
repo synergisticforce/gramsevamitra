@@ -38,6 +38,11 @@ export { PRO_MONTHLY_CREDIT_FUP, getOperationCreditCost, getOperationLabel, form
 /** Fetch live AI Credit balance from D1 via edge API. */
 export async function fetchUserCredits(): Promise<number> {
   const response = await fetch('/api/user/credits', { credentials: 'include' });
+
+  if (response.status === 401 || response.status === 403) {
+    return 0;
+  }
+
   const payload = (await response.json()) as UserCreditsResponse;
 
   if (!response.ok || typeof payload.credits !== 'number') {

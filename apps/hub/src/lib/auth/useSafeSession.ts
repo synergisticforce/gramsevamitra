@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { authClient } from '@gramsevamitra/auth/client';
+import { getHttpStatusFromError, isAuthRejectionError } from '../network/offlineNetworkGuard';
 import { isSigningOut } from './signOutState';
 
 /** Fail open to logged-out if Better Auth never responds (shared-device / SW edge cases). */
 const SESSION_PROBE_TIMEOUT_MS = 8_000;
 
 function shouldIgnoreSessionError(error: unknown): boolean {
-  if (!error || isSigningOut()) return isSigningOut();
-  return false;
+  if (isSigningOut()) return true;
+  if (!error) return false;
+  return isAuthRejectionError(error);
 }
 
 export function useSafeSession() {
@@ -35,17 +37,19 @@ export function useSafeSession() {
     };
   }
 
-  const authUnavailable = (Boolean(error) && !shouldIgnoreSessionError(error)) || timedOut;
-  const user = authUnavailable ? undefined : session?.user;
+  const authStatus = getHttpStatusFromError(error);
+  const isLoggedOutAuthError = authStatus === 401 || authStatus === 403 || shouldIgnoreSessionError(error);
+  const authUnavailable = (Boolean(error) && !isLoggedOutAuthError) || timedOut;
+  const user = authUnavailable || isLoggedOutAuthError ? undefined : session?.user;
   const isChecking = isPending && !timedOut && !error;
 
   return {
-    session: authUnavailable ? null : session,
+    session: authUnavailable || isLoggedOutAuthError ? null : session,
     user,
     isPending: isChecking,
     isRefetching,
     isLoggedOut: !isChecking && !user,
     authUnavailable,
-    error,
+    error: isLoggedOutAuthError ? null : error,
   };
 }
