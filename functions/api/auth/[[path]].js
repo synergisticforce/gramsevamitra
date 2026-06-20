@@ -1,8 +1,20 @@
 import { jsonResponse } from '../../_lib/json.mjs';
-import { createAuth } from '../../_lib/auth.mjs';
+import { createAuth, validateAuthBindings } from '../../_lib/auth.mjs';
 import { logAuthBindingDiagnostics } from '../../_lib/authBindingDiagnostics.mjs';
 
 export async function onRequest(context) {
+  const missingBinding = validateAuthBindings(context);
+  if (missingBinding) {
+    logAuthBindingDiagnostics(context, '[auth] Handler blocked — missing binding');
+    return jsonResponse(
+      {
+        error: 'Authentication service is not configured.',
+        code: 'AUTH_CONFIG_ERROR',
+      },
+      503,
+    );
+  }
+
   let response;
   try {
     const auth = createAuth(context);
@@ -17,6 +29,10 @@ export async function onRequest(context) {
 
   if (!response.ok) {
     const bodyText = await response.clone().text();
+    if (!bodyText) {
+      logAuthBindingDiagnostics(context, `[auth] Empty ${response.status} from Better Auth`);
+      console.error('[auth] Better Auth returned empty error body', { status: response.status });
+    }
     if (bodyText.includes('SES_SANDBOX_ERROR')) {
       return jsonResponse(
         {

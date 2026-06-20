@@ -9,7 +9,10 @@ import { authSessionConfig } from './authSession.mjs';
 import { getRuntimeEnv, hasD1Binding, readEnvFromContext, readEnvString } from './runtimeEnv.mjs';
 import { sendEmailOtp } from './sesMail.mjs';
 
+const REQUIRED_AUTH_BINDINGS = ['BETTER_AUTH_URL', 'BETTER_AUTH_SECRET', 'DATABASE_URL'];
+
 /**
+ * Resolve auth secrets/bindings from Cloudflare handler context layers (never process.env).
  * @param {Record<string, unknown> | undefined} context
  * @param {string} key
  */
@@ -17,6 +20,17 @@ function resolveBinding(context, key) {
   const fromContext = readEnvFromContext(context, key);
   if (fromContext) return fromContext;
   return readEnvString(workersEnv, key);
+}
+
+/**
+ * @param {Record<string, unknown> | undefined} context
+ * @returns {string | null} Missing binding key, or null when configured.
+ */
+export function validateAuthBindings(context) {
+  for (const key of REQUIRED_AUTH_BINDINGS) {
+    if (!resolveBinding(context, key)) return key;
+  }
+  return null;
 }
 
 /**
@@ -61,7 +75,38 @@ function buildAuthPlugins(env) {
 }
 
 /**
+ * Apply "Keep me signed in" session cookie policy after OTP or OAuth sign-in.
+ * Better Auth v1.6+ expects hooks.after to be a single middleware function, not an array.
+ */
+const rememberMeAfterHook = createAuthMiddleware(async (ctx) => {
+  const path = ctx.path ?? '';
+  const isEmailOtpSignIn = path === '/sign-in/email-otp';
+  const isOAuthCallback = path.includes('/callback/');
+  if (!isEmailOtpSignIn && !isOAuthCallback) return;
+  if (!ctx.context.newSession) return;
+
+  let dontRememberMe = false;
+
+  if (isEmailOtpSignIn) {
+    dontRememberMe = ctx.body?.rememberMe === false;
+  } else if (isOAuthCallback) {
+    const dontRememberCookie = await ctx.getSignedCookie(
+      ctx.context.authCookies.dontRememberToken.name,
+      ctx.context.secret,
+    );
+    dontRememberMe = Boolean(dontRememberCookie);
+  }
+
+  if (!dontRememberMe) {
+    expireCookie(ctx, ctx.context.authCookies.dontRememberToken);
+  }
+
+  await setSessionCookie(ctx, ctx.context.newSession, dontRememberMe);
+});
+
+/**
  * Runtime Better Auth factory for Cloudflare Pages Functions / Workers.
+ * Bindings are read from `context.env` (and sibling layers) on every request.
  * @param {Record<string, unknown> | undefined} context Handler context from onRequest
  */
 export function createAuth(context) {
@@ -69,10 +114,12 @@ export function createAuth(context) {
   const db = resolveDbBinding(context);
   const authSecret = resolveBinding(context, 'BETTER_AUTH_SECRET');
   const authUrl = resolveBinding(context, 'BETTER_AUTH_URL');
+  const missingBinding = validateAuthBindings(context);
 
-  if (!db || !authSecret || !authUrl) {
+  if (missingBinding || !db) {
     logAuthBindingDiagnostics(context, '[auth] createAuth missing bindings');
-    console.error('[auth] Database missing — set DATABASE_URL (Neon) or bind D1', {
+    console.error('[auth] Auth bindings incomplete — check Cloudflare Pages env vars', {
+      missingBinding,
       hasDatabaseUrl: Boolean(resolveBinding(context, 'DATABASE_URL')),
       hasAuthSecret: Boolean(authSecret),
       hasAuthUrl: Boolean(authUrl),
@@ -134,35 +181,7 @@ export function createAuth(context) {
       'http://127.0.0.1:4321',
     ],
     hooks: {
-      after: [
-        {
-          matcher(ctx) {
-            const path = ctx.path ?? '';
-            return path === '/sign-in/email-otp' || path.includes('/callback/');
-          },
-          handler: createAuthMiddleware(async (ctx) => {
-            if (!ctx.context.newSession) return;
-
-            let dontRememberMe = false;
-
-            if (ctx.path === '/sign-in/email-otp') {
-              dontRememberMe = ctx.body?.rememberMe === false;
-            } else if (ctx.path.includes('/callback/')) {
-              const dontRememberCookie = await ctx.getSignedCookie(
-                ctx.context.authCookies.dontRememberToken.name,
-                ctx.context.secret,
-              );
-              dontRememberMe = Boolean(dontRememberCookie);
-            }
-
-            if (!dontRememberMe) {
-              expireCookie(ctx, ctx.context.authCookies.dontRememberToken);
-            }
-
-            await setSessionCookie(ctx, ctx.context.newSession, dontRememberMe);
-          }),
-        },
-      ],
+      after: rememberMeAfterHook,
     },
   });
 }
