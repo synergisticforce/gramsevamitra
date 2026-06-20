@@ -7,8 +7,6 @@ export const AUTH_MODAL_OPEN_EVENT = 'gsm:auth-modal-open';
 /** Slightly longer than Better Auth's 60s OTP endpoint rate-limit window. */
 const OTP_RATE_LIMIT_MS = 61_000;
 
-type EmailMode = 'magic-link' | 'otp';
-
 type OtpErrorKind =
   | 'invalid'
   | 'expired'
@@ -38,9 +36,6 @@ function parseAuthError(result: AuthFetchResult, fallback: string): string {
   if (error.status === 429) {
     return 'Too many attempts. Please wait about a minute and try again.';
   }
-  if (error.status === 403 && code.includes('SES')) {
-    return 'Email could not be delivered. Verify the address in Amazon SES or use Google sign-in.';
-  }
 
   return fallback;
 }
@@ -65,7 +60,7 @@ function classifyOtpError(result: AuthFetchResult, needsFreshCode: boolean): {
   if (status === 429 || code.includes('RATE') || code.includes('TOO_MANY_REQUESTS')) {
     return {
       kind: 'rate_limited',
-      message: 'Too many attempts. Wait about a minute, then tap Resend code.',
+      message: 'Too many attempts. Wait about a minute, then tap Try again.',
       requiresFreshCode: true,
     };
   }
@@ -122,10 +117,9 @@ export default function AuthModal() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
-  const [emailMode, setEmailMode] = useState<EmailMode>('magic-link');
   const [otpSent, setOtpSent] = useState(false);
+  const [keepSignedIn, setKeepSignedIn] = useState(true);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [isMagicLinkLoading, setIsMagicLinkLoading] = useState(false);
   const [isOtpLoading, setIsOtpLoading] = useState(false);
   const [isOtpVerifyLoading, setIsOtpVerifyLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -133,57 +127,49 @@ export default function AuthModal() {
   const [needsFreshCode, setNeedsFreshCode] = useState(false);
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
   const [rateLimitSecondsLeft, setRateLimitSecondsLeft] = useState(0);
+  const [rateLimitReady, setRateLimitReady] = useState(false);
 
-  const anyLoading = isGoogleLoading || isMagicLinkLoading || isOtpLoading || isOtpVerifyLoading;
+  const anyLoading = isGoogleLoading || isOtpLoading || isOtpVerifyLoading;
 
-  const resetEmailAuthState = useCallback(() => {
+  const resetForm = useCallback(() => {
     setEmail('');
     setOtp('');
     setOtpSent(false);
+    setKeepSignedIn(true);
     setNeedsFreshCode(false);
     setRateLimitedUntil(null);
     setRateLimitSecondsLeft(0);
+    setRateLimitReady(false);
     setError(null);
     setMessage(null);
-    setIsMagicLinkLoading(false);
+    setIsGoogleLoading(false);
     setIsOtpLoading(false);
     setIsOtpVerifyLoading(false);
   }, []);
 
-  const resetOtpChallenge = useCallback(() => {
-    resetEmailAuthState();
-  }, [resetEmailAuthState]);
-
-  const restartSignIn = useCallback(() => {
-    resetEmailAuthState();
-    setEmailMode('otp');
-  }, [resetEmailAuthState]);
-
-  const switchEmailMode = useCallback(
-    (mode: EmailMode) => {
-      setEmailMode(mode);
-      resetEmailAuthState();
-    },
-    [resetEmailAuthState],
-  );
+  const clearRateLimitLockout = useCallback(() => {
+    setRateLimitedUntil(null);
+    setRateLimitSecondsLeft(0);
+    setRateLimitReady(false);
+    setNeedsFreshCode(false);
+    setError(null);
+    setMessage('You can request a new code now.');
+  }, []);
 
   const close = useCallback(() => {
     if (anyLoading) return;
     setOpen(false);
-    setIsGoogleLoading(false);
-    resetEmailAuthState();
-  }, [anyLoading, resetEmailAuthState]);
+    resetForm();
+  }, [anyLoading, resetForm]);
 
   useEffect(() => {
     const onOpen = () => {
-      setIsGoogleLoading(false);
-      resetEmailAuthState();
-      setEmailMode('magic-link');
+      resetForm();
       setOpen(true);
     };
     window.addEventListener(AUTH_MODAL_OPEN_EVENT, onOpen);
     return () => window.removeEventListener(AUTH_MODAL_OPEN_EVENT, onOpen);
-  }, [resetEmailAuthState]);
+  }, [resetForm]);
 
   useEffect(() => {
     if (!open) return;
@@ -201,6 +187,7 @@ export default function AuthModal() {
   useEffect(() => {
     if (!rateLimitedUntil) {
       setRateLimitSecondsLeft(0);
+      setRateLimitReady(false);
       return;
     }
 
@@ -209,11 +196,9 @@ export default function AuthModal() {
       if (remainingMs <= 0) {
         setRateLimitedUntil(null);
         setRateLimitSecondsLeft(0);
-        setError((current) =>
-          current?.includes('Wait about a minute')
-            ? 'You can resend a new code now.'
-            : current,
-        );
+        setRateLimitReady(true);
+        setError(null);
+        setMessage('Wait finished — tap Try again to request a new code.');
         return;
       }
       setRateLimitSecondsLeft(Math.ceil(remainingMs / 1000));
@@ -244,44 +229,14 @@ export default function AuthModal() {
       await authClient.signIn.social({
         provider: 'google',
         callbackURL: window.location.href,
-        rememberMe: true,
+        rememberMe: keepSignedIn,
       });
     } catch (err) {
       if (!handleSesError(err)) {
         setError('Could not start Google sign-in. Please try again.');
       }
-      setIsGoogleLoading(false);
-    }
-  };
-
-  const sendMagicLink = async () => {
-    const trimmed = email.trim();
-    if (!trimmed) {
-      setError('Enter your email address.');
-      return;
-    }
-    setError(null);
-    setMessage(null);
-    setIsMagicLinkLoading(true);
-    try {
-      await prepareAuthRedirectForProUpgrade();
-      const result = (await authClient.signIn.magicLink({
-        email: trimmed,
-        callbackURL: window.location.href,
-      })) as AuthFetchResult;
-
-      if (result.error) {
-        setError(parseAuthError(result, 'Could not send magic link.'));
-        return;
-      }
-
-      setMessage('Check your inbox — we sent a secure sign-in link.');
-    } catch (err) {
-      if (!handleSesError(err)) {
-        setError(err instanceof Error ? err.message : 'Could not send magic link.');
-      }
     } finally {
-      setIsMagicLinkLoading(false);
+      setIsGoogleLoading(false);
     }
   };
 
@@ -299,6 +254,7 @@ export default function AuthModal() {
 
     setError(null);
     setMessage(null);
+    setRateLimitReady(false);
     setIsOtpLoading(true);
     try {
       const result = (await authClient.emailOtp.sendVerificationOtp({
@@ -320,6 +276,7 @@ export default function AuthModal() {
 
       setNeedsFreshCode(false);
       setRateLimitedUntil(null);
+      setRateLimitReady(false);
       setOtpSent(true);
       setOtp('');
       setMessage('Enter the 6-digit code we emailed you.');
@@ -352,6 +309,7 @@ export default function AuthModal() {
       const result = (await authClient.signIn.emailOtp({
         email: trimmed,
         otp: otp.trim(),
+        rememberMe: keepSignedIn,
       })) as AuthFetchResult;
 
       if (!isSuccessfulOtpSignIn(result)) {
@@ -370,6 +328,7 @@ export default function AuthModal() {
       await prepareAuthRedirectForProUpgrade();
       setNeedsFreshCode(false);
       setRateLimitedUntil(null);
+      setRateLimitReady(false);
       setMessage('Signed in successfully.');
       window.setTimeout(() => close(), 800);
     } catch (err) {
@@ -406,7 +365,7 @@ export default function AuthModal() {
                 Sign in to GramSeva Mitra
               </h2>
               <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-                Continue with Google or email — no SMS required.
+                Continue with Google or a one-time email code.
               </p>
             </div>
             <button
@@ -437,26 +396,8 @@ export default function AuthModal() {
               <div className="w-full border-t border-canvas-border" />
             </div>
             <p className="relative mx-auto w-fit bg-canvas-surface px-2 text-xs font-medium text-slate-300">
-              or email
+              or
             </p>
-          </div>
-
-          <div className="flex gap-2">
-            {(['magic-link', 'otp'] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                disabled={anyLoading}
-                onClick={() => switchEmailMode(mode)}
-                className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition ${
-                  emailMode === mode
-                    ? 'border-canvas-accent bg-canvas-accent-soft text-canvas-text'
-                    : 'border-canvas-border bg-canvas-elevated text-slate-300 hover:border-canvas-accent'
-                }`}
-              >
-                {mode === 'magic-link' ? 'Magic link' : 'Email code'}
-              </button>
-            ))}
           </div>
 
           <label className="block">
@@ -472,7 +413,7 @@ export default function AuthModal() {
             />
           </label>
 
-          {emailMode === 'otp' && otpSent && (
+          {otpSent && (
             <label className="block">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">Code</span>
               <input
@@ -491,6 +432,24 @@ export default function AuthModal() {
             </label>
           )}
 
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-canvas-border bg-canvas-elevated px-3 py-3">
+            <input
+              type="checkbox"
+              checked={keepSignedIn}
+              disabled={anyLoading}
+              onChange={(event) => setKeepSignedIn(event.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-canvas-border accent-emerald-500"
+            />
+            <span className="text-sm font-medium leading-relaxed text-slate-200">
+              Keep me signed in on this device
+              <span className="mt-0.5 block text-xs font-normal text-slate-300">
+                {keepSignedIn
+                  ? 'Rolling 6-month session while you stay active.'
+                  : 'Sign out when you close this browser.'}
+              </span>
+            </span>
+          </label>
+
           {message && (
             <p className="rounded-lg border border-emerald-500/30 bg-emerald-950/30 px-3 py-2 text-sm font-medium text-emerald-100">
               {message}
@@ -506,7 +465,21 @@ export default function AuthModal() {
             </p>
           )}
 
-          {emailMode === 'otp' && otpSent && (
+          {rateLimitReady && (
+            <button
+              type="button"
+              disabled={anyLoading}
+              onClick={() => {
+                clearRateLimitLockout();
+                void sendOtp();
+              }}
+              className="inline-flex w-full items-center justify-center rounded-xl border border-canvas-accent bg-canvas-accent-soft px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/30 disabled:opacity-60"
+            >
+              Try again
+            </button>
+          )}
+
+          {otpSent && (
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"
@@ -525,27 +498,24 @@ export default function AuthModal() {
               <button
                 type="button"
                 disabled={anyLoading}
-                onClick={restartSignIn}
+                onClick={() => {
+                  setOtpSent(false);
+                  setOtp('');
+                  setNeedsFreshCode(false);
+                  setError(null);
+                  setMessage(null);
+                }}
                 className="inline-flex flex-1 items-center justify-center rounded-xl border border-canvas-border bg-canvas-surface px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-canvas-accent hover:text-canvas-text disabled:opacity-50 sm:text-sm"
               >
-                Restart sign-in
+                Use different email
               </button>
             </div>
           )}
 
-          {emailMode === 'magic-link' ? (
+          {otpSent ? (
             <button
               type="button"
-              disabled={anyLoading}
-              onClick={() => void sendMagicLink()}
-              className="inline-flex w-full items-center justify-center rounded-xl bg-canvas-accent-muted px-4 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:opacity-60"
-            >
-              {isMagicLinkLoading ? 'Sending link…' : 'Continue with Email →'}
-            </button>
-          ) : otpSent ? (
-            <button
-              type="button"
-              disabled={anyLoading || needsFreshCode}
+              disabled={anyLoading || needsFreshCode || resendBlocked}
               onClick={() => void verifyOtp()}
               className="inline-flex w-full items-center justify-center rounded-xl bg-canvas-accent-muted px-4 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-60"
             >
@@ -558,11 +528,15 @@ export default function AuthModal() {
           ) : (
             <button
               type="button"
-              disabled={anyLoading}
+              disabled={anyLoading || resendBlocked}
               onClick={() => void sendOtp()}
-              className="inline-flex w-full items-center justify-center rounded-xl bg-canvas-accent-muted px-4 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-canvas-accent-muted px-4 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isOtpLoading ? 'Sending code…' : 'Send email code'}
+              {isOtpLoading
+                ? 'Sending code…'
+                : resendBlocked
+                  ? `Wait ${rateLimitSecondsLeft}s…`
+                  : 'Send email code'}
             </button>
           )}
         </div>

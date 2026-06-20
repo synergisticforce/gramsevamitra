@@ -2,11 +2,12 @@ import { env as workersEnv } from 'cloudflare:workers';
 import { betterAuth } from 'better-auth';
 import { createAuthMiddleware } from 'better-auth/api';
 import { expireCookie, setSessionCookie } from 'better-auth/cookies';
-import { emailOTP, magicLink } from 'better-auth/plugins';
+import { emailOTP } from 'better-auth/plugins';
 import { Pool } from '@neondatabase/serverless';
+import { logAuthBindingDiagnostics } from './authBindingDiagnostics.mjs';
 import { authSessionConfig } from './authSession.mjs';
 import { getRuntimeEnv, hasD1Binding, readEnvFromContext, readEnvString } from './runtimeEnv.mjs';
-import { sendEmailOtp, sendMagicLinkEmail } from './sesMail.mjs';
+import { sendEmailOtp } from './sesMail.mjs';
 
 /**
  * @param {Record<string, unknown> | undefined} context
@@ -42,20 +43,6 @@ function resolveDbBinding(context) {
  */
 function buildAuthPlugins(env) {
   return [
-    magicLink({
-      sendMagicLink: async ({ email, url }) => {
-        try {
-          await sendMagicLinkEmail(env, { email, url });
-        } catch (err) {
-          if (err instanceof Error && err.code === 'SES_SANDBOX_ERROR') {
-            const sandbox = new Error('SES_SANDBOX_ERROR');
-            sandbox.code = 'SES_SANDBOX_ERROR';
-            throw sandbox;
-          }
-          throw err;
-        }
-      },
-    }),
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {
         try {
@@ -80,10 +67,15 @@ function buildAuthPlugins(env) {
 export function createAuth(context) {
   const handlerEnv = getRuntimeEnv(context);
   const db = resolveDbBinding(context);
+  const authSecret = resolveBinding(context, 'BETTER_AUTH_SECRET');
+  const authUrl = resolveBinding(context, 'BETTER_AUTH_URL');
 
-  if (!db) {
+  if (!db || !authSecret || !authUrl) {
+    logAuthBindingDiagnostics(context, '[auth] createAuth missing bindings');
     console.error('[auth] Database missing — set DATABASE_URL (Neon) or bind D1', {
       hasDatabaseUrl: Boolean(resolveBinding(context, 'DATABASE_URL')),
+      hasAuthSecret: Boolean(authSecret),
+      hasAuthUrl: Boolean(authUrl),
       handlerHasDb: hasD1Binding(handlerEnv),
       workersHasDb: hasD1Binding(workersEnv),
     });
@@ -91,8 +83,8 @@ export function createAuth(context) {
 
   return betterAuth({
     appName: 'GramSeva Mitra',
-    baseURL: resolveBinding(context, 'BETTER_AUTH_URL'),
-    secret: resolveBinding(context, 'BETTER_AUTH_SECRET'),
+    baseURL: authUrl,
+    secret: authSecret,
     basePath: '/api/auth',
     database: db,
     plugins: buildAuthPlugins(handlerEnv),
@@ -120,6 +112,11 @@ export function createAuth(context) {
     },
     account: {
       modelName: 'accounts',
+      accountLinking: {
+        enabled: true,
+        trustedProviders: ['google'],
+        allowDifferentEmails: false,
+      },
     },
     verification: {
       modelName: 'verifications',
@@ -141,16 +138,28 @@ export function createAuth(context) {
         {
           matcher(ctx) {
             const path = ctx.path ?? '';
-            return (
-              path === '/sign-in/email-otp' ||
-              path.includes('/callback/') ||
-              path === '/magic-link/verify'
-            );
+            return path === '/sign-in/email-otp' || path.includes('/callback/');
           },
           handler: createAuthMiddleware(async (ctx) => {
             if (!ctx.context.newSession) return;
-            expireCookie(ctx, ctx.context.authCookies.dontRememberToken);
-            await setSessionCookie(ctx, ctx.context.newSession, false);
+
+            let dontRememberMe = false;
+
+            if (ctx.path === '/sign-in/email-otp') {
+              dontRememberMe = ctx.body?.rememberMe === false;
+            } else if (ctx.path.includes('/callback/')) {
+              const dontRememberCookie = await ctx.getSignedCookie(
+                ctx.context.authCookies.dontRememberToken.name,
+                ctx.context.secret,
+              );
+              dontRememberMe = Boolean(dontRememberCookie);
+            }
+
+            if (!dontRememberMe) {
+              expireCookie(ctx, ctx.context.authCookies.dontRememberToken);
+            }
+
+            await setSessionCookie(ctx, ctx.context.newSession, dontRememberMe);
           }),
         },
       ],

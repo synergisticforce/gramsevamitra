@@ -1,5 +1,5 @@
 import { betterAuth } from 'better-auth';
-import { emailOTP, magicLink } from 'better-auth/plugins';
+import { emailOTP } from 'better-auth/plugins';
 import { Pool } from '@neondatabase/serverless';
 import { authSessionConfig } from './sessionConfig';
 
@@ -19,11 +19,6 @@ export function createAuth(env: AuthEnv) {
     basePath: '/api/auth',
     database,
     plugins: [
-      magicLink({
-        sendMagicLink: async ({ email, url }) => {
-          console.info('[auth] magic link (dev)', email, url);
-        },
-      }),
       emailOTP({
         async sendVerificationOTP({ email, otp }) {
           console.info('[auth] email OTP (dev)', email, otp);
@@ -54,6 +49,11 @@ export function createAuth(env: AuthEnv) {
     },
     account: {
       modelName: 'accounts',
+      accountLinking: {
+        enabled: true,
+        trustedProviders: ['google'],
+        allowDifferentEmails: false,
+      },
     },
     verification: {
       modelName: 'verifications',

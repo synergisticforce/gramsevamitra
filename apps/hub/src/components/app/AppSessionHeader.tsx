@@ -66,72 +66,75 @@ export default function AppSessionHeader({ compact = false, variant = 'sidebar' 
 
   if (variant === 'global') {
     return (
-      <div className="relative" ref={menuRef}>
+      <div className="flex items-center gap-2">
+        <div className="relative" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="inline-flex max-w-[min(100vw-10rem,12rem)] items-center gap-2 rounded-lg border border-canvas-border bg-canvas-elevated px-2.5 py-1.5 text-left transition hover:border-emerald-500/40"
+            aria-expanded={menuOpen}
+            aria-haspopup="menu"
+          >
+            <span
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas-accent-muted text-xs font-bold text-canvas-text"
+              aria-hidden="true"
+            >
+              {initial}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-canvas-text">{label}</span>
+            {isPro ? (
+              <span className="hidden shrink-0 rounded-full border border-emerald-500/40 bg-emerald-950/60 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-100 sm:inline">
+                Pro
+              </span>
+            ) : null}
+            <svg
+              viewBox="0 0 20 20"
+              className={`h-4 w-4 shrink-0 text-slate-300 transition ${menuOpen ? 'rotate-180' : ''}`}
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+
+          {menuOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-canvas-border bg-canvas-surface py-1 shadow-xl"
+            >
+              <div className="border-b border-canvas-border px-3 py-2.5">
+                <p className="truncate text-sm font-semibold text-canvas-text">{label}</p>
+                {user.email && (
+                  <p className="truncate text-xs font-medium text-slate-300">{user.email}</p>
+                )}
+              </div>
+              <div className="px-3 py-2">
+                {isPro ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-gradient-to-r from-emerald-950/80 to-amber-950/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-100">
+                    <span aria-hidden="true">✦</span> GramSeva Pro
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center rounded-full border border-canvas-border bg-canvas-elevated px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-300">
+                    Free Account
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         <button
           type="button"
-          onClick={() => setMenuOpen((open) => !open)}
-          className="inline-flex max-w-[min(100vw-6rem,14rem)] items-center gap-2 rounded-lg border border-canvas-border bg-canvas-elevated px-2.5 py-1.5 text-left transition hover:border-emerald-500/40"
-          aria-expanded={menuOpen}
-          aria-haspopup="menu"
+          onClick={() => void signOut()}
+          className="inline-flex shrink-0 items-center justify-center rounded-lg border border-rose-500/50 bg-rose-950/50 px-3 py-2 text-xs font-bold uppercase tracking-wide text-rose-100 transition hover:border-rose-400 hover:bg-rose-900/70"
+          aria-label="Sign out of GramSeva Mitra"
         >
-          <span
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas-accent-muted text-xs font-bold text-canvas-text"
-            aria-hidden="true"
-          >
-            {initial}
-          </span>
-          <span className="min-w-0 flex-1 truncate text-sm font-semibold text-canvas-text">{label}</span>
-          {isPro ? (
-            <span className="hidden shrink-0 rounded-full border border-emerald-500/40 bg-emerald-950/60 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-100 sm:inline">
-              Pro
-            </span>
-          ) : null}
-          <svg
-            viewBox="0 0 20 20"
-            className={`h-4 w-4 shrink-0 text-slate-300 transition ${menuOpen ? 'rotate-180' : ''}`}
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
-              clipRule="evenodd"
-            />
-          </svg>
+          Sign Out
         </button>
-
-        {menuOpen && (
-          <div
-            role="menu"
-            className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-canvas-border bg-canvas-surface py-1 shadow-xl"
-          >
-            <div className="border-b border-canvas-border px-3 py-2.5">
-              <p className="truncate text-sm font-semibold text-canvas-text">{label}</p>
-              {user.email && (
-                <p className="truncate text-xs font-medium text-slate-300">{user.email}</p>
-              )}
-            </div>
-            <div className="px-3 py-2">
-              {isPro ? (
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-gradient-to-r from-emerald-950/80 to-amber-950/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-100">
-                  <span aria-hidden="true">✦</span> GramSeva Pro
-                </span>
-              ) : (
-                <span className="inline-flex items-center rounded-full border border-canvas-border bg-canvas-elevated px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-300">
-                  Free Account
-                </span>
-              )}
-            </div>
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => void signOut()}
-              className="flex w-full px-3 py-2.5 text-left text-sm font-semibold text-slate-200 transition hover:bg-canvas-elevated"
-            >
-              Sign out
-            </button>
-          </div>
-        )}
       </div>
     );
   }

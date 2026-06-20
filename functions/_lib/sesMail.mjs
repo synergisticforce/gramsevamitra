@@ -155,18 +155,7 @@ export async function sendSesTestEmail(env, input = {}) {
 
 /**
  * @param {Record<string, unknown>} env
- * @param {{ email: string; url: string }} input
- */
-export async function sendMagicLinkEmail(env, input) {
-  const subject = 'Sign in to GramSeva Mitra';
-  const text = `Click to sign in: ${input.url}\n\nThis link expires soon. If you did not request this, ignore this email.`;
-  const html = `<p><a href="${input.url}">Sign in to GramSeva Mitra</a></p><p>This link expires soon.</p>`;
-  return sendSesAuthEmail({ to: input.email, subject, html, text }, env);
-}
-
-/**
- * @param {Record<string, unknown>} env
- * @param {{ email: string; otp: string }} input
+ * @param {{ email: string; otp: string; type?: string }} input
  */
 export async function sendEmailOtp(env, input) {
   const subject = 'Your GramSeva Mitra sign-in code';

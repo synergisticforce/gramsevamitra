@@ -1,5 +1,6 @@
 import { jsonResponse } from '../../_lib/json.mjs';
 import { createAuth } from '../../_lib/auth.mjs';
+import { logAuthBindingDiagnostics } from '../../_lib/authBindingDiagnostics.mjs';
 
 export async function onRequest(context) {
   let response;
@@ -8,7 +9,9 @@ export async function onRequest(context) {
     response = await auth.handler(context.request);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error('[auth] Handler failed', { message });
+    const stack = err instanceof Error ? err.stack : undefined;
+    logAuthBindingDiagnostics(context, '[auth] Handler failed — binding probe');
+    console.error('[auth] Handler failed', { message, stack });
     return jsonResponse({ error: 'Authentication service error.', code: 'AUTH_HANDLER_ERROR' }, 500);
   }
 

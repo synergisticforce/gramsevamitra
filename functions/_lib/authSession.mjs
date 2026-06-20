@@ -1,3 +1,6 @@
+/** Short-lived session when "Keep me signed in" is unchecked (24 hours). */
+export const AUTH_SESSION_SHORT_EXPIRES_SECONDS = 60 * 60 * 24;
+
 /** 6-month session lifetime (seconds). Keep in sync with packages/auth/src/sessionConfig.ts */
 export const AUTH_SESSION_EXPIRES_SECONDS = 60 * 60 * 24 * 180;
 

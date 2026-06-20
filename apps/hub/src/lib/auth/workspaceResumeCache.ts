@@ -1,4 +1,4 @@
-/** IndexedDB snapshot for workspace state across OAuth / magic-link redirects. */
+/** IndexedDB snapshot for workspace state across OAuth redirects. */
 
 const DB_NAME = 'gsm-workspace-resume';
 const DB_VERSION = 1;
