@@ -105,21 +105,7 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
         </div>
       )}
 
-      <aside className="sticky top-0 hidden h-[calc(100vh-3.625rem)] w-64 shrink-0 flex-col border-r border-canvas-border bg-canvas-surface lg:flex">
-        <div className="border-b border-canvas-border px-5 py-5">
-          <a href="/workspace/documents" className="group flex items-center gap-2.5">
-            <span
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-canvas-accent-muted text-xs font-bold text-canvas-text"
-              aria-hidden="true"
-            >
-              GS
-            </span>
-            <span className="text-base font-bold tracking-tight text-canvas-text">
-              Gram<span className="text-canvas-accent">Seva</span> Mitra
-            </span>
-          </a>
-        </div>
-
+      <aside className="sticky top-[3.625rem] z-40 hidden h-[calc(100vh-3.625rem)] w-64 shrink-0 flex-col border-r border-canvas-border bg-canvas-surface lg:flex">
         <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Workspace navigation">
           <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-canvas-subtle">Workspaces</p>
           <div className="mt-2">{navLinks}</div>

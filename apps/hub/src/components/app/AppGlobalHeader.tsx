@@ -7,8 +7,8 @@ export default function AppGlobalHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 flex w-full shrink-0 items-center justify-between gap-3 border-b border-canvas-border bg-canvas-surface px-4 py-3">
-      <div className="flex min-w-0 items-center gap-3">
+    <header className="sticky top-0 z-50 flex h-[3.625rem] w-full shrink-0 items-center justify-between gap-3 border-b border-canvas-border bg-canvas-surface/95 px-4 backdrop-blur-md md:px-5">
+      <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
         <button
           type="button"
           className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-canvas-border text-canvas-muted lg:hidden"
@@ -21,13 +21,21 @@ export default function AppGlobalHeader() {
         </button>
         <a
           href="/workspace/documents"
-          className="truncate text-sm font-bold text-canvas-text lg:hidden"
+          className="group flex min-w-0 items-center gap-2 truncate md:gap-2.5"
         >
-          Gram<span className="text-canvas-accent">Seva</span> Mitra
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-canvas-accent-muted text-xs font-bold text-canvas-text"
+            aria-hidden="true"
+          >
+            GS
+          </span>
+          <span className="truncate text-sm font-bold tracking-tight text-canvas-text md:text-base">
+            Gram<span className="text-canvas-accent">Seva</span> Mitra
+          </span>
         </a>
       </div>
 
-      <div className="shrink-0">
+      <div className="flex shrink-0 items-center">
         <AppSessionHeader compact variant="global" />
       </div>
     </header>

@@ -40,7 +40,7 @@ export default function AppSessionHeader({ compact = false, variant = 'sidebar' 
   if (isPending) {
     return (
       <div
-        className={`animate-pulse rounded-lg bg-canvas-elevated ${compact ? 'h-9 w-24' : 'h-10 w-full'}`}
+        className={`animate-pulse rounded-lg bg-canvas-elevated ${compact ? 'h-10 w-24' : 'h-10 w-full'}`}
         aria-hidden="true"
       />
     );
@@ -51,7 +51,7 @@ export default function AppSessionHeader({ compact = false, variant = 'sidebar' 
       <button
         type="button"
         onClick={() => openAuthModal()}
-        className={`inline-flex items-center justify-center rounded-lg border border-canvas-border bg-canvas-elevated px-3 py-2 text-sm font-semibold text-canvas-text transition hover:border-emerald-500/50 hover:bg-canvas-surface ${
+        className={`inline-flex h-10 items-center justify-center rounded-lg border border-canvas-border bg-canvas-elevated px-3 text-sm font-semibold text-canvas-text transition hover:border-emerald-500/50 hover:bg-canvas-surface ${
           compact ? '' : 'w-full'
         }`}
       >
@@ -66,12 +66,12 @@ export default function AppSessionHeader({ compact = false, variant = 'sidebar' 
 
   if (variant === 'global') {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 md:gap-2.5">
         <div className="relative" ref={menuRef}>
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
-            className="inline-flex max-w-[min(100vw-10rem,12rem)] items-center gap-2 rounded-lg border border-canvas-border bg-canvas-elevated px-2.5 py-1.5 text-left transition hover:border-emerald-500/40"
+            className="inline-flex h-10 max-w-[min(100vw-10rem,12rem)] items-center gap-2 rounded-lg border border-canvas-border bg-canvas-elevated px-2.5 text-left transition hover:border-emerald-500/40"
             aria-expanded={menuOpen}
             aria-haspopup="menu"
           >
@@ -130,7 +130,7 @@ export default function AppSessionHeader({ compact = false, variant = 'sidebar' 
         <button
           type="button"
           onClick={() => void signOut()}
-          className="inline-flex shrink-0 items-center justify-center rounded-lg border border-rose-500/50 bg-rose-950/50 px-3 py-2 text-xs font-bold uppercase tracking-wide text-rose-100 transition hover:border-rose-400 hover:bg-rose-900/70"
+          className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-rose-500/50 bg-rose-950/50 px-3 text-xs font-bold uppercase tracking-wide text-rose-100 transition hover:border-rose-400 hover:bg-rose-900/70"
           aria-label="Sign out of GramSeva Mitra"
         >
           Sign Out
