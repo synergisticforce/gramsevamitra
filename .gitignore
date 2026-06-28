@@ -2,8 +2,11 @@ node_modules/
 dist/
 .astro/
 .env
+.env.local
+.env.production
 .env.*
 !.env.example
+.gramseva_knowledge/OUTPUTS/
 .DS_Store
 *.log
 .wrangler/
