@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Chart } from 'chart.js';
+import type { Chart, ChartConfiguration } from 'chart.js';
 import {
   destroyChart,
   gsmTooltipOptions,
@@ -94,7 +94,7 @@ export default function FinanceSipCalculator() {
     }
 
     void (async () => {
-      doughnutChart.current = await renderChart(doughnutCanvas, doughnutChart.current, {
+      const doughnutConfig: ChartConfiguration<'doughnut'> = {
         type: 'doughnut',
         data: {
           labels: ['Invested', 'Wealth generated'],
@@ -115,7 +115,8 @@ export default function FinanceSipCalculator() {
             tooltip: gsmTooltipOptions((v) => formatInr(v)),
           },
         },
-      });
+      };
+      doughnutChart.current = await renderChart(doughnutCanvas, doughnutChart.current, doughnutConfig);
 
       lineChart.current = await renderChart(lineCanvas, lineChart.current, {
         type: 'line',

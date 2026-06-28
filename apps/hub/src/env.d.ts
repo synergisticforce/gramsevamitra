@@ -13,6 +13,7 @@ declare module 'sortablejs' {
     delay?: number;
     delayOnTouchOnly?: boolean;
     ghostClass?: string;
+    handle?: string;
     onEnd?: () => void;
   }
   export default class Sortable {

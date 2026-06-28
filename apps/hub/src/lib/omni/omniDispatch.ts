@@ -7,7 +7,6 @@ export type DocumentOmniModal =
   | 'compress'
   | 'protect'
   | 'unlock'
-  | 'pdf-to-text'
   | 'pdf-to-image'
   | 'image-to-pdf';
 
@@ -54,7 +53,6 @@ export const DOCUMENT_PDF_ONLY_MODALS = new Set<DocumentOmniModal>([
   'compress',
   'protect',
   'unlock',
-  'pdf-to-text',
   'pdf-to-image',
 ]);
 

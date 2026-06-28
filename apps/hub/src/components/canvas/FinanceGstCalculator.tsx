@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Chart } from 'chart.js';
+import type { Chart, ChartConfiguration } from 'chart.js';
 import { destroyChart, gsmTooltipOptions, renderChart } from '../../lib/charts/chartHelper';
 import {
   FINANCE_STORAGE_KEYS,
@@ -87,7 +87,7 @@ export default function FinanceGstCalculator() {
         : ['#059669', '#0284c7', '#d97706'];
 
     void (async () => {
-      chart.current = await renderChart(canvas, chart.current, {
+      const doughnutConfig: ChartConfiguration<'doughnut'> = {
         type: 'doughnut',
         data: {
           labels,
@@ -102,7 +102,8 @@ export default function FinanceGstCalculator() {
             tooltip: gsmTooltipOptions((v) => formatInr(v, 2)),
           },
         },
-      });
+      };
+      chart.current = await renderChart(canvas, chart.current, doughnutConfig);
     })();
 
     return () => {

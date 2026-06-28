@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Chart } from 'chart.js';
+import type { Chart, ChartConfiguration } from 'chart.js';
 import {
   destroyChart,
   gsmTooltipOptions,
@@ -61,7 +61,12 @@ export default function FinanceEmiCalculator() {
   const barChart = useRef<Chart | null>(null);
 
   const analysis = useMemo(
-    () => analyzeLoan(loanAmount, interestRate, tenureYears, 'years'),
+    () =>
+      analyzeLoan(loanAmount, interestRate, tenureYears, 'years', {
+        extraMonthly: 0,
+        lumpSumAmount: 0,
+        lumpSumMonth: 1,
+      }),
     [loanAmount, interestRate, tenureYears]
   );
 
@@ -84,7 +89,7 @@ export default function FinanceEmiCalculator() {
     }
 
     void (async () => {
-      doughnutChart.current = await renderChart(doughnutCanvas, doughnutChart.current, {
+      const doughnutConfig: ChartConfiguration<'doughnut'> = {
         type: 'doughnut',
         data: {
           labels: ['Principal', 'Interest'],
@@ -105,7 +110,8 @@ export default function FinanceEmiCalculator() {
             tooltip: gsmTooltipOptions((v) => formatInr(v)),
           },
         },
-      });
+      };
+      doughnutChart.current = await renderChart(doughnutCanvas, doughnutChart.current, doughnutConfig);
 
       const slice = analysis.schedule.slice(0, 12);
       barChart.current = await renderChart(barCanvas, barChart.current, {

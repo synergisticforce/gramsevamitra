@@ -148,7 +148,7 @@ export async function exportBusinessCardPdf(input: BusinessCardInput): Promise<B
   });
 
   const pdfBytes = await pdf.save();
-  return new Blob([pdfBytes], { type: 'application/pdf' });
+  return new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
 }
 
 export function businessCardDownloadName(name: string, ext: 'png' | 'pdf'): string {

@@ -38,7 +38,7 @@ export function isProStructuralFormat(target: EditableFormatTarget): boolean {
   return target === 'xlsx' || target === 'csv' || target === 'xml';
 }
 
-export function isRawTextFormat(target: EditableFormatTarget): boolean {
+export function isRawTextFormat(target: EditableFormatTarget): target is 'txt' | 'md' {
   return target === 'txt' || target === 'md';
 }
 

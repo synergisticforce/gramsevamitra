@@ -308,7 +308,7 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
     name: 'Job Application Tracker',
     description: 'Offline Kanban board for tracking job applications.',
     path: '/tools/quick-tools/job-tracker',
-    workspace: 'quick-tools',
+    workspace: 'quick',
     keywords: ['job tracker', 'kanban', 'applications', 'hiring'],
   },
   {
@@ -316,7 +316,7 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
     name: 'Salary & Take-Home Calculator',
     description: 'Estimate monthly in-hand pay from annual CTC with standard EPF deductions.',
     path: '/tools/finance/salary-calculator',
-    workspace: 'finance',
+    workspace: 'money',
     keywords: ['salary', 'ctc', 'take home', 'epf', 'in-hand'],
   },
   {
@@ -324,7 +324,7 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
     name: 'Cold Email & Networking Builder',
     description: 'Generate cover letters, LinkedIn notes, and cold emails from your job-hunt details.',
     path: '/tools/quick-tools/cold-email',
-    workspace: 'quick-tools',
+    workspace: 'quick',
     keywords: ['cold email', 'cover letter', 'linkedin', 'networking', 'outreach'],
   },
   {
@@ -340,7 +340,7 @@ export const TOOLS_REGISTRY: ToolEntry[] = [
     name: 'Salary Benchmarking',
     description: 'Look up indicative salary ranges from static offline data.',
     path: '/tools/finance/salary-benchmarking',
-    workspace: 'finance',
+    workspace: 'money',
     keywords: ['salary', 'ctc', 'pay scale', 'benchmark'],
   },
   {

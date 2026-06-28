@@ -28,7 +28,7 @@ async function shrinkPdfToPageCap(file: File, maxPages: number): Promise<File> {
   }
   const indices = Array.from({ length: pageCount }, (_, index) => index);
   const copied = await dst.copyPages(src, indices);
-  copied.forEach((page) => dst.addPage(page));
+  copied.forEach((page: unknown) => dst.addPage(page));
   const bytes = await dst.save();
   const baseName = file.name.replace(/\.pdf$/i, '') || 'document';
   return new File([bytes], `${baseName}_subset.pdf`, { type: 'application/pdf' });

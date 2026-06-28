@@ -264,6 +264,12 @@ export function triggerPdfDownload(
     | '_rotated'
     | '_reordered'
     | '_watermarked'
+    | '_organised'
+    | '_scanned'
+    | '_redacted'
+    | '_repaired'
+    | '_signed'
+    | '_stripped'
 ): void {
   downloadPdfBytes(bytes, filename, toolSuffix);
 }

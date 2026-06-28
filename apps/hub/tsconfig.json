@@ -2,6 +2,7 @@
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
     "baseUrl": ".",
+    "skipLibCheck": true,
     "resolveJsonModule": true,
     "jsx": "react-jsx",
     "paths": {
@@ -9,5 +10,5 @@
     }
   },
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "exclude": ["dist", "src/workers/**"]
 }

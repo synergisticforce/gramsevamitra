@@ -96,7 +96,7 @@ function jsonToCsv(data: unknown): string {
   const lines = [headers.join(',')];
   for (const row of rows) {
     const obj = row && typeof row === 'object' && !Array.isArray(row) ? (row as Record<string, unknown>) : {};
-    lines.push(headers.map((h) => escapeCell(obj[h])).join(','));
+    lines.push(headers.map((h) => escapeCell(obj[String(h)])).join(','));
   }
   return lines.join('\n');
 }

@@ -249,10 +249,14 @@ export default function AuthModal() {
       const callbackURL = returnPath
         ? `${window.location.origin}${returnPath}`
         : window.location.href;
+      try {
+        localStorage.setItem('gsm:rememberMe', keepSignedIn ? '1' : '0');
+      } catch {
+        /* storage may be blocked in private browsing */
+      }
       await authClient.signIn.social({
         provider: 'google',
         callbackURL,
-        rememberMe: keepSignedIn,
       });
     };
 

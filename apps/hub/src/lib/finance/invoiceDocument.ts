@@ -109,7 +109,7 @@ export async function exportInvoicePdf(data: InvoiceFormData): Promise<Blob> {
   }
 
   const bytes = await pdf.save();
-  return new Blob([bytes], { type: 'application/pdf' });
+  return new Blob([bytes as BlobPart], { type: 'application/pdf' });
 }
 
 export function triggerInvoiceDownload(blob: Blob, invoiceNumber: string): void {
