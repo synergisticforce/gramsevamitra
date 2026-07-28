@@ -94,12 +94,16 @@ export default function ToEditableFormatPanel({
           onSuccess(`Pro layout reconstruction complete — ${proResult.fileName} downloaded.`);
         } catch (proErr) {
           onProcessingChange(false, '', 0);
-          onError(proErr instanceof Error ? proErr.message : 'Pro reconstruction failed.');
+          onError(
+            proErr instanceof Error
+              ? proErr.message
+              : 'Pro reconstruction failed (unknown error).',
+          );
         }
         return;
       }
       if (!(err instanceof EditableFormatProRequiredError)) {
-        onError(err instanceof Error ? err.message : 'Conversion failed.');
+        onError(err instanceof Error ? err.message : 'Conversion failed (unknown error).');
       }
     } finally {
       setBusy(false);

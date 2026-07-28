@@ -67,7 +67,14 @@ export function buildCreditQuote(operationId: ProOperationId, balance: number): 
 
 export function parseCreditApiError(
   status: number,
-  payload: { message?: string; error?: string; requiredCredits?: number; remainingCredits?: number },
+  payload: {
+    message?: string;
+    error?: string;
+    detail?: string;
+    code?: string;
+    requiredCredits?: number;
+    remainingCredits?: number;
+  },
   fallback: string,
 ): string {
   if (status === 402) {
@@ -76,7 +83,24 @@ export function parseCreditApiError(
     if (typeof required === 'number' && typeof remaining === 'number') {
       return `Insufficient AI Credits. This operation requires ${required}; you have ${remaining}.`;
     }
-    return payload.message ?? 'Insufficient AI Credits for this Pro operation.';
+    return (
+      payload.message ??
+      payload.detail ??
+      'Insufficient AI Credits for this Pro operation.'
+    );
   }
-  return payload.message ?? payload.error ?? fallback;
+
+  const reason =
+    (typeof payload.message === 'string' && payload.message.trim()) ||
+    (typeof payload.detail === 'string' && payload.detail.trim()) ||
+    (typeof payload.error === 'string' && payload.error.trim()) ||
+    fallback;
+
+  if (payload.code && !reason.includes(payload.code) && reason !== fallback) {
+    return `[${payload.code}] ${reason}`;
+  }
+  if (payload.code && reason === fallback) {
+    return `[${payload.code}] ${reason}`;
+  }
+  return reason;
 }

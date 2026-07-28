@@ -139,26 +139,94 @@ async function generateGeminiDocumentContent(input) {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const response = await ai.models.generateContent({
-    model: DOCUMENT_OCR_MODEL,
-    contents: [
-      {
-        role: 'user',
-        parts: [
-          { text: prompt },
-          {
-            inlineData: {
-              mimeType: resolvedMime,
-              data: base64Data,
+  let response;
+  try {
+    response = await ai.models.generateContent({
+      model: DOCUMENT_OCR_MODEL,
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: resolvedMime,
+                data: base64Data,
+              },
             },
-          },
-        ],
-      },
-    ],
-  });
+          ],
+        },
+      ],
+    });
+  } catch (err) {
+    throw classifyGeminiSdkError(err);
+  }
 
   const text = typeof response.text === 'string' ? response.text : '';
   return { text, mimeType: resolvedMime };
+}
+
+/**
+ * Map @google/genai / fetch failures into stable error codes for the API layer.
+ * @param {unknown} err
+ */
+export function classifyGeminiSdkError(err) {
+  const rawMessage =
+    err && typeof err === 'object' && 'message' in err && typeof err.message === 'string'
+      ? err.message
+      : String(err ?? 'Unknown Vision AI error');
+  const status =
+    err && typeof err === 'object' && 'status' in err ? Number(err.status) : undefined;
+  const lower = rawMessage.toLowerCase();
+
+  const wrapped = new Error(rawMessage);
+  if (
+    lower.includes('api key') ||
+    lower.includes('api_key') ||
+    lower.includes('permission denied') ||
+    lower.includes('unauthenticated') ||
+    status === 401 ||
+    status === 403
+  ) {
+    wrapped.code = 'API_KEY';
+    wrapped.message = `Missing or invalid GEMINI_API_KEY: ${rawMessage}`;
+    return wrapped;
+  }
+
+  if (
+    lower.includes('timeout') ||
+    lower.includes('timed out') ||
+    lower.includes('deadline') ||
+    lower.includes('etimedout') ||
+    status === 408 ||
+    status === 504
+  ) {
+    wrapped.code = 'TIMEOUT';
+    wrapped.message = `Gemini API Timeout: ${rawMessage}`;
+    return wrapped;
+  }
+
+  if (
+    lower.includes('too large') ||
+    lower.includes('payload') ||
+    lower.includes('request entity') ||
+    lower.includes('size') ||
+    status === 413
+  ) {
+    wrapped.code = 'PAYLOAD_TOO_LARGE';
+    wrapped.message = `Payload too large for Vision AI: ${rawMessage}`;
+    return wrapped;
+  }
+
+  if (lower.includes('quota') || lower.includes('rate') || status === 429) {
+    wrapped.code = 'RATE_LIMIT';
+    wrapped.message = `Gemini rate limit / quota exceeded: ${rawMessage}`;
+    return wrapped;
+  }
+
+  wrapped.code = 'GEMINI';
+  wrapped.message = `Gemini API error: ${rawMessage}`;
+  return wrapped;
 }
 
 /**

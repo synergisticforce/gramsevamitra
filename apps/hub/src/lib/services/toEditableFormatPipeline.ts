@@ -187,35 +187,65 @@ export async function runVisionDocxExport(
       credentials: 'include',
       body: formData,
     });
+  } catch (err) {
+    window.clearInterval(stageTimer);
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new Error(`Network error contacting Vision layout API: ${detail}`);
   } finally {
     window.clearInterval(stageTimer);
   }
 
-  const payload = (await response.json()) as {
+  let payload: {
     success?: boolean;
     html?: string;
     fileName?: string;
     remainingCredits?: number;
     message?: string;
     error?: string;
+    detail?: string;
+    code?: string;
     requiredCredits?: number;
   };
 
+  try {
+    payload = (await response.json()) as typeof payload;
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      `Layout reconstruction failed: server returned non-JSON (HTTP ${response.status}). ${detail}`,
+    );
+  }
+
   if (response.status === 401 || response.status === 403) {
     promptProUpgradeForComplexLayout();
-    throw new Error(payload.message ?? 'Pro subscription required for layout-perfect Word export.');
+    throw new Error(
+      parseCreditApiError(
+        response.status,
+        payload,
+        'Pro subscription required for layout-perfect Word export.',
+      ),
+    );
   }
 
   if (!response.ok || !payload.success || typeof payload.html !== 'string') {
     throw new Error(
-      parseCreditApiError(response.status, payload, 'Vision layout reconstruction failed.'),
+      parseCreditApiError(
+        response.status,
+        payload,
+        `Layout reconstruction failed (HTTP ${response.status}).`,
+      ),
     );
   }
 
   onProgress({ label: 'Building styled Word document…', percent: 90 });
   const baseName = splitFilenameBase(payload.fileName || file.name);
-  const blob = await htmlToDocxBlob(payload.html, baseName);
-  triggerDocxDownload(blob, `${baseName}.docx`);
+  try {
+    const blob = await htmlToDocxBlob(payload.html, baseName);
+    triggerDocxDownload(blob, `${baseName}.docx`);
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new Error(`HTML-to-DOCX conversion failed: ${detail}`);
+  }
   onProgress({ label: 'Download started', percent: 100 });
 
   return {
