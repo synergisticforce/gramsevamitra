@@ -5,6 +5,7 @@ import type { EditableFormatTarget } from '../../lib/services/toEditableFormatPi
 import {
   EditableFormatProRequiredError,
   isProStructuralFormat,
+  isVisionDocxFormat,
   promptProUpgradeForComplexLayout,
   runProLayoutReconstruction,
   runToEditableFormatPipeline,
@@ -106,6 +107,13 @@ export default function ToEditableFormatPanel({
   }, [busy, disabled, file, isPro, onError, onProcessingChange, onSuccess, target]);
 
   const handleConvertClick = useCallback(() => {
+    if (isVisionDocxFormat(target) && isPro) {
+      requestProConfirm('reconstruct-layout', 'Vision layout Word export', () => {
+        void runConversion();
+      });
+      return;
+    }
+
     if (isProStructuralFormat(target) && isPro) {
       const label =
         target === 'xlsx'
@@ -135,7 +143,7 @@ export default function ToEditableFormatPanel({
           <div>
             <span className="text-sm font-semibold text-canvas-text">To Editable Format</span>
             <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-300">
-              Plain text &amp; Markdown free · Word smart-routed · spreadsheets Pro
+              Plain text &amp; Markdown free · Word preserves layout with Vision AI · spreadsheets Pro
             </p>
           </div>
         </div>

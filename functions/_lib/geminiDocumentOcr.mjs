@@ -10,6 +10,9 @@ export const DOCUMENT_OCR_MODEL = 'gemini-2.5-flash-lite';
 export const DOCUMENT_OCR_SYSTEM_PROMPT =
   'Extract all text from this document. Preserve layout structure perfectly. Render tables as clean Markdown tables. Return only the raw Markdown.';
 
+export const DOCUMENT_LAYOUT_HTML_PROMPT =
+  'Extract all content from this document and reconstruct its visual layout into clean HTML. Preserve exact typography hierarchy, font sizes, colors, table structures, margins, and inline styles so it visually matches the original design as closely as possible.';
+
 /** Max upload size for inline Gemini payloads (Workers memory + request limits). */
 export const DOCUMENT_OCR_MAX_BYTES = 12 * 1024 * 1024;
 
@@ -67,15 +70,53 @@ export function sanitizeMarkdownOutput(text) {
 }
 
 /**
+ * Strip accidental HTML fences and keep only the document fragment/body.
+ * @param {string} text
+ */
+export function sanitizeHtmlOutput(text) {
+  let out = (text || '').trim();
+  if (!out) return '';
+
+  const fenced = /^```(?:html|htm)?\s*\n([\s\S]*?)\n```$/i.exec(out);
+  if (fenced) {
+    out = fenced[1].trim();
+  }
+
+  const lower = out.toLowerCase();
+  if (lower.includes('<html') || lower.includes('<body')) {
+    const bodyMatch = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(out);
+    if (bodyMatch) {
+      out = bodyMatch[1].trim();
+    }
+  }
+
+  out = out
+    .replace(/<!DOCTYPE[^>]*>/gi, '')
+    .replace(/<\/?html[^>]*>/gi, '')
+    .replace(/<head[\s\S]*?<\/head>/gi, '')
+    .replace(/<\/?body[^>]*>/gi, '')
+    .trim();
+
+  return out;
+}
+
+/**
  * @param {{
  *   apiKey: string;
  *   mimeType: string;
  *   base64Data: string;
  *   fileName?: string;
+ *   prompt?: string;
  * }} input
  */
-export async function runGeminiDocumentOcr(input) {
-  const { apiKey, mimeType, base64Data, fileName = 'document' } = input;
+async function generateGeminiDocumentContent(input) {
+  const {
+    apiKey,
+    mimeType,
+    base64Data,
+    fileName = 'document',
+    prompt = DOCUMENT_OCR_SYSTEM_PROMPT,
+  } = input;
 
   if (!apiKey) {
     const err = new Error('GEMINI_API_KEY is not configured.');
@@ -104,7 +145,7 @@ export async function runGeminiDocumentOcr(input) {
       {
         role: 'user',
         parts: [
-          { text: DOCUMENT_OCR_SYSTEM_PROMPT },
+          { text: prompt },
           {
             inlineData: {
               mimeType: resolvedMime,
@@ -116,10 +157,25 @@ export async function runGeminiDocumentOcr(input) {
     ],
   });
 
-  const markdown = sanitizeMarkdownOutput(
-    typeof response.text === 'string' ? response.text : '',
-  );
+  const text = typeof response.text === 'string' ? response.text : '';
+  return { text, mimeType: resolvedMime };
+}
 
+/**
+ * @param {{
+ *   apiKey: string;
+ *   mimeType: string;
+ *   base64Data: string;
+ *   fileName?: string;
+ * }} input
+ */
+export async function runGeminiDocumentOcr(input) {
+  const { text, mimeType } = await generateGeminiDocumentContent({
+    ...input,
+    prompt: DOCUMENT_OCR_SYSTEM_PROMPT,
+  });
+
+  const markdown = sanitizeMarkdownOutput(text);
   if (!markdown) {
     const err = new Error('Vision AI returned empty text. Try a clearer scan.');
     err.code = 'EMPTY';
@@ -129,7 +185,36 @@ export async function runGeminiDocumentOcr(input) {
   return {
     markdown,
     model: DOCUMENT_OCR_MODEL,
-    mimeType: resolvedMime,
+    mimeType,
+  };
+}
+
+/**
+ * Layout-preserving HTML reconstruction for Word export.
+ * @param {{
+ *   apiKey: string;
+ *   mimeType: string;
+ *   base64Data: string;
+ *   fileName?: string;
+ * }} input
+ */
+export async function runGeminiDocumentLayoutHtml(input) {
+  const { text, mimeType } = await generateGeminiDocumentContent({
+    ...input,
+    prompt: DOCUMENT_LAYOUT_HTML_PROMPT,
+  });
+
+  const html = sanitizeHtmlOutput(text);
+  if (!html) {
+    const err = new Error('Vision AI returned empty layout HTML. Try a clearer scan.');
+    err.code = 'EMPTY';
+    throw err;
+  }
+
+  return {
+    html,
+    model: DOCUMENT_OCR_MODEL,
+    mimeType,
   };
 }
 

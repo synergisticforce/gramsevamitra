@@ -1,6 +1,7 @@
 import { openProUpgrade } from '@shared/lib/proUpgrade';
 import { parseCreditApiError } from '../auth/creditCheck';
-import { textToDocxBlob } from '../canvas/extractToWord';
+import { textToDocxBlob, triggerDocxDownload } from '../canvas/extractToWord';
+import { htmlToDocxBlob } from '../canvas/htmlToDocx';
 import {
   extractPdfTextInBrowser,
   isPdfEmbeddedTextThin,
@@ -34,8 +35,15 @@ export class EditableFormatProRequiredError extends Error {
 const PRO_LAYOUT_MESSAGE =
   'Advanced Layout Detected: This file contains structured table columns, multi-column metrics, or complex scan quality that require deep AI layout reconstruction. Upgrade to GramSeva Mitra Pro to perfectly preserve your text formatting grids, rows, and margins.';
 
+const LAYOUT_HTML_ENDPOINT = '/api/pro/document-layout-html';
+
 export function isProStructuralFormat(target: EditableFormatTarget): boolean {
   return target === 'xlsx' || target === 'csv' || target === 'xml';
+}
+
+/** Vision layout-preserving Word export (Gemini HTML → client DOCX). */
+export function isVisionDocxFormat(target: EditableFormatTarget): boolean {
+  return target === 'docx';
 }
 
 export function isRawTextFormat(target: EditableFormatTarget): target is 'txt' | 'md' {
@@ -70,19 +78,6 @@ function fileExtensionForTarget(target: EditableFormatTarget): string {
 async function compileDocxOutput(text: string, fileName: string): Promise<void> {
   const blob = await textToDocxBlob(text, splitFilenameBase(fileName));
   triggerDocxDownload(blob, fileName);
-}
-
-function triggerDocxDownload(blob: Blob, baseName: string): void {
-  const safe = splitFilenameBase(baseName).replace(/[^\w.-]+/g, '_') || 'extracted';
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = `${safe}.docx`;
-  anchor.rel = 'noopener';
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
 function compileRawTextOutput(text: string, target: 'txt' | 'md', fileName: string): void {
@@ -157,11 +152,87 @@ async function uploadForProReconstruction(file: File): Promise<{ objectKey: stri
   return { objectKey: payload.objectKey, fileName: payload.fileName ?? file.name };
 }
 
+/**
+ * Pro .docx path: Gemini Vision reconstructs HTML layout, then the browser
+ * builds a styled Word file with the local `docx` library.
+ */
+export async function runVisionDocxExport(
+  file: File,
+  onProgress: (progress: ToEditableFormatProgress) => void,
+): Promise<{ fileName: string; remainingCredits?: number }> {
+  onProgress({
+    label: 'Vision AI reconstructing layout…',
+    percent: 10,
+    subtitle: 'Preserving headings, colors, tables, and spacing for Word export.',
+  });
+
+  const stages = [
+    { label: 'Vision AI analyzing typography & structure…', percent: 28 },
+    { label: 'Rebuilding HTML layout…', percent: 52 },
+    { label: 'Compiling formatted Word document…', percent: 78 },
+  ];
+  let stageIndex = 0;
+  onProgress(stages[stageIndex]);
+  const stageTimer = window.setInterval(() => {
+    stageIndex = Math.min(stages.length - 1, stageIndex + 1);
+    onProgress(stages[stageIndex]);
+  }, 2800);
+
+  let response: Response;
+  try {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    response = await fetch(LAYOUT_HTML_ENDPOINT, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+  } finally {
+    window.clearInterval(stageTimer);
+  }
+
+  const payload = (await response.json()) as {
+    success?: boolean;
+    html?: string;
+    fileName?: string;
+    remainingCredits?: number;
+    message?: string;
+    error?: string;
+    requiredCredits?: number;
+  };
+
+  if (response.status === 401 || response.status === 403) {
+    promptProUpgradeForComplexLayout();
+    throw new Error(payload.message ?? 'Pro subscription required for layout-perfect Word export.');
+  }
+
+  if (!response.ok || !payload.success || typeof payload.html !== 'string') {
+    throw new Error(
+      parseCreditApiError(response.status, payload, 'Vision layout reconstruction failed.'),
+    );
+  }
+
+  onProgress({ label: 'Building styled Word document…', percent: 90 });
+  const baseName = splitFilenameBase(payload.fileName || file.name);
+  const blob = await htmlToDocxBlob(payload.html, baseName);
+  triggerDocxDownload(blob, `${baseName}.docx`);
+  onProgress({ label: 'Download started', percent: 100 });
+
+  return {
+    fileName: `${baseName}.docx`,
+    remainingCredits: payload.remainingCredits,
+  };
+}
+
 export async function runProLayoutReconstruction(
   file: File,
   target: EditableFormatTarget,
   onProgress: (progress: ToEditableFormatProgress) => void,
 ): Promise<{ fileName: string; remainingCredits?: number }> {
+  if (target === 'docx') {
+    return runVisionDocxExport(file, onProgress);
+  }
+
   onProgress({ label: 'Uploading for secure layout reconstruction…', percent: 8 });
   const { objectKey, fileName } = await uploadForProReconstruction(file);
 
@@ -215,6 +286,8 @@ export interface RunToEditableFormatOptions {
   onProgress: (progress: ToEditableFormatProgress) => void;
   onLargeFileNotice?: (visible: boolean) => void;
   autoPromptPro?: boolean;
+  /** When true, Pro .docx always uses Gemini layout HTML → client DOCX. */
+  preferVisionDocx?: boolean;
 }
 
 export async function runToEditableFormatPipeline(
@@ -222,7 +295,13 @@ export async function runToEditableFormatPipeline(
   target: EditableFormatTarget,
   options: RunToEditableFormatOptions,
 ): Promise<{ path: 'A' | 'B' | 'C'; fileName: string }> {
-  const { isPro, onProgress, onLargeFileNotice, autoPromptPro = true } = options;
+  const {
+    isPro,
+    onProgress,
+    onLargeFileNotice,
+    autoPromptPro = true,
+    preferVisionDocx = true,
+  } = options;
 
   onProgress({ label: 'Analyzing document structure…', percent: 4 });
   const layout = await analyzeDocumentLayout(file);
@@ -236,6 +315,12 @@ export async function runToEditableFormatPipeline(
       );
     }
     const result = await runProLayoutReconstruction(file, target, onProgress);
+    return { path: 'C', fileName: result.fileName };
+  }
+
+  // Pro .docx → Gemini visual layout HTML, then local styled DOCX download.
+  if (isVisionDocxFormat(target) && isPro && preferVisionDocx) {
+    const result = await runVisionDocxExport(file, onProgress);
     return { path: 'C', fileName: result.fileName };
   }
 
