@@ -86,6 +86,7 @@ npx wrangler pages secret put <NAME> --project-name=gramsevamitra-hub
 | `RAZORPAY_KEY_ID` | **Yes** (Pro billing) | `POST /api/billing/razorpay-order`, Checkout.js `key` |
 | `RAZORPAY_KEY_SECRET` | **Yes** (Pro billing) | Server-side order creation |
 | `RAZORPAY_WEBHOOK_SECRET` | **Yes** (Pro billing) | `POST /api/billing/razorpay-webhook` signature verification |
+| `GEMINI_API_KEY` | **Yes** (Vision OCR) | `POST /api/pro/document-ocr` — Gemini 2.5 Flash-Lite |
 | `TURNSTILE_SECRET_KEY` | **Yes** (contact form) | `POST /api/contact` bot verification |
 | `RESEND_API_KEY` | **Yes** (contact form) | Sends mail to `support@gramsevamitra.com` |
 

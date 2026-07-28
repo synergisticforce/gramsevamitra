@@ -13,7 +13,8 @@ export type ProOperationId =
   | 'file-converter'
   | 'smart-router'
   | 'ocr-orchestrator'
-  | 'reconstruct-layout';
+  | 'reconstruct-layout'
+  | 'document-ocr';
 
 export interface UserCreditsResponse {
   success?: boolean;

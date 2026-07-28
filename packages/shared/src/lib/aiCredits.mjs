@@ -12,6 +12,7 @@ export const PRO_OPERATION_COSTS = {
   'smart-router': 2,
   'ocr-orchestrator': 2,
   'reconstruct-layout': 2,
+  'document-ocr': 2,
 };
 
 export const PRO_OPERATION_LABELS = {
@@ -23,6 +24,7 @@ export const PRO_OPERATION_LABELS = {
   'smart-router': 'Smart Router',
   'ocr-orchestrator': 'Advanced OCR Pipeline',
   'reconstruct-layout': 'Layout Reconstruction',
+  'document-ocr': 'Vision AI Document Reader',
 };
 
 /**

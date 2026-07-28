@@ -51,6 +51,7 @@ import PhotoScannedPdfModal from './PhotoScannedPdfModal';
 import StripMetadataPdfModal from './StripMetadataPdfModal';
 import SignPdfModal from './SignPdfModal';
 import RedactPdfModal from './RedactPdfModal';
+import DocumentVisionOcrModal from './DocumentVisionOcrModal';
 
 type CanvasPhase = 'empty' | 'active';
 type ToolModal =
@@ -75,6 +76,7 @@ type ToolModal =
   | 'strip-metadata'
   | 'sign-pdf'
   | 'redact-pdf'
+  | 'vision-ocr'
   | null;
 
 interface ActiveFile {
@@ -269,8 +271,17 @@ export default function DocumentStudioCanvas() {
     [requireImageCanvasFile, requirePdfCanvasFile]
   );
 
+  const onProAction = useCallback((action: DocumentCanvasAction) => {
+    if (action.id === 'vision-ocr') {
+      setPdfModal('vision-ocr');
+      return;
+    }
+    setToastMessage(`${action.label} is coming soon.`);
+  }, []);
+
   const { handleActionClick, isPro } = useDocumentActionHandler({
     onFreeAction,
+    onProAction,
   });
 
   const onEditableProcessingChange = useCallback(
@@ -734,6 +745,20 @@ export default function DocumentStudioCanvas() {
           onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'vision-ocr' && (
+        <DocumentVisionOcrModal
+          initialFile={
+            activeFile?.file &&
+            (isPdfMimeOrName(activeFile.meta.type, activeFile.meta.name) ||
+              isImageMimeOrName(activeFile.meta.type, activeFile.meta.name))
+              ? activeFile.file
+              : null
+          }
+          onClose={closePdfModal}
+          onSuccess={setToastMessage}
         />
       )}
 
