@@ -12,6 +12,8 @@ concurrency:
 
 env:
   NODE_VERSION: '20'
+  CLOUDFLARE_PAGES_PROJECT: gramsevamitra-hub
+  CLOUDFLARE_PAGES_BRANCH: main
 
 jobs:
   build-and-verify:
@@ -62,6 +64,19 @@ jobs:
       - name: Deploy dry-run validation
         run: npm run deploy:dry-run
 
+      - name: Verify Pages output layout
+        run: |
+          test -d apps/hub/dist
+          test -f apps/hub/dist/_headers
+          test -d functions
+          grep -q 'camera=(self)' apps/hub/dist/_headers
+          echo "Pages output ready:"
+          echo "  project=${CLOUDFLARE_PAGES_PROJECT}"
+          echo "  branch=${CLOUDFLARE_PAGES_BRANCH}"
+          echo "  dist=apps/hub/dist"
+          echo "  functions=./functions"
+          ls -la apps/hub/dist | head -20
+
       - name: Upload hub artifact
         uses: actions/upload-artifact@v4
         with:
@@ -74,7 +89,9 @@ jobs:
     needs: build-and-verify
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production')
     runs-on: ubuntu-latest
-    environment: production
+    environment:
+      name: production
+      url: https://gramsevamitra.com
     permissions:
       contents: read
       deployments: write
@@ -88,9 +105,51 @@ jobs:
           name: hub-dist
           path: apps/hub/dist
 
+      - name: Verify deploy inputs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is missing. Add it under Settings → Secrets (and production environment if used) with Account:Read + Cloudflare Pages:Edit."
+            exit 1
+          fi
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID is missing. Add the Cloudflare account id secret for production deploys."
+            exit 1
+          fi
+          test -f wrangler.toml
+          test -d apps/hub/dist
+          test -f apps/hub/dist/_headers
+          test -d functions
+          grep -q 'pages_build_output_dir = "apps/hub/dist"' wrangler.toml
+          grep -q 'name = "gramsevamitra-hub"' wrangler.toml
+          echo "Deploy inputs verified for ${CLOUDFLARE_PAGES_PROJECT} (${CLOUDFLARE_PAGES_BRANCH})"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install wrangler for deploy
+        run: npm ci --ignore-scripts
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/hub/dist --project-name=gramsevamitra-hub --branch=main --config wrangler.toml
+          # Use wrangler.toml pages_build_output_dir (apps/hub/dist) so Functions at ./functions are included.
+          # Avoid passing a conflicting directory path alongside --config.
+          command: >-
+            pages deploy
+            --project-name=gramsevamitra-hub
+            --branch=main
+            --commit-dirty=true
+            --commit-hash=${{ github.sha }}
+            --config wrangler.toml
+          packageManager: npm
+          workingDirectory: .
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
