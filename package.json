@@ -33,9 +33,13 @@
     "cf:login": "node scripts/cf-auth.mjs --login",
     "db:create": "wrangler d1 create gramsevamitra-auth",
     "db:migrate:local": "wrangler d1 execute gramsevamitra-auth --local --file=schema.sql",
-    "db:migrate:remote": "wrangler d1 execute gramsevamitra-auth --remote --file=schema.sql"
+    "db:migrate:remote": "wrangler d1 execute gramsevamitra-auth --remote --file=schema.sql",
+    "cap:sync": "npm run build:hub && npx cap sync",
+    "cap:android": "npx cap open android",
+    "cap:ios": "npx cap open ios"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.0",
     "@playwright/test": "^1.50.1",
     "docx": "^9.7.1",
     "sharp": "^0.33.5",
@@ -46,6 +50,10 @@
   },
   "dependencies": {
     "@cantoo/pdf-lib": "^2.7.1",
+    "@capacitor-mlkit/document-scanner": "^8.1.0",
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
     "@google/genai": "^2.13.0",
     "@neondatabase/serverless": "^1.1.0",
     "aws4fetch": "^1.0.20",

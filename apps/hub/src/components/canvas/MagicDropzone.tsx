@@ -6,6 +6,8 @@ interface Props {
   onFileSelect: (file: File) => void;
   /** When 2+ files are selected at once, route to merge flow instead of single-file canvas. */
   onMultipleFilesSelect?: (files: File[]) => void;
+  /** Opens platform-aware document scanner (ML Kit on Android, web camera elsewhere). */
+  onScanDocument?: () => void;
   disabled?: boolean;
 }
 
@@ -16,7 +18,12 @@ function pickPrimaryFile(files: FileList | null): File | null {
   return pdf ?? list[0];
 }
 
-export default function MagicDropzone({ onFileSelect, onMultipleFilesSelect, disabled = false }: Props) {
+export default function MagicDropzone({
+  onFileSelect,
+  onMultipleFilesSelect,
+  onScanDocument,
+  disabled = false,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -113,6 +120,19 @@ export default function MagicDropzone({ onFileSelect, onMultipleFilesSelect, dis
           PDF, Word, or image files — processed locally in your browser. Select multiple PDFs to
           merge instantly.
         </p>
+        {onScanDocument && (
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={(event) => {
+              event.stopPropagation();
+              onScanDocument();
+            }}
+            className="mt-6 inline-flex items-center justify-center rounded-xl border border-canvas-border bg-canvas-elevated px-5 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent-muted disabled:opacity-60"
+          >
+            Scan with camera
+          </button>
+        )}
       </div>
 
       <div className="md:hidden">
@@ -132,6 +152,16 @@ export default function MagicDropzone({ onFileSelect, onMultipleFilesSelect, dis
           >
             Tap to Upload
           </button>
+          {onScanDocument && (
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={onScanDocument}
+              className="mt-3 inline-flex w-full max-w-sm items-center justify-center rounded-xl border border-canvas-border px-6 py-3.5 text-base font-semibold text-canvas-text transition hover:bg-canvas-elevated active:scale-[0.98] disabled:opacity-60"
+            >
+              Scan with camera
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -52,6 +52,7 @@ import StripMetadataPdfModal from './StripMetadataPdfModal';
 import SignPdfModal from './SignPdfModal';
 import RedactPdfModal from './RedactPdfModal';
 import DocumentVisionOcrModal from './DocumentVisionOcrModal';
+import DocumentCameraScanner from './DocumentCameraScanner';
 
 type CanvasPhase = 'empty' | 'active';
 type ToolModal =
@@ -98,6 +99,7 @@ export default function DocumentStudioCanvas() {
   const [hydrated, setHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [pdfModal, setPdfModal] = useState<ToolModal>(null);
+  const [cameraScannerOpen, setCameraScannerOpen] = useState(false);
   const [mergeInitialQueue, setMergeInitialQueue] = useState<File[] | null>(null);
   const [processing, setProcessing] = useState<ProcessingState>({
     active: false,
@@ -325,6 +327,19 @@ export default function DocumentStudioCanvas() {
     setPdfModal('merge');
   }, [activateFile]);
 
+  const handleScannedFiles = useCallback(
+    (files: File[]) => {
+      if (!files.length) return;
+      activateFile(files[0]);
+      setToastMessage(
+        files.length > 1
+          ? `Scanned ${files.length} pages — first page loaded on the canvas.`
+          : 'Document scanned — loaded on the canvas.',
+      );
+    },
+    [activateFile],
+  );
+
   const closePdfModal = useCallback(() => {
     setPdfModal(null);
     setMergeInitialQueue(null);
@@ -486,6 +501,7 @@ export default function DocumentStudioCanvas() {
           <MagicDropzone
             onFileSelect={activateFile}
             onMultipleFilesSelect={handleMultipleFilesFromDropzone}
+            onScanDocument={() => setCameraScannerOpen(true)}
           />
         )}
 
@@ -769,6 +785,13 @@ export default function DocumentStudioCanvas() {
           subtitle={processing.subtitle}
         />
       )}
+
+      <DocumentCameraScanner
+        open={cameraScannerOpen}
+        onClose={() => setCameraScannerOpen(false)}
+        onFilesCaptured={handleScannedFiles}
+        onError={setToastMessage}
+      />
 
       <CanvasToast message={toastMessage} onDismiss={dismissToast} />
       {proCreditModal}

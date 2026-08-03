@@ -14,3 +14,17 @@ tests/fixtures/output/
 tests/report/
 playwright/.cache/
 test-results/
+
+# Capacitor / native build artifacts
+android/.gradle/
+android/app/build/
+android/build/
+android/captures/
+android/local.properties
+android/.idea/
+ios/App/Pods/
+ios/App/build/
+ios/DerivedData/
+ios/**/*.xcuserdata/
+*.jks
+*.keystore
