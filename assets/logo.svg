@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="GramsevaMitra">
+  <rect width="512" height="512" fill="#4f46e5"/>
+  <!-- Centered geometric GM monogram with Play-safe margins -->
+  <g fill="#ffffff" fill-rule="evenodd">
+    <!-- Letter G -->
+    <path d="M196 128c-70.7 0-128 57.3-128 128s57.3 128 128 128c48.2 0 90.1-26.6 112-66l-52-30c-12.2 20.8-34.4 34.8-60 34.8-38.6 0-70-31.4-70-70s31.4-70 70-70c23.1 0 43.6 11.2 56.4 28.6L308 148c-27.3-28.2-65.6-46-112-46zm14 96h-64v48h36v28h56v-56c0-11-9-20-20-20h-8z"/>
+    <!-- Letter M -->
+    <path d="M292 152h52l40 96 40-96h52v208h-48V268l-36 88h-16l-36-88v92h-48V152z"/>
+  </g>
+</svg>
