@@ -2,7 +2,10 @@ import type { FileMetadata } from '../../shared/services/LocalVaultService';
 
 export interface FileCardProps {
   file: FileMetadata;
-  onShare: (file: FileMetadata) => void;
+  /** Optional override for the secondary line under the file name. */
+  subtitle?: string;
+  onOpen?: (file: FileMetadata) => void;
+  onShare?: (file: FileMetadata) => void;
   onDelete: (id: string) => void;
 }
 
@@ -28,48 +31,72 @@ function formatCreatedDate(timestamp: number): string {
 }
 
 function mimeGlyph(mimeType: string): string {
-  if (mimeType.startsWith('image/')) return '🖼️';
-  if (mimeType.startsWith('video/')) return '🎬';
-  if (mimeType === 'application/pdf') return '📄';
-  return '📎';
+  if (mimeType.startsWith('image/')) return 'IMG';
+  if (mimeType.startsWith('video/')) return 'VID';
+  if (mimeType === 'application/pdf') return 'PDF';
+  return 'FILE';
 }
 
-export default function FileCard({ file, onShare, onDelete }: FileCardProps) {
+export default function FileCard({
+  file,
+  subtitle,
+  onOpen,
+  onShare,
+  onDelete,
+}: FileCardProps) {
+  const metaLine = subtitle ?? `${formatFileSize(file.size)} · ${formatCreatedDate(file.created)}`;
+
   return (
     <article className="rounded-2xl border border-canvas-border bg-canvas-surface px-4 py-3 shadow-none">
-      <div className="flex items-start gap-3">
+      <button
+        type="button"
+        onClick={onOpen ? () => onOpen(file) : undefined}
+        disabled={!onOpen}
+        className={`flex w-full items-start gap-3 text-left ${
+          onOpen ? 'rounded-xl active:bg-canvas-elevated/60' : ''
+        }`}
+        aria-label={onOpen ? `Open ${file.name}` : undefined}
+      >
         <span
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-canvas-accent-soft text-xl"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-canvas-accent-soft text-[10px] font-bold tracking-wide text-canvas-text"
           aria-hidden="true"
         >
           {mimeGlyph(file.mimeType)}
         </span>
 
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 py-0.5">
           <h3 className="truncate text-sm font-semibold text-canvas-text">{file.name}</h3>
-          <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-300">
-            {formatFileSize(file.size)} · {formatCreatedDate(file.created)}
-          </p>
+          <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-300">{metaLine}</p>
         </div>
-      </div>
+      </button>
 
       <div className="mt-3 flex gap-2">
-        <button
-          type="button"
-          onClick={() => onShare(file)}
-          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-canvas-accent-muted px-3 py-2.5 text-xs font-semibold text-canvas-text transition hover:bg-canvas-accent/40 active:scale-[0.98]"
-          aria-label={`Share ${file.name}`}
-        >
-          <span aria-hidden="true">↗</span>
-          Share
-        </button>
+        {onOpen && (
+          <button
+            type="button"
+            onClick={() => onOpen(file)}
+            className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-canvas-accent-muted px-3 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 active:scale-[0.98]"
+            aria-label={`View ${file.name}`}
+          >
+            View
+          </button>
+        )}
+        {onShare && (
+          <button
+            type="button"
+            onClick={() => onShare(file)}
+            className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-canvas-border px-3 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-elevated active:scale-[0.98]"
+            aria-label={`Share ${file.name}`}
+          >
+            Share
+          </button>
+        )}
         <button
           type="button"
           onClick={() => onDelete(file.id)}
-          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-canvas-border px-3 py-2.5 text-xs font-semibold text-rose-200 transition hover:bg-canvas-danger-soft/30 active:scale-[0.98]"
+          className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-canvas-border px-3 py-2.5 text-sm font-semibold text-rose-200 transition hover:bg-canvas-danger-soft/30 active:scale-[0.98]"
           aria-label={`Delete ${file.name}`}
         >
-          <span aria-hidden="true">✕</span>
           Delete
         </button>
       </div>

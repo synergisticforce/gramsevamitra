@@ -265,7 +265,12 @@ export default function VaultScreen({
           <ul className="grid grid-cols-1 gap-3" aria-busy={busyId !== null}>
             {files.map((file) => (
               <li key={file.id} className={busyId === file.id ? 'opacity-60' : undefined}>
-                <FileCard file={file} onShare={handleShare} onDelete={handleDelete} />
+                <FileCard
+                  file={file}
+                  onOpen={isImageFile(file) ? (item) => setPreviewFile(item) : undefined}
+                  onShare={handleShare}
+                  onDelete={handleDelete}
+                />
               </li>
             ))}
           </ul>

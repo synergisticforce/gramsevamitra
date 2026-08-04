@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { localVaultService } from '../../shared/services/LocalVaultService';
+import { makeScanFileName } from '../../shared/lib/scanFileName';
 import { initMLKitScanner } from '../../shared/services/mlkitPreloader';
 
 export interface ScannerHookResult {
@@ -76,7 +77,8 @@ export function useDocumentScanner(): ScannerHookResult {
       }
 
       const blob = await blobFromUri(pdfUri);
-      await localVaultService.saveFile(blob, 'Scanned_Doc.pdf', 'application/pdf');
+      const fileName = makeScanFileName('application/pdf');
+      await localVaultService.saveFile(blob, fileName, 'application/pdf');
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       if (isUserCancellation(message)) {
