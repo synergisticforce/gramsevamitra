@@ -1,9 +1,8 @@
 ---
 /**
  * Capacitor-safe root entry.
- * Do not use Astro.redirect() — static builds bake absolute https:// URLs that
- * Android treats as external intents and opens in Chrome.
- * No imports here so Vite does not inject extra assets into this shell page.
+ * Target the explicit HTML file — directory URLs without a server often 404
+ * in the Android WebView asset loader and produce a black screen.
  */
 ---
 
@@ -15,7 +14,7 @@
     <meta name="robots" content="noindex" />
     <title>Loading…</title>
     <script is:inline>
-      window.location.replace('/workspace/documents/');
+      window.location.replace('/workspace/documents/index.html');
     </script>
   </head>
   <body></body>

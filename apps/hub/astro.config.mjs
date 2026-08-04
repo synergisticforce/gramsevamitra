@@ -18,7 +18,11 @@ const sharedRoot = path.resolve(__dirname, '../../packages/shared/src');
 export default defineConfig({
   site: 'https://gramsevamitra.com',
   output: 'static',
-  trailingSlash: 'ignore',
+  // Explicit directory + trailing slash so Capacitor always has .../index.html to open.
+  trailingSlash: 'always',
+  build: {
+    format: 'directory',
+  },
   integrations: [
     tailwind({ configFile: '../../packages/shared/tailwind.config.mjs' }),
     react(),

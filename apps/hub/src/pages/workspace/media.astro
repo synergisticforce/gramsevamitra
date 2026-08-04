@@ -1,17 +1,16 @@
 ---
-/** Relative redirect — avoid Astro static absolute URLs that escape Capacitor WebView. */
+/** Capacitor-safe relative redirect to an explicit HTML file. */
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="refresh" content="0;url=/workspace/image/" />
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>Loading…</title>
     <script is:inline>
-      window.location.replace('/workspace/image/');
+      window.location.replace('/workspace/image/index.html');
     </script>
   </head>
-  <body>
-    <a href="/workspace/image/">Continue to Image Studio</a>
-  </body>
+  <body></body>
 </html>

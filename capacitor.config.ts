@@ -2,15 +2,16 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 /**
  * Production Android/iOS shell — loads bundled `webDir` assets only.
- * Do NOT set `server.url` here: that forces a live-site load and often opens Chrome.
+ * Do NOT set `server.url` (that forces a live-site load / Chrome handoff).
  */
 const config: CapacitorConfig = {
   appId: 'com.gramsevamitra.app',
   appName: 'GramsevaMitra',
   webDir: 'apps/hub/dist',
   server: {
+    // https://localhost via WebViewAssetLoader — root-absolute /_astro/* paths resolve correctly.
     androidScheme: 'https',
-    // Keep OAuth / checkout navigations inside the WebView when needed.
+    hostname: 'localhost',
     allowNavigation: [
       'gramsevamitra.com',
       '*.gramsevamitra.com',
@@ -23,7 +24,6 @@ const config: CapacitorConfig = {
   },
   plugins: {
     CapacitorHttp: {
-      // Native HTTP so /api calls can reach Cloudflare from the local WebView origin.
       enabled: true,
     },
   },
