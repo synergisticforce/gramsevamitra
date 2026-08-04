@@ -1,7 +1,9 @@
+import { getSesConfigDiagnostics, sendSesAuthEmail } from '../_lib/sesMail.mjs';
+
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const RESEND_API_URL = 'https://api.resend.com/emails';
-const CONTACT_TO = 'support@gramsevamitra.com';
-const CONTACT_FROM = 'onboarding@resend.dev';
+const CONTACT_TO = 'contact@gramsevamitra.com';
+const CONTACT_FROM_RESEND = 'GramSeva Mitra <onboarding@resend.dev>';
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -43,7 +45,7 @@ async function verifyTurnstile(token, secret, remoteIp) {
   return result.success === true;
 }
 
-async function sendContactEmail({ resendKey, name, email, subject, message }) {
+function buildContactBodies({ name, email, subject, message }) {
   const html = `
     <h2>New contact request</h2>
     <p><strong>Name:</strong> ${escapeHtml(name)}</p>
@@ -54,6 +56,21 @@ async function sendContactEmail({ resendKey, name, email, subject, message }) {
     <p style="white-space:pre-wrap">${escapeHtml(message)}</p>
   `.trim();
 
+  const text = [
+    'New contact request',
+    `Name: ${name}`,
+    `Email: ${email}`,
+    `Subject: ${subject}`,
+    '',
+    message,
+  ].join('\n');
+
+  return { html, text };
+}
+
+async function sendViaResend({ resendKey, name, email, subject, message }) {
+  const { html } = buildContactBodies({ name, email, subject, message });
+
   const response = await fetch(RESEND_API_URL, {
     method: 'POST',
     headers: {
@@ -61,7 +78,7 @@ async function sendContactEmail({ resendKey, name, email, subject, message }) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: CONTACT_FROM,
+      from: CONTACT_FROM_RESEND,
       to: [CONTACT_TO],
       reply_to: email,
       subject: `New Contact Request: ${subject}`,
@@ -75,17 +92,37 @@ async function sendContactEmail({ resendKey, name, email, subject, message }) {
   }
 }
 
-export async function onRequestPost(context) {
-  const turnstileSecret = context.env.TURNSTILE_SECRET_KEY;
-  const resendKey = context.env.RESEND_API_KEY;
+async function sendViaSes(env, { name, email, subject, message }) {
+  const { html, text } = buildContactBodies({ name, email, subject, message });
+  const result = await sendSesAuthEmail(
+    {
+      to: CONTACT_TO,
+      subject: `New Contact Request: ${subject}`,
+      html,
+      text: `${text}\n\nReply-To: ${email}`,
+    },
+    env,
+  );
 
-  if (!turnstileSecret || !resendKey) {
+  if (!result.ok) {
+    throw new Error(result.reason || 'SES send failed');
+  }
+}
+
+export async function onRequestPost(context) {
+  const { request, env } = context;
+  const turnstileSecret = env.TURNSTILE_SECRET_KEY;
+  const resendKey = env.RESEND_API_KEY;
+  const sesDiagnostics = getSesConfigDiagnostics(env);
+  const mailConfigured = sesDiagnostics.configured || Boolean(resendKey);
+
+  if (!mailConfigured) {
     return jsonResponse({ success: false, error: 'Server configuration error.' }, 500);
   }
 
   let payload;
   try {
-    payload = await context.request.json();
+    payload = await request.json();
   } catch {
     return jsonResponse({ success: false, error: 'Invalid JSON payload.' }, 400);
   }
@@ -94,6 +131,7 @@ export async function onRequestPost(context) {
   const email = typeof payload.email === 'string' ? payload.email.trim() : '';
   const subject = typeof payload.subject === 'string' ? payload.subject.trim() : '';
   const message = typeof payload.message === 'string' ? payload.message.trim() : '';
+  const source = payload.source === 'app' ? 'app' : 'web';
   const turnstileToken =
     typeof payload['cf-turnstile-response'] === 'string'
       ? payload['cf-turnstile-response'].trim()
@@ -111,23 +149,44 @@ export async function onRequestPost(context) {
     return jsonResponse({ success: false, error: 'Message is too long (max 5000 characters).' }, 400);
   }
 
-  if (!turnstileToken) {
-    return jsonResponse({ success: false, error: 'Security verification failed. Please try again.' }, 400);
-  }
-
-  const remoteIp = context.request.headers.get('CF-Connecting-IP') ?? undefined;
-  const turnstileOk = await verifyTurnstile(turnstileToken, turnstileSecret, remoteIp);
-
-  if (!turnstileOk) {
-    return jsonResponse({ success: false, error: 'Security verification failed. Please try again.' }, 403);
+  // Web contact page keeps Turnstile; in-app Settings form uses source=app.
+  if (source !== 'app') {
+    if (!turnstileSecret) {
+      return jsonResponse({ success: false, error: 'Server configuration error.' }, 500);
+    }
+    if (!turnstileToken) {
+      return jsonResponse(
+        { success: false, error: 'Security verification failed. Please try again.' },
+        400,
+      );
+    }
+    const remoteIp = request.headers.get('CF-Connecting-IP') ?? undefined;
+    const turnstileOk = await verifyTurnstile(turnstileToken, turnstileSecret, remoteIp);
+    if (!turnstileOk) {
+      return jsonResponse(
+        { success: false, error: 'Security verification failed. Please try again.' },
+        403,
+      );
+    }
   }
 
   try {
-    await sendContactEmail({ resendKey, name, email, subject, message });
-    return jsonResponse({ success: true, message: 'Message sent successfully!' });
+    if (sesDiagnostics.configured) {
+      await sendViaSes(env, { name, email, subject, message });
+    } else {
+      await sendViaResend({ resendKey, name, email, subject, message });
+    }
+
+    return jsonResponse({
+      success: true,
+      message: `Message sent successfully to ${CONTACT_TO}!`,
+    });
   } catch (err) {
     console.error('[contact]', err);
-    return jsonResponse({ success: false, error: 'Unable to send your message. Please try again later.' }, 502);
+    return jsonResponse(
+      { success: false, error: 'Unable to send your message. Please try again later.' },
+      502,
+    );
   }
 }
 
