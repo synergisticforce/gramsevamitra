@@ -12,11 +12,15 @@ import {
   type FileMetadata,
 } from '../../shared/services/LocalVaultService';
 import { makeScanFileName } from '../../shared/lib/scanFileName';
+import { SCAN_FILTERS, enhanceScan, type ScanFilter } from '../../lib/canvas/scanEnhance';
 import FileCard from '../components/FileCard';
 import VaultImageViewer from '../components/VaultImageViewer';
 import MobileToolSheet from '../components/MobileToolSheet';
 
 interface PendingCapture {
+  /** Untouched capture, kept so filters can be re-applied without quality loss. */
+  original: File;
+  /** Enhanced result that actually gets saved. */
   file: File;
   previewUrl: string;
 }
@@ -68,6 +72,8 @@ export default function ScanHomeScreen() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toolTarget, setToolTarget] = useState<{ file: File; name: string } | null>(null);
   const [processing, setProcessing] = useState<{ label: string; percent: number } | null>(null);
+  const [scanFilter, setScanFilter] = useState<ScanFilter>('auto');
+  const [enhancing, setEnhancing] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -120,17 +126,80 @@ export default function ScanHomeScreen() {
     };
   }, []);
 
-  /** Queue every captured page — a multi-page scan must never drop pages. */
-  const queueCaptures = useCallback((incoming: File[]) => {
-    const next = incoming.map((file) => ({ file, previewUrl: URL.createObjectURL(file) }));
-    if (next.length === 0) return;
-    setPending((current) => {
-      current.forEach((item) => URL.revokeObjectURL(item.previewUrl));
-      return next;
-    });
-    setPreviewIndex(0);
-    setError(null);
-  }, []);
+  /**
+   * Queue every captured page — a multi-page scan must never drop pages.
+   * Photos are run through the active scan filter so the preview matches
+   * exactly what will be saved.
+   */
+  const queueCaptures = useCallback(
+    async (incoming: File[]) => {
+      if (incoming.length === 0) return;
+      setError(null);
+      setEnhancing(true);
+
+      try {
+        const next: PendingCapture[] = [];
+        for (const original of incoming) {
+          const isPhoto = resolveCaptureMime(original).startsWith('image/');
+          let processed = original;
+          if (isPhoto) {
+            try {
+              processed = await enhanceScan(original, scanFilter);
+            } catch (err) {
+              console.warn('[ScanHomeScreen] enhance failed, keeping original:', err);
+            }
+          }
+          next.push({ original, file: processed, previewUrl: URL.createObjectURL(processed) });
+        }
+
+        setPending((current) => {
+          current.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+          return next;
+        });
+        setPreviewIndex(0);
+      } finally {
+        setEnhancing(false);
+      }
+    },
+    [scanFilter],
+  );
+
+  /** Re-run every queued page through a newly chosen filter. */
+  const changeScanFilter = useCallback(
+    async (filter: ScanFilter) => {
+      setScanFilter(filter);
+      if (pending.length === 0) return;
+
+      setEnhancing(true);
+      try {
+        const next: PendingCapture[] = [];
+        for (const item of pending) {
+          const isPhoto = resolveCaptureMime(item.original).startsWith('image/');
+          let processed = item.original;
+          if (isPhoto) {
+            try {
+              processed = await enhanceScan(item.original, filter);
+            } catch (err) {
+              console.warn('[ScanHomeScreen] filter change failed:', err);
+            }
+          }
+          next.push({
+            original: item.original,
+            file: processed,
+            previewUrl: URL.createObjectURL(processed),
+          });
+        }
+
+        setPending((current) => {
+          current.forEach((entry) => URL.revokeObjectURL(entry.previewUrl));
+          return next;
+        });
+      } finally {
+        setEnhancing(false);
+      }
+    },
+    [pending],
+  );
 
   const handleFilesCaptured = useCallback(
     (captured: File[]) => {
@@ -138,7 +207,7 @@ export default function ScanHomeScreen() {
         setError('No page was captured. Please try again.');
         return;
       }
-      queueCaptures(captured);
+      void queueCaptures(captured);
     },
     [queueCaptures],
   );
@@ -148,7 +217,7 @@ export default function ScanHomeScreen() {
       const picked = Array.from(event.target.files ?? []);
       event.target.value = '';
       if (picked.length === 0) return;
-      queueCaptures(picked);
+      void queueCaptures(picked);
     },
     [queueCaptures],
   );
@@ -456,6 +525,39 @@ export default function ScanHomeScreen() {
             )}
           </div>
 
+          <div
+            className="mx-auto mt-3 flex w-full max-w-lg gap-2 overflow-x-auto pb-1"
+            role="group"
+            aria-label="Scan filter"
+          >
+            {SCAN_FILTERS.map((option) => {
+              const isActive = scanFilter === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => void changeScanFilter(option.id)}
+                  disabled={saving || enhancing}
+                  title={option.hint}
+                  aria-pressed={isActive}
+                  className={`inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border px-4 text-sm font-semibold transition disabled:opacity-50 ${
+                    isActive
+                      ? 'border-white bg-white text-slate-900'
+                      : 'border-white/25 text-white hover:bg-white/10'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {enhancing && (
+            <p className="mx-auto mt-2 w-full max-w-lg text-xs font-medium text-slate-300" role="status">
+              Improving the page…
+            </p>
+          )}
+
           {pending.length > 1 && (
             <div className="mx-auto mt-3 flex w-full max-w-lg items-center justify-between gap-3">
               <button
@@ -487,7 +589,7 @@ export default function ScanHomeScreen() {
               <button
                 type="button"
                 onClick={() => void handleSaveAsPdf()}
-                disabled={saving}
+                disabled={saving || enhancing}
                 className="inline-flex min-h-14 w-full items-center justify-center rounded-2xl bg-indigo-500 px-5 text-base font-bold text-white transition hover:bg-indigo-400 disabled:opacity-60"
               >
                 {saving
@@ -501,7 +603,7 @@ export default function ScanHomeScreen() {
               <button
                 type="button"
                 onClick={clearPending}
-                disabled={saving}
+                disabled={saving || enhancing}
                 className="inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl border border-white/25 px-5 text-base font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
               >
                 Retake
@@ -509,7 +611,7 @@ export default function ScanHomeScreen() {
               <button
                 type="button"
                 onClick={() => void handleSave()}
-                disabled={saving}
+                disabled={saving || enhancing}
                 className="inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl border border-white/25 px-5 text-base font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
               >
                 {saving
