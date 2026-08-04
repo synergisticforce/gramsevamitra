@@ -50,6 +50,7 @@
   },
   "dependencies": {
     "@cantoo/pdf-lib": "^2.7.1",
+    "@capacitor-community/media": "^9.1.0",
     "@capacitor-mlkit/document-scanner": "^8.1.0",
     "@capacitor/android": "^8.5.0",
     "@capacitor/core": "^8.5.0",
@@ -59,6 +60,7 @@
     "@capacitor/share": "^8.0.1",
     "@google/genai": "^2.13.0",
     "@neondatabase/serverless": "^1.1.0",
+    "@whiteguru/capacitor-plugin-video-editor": "^8.0.2",
     "aws4fetch": "^1.0.20",
     "better-auth": "^1.2.9",
     "pdfjs-dist": "^4.10.38",
