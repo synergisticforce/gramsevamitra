@@ -28,3 +28,5 @@ ios/DerivedData/
 ios/**/*.xcuserdata/
 *.jks
 *.keystore
+android/app/keystore.properties
+android/app/release.keystore

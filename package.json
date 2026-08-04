@@ -37,7 +37,8 @@
     "cap:sync": "npm run build:hub && npx cap sync",
     "cap:android": "npx cap open android",
     "cap:ios": "npx cap open ios",
-    "generate-assets": "capacitor-assets generate --assetPath assets --android --ios --androidProject android --iosProject ios/App --iconBackgroundColor '#4f46e5' --iconBackgroundColorDark '#312e81' --splashBackgroundColor '#ffffff' --splashBackgroundColorDark '#121214'"
+    "generate-assets": "capacitor-assets generate --assetPath assets --android --ios --androidProject android --iosProject ios/App --iconBackgroundColor '#4f46e5' --iconBackgroundColorDark '#312e81' --splashBackgroundColor '#ffffff' --splashBackgroundColorDark '#121214'",
+    "android:bundle": "npm run cap:sync && cd android && ./gradlew bundleRelease"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
