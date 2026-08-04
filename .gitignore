@@ -6,6 +6,10 @@ dist/
 .env.production
 .env.*
 !.env.example
+*.pem
+*.p12
+credentials.json
+secrets/
 .gramseva_knowledge/OUTPUTS/
 .DS_Store
 *.log
