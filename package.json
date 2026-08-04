@@ -49,7 +49,7 @@
     "wrangler": "^3.114.0"
   },
   "engines": {
-    "node": ">=18.17.0"
+    "node": ">=22.0.0"
   },
   "dependencies": {
     "@cantoo/pdf-lib": "^2.7.1",
