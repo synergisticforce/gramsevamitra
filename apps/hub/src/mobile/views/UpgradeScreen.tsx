@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PRO_PRICE_INTERVAL, PRO_PRICE_LABEL } from '@shared/lib/proUpgrade';
 import { paymentGatekeeper } from '../../shared/services/PaymentGatekeeper';
 
 const TEST_RAZORPAY_LINK = 'https://rzp.io/l/test-link';
@@ -50,8 +51,8 @@ export default function UpgradeScreen() {
       <div className="rounded-2xl border border-canvas-border bg-canvas-surface px-5 py-5">
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-300">Annual Pass</p>
         <p className="mt-1 text-3xl font-extrabold tabular-nums text-canvas-text">
-          ₹499
-          <span className="text-base font-semibold text-slate-300">/year</span>
+          {PRO_PRICE_LABEL}
+          <span className="text-base font-semibold text-slate-300">{PRO_PRICE_INTERVAL}</span>
         </p>
 
         <ul className="mt-5 space-y-2.5">
