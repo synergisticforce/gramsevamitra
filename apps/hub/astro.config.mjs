@@ -14,7 +14,6 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sharedRoot = path.resolve(__dirname, '../../packages/shared/src');
-const UTILITIES_ORIGIN = 'https://utilities.gramsevamitra.com';
 
 export default defineConfig({
   site: 'https://gramsevamitra.com',
@@ -37,33 +36,37 @@ export default defineConfig({
     AstroPWA({
       registerType: 'autoUpdate',
       injectRegister: null,
-      includeAssets: ['favicon.svg', 'robots.txt', 'pwa-192.png', 'pwa-512.png'],
+      includeAssets: ['favicon.svg', 'robots.txt', 'pwa-192.png', 'pwa-512.png', 'manifest.json'],
       manifest: {
-        name: 'GramSeva Mitra Utilities',
-        short_name: 'Utilities',
-        description: 'Your free global document and productivity toolkit — offline calculators, trackers, and career tools.',
-        theme_color: '#121214',
-        background_color: '#121214',
+        name: 'GramsevaMitra',
+        short_name: 'Gramseva',
+        description:
+          'AI-powered document, image, and video toolkit for India — scan, convert, and work offline.',
+        theme_color: '#4f46e5',
+        background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait-primary',
-        scope: `${UTILITIES_ORIGIN}/`,
-        start_url: `${UTILITIES_ORIGIN}/tools`,
+        scope: '/',
+        start_url: '/',
+        lang: 'en-IN',
         icons: [
           {
             src: '/pwa-192.png',
             sizes: '192x192',
             type: 'image/png',
+            purpose: 'any',
           },
           {
             src: '/pwa-512.png',
             sizes: '512x512',
             type: 'image/png',
+            purpose: 'any',
           },
           {
             src: '/pwa-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable',
+            purpose: 'maskable',
           },
         ],
       },
