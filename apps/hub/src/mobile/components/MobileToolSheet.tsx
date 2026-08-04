@@ -23,6 +23,7 @@ const DeskewPdfModal = lazy(() => import('../../components/canvas/DeskewPdfModal
 const PdfToImageModal = lazy(() => import('../../components/canvas/PdfToImageModal'));
 const ImageToPdfModal = lazy(() => import('../../components/canvas/ImageToPdfModal'));
 const PhotoScannedPdfModal = lazy(() => import('../../components/canvas/PhotoScannedPdfModal'));
+const SearchablePdfModal = lazy(() => import('../../components/canvas/SearchablePdfModal'));
 
 /** Tools that need a second file or a desktop-sized canvas are left out. */
 const MOBILE_EXCLUDED = new Set(['merge', 'type-save', 'to-editable-format', 'vision-ocr']);
@@ -101,6 +102,7 @@ export default function MobileToolSheet({
         {activeTool === 'pdf-to-image' && <PdfToImageModal {...modalProps} />}
         {activeTool === 'image-to-pdf' && <ImageToPdfModal {...modalProps} />}
         {activeTool === 'photo-scanned-pdf' && <PhotoScannedPdfModal {...modalProps} />}
+        {activeTool === 'searchable-pdf' && <SearchablePdfModal {...modalProps} />}
       </Suspense>
     );
   }

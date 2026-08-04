@@ -52,6 +52,7 @@ import StripMetadataPdfModal from './StripMetadataPdfModal';
 import SignPdfModal from './SignPdfModal';
 import RedactPdfModal from './RedactPdfModal';
 import DocumentVisionOcrModal from './DocumentVisionOcrModal';
+import SearchablePdfModal from './SearchablePdfModal';
 import DocumentCameraScanner from './DocumentCameraScanner';
 
 type CanvasPhase = 'empty' | 'active';
@@ -78,6 +79,7 @@ type ToolModal =
   | 'sign-pdf'
   | 'redact-pdf'
   | 'vision-ocr'
+  | 'searchable-pdf'
   | null;
 
 interface ActiveFile {
@@ -266,6 +268,11 @@ export default function DocumentStudioCanvas() {
       if (action.id === 'redact-pdf') {
         if (!requirePdfCanvasFile()) return;
         setPdfModal('redact-pdf');
+        return;
+      }
+      if (action.id === 'searchable-pdf') {
+        if (!requireCanvasFile()) return;
+        setPdfModal('searchable-pdf');
         return;
       }
       setToastMessage(`${action.label} is coming soon.`);
@@ -758,6 +765,15 @@ export default function DocumentStudioCanvas() {
       {pdfModal === 'redact-pdf' && canvasPdfFile && (
         <RedactPdfModal
           file={canvasPdfFile}
+          onClose={closePdfModal}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {pdfModal === 'searchable-pdf' && activeFile?.file && (
+        <SearchablePdfModal
+          file={activeFile.file}
           onClose={closePdfModal}
           onSuccess={setToastMessage}
           onProcessingChange={onProcessingChange}

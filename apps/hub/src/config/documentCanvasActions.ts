@@ -101,6 +101,14 @@ export const DOCUMENT_CANVAS_ACTIONS: DocumentCanvasAction[] = [
       'Advanced Layout Detected: structured table columns, multi-column metrics, or complex scan quality require deep AI layout reconstruction.',
   },
   {
+    id: 'searchable-pdf',
+    label: 'Make Searchable',
+    icon: '🔍',
+    tier: 'free',
+    badge: 'New',
+    mimePatterns: ['application/pdf', 'image/'],
+  },
+  {
     id: 'vision-ocr',
     label: 'Vision AI Extract',
     icon: '👁️',

@@ -270,6 +270,7 @@ export function triggerPdfDownload(
     | '_repaired'
     | '_signed'
     | '_stripped'
+    | '_searchable'
 ): void {
   downloadPdfBytes(bytes, filename, toolSuffix);
 }
