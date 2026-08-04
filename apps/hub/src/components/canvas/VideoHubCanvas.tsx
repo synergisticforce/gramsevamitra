@@ -6,6 +6,7 @@ import {
   saveVideoActiveTool,
 } from '../../lib/canvas/videoCanvasStorage';
 import { formatFileSize } from '../../lib/canvas/documentCanvasStorage';
+import { FFMPEG_ENGINE_MB } from '../../lib/video/ffmpegClient';
 import { VIDEO_PROCESSING_SUBTITLE } from '../../lib/video/videoMemoryLimits';
 import type { VideoJobProgress } from '../../lib/video/videoProcess';
 import CanvasProcessingOverlay from './CanvasProcessingOverlay';
@@ -128,8 +129,12 @@ export default function VideoHubCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-white sm:text-3xl">Video Studio</h1>
               <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-                Nine video tools — trim, compress, convert, watermark, change speed, extract audio or frames, mute, or create GIFs. Processed
-                privately on your device; videos never touch our servers.
+                Nine video tools — trim, compress, convert, watermark, change speed, extract audio or frames, mute, or create GIFs. Your
+                videos are processed on your device and never uploaded.
+              </p>
+              <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">
+                First use downloads a {FFMPEG_ENGINE_MB} MB video engine once — best on Wi-Fi. After
+                that, video editing works offline.
               </p>
             </div>
           </div>

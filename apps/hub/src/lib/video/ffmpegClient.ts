@@ -5,10 +5,25 @@ import { deliverFile } from '@shared/utils/fileDelivery';
 const FFMPEG_CORE_VERSION = '0.12.6';
 const FFMPEG_CDN = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/esm`;
 
+/** Size of the one-time video engine download, surfaced in the UI. */
+export const FFMPEG_ENGINE_MB = 32;
+
 let ffmpegInstance: FFmpeg | null = null;
 let loadPromise: Promise<FFmpeg> | null = null;
 
 export type FfmpegProgressHandler = (ratio: number) => void;
+
+/** True once the engine is in memory, so callers can skip the data warning. */
+export function isFfmpegReady(): boolean {
+  return Boolean(ffmpegInstance?.loaded);
+}
+
+export class FfmpegUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'FfmpegUnavailableError';
+  }
+}
 
 export async function getFfmpeg(onProgress?: FfmpegProgressHandler): Promise<FFmpeg> {
   if (ffmpegInstance?.loaded) {
@@ -16,6 +31,12 @@ export async function getFfmpeg(onProgress?: FfmpegProgressHandler): Promise<FFm
       ffmpegInstance.on('progress', ({ progress }) => onProgress(progress));
     }
     return ffmpegInstance;
+  }
+
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    throw new FfmpegUnavailableError(
+      `Video tools need a one-time ${FFMPEG_ENGINE_MB} MB download and you are offline. Connect to Wi-Fi once, then video editing works without internet.`,
+    );
   }
 
   if (!loadPromise) {
@@ -30,9 +51,25 @@ export async function getFfmpeg(onProgress?: FfmpegProgressHandler): Promise<FFm
       ffmpegInstance = ffmpeg;
       return ffmpeg;
     })();
+
+    // Without clearing the cached promise, one failed download poisoned every
+    // later attempt for the whole session — even after the network came back.
+    loadPromise.catch(() => {
+      loadPromise = null;
+      ffmpegInstance = null;
+    });
   }
 
-  const ffmpeg = await loadPromise;
+  let ffmpeg: FFmpeg;
+  try {
+    ffmpeg = await loadPromise;
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new FfmpegUnavailableError(
+      `Could not load the video engine (${FFMPEG_ENGINE_MB} MB one-time download). Check your connection and try again. ${detail}`,
+    );
+  }
+
   if (onProgress) {
     ffmpeg.on('progress', ({ progress }) => onProgress(progress));
   }

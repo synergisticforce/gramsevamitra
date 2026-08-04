@@ -68,6 +68,28 @@ export default defineConfig({
             },
           },
           {
+            // The FFmpeg engine is a 32 MB one-time download; cache it so video
+            // tools keep working offline after the first successful use.
+            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/npm\/@ffmpeg\/core@.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'ffmpeg-core-cache',
+              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+              rangeRequests: true,
+            },
+          },
+          {
+            // Tesseract OCR worker, wasm core, and language data.
+            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/npm\/(tesseract\.js|@tesseract\.js-data).*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'tesseract-cache',
+              expiration: { maxEntries: 24, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
