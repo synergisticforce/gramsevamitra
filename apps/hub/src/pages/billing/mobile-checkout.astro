@@ -1,0 +1,114 @@
+---
+import AppShellLayout from '../../layouts/AppShellLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+
+const pageTitle = formatSeoTitle('Secure Checkout', 'GramSeva Mitra');
+---
+
+<AppShellLayout
+  title={pageTitle}
+  description="Complete your GramSeva Mitra Pro payment securely via Razorpay."
+  activeWorkspace="documents"
+>
+  <div class="px-4 py-12 text-center sm:px-6 sm:py-16">
+    <p class="text-5xl" aria-hidden="true">🔒</p>
+    <h1 class="mt-4 text-2xl font-bold text-canvas-text sm:text-3xl">Secure Pro checkout</h1>
+    <p id="checkout-status" class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-canvas-muted">
+      Preparing Razorpay… Do not close this tab until payment completes.
+    </p>
+    <p id="checkout-error" class="mx-auto mt-4 hidden max-w-md rounded-xl border border-canvas-border bg-canvas-danger-soft/30 px-3 py-2 text-sm text-rose-200" role="alert"></p>
+    <div class="mt-8">
+      <a
+        href="/workspace/documents"
+        class="inline-flex items-center justify-center rounded-lg border border-canvas-border bg-canvas-surface px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated"
+      >
+        Cancel and return
+      </a>
+    </div>
+  </div>
+</AppShellLayout>
+
+<script is:inline src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  const statusEl = document.getElementById('checkout-status');
+  const errorEl = document.getElementById('checkout-error');
+  const params = new URLSearchParams(window.location.search);
+  const keyId = params.get('keyId');
+  const orderId = params.get('orderId');
+  const amount = Number(params.get('amount') || '0');
+  const currency = params.get('currency') || 'INR';
+
+  function showError(message) {
+    if (statusEl) statusEl.textContent = 'Checkout could not start.';
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.classList.remove('hidden');
+    }
+  }
+
+  async function verifyOnServer(payment) {
+    const response = await fetch('/api/billing/verify-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        orderId: payment.razorpay_order_id,
+        paymentId: payment.razorpay_payment_id,
+        signature: payment.razorpay_signature,
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok && !result.proActive && !result.alreadyPro) {
+      throw new Error(result.error || 'Payment verification failed.');
+    }
+    return result;
+  }
+
+  async function startCheckout() {
+    if (!keyId || !orderId || !amount) {
+      showError('Missing checkout parameters. Return to the app and try again.');
+      return;
+    }
+
+    if (!window.Razorpay) {
+      showError('Razorpay Checkout failed to load. Check your connection.');
+      return;
+    }
+
+    const rzp = new window.Razorpay({
+      key: keyId,
+      amount,
+      currency,
+      name: 'GramSeva Mitra',
+      description: 'Pro Annual Pass',
+      order_id: orderId,
+      theme: { color: '#0f172a' },
+      handler: async function (payment) {
+        try {
+          if (statusEl) statusEl.textContent = 'Payment received — activating Pro…';
+          await verifyOnServer(payment);
+          const success = new URL('/billing/success/', window.location.origin);
+          success.searchParams.set('payment_id', payment.razorpay_payment_id);
+          success.searchParams.set('order_id', payment.razorpay_order_id);
+          window.location.replace(success.toString());
+        } catch (err) {
+          showError(err instanceof Error ? err.message : 'Could not activate Pro.');
+        }
+      },
+      modal: {
+        ondismiss: function () {
+          if (statusEl) statusEl.textContent = 'Checkout cancelled. You can close this tab and return to the app.';
+        },
+      },
+    });
+
+    rzp.on('payment.failed', function () {
+      showError('Payment failed. Please try again or use another method.');
+    });
+
+    if (statusEl) statusEl.textContent = 'Opening Razorpay… Complete UPI or card payment securely.';
+    rzp.open();
+  }
+
+  startCheckout();
+</script>

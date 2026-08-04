@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { PRO_PRICE_INTERVAL, PRO_PRICE_LABEL } from '@shared/lib/proUpgrade';
 import { paymentGatekeeper } from '../../shared/services/PaymentGatekeeper';
 
-const TEST_RAZORPAY_LINK = 'https://rzp.io/l/test-link';
-
 const PRO_FEATURES = [
   'Unlock Gemini AI conversions: PDF to Word / Excel',
   'Priority cloud layout reconstruction for large scans',
@@ -22,10 +20,26 @@ export default function UpgradeScreen() {
     setStatus(null);
 
     try {
-      await paymentGatekeeper.initiateCheckout(TEST_RAZORPAY_LINK);
-      setStatus('Secure checkout opened. Complete UPI or card payment, then return to the app.');
+      const session = await paymentGatekeeper.createMobileCheckoutSession('mobile_pro_upgrade');
+      setStatus('Opening secure Razorpay checkout…');
+      await paymentGatekeeper.initiateCheckout(session.checkoutUrl);
+      setStatus('Waiting for payment confirmation…');
+      await paymentGatekeeper.waitForBrowserClosed();
+
+      const activated = await paymentGatekeeper.waitForProActivation({
+        orderId: session.orderId,
+        maxMs: 45000,
+      });
+
+      if (activated) {
+        setStatus('Welcome to Pro! Your account is upgraded.');
+      } else {
+        setStatus(
+          'Payment may still be processing. If you completed checkout, reopen the app in a moment or contact support.',
+        );
+      }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unable to open checkout.';
+      const message = err instanceof Error ? err.message : 'Unable to start Pro upgrade.';
       console.warn('[UpgradeScreen] checkout failed:', message);
       setError(message);
     } finally {
@@ -76,11 +90,12 @@ export default function UpgradeScreen() {
         disabled={busy}
         className="inline-flex w-full items-center justify-center rounded-2xl bg-canvas-accent-muted px-6 py-4 text-base font-bold text-canvas-text transition hover:bg-canvas-accent/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {busy ? 'Opening secure checkout…' : 'Upgrade to Pro (UPI/Cards)'}
+        {busy ? 'Processing checkout…' : 'Upgrade to Pro (UPI/Cards)'}
       </button>
 
       <p className="text-center text-[11px] font-medium leading-relaxed text-slate-300">
         Checkout opens in a native browser tab so GPay, PhonePe, and cards work reliably on Android.
+        Pro activates after secure server-side signature verification.
       </p>
 
       {error && (

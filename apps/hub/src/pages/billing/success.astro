@@ -33,13 +33,48 @@ const pageTitle = formatSeoTitle('Welcome to Pro', 'GramSeva Mitra');
 
 <script>
   const params = new URLSearchParams(window.location.search);
-  const paymentId = params.get('payment_id');
-  const orderId = params.get('order_id');
+  const paymentId =
+    params.get('payment_id') ||
+    params.get('razorpay_payment_id');
+  const orderId =
+    params.get('order_id') ||
+    params.get('razorpay_order_id');
+  const signature =
+    params.get('signature') ||
+    params.get('razorpay_signature');
   const hint = document.getElementById('session-hint');
-  if (hint && (paymentId || orderId)) {
-    const parts = [];
-    if (paymentId) parts.push(`Payment: ${paymentId.slice(0, 20)}…`);
-    if (orderId) parts.push(`Order: ${orderId.slice(0, 20)}…`);
-    hint.textContent = parts.join(' · ');
+
+  async function confirmIfPossible() {
+    if (!paymentId || !orderId || !signature) {
+      if (hint && (paymentId || orderId)) {
+        const parts = [];
+        if (paymentId) parts.push(`Payment: ${paymentId.slice(0, 20)}…`);
+        if (orderId) parts.push(`Order: ${orderId.slice(0, 20)}…`);
+        hint.textContent = parts.join(' · ');
+      }
+      return;
+    }
+
+    if (hint) hint.textContent = 'Confirming Pro on your account…';
+    try {
+      const response = await fetch('/api/billing/verify-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ orderId, paymentId, signature }),
+      });
+      const result = await response.json();
+      if (hint) {
+        if (result.proActive || result.alreadyPro) {
+          hint.textContent = 'Pro is active on your account. You can return to the app.';
+        } else {
+          hint.textContent = result.error || 'Waiting for webhook confirmation…';
+        }
+      }
+    } catch {
+      if (hint) hint.textContent = 'Waiting for webhook confirmation…';
+    }
   }
+
+  confirmIfPossible();
 </script>
