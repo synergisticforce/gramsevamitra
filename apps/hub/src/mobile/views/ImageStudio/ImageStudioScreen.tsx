@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import BottomSlider from '../../components/BottomSlider';
 import { useImageEditor } from '../../hooks/useImageEditor';
 import { localVaultService } from '../../../shared/services/LocalVaultService';
+import VaultScreen from '../VaultScreen';
 
 export default function ImageStudioScreen() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -11,6 +12,8 @@ export default function ImageStudioScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [savedFileId, setSavedFileId] = useState<string | null>(null);
+  const [showVault, setShowVault] = useState(false);
 
   const {
     values,
@@ -40,6 +43,7 @@ export default function ImageStudioScreen() {
 
     setError(null);
     setSuccess(null);
+    setSavedFileId(null);
     resetAdjustments();
 
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -61,7 +65,8 @@ export default function ImageStudioScreen() {
 
     try {
       const edited = await applyAdjustments(sourceBlob, values);
-      await localVaultService.saveFile(edited, 'Edited_Photo.jpg', 'image/jpeg');
+      const id = await localVaultService.saveFile(edited, 'Edited_Photo.jpg', 'image/jpeg');
+      setSavedFileId(id);
       setSuccess('Saved to Local Vault as Edited_Photo.jpg');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to save edited photo.';
@@ -71,6 +76,16 @@ export default function ImageStudioScreen() {
       setBusy(false);
     }
   };
+
+  if (showVault) {
+    return (
+      <VaultScreen
+        onBack={() => setShowVault(false)}
+        highlightFileId={savedFileId}
+        highlightFileName="Edited_Photo.jpg"
+      />
+    );
+  }
 
   return (
     <section className="mx-auto flex w-full max-w-lg flex-col gap-5 px-4 py-6 sm:px-5">
@@ -159,6 +174,16 @@ export default function ImageStudioScreen() {
           {busy ? 'Saving…' : 'Save to Vault'}
         </button>
       </div>
+
+      {savedFileId && (
+        <button
+          type="button"
+          onClick={() => setShowVault(true)}
+          className="inline-flex w-full items-center justify-center rounded-xl border border-canvas-border bg-canvas-elevated px-4 py-3 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent-muted"
+        >
+          Open Vault gallery →
+        </button>
+      )}
 
       {error && (
         <p

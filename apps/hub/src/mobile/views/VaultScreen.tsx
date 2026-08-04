@@ -1,10 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import {
   localVaultService,
   type FileMetadata,
 } from '../../shared/services/LocalVaultService';
 import FileCard from '../components/FileCard';
+import VaultImageViewer from '../components/VaultImageViewer';
+
+export interface VaultScreenProps {
+  onBack?: () => void;
+  highlightFileId?: string | null;
+  highlightFileName?: string | null;
+}
 
 async function downloadBlob(blob: Blob, fileName: string): Promise<void> {
   const url = URL.createObjectURL(blob);
@@ -21,11 +28,21 @@ async function downloadBlob(blob: Blob, fileName: string): Promise<void> {
   }
 }
 
-export default function VaultScreen() {
+function isImageFile(file: FileMetadata): boolean {
+  return file.mimeType.startsWith('image/');
+}
+
+export default function VaultScreen({
+  onBack,
+  highlightFileId = null,
+  highlightFileName = null,
+}: VaultScreenProps) {
   const [files, setFiles] = useState<FileMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [previewFile, setPreviewFile] = useState<FileMetadata | null>(null);
+  const [thumbUrls, setThumbUrls] = useState<Record<string, string>>({});
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -45,6 +62,46 @@ export default function VaultScreen() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  const imageFiles = useMemo(() => files.filter(isImageFile), [files]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const created: string[] = [];
+
+    const loadThumbs = async () => {
+      const next: Record<string, string> = {};
+      for (const file of imageFiles) {
+        try {
+          const blob = await localVaultService.getFile(file.id);
+          if (!blob || cancelled) continue;
+          const url = URL.createObjectURL(blob);
+          created.push(url);
+          next[file.id] = url;
+        } catch {
+          /* skip broken thumbnails */
+        }
+      }
+      if (!cancelled) setThumbUrls(next);
+    };
+
+    void loadThumbs();
+
+    return () => {
+      cancelled = true;
+      created.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [imageFiles]);
+
+  useEffect(() => {
+    if (!files.length) return;
+    const match =
+      files.find((file) => file.id === highlightFileId) ??
+      files.find((file) => file.name === highlightFileName && isImageFile(file));
+    if (match && isImageFile(match)) {
+      setPreviewFile(match);
+    }
+  }, [files, highlightFileId, highlightFileName]);
 
   const handleShare = useCallback(async (file: FileMetadata) => {
     setBusyId(file.id);
@@ -104,6 +161,7 @@ export default function VaultScreen() {
     try {
       await localVaultService.deleteFile(id);
       setFiles((current) => current.filter((item) => item.id !== id));
+      setPreviewFile((current) => (current?.id === id ? null : current));
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Delete failed.';
       console.warn('[VaultScreen] delete failed:', message);
@@ -116,6 +174,15 @@ export default function VaultScreen() {
   return (
     <section className="mx-auto flex w-full max-w-lg flex-col gap-4 px-4 py-5 sm:px-5">
       <header className="space-y-1">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="mb-2 inline-flex items-center rounded-lg border border-canvas-border px-3 py-1.5 text-xs font-semibold text-canvas-muted transition hover:bg-canvas-elevated"
+          >
+            ← Back to Image Studio
+          </button>
+        )}
         <p className="text-[11px] font-semibold uppercase tracking-wider text-canvas-subtle">
           Local Vault
         </p>
@@ -154,13 +221,59 @@ export default function VaultScreen() {
           </p>
         </div>
       ) : (
-        <ul className="grid grid-cols-1 gap-3" aria-busy={busyId !== null}>
-          {files.map((file) => (
-            <li key={file.id} className={busyId === file.id ? 'opacity-60' : undefined}>
-              <FileCard file={file} onShare={handleShare} onDelete={handleDelete} />
-            </li>
-          ))}
-        </ul>
+        <>
+          {imageFiles.length > 0 && (
+            <div className="space-y-2">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+                Photo gallery
+              </h2>
+              <ul className="grid grid-cols-3 gap-2">
+                {imageFiles.map((file) => {
+                  const highlighted =
+                    file.id === highlightFileId || file.name === highlightFileName;
+                  return (
+                    <li key={`thumb-${file.id}`}>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewFile(file)}
+                        className={`aspect-square w-full overflow-hidden rounded-xl border bg-canvas-elevated transition ${
+                          highlighted
+                            ? 'border-canvas-accent ring-2 ring-canvas-accent/50'
+                            : 'border-canvas-border hover:border-canvas-accent'
+                        }`}
+                        aria-label={`View ${file.name}`}
+                      >
+                        {thumbUrls[file.id] ? (
+                          <img
+                            src={thumbUrls[file.id]}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <span className="flex h-full items-center justify-center text-xl" aria-hidden="true">
+                            🖼️
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
+          <ul className="grid grid-cols-1 gap-3" aria-busy={busyId !== null}>
+            {files.map((file) => (
+              <li key={file.id} className={busyId === file.id ? 'opacity-60' : undefined}>
+                <FileCard file={file} onShare={handleShare} onDelete={handleDelete} />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {previewFile && (
+        <VaultImageViewer file={previewFile} onClose={() => setPreviewFile(null)} />
       )}
     </section>
   );
