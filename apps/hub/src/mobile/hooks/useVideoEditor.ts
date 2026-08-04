@@ -6,9 +6,15 @@ export interface VideoTrimOptions {
   endTime: number;
 }
 
+export interface CompressOptions {
+  quality: number;
+}
+
 export interface VideoEditorHookResult {
   selectVideo: () => Promise<string | null>;
   trimVideo: (sourceUri: string, options: VideoTrimOptions) => Promise<string>;
+  compressVideo: (sourceUri: string, options: CompressOptions) => Promise<string>;
+  extractAudio: (sourceUri: string) => Promise<string>;
   isProcessing: boolean;
   error: string | null;
   clearError: () => void;
@@ -64,9 +70,22 @@ async function pickVideoViaHtmlInput(): Promise<File | null> {
   });
 }
 
+function assertNativePlatform(): void {
+  if (!Capacitor.isNativePlatform()) {
+    throw new Error('Video editing is optimized for the mobile app.');
+  }
+}
+
+/** Map 1–100 quality to a WhatsApp-friendly max width while keeping aspect ratio. */
+function resolutionForQuality(quality: number): { width: number; height: number; fps: number } {
+  const q = Math.min(100, Math.max(1, quality));
+  if (q <= 35) return { width: 480, height: 270, fps: 24 };
+  if (q <= 65) return { width: 640, height: 360, fps: 24 };
+  return { width: 960, height: 540, fps: 30 };
+}
+
 /**
- * Native trim via @whiteguru/capacitor-plugin-video-editor.
- * The plugin exposes `edit({ trim })` (not a standalone trim() method).
+ * Native video utilities via @whiteguru/capacitor-plugin-video-editor (`edit` + `transcode`/`trim`).
  */
 export function useVideoEditor(): VideoEditorHookResult {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -76,15 +95,37 @@ export function useVideoEditor(): VideoEditorHookResult {
   const previewUrlRef = useRef<string | null>(null);
 
   const clearError = useCallback(() => setError(null), []);
-
   const getSelectedFile = useCallback(() => selectedFileRef.current, []);
+
+  const ensureNativeSourcePath = useCallback(async (): Promise<string> => {
+    if (nativeSourcePathRef.current) return nativeSourcePathRef.current;
+
+    const file = selectedFileRef.current;
+    if (!file) {
+      throw new Error('No source video is available.');
+    }
+
+    const { Filesystem, Directory } = await import('@capacitor/filesystem');
+    const cachePath = `video-studio/source_${Date.now()}.mp4`;
+    await Filesystem.writeFile({
+      path: cachePath,
+      data: await blobToBase64(file),
+      directory: Directory.Cache,
+      recursive: true,
+    });
+    const uriResult = await Filesystem.getUri({
+      path: cachePath,
+      directory: Directory.Cache,
+    });
+    nativeSourcePathRef.current = uriResult.uri;
+    return uriResult.uri;
+  }, []);
 
   const selectVideo = useCallback(async (): Promise<string | null> => {
     setError(null);
     setIsProcessing(true);
 
     try {
-      // Prefer HTML picker (works on Capacitor WebView + PWA). Community Media has no video picker API.
       const file = await pickVideoViaHtmlInput();
       if (!file) return null;
 
@@ -97,21 +138,7 @@ export function useVideoEditor(): VideoEditorHookResult {
       nativeSourcePathRef.current = null;
 
       if (Capacitor.isNativePlatform()) {
-        const { Filesystem, Directory } = await import('@capacitor/filesystem');
-        const path = `video-studio/source_${Date.now()}.mp4`;
-        const base64 = await blobToBase64(file);
-        await Filesystem.writeFile({
-          path,
-          data: base64,
-          directory: Directory.Cache,
-          recursive: true,
-        });
-        const { uri } = await Filesystem.getUri({
-          path,
-          directory: Directory.Cache,
-        });
-        nativeSourcePathRef.current = uri;
-        return previewUrl;
+        await ensureNativeSourcePath();
       }
 
       return previewUrl;
@@ -123,16 +150,18 @@ export function useVideoEditor(): VideoEditorHookResult {
     } finally {
       setIsProcessing(false);
     }
-  }, []);
+  }, [ensureNativeSourcePath]);
 
   const trimVideo = useCallback(
-    async (sourceUri: string, options: VideoTrimOptions): Promise<string> => {
+    async (_sourceUri: string, options: VideoTrimOptions): Promise<string> => {
       setError(null);
 
-      if (!Capacitor.isNativePlatform()) {
-        const message = 'Video editing is optimized for the mobile app.';
+      try {
+        assertNativePlatform();
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Video editing is optimized for the mobile app.';
         setError(message);
-        throw new Error(message);
+        throw err;
       }
 
       if (options.endTime <= options.startTime) {
@@ -144,31 +173,7 @@ export function useVideoEditor(): VideoEditorHookResult {
       setIsProcessing(true);
 
       try {
-        let path = nativeSourcePathRef.current;
-        if (!path) {
-          // Fallback: persist the currently selected file into cache.
-          const file = selectedFileRef.current;
-          if (!file) {
-            throw new Error('No source video is available for trimming.');
-          }
-          const { Filesystem, Directory } = await import('@capacitor/filesystem');
-          const cachePath = `video-studio/source_${Date.now()}.mp4`;
-          await Filesystem.writeFile({
-            path: cachePath,
-            data: await blobToBase64(file),
-            directory: Directory.Cache,
-            recursive: true,
-          });
-          const uriResult = await Filesystem.getUri({
-            path: cachePath,
-            directory: Directory.Cache,
-          });
-          path = uriResult.uri;
-          nativeSourcePathRef.current = path;
-        }
-
-        void sourceUri; // preview blob URL; native path is used for editing
-
+        const path = await ensureNativeSourcePath();
         const { VideoEditor } = await import('@whiteguru/capacitor-plugin-video-editor');
         const result = await VideoEditor.edit({
           path,
@@ -184,8 +189,7 @@ export function useVideoEditor(): VideoEditorHookResult {
         }
         return outputPath;
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Native video trim failed.';
+        const message = err instanceof Error ? err.message : 'Native video trim failed.';
         console.warn('[useVideoEditor] trimVideo failed:', message);
         setError(message);
         throw err instanceof Error ? err : new Error(message);
@@ -193,12 +197,68 @@ export function useVideoEditor(): VideoEditorHookResult {
         setIsProcessing(false);
       }
     },
-    [],
+    [ensureNativeSourcePath],
   );
+
+  const compressVideo = useCallback(
+    async (_sourceUri: string, options: CompressOptions): Promise<string> => {
+      setError(null);
+
+      try {
+        assertNativePlatform();
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Video editing is optimized for the mobile app.';
+        setError(message);
+        throw err;
+      }
+
+      setIsProcessing(true);
+
+      try {
+        const path = await ensureNativeSourcePath();
+        const { width, height, fps } = resolutionForQuality(options.quality);
+        const { VideoEditor } = await import('@whiteguru/capacitor-plugin-video-editor');
+        const result = await VideoEditor.edit({
+          path,
+          transcode: {
+            width,
+            height,
+            keepAspectRatio: true,
+            fps,
+          },
+        });
+
+        const outputPath = result.file?.path;
+        if (!outputPath) {
+          throw new Error('Native compression completed but no output file was returned.');
+        }
+        return outputPath;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Native video compression failed.';
+        console.warn('[useVideoEditor] compressVideo failed:', message);
+        setError(message);
+        throw err instanceof Error ? err : new Error(message);
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [ensureNativeSourcePath],
+  );
+
+  const extractAudio = useCallback(async (_sourceUri: string): Promise<string> => {
+    const message = 'Audio extraction is in development.';
+    console.warn('[useVideoEditor] extractAudio:', message, {
+      reason: '@whiteguru/capacitor-plugin-video-editor has no audio-only export API',
+    });
+    setError(message);
+    throw new Error(message);
+  }, []);
 
   return {
     selectVideo,
     trimVideo,
+    compressVideo,
+    extractAudio,
     isProcessing,
     error,
     clearError,
@@ -224,7 +284,7 @@ export async function readUriAsVideoBlob(uri: string): Promise<Blob> {
   const result = await Filesystem.readFile({ path: uri });
   const data = typeof result.data === 'string' ? result.data : '';
   if (!data) {
-    throw new Error('Unable to read the trimmed video.');
+    throw new Error('Unable to read the processed video.');
   }
   return base64ToBlob(data, 'video/mp4');
 }
