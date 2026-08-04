@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react';
 import ScanHomeScreen from '../mobile/views/ScanHomeScreen';
+import VaultLockGate from '../mobile/components/VaultLockGate';
 import { usePlatform } from '../shared/hooks/usePlatform';
 
 /**
@@ -46,5 +47,9 @@ export default function DocumentWorkspace() {
     );
   }
 
-  return <ScanHomeScreen />;
+  return (
+    <VaultLockGate>
+      <ScanHomeScreen />
+    </VaultLockGate>
+  );
 }

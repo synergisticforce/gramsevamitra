@@ -16,6 +16,7 @@ import { SCAN_FILTERS, enhanceScan, type ScanFilter } from '../../lib/canvas/sca
 import FileCard from '../components/FileCard';
 import VaultImageViewer from '../components/VaultImageViewer';
 import MobileToolSheet from '../components/MobileToolSheet';
+import VaultLockSettings from '../components/VaultLockSettings';
 
 interface PendingCapture {
   /** Untouched capture, kept so filters can be re-applied without quality loss. */
@@ -76,6 +77,7 @@ export default function ScanHomeScreen() {
   const [enhancing, setEnhancing] = useState(false);
   const [query, setQuery] = useState('');
   const [renaming, setRenaming] = useState<{ id: string; value: string } | null>(null);
+  const [lockSettingsOpen, setLockSettingsOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -455,15 +457,24 @@ export default function ScanHomeScreen() {
       )}
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-bold text-canvas-text">Saved on this device</h2>
-          <button
-            type="button"
-            onClick={() => void refresh()}
-            className="min-h-10 rounded-xl px-3 text-xs font-semibold text-slate-300 transition hover:bg-canvas-elevated hover:text-canvas-text"
-          >
-            Refresh
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setLockSettingsOpen(true)}
+              className="inline-flex min-h-11 items-center gap-1 rounded-xl px-3 text-xs font-semibold text-slate-300 transition hover:bg-canvas-elevated hover:text-canvas-text"
+            >
+              <span aria-hidden="true">🔒</span> PIN lock
+            </button>
+            <button
+              type="button"
+              onClick={() => void refresh()}
+              className="inline-flex min-h-11 items-center rounded-xl px-3 text-xs font-semibold text-slate-300 transition hover:bg-canvas-elevated hover:text-canvas-text"
+            >
+              Refresh
+            </button>
+          </div>
         </div>
 
         {files.length > 3 && (
@@ -709,6 +720,16 @@ export default function ScanHomeScreen() {
             className="mx-auto mt-4 h-full min-h-0 w-full max-w-3xl flex-1 rounded-2xl bg-white"
           />
         </div>
+      )}
+
+      {lockSettingsOpen && (
+        <VaultLockSettings
+          onClose={() => setLockSettingsOpen(false)}
+          onChanged={(message) => {
+            setError(null);
+            setSuccess(message);
+          }}
+        />
       )}
 
       {renaming && (
