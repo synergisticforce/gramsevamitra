@@ -28,6 +28,7 @@ import ImageWatermarkModal from './ImageWatermarkModal';
 import MediaActionToolbar from './MediaActionToolbar';
 import MediaMagicDropzone from './MediaMagicDropzone';
 import ResizeCompressModal from './ResizeCompressModal';
+import ImageAdjustModal from './ImageAdjustModal';
 
 type CanvasPhase = 'empty' | 'active';
 type MediaToolModal =
@@ -38,6 +39,7 @@ type MediaToolModal =
   | 'image-watermark'
   | 'image-to-pdf'
   | 'image-filters'
+  | 'image-adjust'
   | null;
 
 interface ActiveFile {
@@ -200,6 +202,11 @@ export default function MediaLabCanvas() {
       if (action.id === 'image-filters') {
         if (!requireCanvasFile()) return;
         setMediaModal('image-filters');
+        return;
+      }
+      if (action.id === 'image-adjust') {
+        if (!requireCanvasFile()) return;
+        setMediaModal('image-adjust');
         return;
       }
       setToastMessage(`${action.label} is coming soon.`);
@@ -459,6 +466,15 @@ export default function MediaLabCanvas() {
 
       {mediaModal === 'image-filters' && canvasImageFile && (
         <ImageFilterModal
+          file={canvasImageFile}
+          onClose={() => setMediaModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {mediaModal === 'image-adjust' && canvasImageFile && (
+        <ImageAdjustModal
           file={canvasImageFile}
           onClose={() => setMediaModal(null)}
           onSuccess={setToastMessage}

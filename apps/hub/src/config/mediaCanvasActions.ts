@@ -73,6 +73,13 @@ export const MEDIA_CANVAS_ACTIONS: MediaCanvasAction[] = [
     mimePatterns: ['image/jpeg', 'image/png', 'image/webp'],
   },
   {
+    id: 'image-adjust',
+    label: 'Adjust & Rotate',
+    icon: '🎚️',
+    tier: 'free',
+    mimePatterns: ['image/jpeg', 'image/png', 'image/webp'],
+  },
+  {
     id: 'image-filters',
     label: 'Filters',
     icon: '🎨',
