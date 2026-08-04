@@ -6,6 +6,7 @@ export interface FileCardProps {
   subtitle?: string;
   onOpen?: (file: FileMetadata) => void;
   onShare?: (file: FileMetadata) => void;
+  onTools?: (file: FileMetadata) => void;
   onDelete: (id: string) => void;
 }
 
@@ -42,6 +43,7 @@ export default function FileCard({
   subtitle,
   onOpen,
   onShare,
+  onTools,
   onDelete,
 }: FileCardProps) {
   const metaLine = subtitle ?? `${formatFileSize(file.size)} · ${formatCreatedDate(file.created)}`;
@@ -70,22 +72,32 @@ export default function FileCard({
         </div>
       </button>
 
-      <div className="mt-3 flex gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-2">
         {onOpen && (
           <button
             type="button"
             onClick={() => onOpen(file)}
-            className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-canvas-accent-muted px-3 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 active:scale-[0.98]"
+            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-canvas-accent-muted px-3 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 active:scale-[0.98]"
             aria-label={`View ${file.name}`}
           >
             View
+          </button>
+        )}
+        {onTools && (
+          <button
+            type="button"
+            onClick={() => onTools(file)}
+            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-canvas-border px-3 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-elevated active:scale-[0.98]"
+            aria-label={`Tools for ${file.name}`}
+          >
+            Tools
           </button>
         )}
         {onShare && (
           <button
             type="button"
             onClick={() => onShare(file)}
-            className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-canvas-border px-3 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-elevated active:scale-[0.98]"
+            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-canvas-border px-3 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-elevated active:scale-[0.98]"
             aria-label={`Share ${file.name}`}
           >
             Share
@@ -94,7 +106,7 @@ export default function FileCard({
         <button
           type="button"
           onClick={() => onDelete(file.id)}
-          className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-canvas-border px-3 py-2.5 text-sm font-semibold text-rose-200 transition hover:bg-canvas-danger-soft/30 active:scale-[0.98]"
+          className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-canvas-border px-3 py-2.5 text-sm font-semibold text-rose-200 transition hover:bg-canvas-danger-soft/30 active:scale-[0.98]"
           aria-label={`Delete ${file.name}`}
         >
           Delete

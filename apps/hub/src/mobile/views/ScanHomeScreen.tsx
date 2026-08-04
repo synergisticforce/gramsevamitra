@@ -14,6 +14,7 @@ import {
 import { makeScanFileName } from '../../shared/lib/scanFileName';
 import FileCard from '../components/FileCard';
 import VaultImageViewer from '../components/VaultImageViewer';
+import MobileToolSheet from '../components/MobileToolSheet';
 
 interface PendingCapture {
   file: File;
@@ -58,12 +59,15 @@ export default function ScanHomeScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [pending, setPending] = useState<PendingCapture[]>([]);
   const [previewIndex, setPreviewIndex] = useState(0);
   const [viewing, setViewing] = useState<FileMetadata | null>(null);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [toolTarget, setToolTarget] = useState<{ file: File; name: string } | null>(null);
+  const [processing, setProcessing] = useState<{ label: string; percent: number } | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -83,6 +87,12 @@ export default function ScanHomeScreen() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (!success) return;
+    const timer = window.setTimeout(() => setSuccess(null), 6000);
+    return () => window.clearTimeout(timer);
+  }, [success]);
 
   const clearPending = useCallback(() => {
     setPending((current) => {
@@ -165,6 +175,34 @@ export default function ScanHomeScreen() {
     }
   }, [clearPending, pending, refresh, saving]);
 
+  /** Combine the captured pages into a single searchable-ready PDF document. */
+  const handleSaveAsPdf = useCallback(async () => {
+    if (pending.length === 0 || saving) return;
+    const images = pending.filter((item) => resolveCaptureMime(item.file).startsWith('image/'));
+    if (images.length === 0) {
+      setError('Only photo pages can be combined into a PDF.');
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      const { imagesToPdfInBrowser } = await import('../../lib/canvas/documentPdfTools');
+      const { bytes } = await imagesToPdfInBrowser(images.map((item) => item.file));
+      const fileName = makeScanFileName('application/pdf');
+      const blob = new Blob([bytes as BlobPart], { type: 'application/pdf' });
+      await localVaultService.saveFile(blob, fileName, 'application/pdf');
+      clearPending();
+      await refresh();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not build the PDF.';
+      console.warn('[ScanHomeScreen] PDF save failed:', message);
+      setError(message);
+    } finally {
+      setSaving(false);
+    }
+  }, [clearPending, pending, refresh, saving]);
+
   const handleDelete = useCallback(async (id: string) => {
     setBusyId(id);
     setError(null);
@@ -212,6 +250,47 @@ export default function ScanHomeScreen() {
     setError('Preview is available for images and PDFs. Other file types stay saved offline.');
   }, []);
 
+  /** Load a saved document back into memory so the offline tools can act on it. */
+  const handleTools = useCallback(async (meta: FileMetadata) => {
+    setError(null);
+    setBusyId(meta.id);
+    try {
+      const blob = await localVaultService.getFile(meta.id);
+      if (!blob) throw new Error('This file could not be loaded from local storage.');
+      const file = new File([blob], meta.name, {
+        type: meta.mimeType || blob.type || 'application/octet-stream',
+        lastModified: meta.created,
+      });
+      setToolTarget({ file, name: meta.name });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to open tools for this file.');
+    } finally {
+      setBusyId(null);
+    }
+  }, []);
+
+  const handleShare = useCallback(async (meta: FileMetadata) => {
+    setError(null);
+    setBusyId(meta.id);
+    try {
+      const blob = await localVaultService.getFile(meta.id);
+      if (!blob) throw new Error('This file could not be loaded from local storage.');
+      const { deliverFile } = await import('@shared/utils/fileDelivery');
+      await deliverFile(blob, meta.name);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to share this file.');
+    } finally {
+      setBusyId(null);
+    }
+  }, []);
+
+  const onToolProcessingChange = useCallback(
+    (active: boolean, label: string, percent: number) => {
+      setProcessing(active ? { label, percent } : null);
+    },
+    [],
+  );
+
   const closeViewer = useCallback(() => {
     setViewing(null);
     setPdfPreviewUrl((url) => {
@@ -227,6 +306,7 @@ export default function ScanHomeScreen() {
   );
 
   const activePending = pending[previewIndex] ?? pending[0] ?? null;
+  const hasImagePages = pending.some((item) => resolveCaptureMime(item.file).startsWith('image/'));
 
   return (
     <section className="mx-auto flex w-full max-w-lg flex-col gap-5 px-4 py-5 sm:px-5">
@@ -274,6 +354,15 @@ export default function ScanHomeScreen() {
         </p>
       )}
 
+      {success && (
+        <p
+          className="rounded-xl border border-emerald-800/50 bg-emerald-950/40 px-4 py-3 text-sm font-medium leading-relaxed text-emerald-100"
+          role="status"
+        >
+          {success}
+        </p>
+      )}
+
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-bold text-canvas-text">Saved on this device</h2>
@@ -311,6 +400,8 @@ export default function ScanHomeScreen() {
                   file={file}
                   subtitle={formatListDate(file.created)}
                   onOpen={handleOpen}
+                  onTools={(meta) => void handleTools(meta)}
+                  onShare={(meta) => void handleShare(meta)}
                   onDelete={handleDelete}
                 />
               </li>
@@ -391,27 +482,43 @@ export default function ScanHomeScreen() {
             </div>
           )}
 
-          <div className="mx-auto mt-4 flex w-full max-w-lg flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={clearPending}
-              disabled={saving}
-              className="inline-flex min-h-14 flex-1 items-center justify-center rounded-2xl border border-white/25 px-5 text-base font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
-            >
-              Retake
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleSave()}
-              disabled={saving}
-              className="inline-flex min-h-14 flex-1 items-center justify-center rounded-2xl bg-indigo-500 px-5 text-base font-bold text-white transition hover:bg-indigo-400 disabled:opacity-60"
-            >
-              {saving
-                ? 'Saving…'
-                : pending.length > 1
-                  ? `Save ${pending.length} Pages Offline`
-                  : 'Save Offline'}
-            </button>
+          <div className="mx-auto mt-4 flex w-full max-w-lg flex-col gap-2">
+            {hasImagePages && (
+              <button
+                type="button"
+                onClick={() => void handleSaveAsPdf()}
+                disabled={saving}
+                className="inline-flex min-h-14 w-full items-center justify-center rounded-2xl bg-indigo-500 px-5 text-base font-bold text-white transition hover:bg-indigo-400 disabled:opacity-60"
+              >
+                {saving
+                  ? 'Saving…'
+                  : pending.length > 1
+                    ? `Save as one PDF (${pending.length} pages)`
+                    : 'Save as PDF'}
+              </button>
+            )}
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={clearPending}
+                disabled={saving}
+                className="inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl border border-white/25 px-5 text-base font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
+              >
+                Retake
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleSave()}
+                disabled={saving}
+                className="inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl border border-white/25 px-5 text-base font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
+              >
+                {saving
+                  ? 'Saving…'
+                  : pending.length > 1
+                    ? `Keep ${pending.length} photos`
+                    : 'Keep as photo'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -452,6 +559,43 @@ export default function ScanHomeScreen() {
             src={pdfPreviewUrl}
             className="mx-auto mt-4 h-full min-h-0 w-full max-w-3xl flex-1 rounded-2xl bg-white"
           />
+        </div>
+      )}
+
+      {toolTarget && (
+        <MobileToolSheet
+          file={toolTarget.file}
+          fileName={toolTarget.name}
+          onClose={() => setToolTarget(null)}
+          onSuccess={(message) => {
+            setError(null);
+            setToolTarget(null);
+            setProcessing(null);
+            setSuccess(message);
+            void refresh();
+          }}
+          onError={(message) => setError(message)}
+          onProcessingChange={onToolProcessingChange}
+        />
+      )}
+
+      {processing && (
+        <div
+          className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-4 bg-black/80 px-6"
+          role="status"
+          aria-live="polite"
+        >
+          <div
+            className="h-10 w-10 animate-spin rounded-full border-2 border-white/30 border-t-white"
+            aria-hidden="true"
+          />
+          <p className="text-center text-base font-semibold text-white">{processing.label}</p>
+          <div className="h-2 w-full max-w-xs overflow-hidden rounded-full bg-white/20">
+            <div
+              className="h-full rounded-full bg-white transition-[width] duration-300"
+              style={{ width: `${Math.max(4, Math.min(100, processing.percent))}%` }}
+            />
+          </div>
         </div>
       )}
 

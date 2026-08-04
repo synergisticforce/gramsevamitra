@@ -443,6 +443,32 @@ export async function imageToPdfInBrowser(
   return { bytes, downloadName: `${baseName}.pdf` };
 }
 
+/** Combine several captured pages into one multi-page PDF, in order. */
+export async function imagesToPdfInBrowser(
+  files: File[],
+  onProgress?: (progress: PdfWorkerProgress) => void
+): Promise<{ bytes: Uint8Array; downloadName: string }> {
+  if (files.length === 0) {
+    throw new Error('Add at least one page before creating a PDF.');
+  }
+
+  const images = [];
+  for (let index = 0; index < files.length; index += 1) {
+    onProgress?.({
+      current: index,
+      total: files.length + 1,
+      label: `Reading page ${index + 1} of ${files.length}…`,
+    });
+    images.push(await readImageForPdf(files[index]));
+  }
+
+  onProgress?.({ current: files.length, total: files.length + 1, label: 'Building PDF…' });
+  const { runPdfWorker } = await import('../pdf/pdfWorkerClient');
+  const bytes = await runPdfWorker<Uint8Array>('images-to-pdf', { images }, onProgress);
+  const baseName = splitImageFilenameBase(files[0].name);
+  return { bytes, downloadName: `${baseName}.pdf` };
+}
+
 export async function exportPdfToJpgInBrowser(
   file: File,
   scale = 2,
