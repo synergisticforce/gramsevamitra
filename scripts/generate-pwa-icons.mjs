@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 /**
- * Generates minimal valid PNG icons for PWA manifest (solid emerald #059669).
+ * Ensures PWA manifest icons exist. Real branded icons are committed in
+ * apps/hub/public — this only fills in placeholders when a file is missing,
+ * so `npm ci` (postinstall) can never overwrite the shipped artwork.
  */
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { deflateSync } from 'node:zlib';
@@ -64,12 +66,23 @@ function createSolidPng(size, r, g, b) {
   ]);
 }
 
+let created = 0;
+let kept = 0;
+
 for (const app of apps) {
   const dest = path.resolve(root, 'apps', app, 'public');
   mkdirSync(dest, { recursive: true });
   for (const size of sizes) {
-    writeFileSync(path.join(dest, `pwa-${size}.png`), createSolidPng(size, 5, 150, 105));
+    const target = path.join(dest, `pwa-${size}.png`);
+    if (existsSync(target)) {
+      kept += 1;
+      continue;
+    }
+    // Placeholder matches the manifest theme_color (#4f46e5) so a missing icon
+    // never ships an off-brand colour.
+    writeFileSync(target, createSolidPng(size, 79, 70, 229));
+    created += 1;
   }
 }
 
-console.log('Generated PWA PNG icons for all apps.');
+console.log(`PWA icons ready — kept ${kept} existing, generated ${created} placeholder(s).`);

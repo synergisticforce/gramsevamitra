@@ -39,9 +39,20 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Install Android SDK packages
         run: |
-          sdkmanager --install "platforms;android-36" "build-tools;35.0.0" "platform-tools"
+          # Build-tools must match compileSdk 36 in android/variables.gradle.
+          sdkmanager --install "platforms;android-36" "build-tools;36.0.0" "platform-tools"
           yes | sdkmanager --licenses >/dev/null || true
 
       - name: Assemble debug APK

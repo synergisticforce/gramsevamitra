@@ -11,7 +11,7 @@ export default function AppGlobalHeader() {
       <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
         <button
           type="button"
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-canvas-border text-canvas-muted lg:hidden"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-canvas-border text-canvas-muted lg:hidden"
           aria-label="Open menu"
           onClick={toggleSidebar}
         >

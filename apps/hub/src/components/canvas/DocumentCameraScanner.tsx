@@ -164,7 +164,7 @@ export default function DocumentCameraScanner({
             <button
               type="button"
               onClick={handleClose}
-              className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted"
+              className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-canvas-border px-4 text-sm font-semibold text-canvas-muted"
             >
               Close
             </button>
@@ -199,7 +199,7 @@ export default function DocumentCameraScanner({
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted"
             aria-label="Close"
           >
             ✕
@@ -240,7 +240,7 @@ export default function DocumentCameraScanner({
             <button
               type="button"
               onClick={handleClose}
-              className="rounded-xl border border-canvas-border px-4 py-2.5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated"
+              className="inline-flex min-h-12 items-center justify-center rounded-xl border border-canvas-border px-5 text-sm font-semibold text-canvas-muted transition hover:bg-canvas-elevated"
             >
               Cancel
             </button>
@@ -248,7 +248,7 @@ export default function DocumentCameraScanner({
               type="button"
               onClick={handleCapture}
               disabled={!cameraReady}
-              className="rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-12 items-center justify-center rounded-xl bg-canvas-accent-muted px-5 text-base font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Capture page
             </button>

@@ -13,7 +13,7 @@
 /registerSW.js
   Cache-Control: public, max-age=0, must-revalidate
 
-/manifest.webmanifest
+/manifest.json
   Cache-Control: public, max-age=0, must-revalidate
 
 /_astro/*

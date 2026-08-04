@@ -57,14 +57,71 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
   return new Blob([bytes], { type: mimeType || 'application/octet-stream' });
 }
 
+const OPEN_TIMEOUT_MS = 10_000;
+
+/** Plain-language storage errors — rural users must never see a raw DOM exception. */
+function describeStorageError(err: unknown, fallback: string): Error {
+  const name = err instanceof DOMException ? err.name : '';
+  if (name === 'QuotaExceededError') {
+    return new Error(
+      'This phone is out of free storage space. Delete a few saved files and try again.',
+    );
+  }
+  if (name === 'VersionError') {
+    return new Error('A newer version of the app already saved files here. Please reopen the app.');
+  }
+  if (name === 'InvalidStateError' || name === 'SecurityError') {
+    return new Error(
+      'Saving offline is blocked in private browsing. Open the app in a normal window to keep files.',
+    );
+  }
+  if (err instanceof Error && err.message) return err;
+  return new Error(fallback);
+}
+
+/** Ask the browser to keep vault data out of the evictable best-effort bucket. */
+async function requestPersistentStorage(): Promise<void> {
+  try {
+    if (typeof navigator === 'undefined' || !navigator.storage?.persist) return;
+    if (await navigator.storage.persisted?.()) return;
+    await navigator.storage.persist();
+  } catch {
+    /* persistence is a best-effort hint; never block a save */
+  }
+}
+
 function openWebDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === 'undefined') {
-      reject(new Error('IndexedDB is not available in this browser.'));
+      reject(new Error('Offline storage is not available in this browser.'));
       return;
     }
 
-    const request = indexedDB.open(IDB_NAME, IDB_VERSION);
+    let request: IDBOpenDBRequest;
+    try {
+      request = indexedDB.open(IDB_NAME, IDB_VERSION);
+    } catch (err) {
+      reject(describeStorageError(err, 'Offline storage could not be opened.'));
+      return;
+    }
+
+    let settled = false;
+    const finish = (fn: () => void) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      fn();
+    };
+
+    // Without this, a blocked upgrade leaves the promise pending forever and the
+    // vault screen spins with no error and no retry.
+    const timer = setTimeout(() => {
+      finish(() =>
+        reject(
+          new Error('Offline storage is busy in another tab. Close other tabs and try again.'),
+        ),
+      );
+    }, OPEN_TIMEOUT_MS);
 
     request.onupgradeneeded = () => {
       const db = request.result;
@@ -76,8 +133,19 @@ function openWebDb(): Promise<IDBDatabase> {
       }
     };
 
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error('Failed to open LocalVault database.'));
+    request.onblocked = () => {
+      finish(() =>
+        reject(
+          new Error('Offline storage is open in another tab. Close other tabs and try again.'),
+        ),
+      );
+    };
+
+    request.onsuccess = () => finish(() => resolve(request.result));
+    request.onerror = () =>
+      finish(() =>
+        reject(describeStorageError(request.error, 'Failed to open offline storage.')),
+      );
   });
 }
 
@@ -89,6 +157,18 @@ function idbRequest<T>(request: IDBRequest<T>): Promise<T> {
 }
 
 class NativeVaultBackend implements VaultService {
+  /**
+   * The metadata index is a single Preferences blob, so concurrent
+   * read-modify-write cycles would drop records. Chain every mutation.
+   */
+  private indexLock: Promise<unknown> = Promise.resolve();
+
+  private withIndexLock<T>(task: () => Promise<T>): Promise<T> {
+    const run = this.indexLock.then(task, task);
+    this.indexLock = run.catch(() => undefined);
+    return run;
+  }
+
   private async ensureDirectory(): Promise<void> {
     const { Filesystem, Directory } = await import('@capacitor/filesystem');
     try {
@@ -155,9 +235,21 @@ class NativeVaultBackend implements VaultService {
       uri: uriResult.uri,
     };
 
-    const index = await this.readIndex();
-    index.unshift(meta);
-    await this.writeIndex(index);
+    try {
+      await this.withIndexLock(async () => {
+        const index = await this.readIndex();
+        index.unshift(meta);
+        await this.writeIndex(index);
+      });
+    } catch (err) {
+      // Never leave a file on disk that the index cannot see.
+      try {
+        await Filesystem.deleteFile({ path, directory: Directory.Data });
+      } catch {
+        /* best-effort cleanup */
+      }
+      throw describeStorageError(err, 'Could not save this document offline.');
+    }
     return id;
   }
 
@@ -192,8 +284,10 @@ class NativeVaultBackend implements VaultService {
       console.warn('[LocalVault] Native delete skipped missing file:', err);
     }
 
-    const index = await this.readIndex();
-    await this.writeIndex(index.filter((item) => item.id !== id));
+    await this.withIndexLock(async () => {
+      const index = await this.readIndex();
+      await this.writeIndex(index.filter((item) => item.id !== id));
+    });
   }
 
   async listFiles(): Promise<FileMetadata[]> {
@@ -221,6 +315,7 @@ class NativeVaultBackend implements VaultService {
 
 class WebVaultBackend implements VaultService {
   async saveFile(file: File | Blob, fileName: string, mimeType: string): Promise<string> {
+    await requestPersistentStorage();
     const db = await openWebDb();
     const id = createVaultId();
     const blob = file instanceof Blob ? file : new Blob([file], { type: mimeType });
@@ -232,15 +327,21 @@ class WebVaultBackend implements VaultService {
       created: Date.now(),
     };
 
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction([IDB_META_STORE, IDB_BLOB_STORE], 'readwrite');
-      tx.objectStore(IDB_META_STORE).put(meta);
-      tx.objectStore(IDB_BLOB_STORE).put(blob, id);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error ?? new Error('Failed to save vault file.'));
-    });
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction([IDB_META_STORE, IDB_BLOB_STORE], 'readwrite');
+        tx.objectStore(IDB_META_STORE).put(meta);
+        tx.objectStore(IDB_BLOB_STORE).put(blob, id);
+        tx.oncomplete = () => resolve();
+        tx.onabort = () =>
+          reject(describeStorageError(tx.error, 'Could not save this document offline.'));
+        tx.onerror = () =>
+          reject(describeStorageError(tx.error, 'Could not save this document offline.'));
+      });
+    } finally {
+      db.close();
+    }
 
-    db.close();
     return id;
   }
 
@@ -257,14 +358,18 @@ class WebVaultBackend implements VaultService {
 
   async deleteFile(id: string): Promise<void> {
     const db = await openWebDb();
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction([IDB_META_STORE, IDB_BLOB_STORE], 'readwrite');
-      tx.objectStore(IDB_META_STORE).delete(id);
-      tx.objectStore(IDB_BLOB_STORE).delete(id);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error ?? new Error('Failed to delete vault file.'));
-    });
-    db.close();
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction([IDB_META_STORE, IDB_BLOB_STORE], 'readwrite');
+        tx.objectStore(IDB_META_STORE).delete(id);
+        tx.objectStore(IDB_BLOB_STORE).delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onabort = () => reject(describeStorageError(tx.error, 'Failed to delete this file.'));
+        tx.onerror = () => reject(describeStorageError(tx.error, 'Failed to delete this file.'));
+      });
+    } finally {
+      db.close();
+    }
   }
 
   async listFiles(): Promise<FileMetadata[]> {

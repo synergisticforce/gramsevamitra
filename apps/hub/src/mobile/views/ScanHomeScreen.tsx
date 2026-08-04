@@ -20,6 +20,17 @@ interface PendingCapture {
   previewUrl: string;
 }
 
+/** Android pickers and ML Kit often report an empty MIME type — fall back to the name. */
+function resolveCaptureMime(file: File): string {
+  if (file.type) return file.type;
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.pdf')) return 'application/pdf';
+  if (name.endsWith('.png')) return 'image/png';
+  if (name.endsWith('.webp')) return 'image/webp';
+  if (name.endsWith('.heic') || name.endsWith('.heif')) return 'image/heic';
+  return 'image/jpeg';
+}
+
 function formatListDate(timestamp: number): string {
   try {
     return new Intl.DateTimeFormat(undefined, {
@@ -48,7 +59,8 @@ export default function ScanHomeScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [pending, setPending] = useState<PendingCapture | null>(null);
+  const [pending, setPending] = useState<PendingCapture[]>([]);
+  const [previewIndex, setPreviewIndex] = useState(0);
   const [viewing, setViewing] = useState<FileMetadata | null>(null);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -74,16 +86,17 @@ export default function ScanHomeScreen() {
 
   const clearPending = useCallback(() => {
     setPending((current) => {
-      if (current?.previewUrl) URL.revokeObjectURL(current.previewUrl);
-      return null;
+      current.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      return [];
     });
+    setPreviewIndex(0);
   }, []);
 
-  const pendingUrlRef = useRef<string | null>(null);
+  const pendingUrlsRef = useRef<string[]>([]);
   const pdfUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
-    pendingUrlRef.current = pending?.previewUrl ?? null;
+    pendingUrlsRef.current = pending.map((item) => item.previewUrl);
   }, [pending]);
 
   useEffect(() => {
@@ -92,50 +105,55 @@ export default function ScanHomeScreen() {
 
   useEffect(() => {
     return () => {
-      if (pendingUrlRef.current) URL.revokeObjectURL(pendingUrlRef.current);
+      pendingUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
       if (pdfUrlRef.current) URL.revokeObjectURL(pdfUrlRef.current);
     };
   }, []);
 
-  const queueCapture = useCallback((file: File) => {
-    const previewUrl = URL.createObjectURL(file);
+  /** Queue every captured page — a multi-page scan must never drop pages. */
+  const queueCaptures = useCallback((incoming: File[]) => {
+    const next = incoming.map((file) => ({ file, previewUrl: URL.createObjectURL(file) }));
+    if (next.length === 0) return;
     setPending((current) => {
-      if (current?.previewUrl) URL.revokeObjectURL(current.previewUrl);
-      return { file, previewUrl };
+      current.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      return next;
     });
+    setPreviewIndex(0);
     setError(null);
   }, []);
 
   const handleFilesCaptured = useCallback(
     (captured: File[]) => {
-      const first = captured[0];
-      if (!first) {
+      if (captured.length === 0) {
         setError('No page was captured. Please try again.');
         return;
       }
-      queueCapture(first);
+      queueCaptures(captured);
     },
-    [queueCapture],
+    [queueCaptures],
   );
 
   const handleGalleryChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
+      const picked = Array.from(event.target.files ?? []);
       event.target.value = '';
-      if (!file) return;
-      queueCapture(file);
+      if (picked.length === 0) return;
+      queueCaptures(picked);
     },
-    [queueCapture],
+    [queueCaptures],
   );
 
   const handleSave = useCallback(async () => {
-    if (!pending || saving) return;
+    if (pending.length === 0 || saving) return;
     setSaving(true);
     setError(null);
     try {
-      const mimeType = pending.file.type || 'image/jpeg';
-      const fileName = makeScanFileName(mimeType);
-      await localVaultService.saveFile(pending.file, fileName, mimeType);
+      for (let index = 0; index < pending.length; index += 1) {
+        const item = pending[index];
+        const mimeType = resolveCaptureMime(item.file);
+        const fileName = makeScanFileName(mimeType, index);
+        await localVaultService.saveFile(item.file, fileName, mimeType);
+      }
       clearPending();
       await refresh();
     } catch (err) {
@@ -208,6 +226,8 @@ export default function ScanHomeScreen() {
     [],
   );
 
+  const activePending = pending[previewIndex] ?? pending[0] ?? null;
+
   return (
     <section className="mx-auto flex w-full max-w-lg flex-col gap-5 px-4 py-5 sm:px-5">
       <header className="space-y-2">
@@ -239,6 +259,7 @@ export default function ScanHomeScreen() {
           ref={galleryInputRef}
           type="file"
           accept="image/*,application/pdf"
+          multiple
           className="hidden"
           onChange={handleGalleryChange}
         />
@@ -298,7 +319,7 @@ export default function ScanHomeScreen() {
         )}
       </div>
 
-      {pending && (
+      {activePending && (
         <div
           className="fixed inset-0 z-[70] flex flex-col bg-black/90 p-4"
           role="dialog"
@@ -308,10 +329,14 @@ export default function ScanHomeScreen() {
           <div className="mx-auto flex w-full max-w-lg items-start justify-between gap-3">
             <div className="min-w-0">
               <h2 id="scan-preview-title" className="text-base font-bold text-white">
-                Preview capture
+                {pending.length > 1
+                  ? `Preview page ${previewIndex + 1} of ${pending.length}`
+                  : 'Preview capture'}
               </h2>
               <p className="mt-1 text-xs font-medium text-slate-300">
-                Check the page, then save it offline on this phone.
+                {pending.length > 1
+                  ? 'Check each page, then save all of them offline on this phone.'
+                  : 'Check the page, then save it offline on this phone.'}
               </p>
             </div>
             <button
@@ -325,20 +350,46 @@ export default function ScanHomeScreen() {
           </div>
 
           <div className="mx-auto mt-4 flex min-h-0 w-full max-w-lg flex-1 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black">
-            {pending.file.type === 'application/pdf' ? (
+            {resolveCaptureMime(activePending.file) === 'application/pdf' ? (
               <iframe
                 title="PDF preview"
-                src={pending.previewUrl}
+                src={activePending.previewUrl}
                 className="h-full min-h-[50vh] w-full bg-white"
               />
             ) : (
               <img
-                src={pending.previewUrl}
-                alt="Captured document preview"
+                src={activePending.previewUrl}
+                alt={`Captured document preview, page ${previewIndex + 1}`}
                 className="max-h-full max-w-full object-contain"
               />
             )}
           </div>
+
+          {pending.length > 1 && (
+            <div className="mx-auto mt-3 flex w-full max-w-lg items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setPreviewIndex((index) => Math.max(0, index - 1))}
+                disabled={saving || previewIndex === 0}
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-white/20 px-4 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-40"
+              >
+                Previous
+              </button>
+              <span className="shrink-0 text-xs font-semibold text-slate-300" aria-live="polite">
+                {previewIndex + 1} / {pending.length}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setPreviewIndex((index) => Math.min(pending.length - 1, index + 1))
+                }
+                disabled={saving || previewIndex >= pending.length - 1}
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-white/20 px-4 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
+          )}
 
           <div className="mx-auto mt-4 flex w-full max-w-lg flex-col gap-3 sm:flex-row">
             <button
@@ -355,7 +406,11 @@ export default function ScanHomeScreen() {
               disabled={saving}
               className="inline-flex min-h-14 flex-1 items-center justify-center rounded-2xl bg-indigo-500 px-5 text-base font-bold text-white transition hover:bg-indigo-400 disabled:opacity-60"
             >
-              {saving ? 'Saving…' : 'Save Offline'}
+              {saving
+                ? 'Saving…'
+                : pending.length > 1
+                  ? `Save ${pending.length} Pages Offline`
+                  : 'Save Offline'}
             </button>
           </div>
         </div>

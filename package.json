@@ -53,7 +53,6 @@
   },
   "dependencies": {
     "@cantoo/pdf-lib": "^2.7.1",
-    "@capacitor-community/media": "^9.1.0",
     "@capacitor-mlkit/document-scanner": "^8.1.0",
     "@capacitor/android": "^8.5.0",
     "@capacitor/browser": "^8.0.4",

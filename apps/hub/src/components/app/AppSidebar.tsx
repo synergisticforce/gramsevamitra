@@ -8,7 +8,7 @@ interface Props {
 }
 
 function linkClass(isActive: boolean): string {
-  return `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+  return `flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
     isActive
       ? 'bg-canvas-elevated text-canvas-text ring-1 ring-canvas-border'
       : 'text-canvas-muted hover:bg-canvas-elevated hover:text-canvas-text'
@@ -83,7 +83,7 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
               </div>
               <button
                 type="button"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-canvas-border text-canvas-muted"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-canvas-border text-canvas-muted"
                 aria-label="Close menu"
                 onClick={closeMobile}
               >
@@ -93,10 +93,10 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
             <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Workspace navigation">
               {navLinks}
             </nav>
-            <div className="border-t border-canvas-border px-4 py-4">
+            <div className="border-t border-canvas-border px-4 py-2">
               <a
                 href="/contact"
-                className="block text-xs font-medium leading-relaxed text-slate-300 hover:text-canvas-accent"
+                className="flex min-h-11 items-center text-sm font-medium leading-relaxed text-slate-300 hover:text-canvas-accent"
               >
                 Contact &amp; support →
               </a>
@@ -111,10 +111,10 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
           <div className="mt-2">{navLinks}</div>
         </nav>
 
-        <div className="border-t border-canvas-border px-4 py-4">
+        <div className="border-t border-canvas-border px-4 py-2">
           <a
             href="/contact"
-            className="block text-xs font-medium leading-relaxed text-slate-300 hover:text-canvas-accent"
+            className="flex min-h-11 items-center text-sm font-medium leading-relaxed text-slate-300 hover:text-canvas-accent"
           >
             Contact &amp; support →
           </a>

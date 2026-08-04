@@ -1,1 +1,38 @@
-You are the Lead Engineer. Write complete, robust, highly optimized code. Never use placeholder code. Prioritize zero-dependency browser-side libraries to ensure instant loading on rural 3G/4G networks. All interfaces must be mobile-first via Tailwind CSS.
+# GRAMSEVAMITRA CURSOR RULES
+
+## Tech Stack Constraints
+- Framework: React / Astro / Tailwind CSS
+- Native Mobile Shell: Capacitor (Android focus)
+- Document Engine: @capacitor-mlkit/document-scanner
+- Image Engine: HTML5 Canvas API + @capacitor-community/image-manipulator + @capawesome/capacitor-photo-manipulator
+- Video Engine: @whiteguru/capacitor-plugin-video-editor
+- Local Storage: IndexedDB / OPFS (PWA) + Capacitor Filesystem (Mobile Native)
+- NO external UI component libraries unless explicitly specified.
+- NEVER suggest switching frameworks or adding heavy cloud dependencies.
+
+## Platform Isolation Rules
+- NEVER use the same UI component for desktop and mobile without a `usePlatform()` guard.
+- Desktop PWA components must live in `src/desktop/`.
+- Mobile Capacitor components must live in `src/mobile/`.
+- Shared business logic (API calls, storage, utilities) lives in `src/shared/`.
+- If a file imports a mobile-specific component into a desktop view, flag it as a violation.
+
+## Plugin & Android Safety Rules
+- ONLY use official `@capacitor/*` or highly maintained `@capawesome/*` plugins. Do NOT install unmaintained `@capacitor-community` plugins without explicit user approval.
+- If an image/video manipulation task can be done securely via HTML5 Canvas API instead of a native plugin, default to Canvas to prevent build errors.
+- Always check and update `android/app/src/main/AndroidManifest.xml` when adding plugins that require permissions (Camera, Read/Write External Storage, Internet).
+
+## Anti-Hallucination & Execution Rules
+1. Atomic Changes Only: Modify or create at most 2–3 files per task. Never refactor untouched files.
+2. Type Safety First: Define or update TypeScript interfaces/types BEFORE writing logic.
+3. No Unused Code: Do not leave placeholder comments, mock functions, or dead code.
+4. Environment Awareness: Always use `Capacitor.isNativePlatform()` to isolate native mobile features from PWA desktop features.
+5. GitHub Workflow: Every complete atomic task MUST end with a git commit and push instruction.
+
+## File Size & Bundle Rules
+- Never bundle a file >50KB in the initial payload. Use dynamic imports for heavy modules.
+- The initial app shell must load in <2 seconds on a 4G connection.
+
+## Commit Rules
+- Every commit must have a `feat:`, `fix:`, `docs:`, or `chore:` prefix.
+- Never commit without running `npm run build` first to check for errors.

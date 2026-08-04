@@ -41,44 +41,15 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: null,
       includeAssets: ['favicon.svg', 'robots.txt', 'pwa-192.png', 'pwa-512.png', 'manifest.json'],
-      manifest: {
-        name: 'GramsevaMitra',
-        short_name: 'Gramseva',
-        description:
-          'AI-powered document, image, and video toolkit for India — scan, convert, and work offline.',
-        theme_color: '#4f46e5',
-        background_color: '#ffffff',
-        display: 'standalone',
-        orientation: 'portrait-primary',
-        scope: '/',
-        start_url: '/',
-        lang: 'en-IN',
-        icons: [
-          {
-            src: '/pwa-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any',
-          },
-          {
-            src: '/pwa-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any',
-          },
-          {
-            src: '/pwa-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable',
-          },
-        ],
-      },
+      // Single source of truth is the committed apps/hub/public/manifest.json,
+      // which is the file every page links and the Android APK bundles.
+      // Generating a second /manifest.webmanifest here only caused drift.
+      manifest: false,
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webmanifest,txt,mjs,map,json}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,txt,mjs,map,json}'],
         globIgnores: ['**/data/babyNames.json'],
         navigateFallback: '/offline/index.html',
-        navigateFallbackDenylist: [/^\/api\//, /^\/404\.html$/, /^\/offline/],
+        navigateFallbackDenylist: [/^\/api\//, /^\/404\//, /^\/offline/],
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [

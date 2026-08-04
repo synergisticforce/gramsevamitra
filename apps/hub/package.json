@@ -24,7 +24,6 @@
     "chart.js": "^4.5.1",
     "compromise": "^14.15.1",
     "docx": "^9.7.1",
-    "eruda": "^3.4.3",
     "pdfjs-dist": "^4.10.38",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",

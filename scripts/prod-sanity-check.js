@@ -17,7 +17,7 @@ const APPS = [
 /** @type {{ rel: string; label: string }[]} */
 const REQUIRED_FILES = [
   { rel: 'index.html', label: 'HTML entrypoint' },
-  { rel: 'manifest.webmanifest', label: 'PWA manifest' },
+  { rel: 'manifest.json', label: 'PWA manifest' },
   { rel: '_headers', label: 'Edge _headers' },
   { rel: '_redirects', label: 'Edge _redirects' },
   { rel: '404.html', label: '404 page' },
@@ -28,7 +28,7 @@ const REQUIRED_FILES = [
 const HEADER_ASSERTIONS = [
   { pattern: /sw\.js[\s\S]*Cache-Control:\s*public,\s*max-age=0,\s*must-revalidate/i, label: 'sw.js no-cache header' },
   {
-    pattern: /manifest\.webmanifest[\s\S]*Cache-Control:\s*public,\s*max-age=0,\s*must-revalidate/i,
+    pattern: /manifest\.json[\s\S]*Cache-Control:\s*public,\s*max-age=0,\s*must-revalidate/i,
     label: 'manifest no-cache header',
   },
   {

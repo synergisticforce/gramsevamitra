@@ -13,15 +13,49 @@ export function isNativeAndroidScannerAvailable(): boolean {
   return Capacitor.isNativePlatform() && getScannerPlatform() === 'android';
 }
 
+function base64ToBlob(base64: string, mimeType: string): Blob {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: mimeType });
+}
+
+/**
+ * Read a native `file://` / `content://` URI into a Blob.
+ *
+ * The WebView origin is `https://localhost`, so a raw `fetch()` on a native URI
+ * is blocked. Convert to the Capacitor-served URL first and fall back to the
+ * Filesystem plugin, which can always read an absolute native path.
+ */
+async function readNativeUri(uri: string): Promise<Blob> {
+  const convertible = /^(file|content):/i.test(uri);
+  const fetchUrl = convertible ? Capacitor.convertFileSrc(uri) : uri;
+
+  try {
+    const response = await fetch(fetchUrl);
+    if (response.ok) {
+      return await response.blob();
+    }
+  } catch (err) {
+    console.warn('[documentScanner] convertFileSrc fetch failed, trying Filesystem:', err);
+  }
+
+  const { Filesystem } = await import('@capacitor/filesystem');
+  const result = await Filesystem.readFile({ path: uri });
+  const data = typeof result.data === 'string' ? result.data : '';
+  if (!data) {
+    throw new Error('Unable to read the scanned document image.');
+  }
+  return base64ToBlob(data, 'image/jpeg');
+}
+
 /**
  * Convert a Capacitor filesystem / content URI or data URL into a browser File.
  */
 export async function uriToImageFile(uri: string, fileName = 'scanned-document.jpg'): Promise<File> {
-  const response = await fetch(uri);
-  if (!response.ok) {
-    throw new Error('Unable to read the scanned document image.');
-  }
-  const blob = await response.blob();
+  const blob = await readNativeUri(uri);
   const type = blob.type || 'image/jpeg';
   const extension = type.includes('png') ? 'png' : type.includes('webp') ? 'webp' : 'jpg';
   const safeName = fileName.endsWith(`.${extension}`)
