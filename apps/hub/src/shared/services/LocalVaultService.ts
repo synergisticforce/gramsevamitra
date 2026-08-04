@@ -13,8 +13,21 @@ export interface VaultService {
   saveFile(file: File | Blob, fileName: string, mimeType: string): Promise<string>;
   getFile(id: string): Promise<Blob | null>;
   deleteFile(id: string): Promise<void>;
+  renameFile(id: string, name: string): Promise<void>;
   listFiles(): Promise<FileMetadata[]>;
   getFileUri(id: string): Promise<string | undefined>;
+}
+
+/** Keep the original extension so a renamed file still opens in the right app. */
+export function applyRenameKeepingExtension(currentName: string, nextName: string): string {
+  const cleaned = nextName.trim().replace(/[\\/:*?"<>|]/g, '').slice(0, 120);
+  if (!cleaned) throw new Error('Enter a name for this file.');
+
+  const currentExt = /\.([a-z0-9]+)$/i.exec(currentName)?.[1] ?? '';
+  if (!currentExt) return cleaned;
+  return new RegExp(`\\.${currentExt}$`, 'i').test(cleaned)
+    ? cleaned
+    : `${cleaned.replace(/\.$/, '')}.${currentExt}`;
 }
 
 const VAULT_DIR = 'gramseva-vault';
@@ -290,6 +303,16 @@ class NativeVaultBackend implements VaultService {
     });
   }
 
+  async renameFile(id: string, name: string): Promise<void> {
+    await this.withIndexLock(async () => {
+      const index = await this.readIndex();
+      const entry = index.find((item) => item.id === id);
+      if (!entry) throw new Error('This file is no longer saved on this device.');
+      entry.name = applyRenameKeepingExtension(entry.name, name);
+      await this.writeIndex(index);
+    });
+  }
+
   async listFiles(): Promise<FileMetadata[]> {
     const index = await this.readIndex();
     return [...index].sort((a, b) => b.created - a.created);
@@ -372,6 +395,31 @@ class WebVaultBackend implements VaultService {
     }
   }
 
+  async renameFile(id: string, name: string): Promise<void> {
+    const db = await openWebDb();
+    try {
+      const readTx = db.transaction(IDB_META_STORE, 'readonly');
+      const existing = await idbRequest(readTx.objectStore(IDB_META_STORE).get(id));
+      const meta = existing as FileMetadata | undefined;
+      if (!meta) throw new Error('This file is no longer saved on this device.');
+
+      const updated: FileMetadata = {
+        ...meta,
+        name: applyRenameKeepingExtension(meta.name, name),
+      };
+
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(IDB_META_STORE, 'readwrite');
+        tx.objectStore(IDB_META_STORE).put(updated);
+        tx.oncomplete = () => resolve();
+        tx.onabort = () => reject(describeStorageError(tx.error, 'Could not rename this file.'));
+        tx.onerror = () => reject(describeStorageError(tx.error, 'Could not rename this file.'));
+      });
+    } finally {
+      db.close();
+    }
+  }
+
   async listFiles(): Promise<FileMetadata[]> {
     const db = await openWebDb();
     try {
@@ -411,6 +459,10 @@ export class LocalVaultService implements VaultService {
 
   deleteFile(id: string): Promise<void> {
     return this.backend.deleteFile(id);
+  }
+
+  renameFile(id: string, name: string): Promise<void> {
+    return this.backend.renameFile(id, name);
   }
 
   listFiles(): Promise<FileMetadata[]> {

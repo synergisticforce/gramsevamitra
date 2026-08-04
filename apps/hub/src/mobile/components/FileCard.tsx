@@ -7,6 +7,7 @@ export interface FileCardProps {
   onOpen?: (file: FileMetadata) => void;
   onShare?: (file: FileMetadata) => void;
   onTools?: (file: FileMetadata) => void;
+  onRename?: (file: FileMetadata) => void;
   onDelete: (id: string) => void;
 }
 
@@ -44,6 +45,7 @@ export default function FileCard({
   onOpen,
   onShare,
   onTools,
+  onRename,
   onDelete,
 }: FileCardProps) {
   const metaLine = subtitle ?? `${formatFileSize(file.size)} · ${formatCreatedDate(file.created)}`;
@@ -101,6 +103,16 @@ export default function FileCard({
             aria-label={`Share ${file.name}`}
           >
             Share
+          </button>
+        )}
+        {onRename && (
+          <button
+            type="button"
+            onClick={() => onRename(file)}
+            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-canvas-border px-3 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-elevated active:scale-[0.98]"
+            aria-label={`Rename ${file.name}`}
+          >
+            Rename
           </button>
         )}
         <button

@@ -74,6 +74,8 @@ export default function ScanHomeScreen() {
   const [processing, setProcessing] = useState<{ label: string; percent: number } | null>(null);
   const [scanFilter, setScanFilter] = useState<ScanFilter>('auto');
   const [enhancing, setEnhancing] = useState(false);
+  const [query, setQuery] = useState('');
+  const [renaming, setRenaming] = useState<{ id: string; value: string } | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -377,6 +379,26 @@ export default function ScanHomeScreen() {
   const activePending = pending[previewIndex] ?? pending[0] ?? null;
   const hasImagePages = pending.some((item) => resolveCaptureMime(item.file).startsWith('image/'));
 
+  const visibleFiles = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return files;
+    return files.filter((file) => file.name.toLowerCase().includes(term));
+  }, [files, query]);
+
+  const handleRename = useCallback(async () => {
+    if (!renaming) return;
+    const { id, value } = renaming;
+    setError(null);
+    try {
+      await localVaultService.renameFile(id, value);
+      setRenaming(null);
+      await refresh();
+      setSuccess('File renamed.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not rename this file.');
+    }
+  }, [refresh, renaming]);
+
   return (
     <section className="mx-auto flex w-full max-w-lg flex-col gap-5 px-4 py-5 sm:px-5">
       <header className="space-y-2">
@@ -444,6 +466,19 @@ export default function ScanHomeScreen() {
           </button>
         </div>
 
+        {files.length > 3 && (
+          <label className="block">
+            <span className="sr-only">Search saved documents</span>
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search by name…"
+              className="min-h-11 w-full rounded-xl border border-canvas-border bg-canvas-surface px-4 text-sm text-canvas-text outline-none focus:border-canvas-accent"
+            />
+          </label>
+        )}
+
         {loading ? (
           <div
             className="flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border border-canvas-border bg-canvas-surface px-4 py-10"
@@ -461,9 +496,20 @@ export default function ScanHomeScreen() {
             <p className="text-base font-semibold text-canvas-text">No saved documents yet</p>
             <p className="mt-2 text-sm font-medium leading-relaxed text-slate-300">{emptyHint}</p>
           </div>
+        ) : visibleFiles.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-canvas-border bg-canvas-surface px-5 py-8 text-center">
+            <p className="text-sm font-semibold text-canvas-text">No files match “{query}”</p>
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              className="mt-3 inline-flex min-h-11 items-center justify-center rounded-xl border border-canvas-border px-4 text-sm font-semibold text-canvas-muted"
+            >
+              Clear search
+            </button>
+          </div>
         ) : (
           <ul className="grid grid-cols-1 gap-3" aria-busy={busyId !== null}>
-            {files.map((file) => (
+            {visibleFiles.map((file) => (
               <li key={file.id} className={busyId === file.id ? 'opacity-60' : undefined}>
                 <FileCard
                   file={file}
@@ -471,6 +517,7 @@ export default function ScanHomeScreen() {
                   onOpen={handleOpen}
                   onTools={(meta) => void handleTools(meta)}
                   onShare={(meta) => void handleShare(meta)}
+                  onRename={(meta) => setRenaming({ id: meta.id, value: meta.name })}
                   onDelete={handleDelete}
                 />
               </li>
@@ -661,6 +708,57 @@ export default function ScanHomeScreen() {
             src={pdfPreviewUrl}
             className="mx-auto mt-4 h-full min-h-0 w-full max-w-3xl flex-1 rounded-2xl bg-white"
           />
+        </div>
+      )}
+
+      {renaming && (
+        <div
+          className="fixed inset-0 z-[85] flex items-end justify-center bg-black/70 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="rename-title"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setRenaming(null);
+          }}
+        >
+          <div className="w-full max-w-sm rounded-2xl border border-canvas-border bg-canvas-surface p-5">
+            <h2 id="rename-title" className="text-base font-bold text-canvas-text">
+              Rename file
+            </h2>
+            <p className="mt-1 text-xs font-medium text-slate-300">
+              The file type stays the same.
+            </p>
+            <input
+              type="text"
+              value={renaming.value}
+              autoFocus
+              onChange={(event) =>
+                setRenaming((current) =>
+                  current ? { ...current, value: event.target.value } : current,
+                )
+              }
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') void handleRename();
+              }}
+              className="mt-4 min-h-12 w-full rounded-xl border border-canvas-border bg-canvas-elevated px-4 text-sm text-canvas-text outline-none focus:border-canvas-accent"
+            />
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setRenaming(null)}
+                className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl border border-canvas-border text-sm font-semibold text-canvas-muted"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleRename()}
+                className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl bg-canvas-accent-muted text-sm font-bold text-canvas-text"
+              >
+                Save name
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
