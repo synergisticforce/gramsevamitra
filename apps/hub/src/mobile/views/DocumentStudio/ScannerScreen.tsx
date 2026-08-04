@@ -4,12 +4,20 @@ import { useIdScanner } from '../../hooks/useIdScanner';
 import ProBadge from '../../../shared/components/ProBadge';
 import { useFeatureGate } from '../../../shared/hooks/useFeatureGate';
 import UpgradeScreen from '../UpgradeScreen';
+import VaultScreen from '../VaultScreen';
+import ConverterScreen from './ConverterScreen';
+
+type StudioView = 'scanner' | 'converter' | 'vault';
 
 export default function ScannerScreen() {
   const { scanDocument, isScanning, error } = useDocumentScanner();
   const { scanIdCard, isScanningId, idError } = useIdScanner();
   const { isPro, checkAccess, showUpgrade, dismissUpgrade } = useFeatureGate();
-  const [proPreview, setProPreview] = useState<string | null>(null);
+  const [view, setView] = useState<StudioView>('scanner');
+  const [vaultHighlight, setVaultHighlight] = useState<{
+    id: string | null;
+    name: string | null;
+  }>({ id: null, name: null });
   const busy = isScanning || isScanningId;
   const activeError = idError ?? error;
 
@@ -28,10 +36,31 @@ export default function ScannerScreen() {
     );
   }
 
-  const handleAiTextExtract = () => {
+  if (view === 'converter') {
+    return (
+      <ConverterScreen
+        onBack={() => setView('scanner')}
+        onOpenVault={(vaultId, fileName) => {
+          setVaultHighlight({ id: vaultId, name: fileName });
+          setView('vault');
+        }}
+      />
+    );
+  }
+
+  if (view === 'vault') {
+    return (
+      <VaultScreen
+        onBack={() => setView('converter')}
+        highlightFileId={vaultHighlight.id}
+        highlightFileName={vaultHighlight.name}
+      />
+    );
+  }
+
+  const handleAiConvert = () => {
     checkAccess(() => {
-      // Placeholder — real AI Text Extract lands in a later phase.
-      setProPreview('AI Text Extract is unlocked for Pro. Full extractor ships next.');
+      setView('converter');
     });
   };
 
@@ -83,11 +112,11 @@ export default function ScannerScreen() {
 
         <button
           type="button"
-          onClick={handleAiTextExtract}
+          onClick={handleAiConvert}
           disabled={busy}
           className="inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-2xl border border-amber-400/40 bg-amber-500/10 px-6 py-4 text-base font-semibold text-amber-100 transition hover:bg-amber-500/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          AI Text Extract (Pro)
+          AI Convert Document (Pro)
           {!isPro ? (
             <span className="rounded-md bg-amber-400/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-200">
               Locked
@@ -103,15 +132,6 @@ export default function ScannerScreen() {
               : 'Works offline on Android. Finished files are stored in your Local Vault.'}
         </p>
       </div>
-
-      {proPreview && (
-        <p
-          className="rounded-xl border border-emerald-500/40 bg-canvas-accent-soft px-4 py-3 text-sm font-medium leading-relaxed text-canvas-text"
-          role="status"
-        >
-          {proPreview}
-        </p>
-      )}
 
       {activeError && (
         <p

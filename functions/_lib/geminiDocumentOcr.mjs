@@ -13,6 +13,9 @@ export const DOCUMENT_OCR_SYSTEM_PROMPT =
 export const DOCUMENT_LAYOUT_HTML_PROMPT =
   'Extract all content from this document and reconstruct its visual layout into clean HTML. Preserve exact typography hierarchy, font sizes, colors, table structures, margins, and inline styles so it visually matches the original design as closely as possible.';
 
+export const DOCUMENT_TABLE_JSON_PROMPT =
+  'Extract every table and structured row of data from this document. Return ONLY a JSON array of arrays (2D grid of strings). The first row must be headers when present. No markdown fences, no commentary — pure JSON only.';
+
 /** Max upload size for inline Gemini payloads (Workers memory + request limits). */
 export const DOCUMENT_OCR_MAX_BYTES = 12 * 1024 * 1024;
 
@@ -281,6 +284,53 @@ export async function runGeminiDocumentLayoutHtml(input) {
 
   return {
     html,
+    model: DOCUMENT_OCR_MODEL,
+    mimeType,
+  };
+}
+
+/**
+ * Table / grid extraction for XLSX / CSV exports.
+ * @param {{
+ *   apiKey: string;
+ *   mimeType: string;
+ *   base64Data: string;
+ *   fileName?: string;
+ * }} input
+ */
+export async function runGeminiDocumentTableJson(input) {
+  const { text, mimeType } = await generateGeminiDocumentContent({
+    ...input,
+    prompt: DOCUMENT_TABLE_JSON_PROMPT,
+  });
+
+  let raw = (text || '').trim();
+  const fenced = /^```(?:json)?\s*\n([\s\S]*?)\n```$/i.exec(raw);
+  if (fenced) raw = fenced[1].trim();
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    const err = new Error('Vision AI returned invalid table JSON. Try a clearer scan.');
+    err.code = 'EMPTY';
+    throw err;
+  }
+
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    const err = new Error('Vision AI returned an empty table. Try a clearer scan.');
+    err.code = 'EMPTY';
+    throw err;
+  }
+
+  const rows = parsed.map((row) => {
+    if (Array.isArray(row)) return row.map((cell) => String(cell ?? ''));
+    if (row && typeof row === 'object') return Object.values(row).map((cell) => String(cell ?? ''));
+    return [String(row ?? '')];
+  });
+
+  return {
+    rows,
     model: DOCUMENT_OCR_MODEL,
     mimeType,
   };
