@@ -105,6 +105,77 @@ export async function compressVideo(
   );
 }
 
+export type VideoAspect = '9:16' | '1:1' | '4:5' | '16:9';
+
+export interface VideoAspectOption {
+  id: VideoAspect;
+  label: string;
+  hint: string;
+}
+
+export const VIDEO_ASPECT_OPTIONS: VideoAspectOption[] = [
+  { id: '9:16', label: '9:16 Tall', hint: 'Reels, Shorts, WhatsApp status' },
+  { id: '1:1', label: '1:1 Square', hint: 'Feed posts' },
+  { id: '4:5', label: '4:5 Portrait', hint: 'Instagram portrait' },
+  { id: '16:9', label: '16:9 Wide', hint: 'YouTube, TV' },
+];
+
+const ASPECT_RATIOS: Record<VideoAspect, number> = {
+  '9:16': 9 / 16,
+  '1:1': 1,
+  '4:5': 4 / 5,
+  '16:9': 16 / 9,
+};
+
+/**
+ * Reframe a clip to a target aspect ratio.
+ *
+ * `crop` centre-cuts to fill the frame (what social platforms expect);
+ * `fit` letterboxes onto black so nothing in frame is lost.
+ */
+export async function reframeVideo(
+  file: File,
+  aspect: VideoAspect,
+  mode: 'crop' | 'fit',
+  onProgress: ProgressFn,
+): Promise<void> {
+  const ratio = ASPECT_RATIOS[aspect];
+  const outputName = `reframed_${aspect.replace(':', 'x')}.mp4`;
+
+  // `ih*ratio` derives the width from the source height, and the min() guards
+  // against exceeding the source when the clip is already narrower.
+  const filter =
+    mode === 'crop'
+      ? `crop='min(iw,ih*${ratio})':'min(ih,iw/${ratio})',scale=trunc(iw/2)*2:trunc(ih/2)*2`
+      : `scale='if(gt(a,${ratio}),iw,ih*${ratio})':'if(gt(a,${ratio}),iw/${ratio},ih)':force_original_aspect_ratio=decrease,` +
+        `pad='if(gt(a,${ratio}),iw,ih*${ratio})':'if(gt(a,${ratio}),iw/${ratio},ih)':(ow-iw)/2:(oh-ih)/2:black,` +
+        `scale=trunc(iw/2)*2:trunc(ih/2)*2`;
+
+  await runJob(
+    file,
+    outputName,
+    (input) => [
+      '-i',
+      input,
+      '-vf',
+      filter,
+      '-c:v',
+      'libx264',
+      '-preset',
+      'fast',
+      '-crf',
+      '24',
+      '-c:a',
+      'aac',
+      '-b:a',
+      '128k',
+      outputName,
+    ],
+    onProgress,
+    'video/mp4',
+  );
+}
+
 export type VideoOutputFormat = 'mp4' | 'webm' | 'mov';
 
 export async function convertVideoFormat(

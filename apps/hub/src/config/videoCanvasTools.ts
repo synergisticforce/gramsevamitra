@@ -11,6 +11,7 @@ export type VideoToolId =
   | 'trim-video'
   | 'video-watermark'
   | 'video-speed'
+  | 'video-reframe'
   | 'extract-frame';
 
 export interface VideoCanvasTool {
@@ -92,6 +93,13 @@ export const VIDEO_CANVAS_TOOLS: VideoCanvasTool[] = [
     icon: '⏩',
     category: 'transform',
     description: 'Slow down to 0.5× or speed up to 1.5× or 2× while keeping audio in sync.',
+  },
+  {
+    id: 'video-reframe',
+    label: 'Crop & Reframe',
+    icon: '🖼️',
+    category: 'transform',
+    description: 'Reshape to 9:16, 1:1, 4:5, or 16:9 for Reels, Shorts, and status posts.',
   },
   {
     id: 'extract-frame',

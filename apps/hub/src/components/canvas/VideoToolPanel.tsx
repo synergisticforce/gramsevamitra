@@ -14,7 +14,10 @@ import {
   changeVideoSpeed,
   watermarkVideo,
   videoToGif,
+  reframeVideo,
+  VIDEO_ASPECT_OPTIONS,
   type CompressPreset,
+  type VideoAspect,
   type VideoJobProgress,
   type VideoOutputFormat,
   type VideoSpeedPreset,
@@ -131,6 +134,9 @@ export default function VideoToolPanel({
     savePersistedJson(VIDEO_STORAGE_KEYS.frameSecond, { second: frameSecond });
   }, [frameSecond]);
 
+  const [reframeAspect, setReframeAspect] = useState<VideoAspect>('9:16');
+  const [reframeMode, setReframeMode] = useState<'crop' | 'fit'>('crop');
+
   const process = async () => {
     if (busy || disabled) return;
     setBusy(true);
@@ -182,6 +188,10 @@ export default function VideoToolPanel({
         case 'video-speed':
           await changeVideoSpeed(file, speedPreset, onProgress);
           resultFilename = `speed_${speedPreset}x.mp4`;
+          break;
+        case 'video-reframe':
+          await reframeVideo(file, reframeAspect, reframeMode, onProgress);
+          resultFilename = `reframed_${reframeAspect.replace(':', 'x')}.mp4`;
           break;
         case 'extract-frame': {
           onProgress({ label: 'Seeking to frame…', percent: 40 });
@@ -238,7 +248,7 @@ export default function VideoToolPanel({
             className={INPUT_CLASS}
           >
             <option value="mp4">MP4 (H.264 + AAC)</option>
-            <option value="webm">WebM (VP9 + Opus)</option>
+            <option value="webm">WebM (VP8 + Vorbis)</option>
             <option value="mov">MOV (H.264 + AAC)</option>
           </select>
         </label>
@@ -359,6 +369,67 @@ export default function VideoToolPanel({
               {speed}×
             </button>
           ))}
+        </div>
+      )}
+
+      {toolId === 'video-reframe' && (
+        <div className="space-y-4">
+          <div>
+            <span className="mb-2 block text-sm font-medium text-slate-200">Shape</span>
+            <div className="flex flex-wrap gap-2">
+              {VIDEO_ASPECT_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  disabled={isDisabled}
+                  onClick={() => setReframeAspect(option.id)}
+                  title={option.hint}
+                  aria-pressed={reframeAspect === option.id}
+                  className={`inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold transition ${
+                    reframeAspect === option.id
+                      ? 'bg-canvas-accent-muted text-white'
+                      : 'border border-canvas-border bg-canvas-surface text-slate-200 hover:bg-canvas-elevated'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs font-medium text-slate-300">
+              {VIDEO_ASPECT_OPTIONS.find((option) => option.id === reframeAspect)?.hint}
+            </p>
+          </div>
+
+          <div>
+            <span className="mb-2 block text-sm font-medium text-slate-200">Fill method</span>
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  { id: 'crop' as const, label: 'Crop to fill' },
+                  { id: 'fit' as const, label: 'Fit with black bars' },
+                ]
+              ).map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  disabled={isDisabled}
+                  onClick={() => setReframeMode(option.id)}
+                  aria-pressed={reframeMode === option.id}
+                  className={`inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold transition ${
+                    reframeMode === option.id
+                      ? 'bg-canvas-accent-muted text-white'
+                      : 'border border-canvas-border bg-canvas-surface text-slate-200 hover:bg-canvas-elevated'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs font-medium leading-relaxed text-slate-300">
+              Crop fills the whole frame but trims the edges. Fit keeps everything visible and adds
+              black bars.
+            </p>
+          </div>
         </div>
       )}
 
