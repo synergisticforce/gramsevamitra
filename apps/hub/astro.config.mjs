@@ -90,6 +90,17 @@ export default defineConfig({
             },
           },
           {
+            // On-device background removal model weights (RMBG-1.4).
+            urlPattern: /^https:\/\/(huggingface\.co|cdn-lfs[^/]*\.huggingface\.co)\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'onnx-model-cache',
+              expiration: { maxEntries: 24, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+              rangeRequests: true,
+            },
+          },
+          {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
             options: {

@@ -16,6 +16,8 @@ export interface MediaCanvasAction {
    * but cannot be run, so no one is charged AI Credits for placeholder output.
    */
   comingSoon?: boolean;
+  /** Small label shown on the tool card. */
+  badge?: string;
 }
 
 export const MEDIA_ACCEPT = 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp';
@@ -87,16 +89,13 @@ export const MEDIA_CANVAS_ACTIONS: MediaCanvasAction[] = [
     mimePatterns: ['image/jpeg', 'image/png', 'image/webp'],
   },
   {
+    // Runs on-device, so it is free and needs no AI Credits.
     id: 'remove-background',
     label: 'Remove Background',
     icon: '✂️',
-    tier: 'pro',
-    comingSoon: true,
+    tier: 'free',
+    badge: 'On-device',
     mimePatterns: ['image/jpeg', 'image/png', 'image/webp'],
-    featureId: 'remove-background',
-    featureName: 'AI Background Removal',
-    featureDescription:
-      'Remove backgrounds from exam photos and ID scans with advanced AI — powered by GramSeva Mitra Pro.',
   },
   {
     id: 'upscale-4x',

@@ -47,10 +47,14 @@ export default function MediaActionToolbar({ actions, onActionClick }: Props) {
                   <span className="absolute right-2 top-2 rounded-full bg-canvas-surface px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-canvas-subtle">
                     Soon
                   </span>
+                ) : isPro ? (
+                  <span className="absolute right-2 top-2 rounded-full bg-amber-900/70 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-100">
+                    ⚡ Pro
+                  </span>
                 ) : (
-                  isPro && (
-                    <span className="absolute right-2 top-2 rounded-full bg-amber-900/70 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-100">
-                      ⚡ Pro
+                  action.badge && (
+                    <span className="absolute right-2 top-2 rounded-full bg-canvas-accent-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-canvas-accent">
+                      {action.badge}
                     </span>
                   )
                 )}
@@ -63,7 +67,9 @@ export default function MediaActionToolbar({ actions, onActionClick }: Props) {
                       ? 'pr-12 text-canvas-muted'
                       : isPro
                         ? 'pr-10 text-amber-100'
-                        : 'text-canvas-text'
+                        : action.badge
+                          ? 'pr-16 text-canvas-text'
+                          : 'text-canvas-text'
                   }`}
                 >
                   {action.label}

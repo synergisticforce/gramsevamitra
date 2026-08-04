@@ -29,6 +29,7 @@ import MediaActionToolbar from './MediaActionToolbar';
 import MediaMagicDropzone from './MediaMagicDropzone';
 import ResizeCompressModal from './ResizeCompressModal';
 import ImageAdjustModal from './ImageAdjustModal';
+import RemoveBackgroundModal from './RemoveBackgroundModal';
 
 type CanvasPhase = 'empty' | 'active';
 type MediaToolModal =
@@ -40,6 +41,7 @@ type MediaToolModal =
   | 'image-to-pdf'
   | 'image-filters'
   | 'image-adjust'
+  | 'remove-background'
   | null;
 
 interface ActiveFile {
@@ -207,6 +209,11 @@ export default function MediaLabCanvas() {
       if (action.id === 'image-adjust') {
         if (!requireCanvasFile()) return;
         setMediaModal('image-adjust');
+        return;
+      }
+      if (action.id === 'remove-background') {
+        if (!requireCanvasFile()) return;
+        setMediaModal('remove-background');
         return;
       }
       setToastMessage(`${action.label} is coming soon.`);
@@ -475,6 +482,15 @@ export default function MediaLabCanvas() {
 
       {mediaModal === 'image-adjust' && canvasImageFile && (
         <ImageAdjustModal
+          file={canvasImageFile}
+          onClose={() => setMediaModal(null)}
+          onSuccess={setToastMessage}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {mediaModal === 'remove-background' && canvasImageFile && (
+        <RemoveBackgroundModal
           file={canvasImageFile}
           onClose={() => setMediaModal(null)}
           onSuccess={setToastMessage}
