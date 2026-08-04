@@ -1,5 +1,6 @@
 import { openProUpgrade } from '@shared/lib/proUpgrade';
 import { OCR_WATERFALL_LOADER_STAGES } from '@shared/utils/ocrQuality';
+import { apiUrl } from '../../shared/lib/apiBase';
 import { parseCreditApiError } from '../auth/creditCheck';
 import { prepareSmartExtractUpload } from '../canvas/smartExtractPrep';
 import { runTier1TesseractOcr, type Tier1OcrResult } from './tesseractTier1';
@@ -30,8 +31,8 @@ export class OcrProUpgradeRequiredError extends Error {
   }
 }
 
-const OCR_ORCHESTRATOR_ENDPOINT = '/api/pro/ocr-orchestrator';
-const UPLOAD_ENDPOINT = '/api/pro/smart-extract/upload';
+const OCR_ORCHESTRATOR_ENDPOINT = apiUrl('/api/pro/ocr-orchestrator');
+const UPLOAD_ENDPOINT = apiUrl('/api/pro/smart-extract/upload');
 
 function downloadCsv(csv: string, filename: string): void {
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });

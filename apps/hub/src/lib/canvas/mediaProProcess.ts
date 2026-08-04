@@ -1,5 +1,6 @@
 import { downloadBlob } from '@shared/utils/fileUtils';
 import { splitImageBaseName } from './mediaImageTools';
+import { apiUrl } from '../../shared/lib/apiBase';
 
 export type MediaProAction = 'remove-bg' | 'upscale' | 'restore';
 
@@ -81,7 +82,7 @@ export async function runMediaProPipeline(
   const formData = new FormData();
   formData.append('file', file);
 
-  const uploadResponse = await fetch('/api/pro/media-process/upload', {
+  const uploadResponse = await fetch(apiUrl('/api/pro/media-process/upload'), {
     method: 'POST',
     credentials: 'include',
     body: formData,
@@ -108,7 +109,7 @@ export async function runMediaProPipeline(
 
   let processResponse: Response;
   try {
-    processResponse = await fetch('/api/pro/media-process', {
+    processResponse = await fetch(apiUrl('/api/pro/media-process'), {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },

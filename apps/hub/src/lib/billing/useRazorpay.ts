@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { PRO_ORDER_AMOUNT_PAISE } from '@shared/lib/proUpgrade';
+import { apiUrl } from '../../shared/lib/apiBase';
 
 export const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 
@@ -67,7 +68,7 @@ export function loadRazorpayCheckoutScript(): Promise<void> {
 }
 
 export async function createRazorpayOrder(feature: string): Promise<RazorpayOrderResponse> {
-  const response = await fetch('/api/billing/razorpay-order', {
+  const response = await fetch(apiUrl('/api/billing/razorpay-order'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -104,7 +105,7 @@ export async function createRazorpayOrder(feature: string): Promise<RazorpayOrde
 
 export async function fetchPaymentStatus(orderId?: string): Promise<PaymentStatusResponse> {
   const query = orderId ? `?orderId=${encodeURIComponent(orderId)}` : '';
-  const response = await fetch(`/api/billing/payment-status${query}`, {
+  const response = await fetch(apiUrl(`/api/billing/payment-status${query}`), {
     credentials: 'include',
   });
   return (await response.json()) as PaymentStatusResponse;
@@ -123,7 +124,7 @@ export interface VerifyPaymentResponse {
 export async function verifyRazorpayPayment(
   payment: RazorpaySuccessResponse,
 ): Promise<VerifyPaymentResponse> {
-  const response = await fetch('/api/billing/verify-payment', {
+  const response = await fetch(apiUrl('/api/billing/verify-payment'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',

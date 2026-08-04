@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { openProUpgrade } from '@shared/lib/proUpgrade';
 import { parseCreditApiError } from '../../lib/auth/creditCheck';
 import { useProCreditConfirm } from '../../lib/auth/useProCreditConfirm';
+import { apiUrl } from '../../shared/lib/apiBase';
 
-const ENDPOINT = '/api/pro/document-ocr';
+const ENDPOINT = apiUrl('/api/pro/document-ocr');
 const ACCEPT = 'application/pdf,image/jpeg,image/png,image/webp,.pdf,.jpg,.jpeg,.png,.webp';
 const MAX_BYTES = 12 * 1024 * 1024;
 

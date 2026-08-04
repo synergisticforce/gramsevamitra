@@ -1,3 +1,5 @@
+import { apiUrl } from '../lib/apiBase';
+
 export interface ContactRequest {
   name: string;
   email: string;
@@ -34,7 +36,7 @@ export class ContactService {
     }
 
     try {
-      const response = await fetch('/api/contact', {
+      const response = await fetch(apiUrl('/api/contact'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

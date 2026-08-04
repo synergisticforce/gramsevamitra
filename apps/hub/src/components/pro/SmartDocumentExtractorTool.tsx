@@ -7,12 +7,13 @@ import {
 } from '@shared/lib/proTaskStages';
 import { parseCreditApiError } from '../../lib/auth/creditCheck';
 import { useProCreditConfirm } from '../../lib/auth/useProCreditConfirm';
+import { apiUrl } from '../../shared/lib/apiBase';
 import ProTaskLoader from './ProTaskLoader';
 
 type OutputFormat = 'json' | 'csv' | 'docx';
 type DocumentType = 'invoice' | 'bank_statement';
 
-const OCR_ORCHESTRATOR_ENDPOINT = '/api/pro/ocr-orchestrator';
+const OCR_ORCHESTRATOR_ENDPOINT = apiUrl('/api/pro/ocr-orchestrator');
 
 export default function SmartDocumentExtractorTool() {
   const { data: session, isPending } = authClient.useSession();

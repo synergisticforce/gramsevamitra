@@ -1,4 +1,5 @@
 import { openProUpgrade } from '@shared/lib/proUpgrade';
+import { apiUrl } from '../../shared/lib/apiBase';
 import { parseCreditApiError } from '../auth/creditCheck';
 import { textToDocxBlob, triggerDocxDownload } from '../canvas/extractToWord';
 import { htmlToDocxBlob } from '../canvas/htmlToDocx';
@@ -35,7 +36,7 @@ export class EditableFormatProRequiredError extends Error {
 const PRO_LAYOUT_MESSAGE =
   'Advanced Layout Detected: This file contains structured table columns, multi-column metrics, or complex scan quality that require deep AI layout reconstruction. Upgrade to GramSeva Mitra Pro to perfectly preserve your text formatting grids, rows, and margins.';
 
-const LAYOUT_HTML_ENDPOINT = '/api/pro/document-layout-html';
+const LAYOUT_HTML_ENDPOINT = apiUrl('/api/pro/document-layout-html');
 
 export function isProStructuralFormat(target: EditableFormatTarget): boolean {
   return target === 'xlsx' || target === 'csv' || target === 'xml';
@@ -131,7 +132,7 @@ async function uploadForProReconstruction(file: File): Promise<{ objectKey: stri
   const formData = new FormData();
   formData.append('file', file, file.name);
 
-  const response = await fetch('/api/pro/reconstruct-layout/upload', {
+  const response = await fetch(apiUrl('/api/pro/reconstruct-layout/upload'), {
     method: 'POST',
     credentials: 'include',
     body: formData,
@@ -281,7 +282,7 @@ export async function runProLayoutReconstruction(
 
   let response: Response;
   try {
-    response = await fetch('/api/pro/reconstruct-layout', {
+    response = await fetch(apiUrl('/api/pro/reconstruct-layout'), {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },

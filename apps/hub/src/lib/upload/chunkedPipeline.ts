@@ -1,5 +1,6 @@
 import { downloadBlob } from '@shared/utils/fileUtils';
 import { getLocalProcessingLimitBytes } from '../pdf/deviceDetection';
+import { apiUrl } from '../../shared/lib/apiBase';
 
 export const CHUNK_BYTES = 20 * 1024 * 1024;
 
@@ -48,7 +49,7 @@ function totalChunksForFile(file: File, chunkBytes: number): number {
 }
 
 async function createChunkSession(file: File, chunkBytes: number): Promise<ChunkSessionInit> {
-  const response = await fetch('/api/chunked/session', {
+  const response = await fetch(apiUrl('/api/chunked/session'), {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -80,7 +81,9 @@ async function uploadOneChunk(
   chunk: Blob,
 ): Promise<UploadChunkResponse> {
   const response = await fetch(
-    `/api/chunked/session?sessionId=${encodeURIComponent(sessionId)}&index=${index}&chunkSize=${chunk.size}`,
+    apiUrl(
+      `/api/chunked/session?sessionId=${encodeURIComponent(sessionId)}&index=${index}&chunkSize=${chunk.size}`,
+    ),
     {
       method: 'PUT',
       credentials: 'include',
@@ -127,7 +130,7 @@ export async function finalizeChunkedStage(sessionId: string): Promise<{
   fileName: string;
   contentType: string;
 }> {
-  const response = await fetch('/api/chunked/finalize', {
+  const response = await fetch(apiUrl('/api/chunked/finalize'), {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -150,7 +153,7 @@ export async function finalizeChunkedDownload(
   sessionId: string,
   fileNameFallback: string,
 ): Promise<{ blob: Blob; fileName: string }> {
-  const response = await fetch('/api/chunked/finalize', {
+  const response = await fetch(apiUrl('/api/chunked/finalize'), {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -217,7 +220,7 @@ export async function runChunkedSplitPipeline(
   const staged = await stageFileViaChunks(file, onProgress);
   onProgress({ label: 'Splitting pages on backend…', percent: 97 });
 
-  const response = await fetch('/api/chunked/document/split', {
+  const response = await fetch(apiUrl('/api/chunked/document/split'), {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -267,7 +270,7 @@ export async function runChunkedMergePipeline(
   }
 
   onProgress({ label: 'Merging files on backend…', percent: 96 });
-  const response = await fetch('/api/chunked/document/merge', {
+  const response = await fetch(apiUrl('/api/chunked/document/merge'), {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -306,7 +309,7 @@ async function runChunkedDocumentProcess(
   const staged = await stageFileViaChunks(file, onProgress);
   onProgress({ label: 'Processing on secure backend…', percent: 97 });
 
-  const response = await fetch('/api/chunked/document/process', {
+  const response = await fetch(apiUrl('/api/chunked/document/process'), {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },

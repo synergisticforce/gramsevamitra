@@ -4,6 +4,7 @@ import {
   getOperationLabel,
   PRO_MONTHLY_CREDIT_FUP,
 } from '@shared/lib/aiCredits.mjs';
+import { apiUrl } from '../../shared/lib/apiBase';
 
 export type ProOperationId =
   | 'smart-extract'
@@ -38,7 +39,7 @@ export { PRO_MONTHLY_CREDIT_FUP, getOperationCreditCost, getOperationLabel, form
 
 /** Fetch live AI Credit balance from D1 via edge API. */
 export async function fetchUserCredits(): Promise<number> {
-  const response = await fetch('/api/user/credits', { credentials: 'include' });
+  const response = await fetch(apiUrl('/api/user/credits'), { credentials: 'include' });
 
   if (response.status === 401 || response.status === 403) {
     return 0;

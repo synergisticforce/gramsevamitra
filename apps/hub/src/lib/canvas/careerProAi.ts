@@ -23,6 +23,7 @@ export function resolveCareerProAction(actionId: string): CareerProAiAction | nu
 }
 
 import { parseCreditApiError } from '../auth/creditCheck';
+import { apiUrl } from '../../shared/lib/apiBase';
 
 function startAiProgressTicker(
   action: CareerProAiAction,
@@ -53,7 +54,7 @@ export async function runCareerProAiPipeline(
 
   let response: Response;
   try {
-    response = await fetch('/api/pro/career-ai', {
+    response = await fetch(apiUrl('/api/pro/career-ai'), {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },

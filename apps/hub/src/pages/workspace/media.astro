@@ -1,3 +1,17 @@
 ---
-return Astro.redirect('/workspace/image', 301);
+/** Relative redirect — avoid Astro static absolute URLs that escape Capacitor WebView. */
 ---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="refresh" content="0;url=/workspace/image/" />
+    <script is:inline>
+      window.location.replace('/workspace/image/');
+    </script>
+  </head>
+  <body>
+    <a href="/workspace/image/">Continue to Image Studio</a>
+  </body>
+</html>

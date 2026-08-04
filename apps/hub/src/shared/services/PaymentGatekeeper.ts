@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { apiUrl } from '../lib/apiBase';
 
 export interface PaymentGatekeeperService {
   initiateCheckout: (paymentUrl: string) => Promise<void>;
@@ -66,7 +67,7 @@ export class PaymentGatekeeper implements PaymentGatekeeperService {
       throw new Error('orderId, paymentId, and signature are required for verification.');
     }
 
-    const response = await fetch('/api/billing/verify-payment', {
+    const response = await fetch(apiUrl('/api/billing/verify-payment'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -100,7 +101,7 @@ export class PaymentGatekeeper implements PaymentGatekeeperService {
 
   /** Create a Razorpay order for the signed-in user and return a same-origin checkout URL. */
   async createMobileCheckoutSession(feature = 'mobile_pro_upgrade'): Promise<MobileCheckoutSession> {
-    const response = await fetch('/api/billing/razorpay-order', {
+    const response = await fetch(apiUrl('/api/billing/razorpay-order'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -161,7 +162,7 @@ export class PaymentGatekeeper implements PaymentGatekeeperService {
       const query = options?.orderId
         ? `?orderId=${encodeURIComponent(options.orderId)}`
         : '';
-      const response = await fetch(`/api/billing/payment-status${query}`, {
+      const response = await fetch(apiUrl(`/api/billing/payment-status${query}`), {
         credentials: 'include',
       });
       const status = (await response.json()) as {

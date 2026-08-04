@@ -1,5 +1,6 @@
 import { downloadBlob } from '@shared/utils/fileUtils';
 import { splitFilenameBase } from './documentPdfTools';
+import { apiUrl } from '../../shared/lib/apiBase';
 
 export type HiFiOutputFormat = 'docx' | 'pptx';
 
@@ -51,7 +52,7 @@ export async function runFileConverterPipeline(
   const formData = new FormData();
   formData.append('file', file);
 
-  const uploadResponse = await fetch('/api/pro/file-converter/upload', {
+  const uploadResponse = await fetch(apiUrl('/api/pro/file-converter/upload'), {
     method: 'POST',
     credentials: 'include',
     body: formData,
@@ -79,7 +80,7 @@ export async function runFileConverterPipeline(
 
   let convertResponse: Response;
   try {
-    convertResponse = await fetch('/api/pro/file-converter', {
+    convertResponse = await fetch(apiUrl('/api/pro/file-converter'), {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },

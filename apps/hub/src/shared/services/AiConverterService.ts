@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { htmlToDocxBlob } from '../../lib/canvas/htmlToDocx';
+import { apiUrl } from '../lib/apiBase';
 import { localVaultService } from './LocalVaultService';
 
 export type TargetFormat = 'docx' | 'xlsx' | 'csv';
@@ -233,7 +234,7 @@ export class AiConverterService {
     form.append('file', fileBlob, fileName);
     form.append('format', format);
 
-    const response = await fetch('/api/ai/convert-document', {
+    const response = await fetch(apiUrl('/api/ai/convert-document'), {
       method: 'POST',
       credentials: 'include',
       body: form,
@@ -272,7 +273,7 @@ export class AiConverterService {
     }
 
     const response = await fetch(
-      `/api/ai/conversion-status?jobId=${encodeURIComponent(jobId)}`,
+      apiUrl(`/api/ai/conversion-status?jobId=${encodeURIComponent(jobId)}`),
       { credentials: 'include' },
     );
 
