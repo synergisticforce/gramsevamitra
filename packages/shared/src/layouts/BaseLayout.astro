@@ -82,6 +82,32 @@ const ogImage = new URL('/favicon.svg', siteConfig.url).href;
       </script>
     )}
     <PostHogAnalytics />
+    {/* On-device Eruda console — bundled first (works offline in Capacitor APK). */}
+    {site === 'hub' && (
+      <>
+        <script is:inline src="/eruda.js"></script>
+        <script is:inline src="https://cdn.jsdelivr.net/npm/eruda"></script>
+        <script is:inline>
+          (function () {
+            try {
+              if (typeof eruda !== 'undefined' && !window.__GSM_ERUDA__) {
+                eruda.init();
+                window.__GSM_ERUDA__ = true;
+                console.log('[Gramseva] Eruda console ready — tap the floating gear');
+              }
+            } catch (err) {
+              console.error('ERUDA_INIT_FAILED', err);
+            }
+            window.addEventListener('error', function (e) {
+              console.error('GLOBAL_ERROR:', e.message, e.filename, e.lineno);
+            });
+            window.addEventListener('unhandledrejection', function (e) {
+              console.error('UNHANDLED_REJECTION:', e.reason);
+            });
+          })();
+        </script>
+      </>
+    )}
   </head>
   <body class="min-h-screen bg-canvas-bg text-slate-200 leading-relaxed antialiased">
     <slot />

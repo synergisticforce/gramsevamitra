@@ -1,6 +1,6 @@
 ---
 /**
- * Capacitor-safe root entry.
+ * Capacitor-safe root entry + Eruda on-screen console for phone debugging.
  * Target the explicit HTML file — directory URLs without a server often 404
  * in the Android WebView asset loader and produce a black screen.
  */
@@ -13,8 +13,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="robots" content="noindex" />
     <title>Loading…</title>
+    <!-- Bundled Eruda (offline-safe in APK); CDN as secondary fallback -->
+    <script is:inline src="/eruda.js"></script>
+    <script is:inline src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script is:inline>
-      window.location.replace('/workspace/documents/index.html');
+      (function () {
+        try {
+          if (typeof eruda !== 'undefined') eruda.init();
+        } catch (err) {
+          console.error('ERUDA_INIT_FAILED', err);
+        }
+        window.addEventListener('error', function (e) {
+          console.error('GLOBAL_ERROR:', e.message, e.filename, e.lineno);
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+          console.error('UNHANDLED_REJECTION:', e.reason);
+        });
+        console.log('[Gramseva] root shell loaded; redirecting…');
+        window.location.replace('/workspace/documents/index.html');
+      })();
     </script>
   </head>
   <body></body>
