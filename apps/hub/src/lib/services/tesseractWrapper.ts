@@ -1,4 +1,9 @@
-import { OCR_TIER1_MAX_SAMPLE_PAGES, OCR_WATERFALL_LOADER_STAGES, tier1NeedsProHandoff } from '@shared/utils/ocrQuality';
+import {
+  OCR_MAX_OUTPUT_PAGES,
+  OCR_TIER1_MAX_SAMPLE_PAGES,
+  OCR_WATERFALL_LOADER_STAGES,
+  tier1NeedsProHandoff,
+} from '@shared/utils/ocrQuality';
 import {
   canvasToDataUrl,
   imageToCanvas,
@@ -26,27 +31,35 @@ function loadImageFromFile(file: File): Promise<HTMLImageElement> {
   });
 }
 
+interface CollectedPages {
+  images: string[];
+  totalPages: number;
+  /** True when the document was longer than the page budget. */
+  truncated: boolean;
+}
+
 async function collectPreprocessedImages(
   file: File,
+  maxPages: number,
   onProgress?: (label: string, percent: number) => void,
-): Promise<string[]> {
+): Promise<CollectedPages> {
   const images: string[] = [];
 
   if (isPdfMimeOrName(file.type, file.name)) {
     const { loadPdfDocument, renderPdfPageToCanvas } = await import('../pdf/pdfRender');
     const pdf = await loadPdfDocument(file);
-    const pages = Math.min(OCR_TIER1_MAX_SAMPLE_PAGES, pdf.numPages);
+    const pages = Math.min(maxPages, pdf.numPages);
 
     for (let p = 1; p <= pages; p += 1) {
       onProgress?.(
-        OCR_WATERFALL_LOADER_STAGES.tier1,
+        pages > 1 ? `Reading page ${p} of ${pages}…` : OCR_WATERFALL_LOADER_STAGES.tier1,
         Math.round(((p - 1) / pages) * 35),
       );
       const canvas = await renderPdfPageToCanvas(file, p, 1.5);
       const processed = preprocessForOcr(canvas, { contrast: 1.8, binarize: true });
       images.push(await canvasToDataUrl(processed));
     }
-    return images;
+    return { images, totalPages: pdf.numPages, truncated: pdf.numPages > pages };
   }
 
   if (isImageMimeOrName(file.type, file.name)) {
@@ -55,7 +68,7 @@ async function collectPreprocessedImages(
     const canvas = imageToCanvas(img, 1600);
     const processed = preprocessForOcr(canvas, { contrast: 1.8, binarize: true });
     images.push(await canvasToDataUrl(processed));
-    return images;
+    return { images, totalPages: 1, truncated: false };
   }
 
   throw new Error('OCR supports PDF and image files only.');
@@ -108,14 +121,34 @@ function recognizeWithFreshWorker(
   });
 }
 
+export interface TesseractRunOptions {
+  /**
+   * `sample` reads only the first pages to judge scan quality.
+   * `output` reads the whole document because the text becomes a real file.
+   */
+  mode?: 'sample' | 'output';
+  onTruncated?: (readPages: number, totalPages: number) => void;
+}
+
 /** Run Tesseract with eng+hin, then terminate the worker to flush WASM RAM. */
 export async function runTesseractWithMemoryFlush(
   file: File,
   onProgress?: (label: string, percent: number) => void,
+  options: TesseractRunOptions = {},
 ): Promise<Tier1OcrResult> {
+  const { mode = 'output', onTruncated } = options;
+  const maxPages = mode === 'sample' ? OCR_TIER1_MAX_SAMPLE_PAGES : OCR_MAX_OUTPUT_PAGES;
+
   onProgress?.(OCR_WATERFALL_LOADER_STAGES.tier1, 2);
   try {
-    const images = await collectPreprocessedImages(file, onProgress);
+    const { images, totalPages, truncated } = await collectPreprocessedImages(
+      file,
+      maxPages,
+      onProgress,
+    );
+    if (truncated) {
+      onTruncated?.(images.length, totalPages);
+    }
     onProgress?.(OCR_WATERFALL_LOADER_STAGES.tier1, 40);
     return await recognizeWithFreshWorker(images, onProgress);
   } finally {

@@ -81,7 +81,11 @@ export default function ToEditableFormatPanel({
         },
       });
       onProcessingChange(false, '', 0);
-      onSuccess(`To Editable Format complete — ${result.fileName} downloaded.`);
+      onSuccess(
+        result.notice
+          ? `${result.fileName} is ready. ${result.notice}`
+          : `To Editable Format complete — ${result.fileName} downloaded.`,
+      );
     } catch (err) {
       onProcessingChange(false, '', 0);
       if (err instanceof EditableFormatProRequiredError && isPro) {

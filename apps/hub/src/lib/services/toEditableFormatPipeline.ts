@@ -132,9 +132,21 @@ async function extractRawTextLocally(
   }
 
   onProgress({ label: 'Running local OCR for plain text…', percent: 55 });
-  const tier1 = await runTesseractWithMemoryFlush(file, (label, percent) => {
-    onProgress({ label, percent: Math.max(55, Math.min(88, percent)) });
-  });
+  const tier1 = await runTesseractWithMemoryFlush(
+    file,
+    (label, percent) => {
+      onProgress({ label, percent: Math.max(55, Math.min(88, percent)) });
+    },
+    {
+      onTruncated: (readPages, totalPages) => {
+        onProgress({
+          label: `Reading the first ${readPages} of ${totalPages} pages…`,
+          percent: 60,
+          subtitle: `This document is very long. Only the first ${readPages} pages will be included.`,
+        });
+      },
+    },
+  );
   return { text: tier1.text, viaOcr: true };
 }
 
@@ -398,7 +410,7 @@ export async function runToEditableFormatPipeline(
   file: File,
   target: EditableFormatTarget,
   options: RunToEditableFormatOptions,
-): Promise<{ path: 'A' | 'B' | 'C'; fileName: string }> {
+): Promise<{ path: 'A' | 'B' | 'C'; fileName: string; notice?: string }> {
   const {
     isPro,
     onProgress,
@@ -495,9 +507,23 @@ export async function runToEditableFormatPipeline(
       : undefined,
   });
 
-  const tier1 = await runTesseractWithMemoryFlush(file, (label, percent) => {
-    onProgress({ label, percent: Math.max(25, Math.min(82, percent)) });
-  });
+  const truncation: { notice?: string } = {};
+  const tier1 = await runTesseractWithMemoryFlush(
+    file,
+    (label, percent) => {
+      onProgress({ label, percent: Math.max(25, Math.min(82, percent)) });
+    },
+    {
+      onTruncated: (readPages, totalPages) => {
+        truncation.notice = `This document has ${totalPages} pages. Only the first ${readPages} were converted.`;
+        onProgress({
+          label: `Reading the first ${readPages} of ${totalPages} pages…`,
+          percent: 40,
+          subtitle: truncation.notice,
+        });
+      },
+    },
+  );
 
   if (tier1.needsProHandoff) {
     if (!isPro) {
@@ -515,5 +541,6 @@ export async function runToEditableFormatPipeline(
   return {
     path: 'B',
     fileName: `${splitFilenameBase(file.name)}.docx`,
+    notice: truncation.notice,
   };
 }

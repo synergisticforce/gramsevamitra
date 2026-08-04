@@ -4,7 +4,17 @@ export const OCR_TIER1_CONFIDENCE_MIN = 65;
 export const OCR_PADDLE_WORD_CONFIDENCE_MIN = 80;
 export const OCR_GLM_INFERENCE_MAX_MS = 30_000;
 export const OCR_GLM_COLD_START_GRACE_MS = 12_000;
+/**
+ * Pages read during the quality preflight that decides whether a scan needs
+ * Pro reconstruction. Deliberately small — this is a probe, not the output.
+ */
 export const OCR_TIER1_MAX_SAMPLE_PAGES = 2;
+
+/**
+ * Pages read when actually producing a file for the user. Using the sample
+ * limit here silently truncated every document to two pages.
+ */
+export const OCR_MAX_OUTPUT_PAGES = 40;
 
 export interface OcrWordConfidence {
   confidence?: number;
