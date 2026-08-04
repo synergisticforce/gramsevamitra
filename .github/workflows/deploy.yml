@@ -141,15 +141,14 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # Use wrangler.toml pages_build_output_dir (apps/hub/dist) so Functions at ./functions are included.
-          # Avoid passing a conflicting directory path alongside --config.
+          # Use root wrangler.toml pages_build_output_dir (apps/hub/dist) so Functions at ./functions are included.
+          # Do not pass --config: Cloudflare Pages rejects custom Wrangler config paths.
           command: >-
             pages deploy
             --project-name=gramsevamitra-hub
             --branch=main
             --commit-dirty=true
             --commit-hash=${{ github.sha }}
-            --config wrangler.toml
           packageManager: npm
           workingDirectory: .
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}

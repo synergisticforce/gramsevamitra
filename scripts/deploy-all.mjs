@@ -83,7 +83,6 @@ function main() {
       `--project-name=${target.project}`,
       '--branch=main',
       '--commit-dirty=true',
-      '--config=wrangler.toml',
     ];
 
     if (DRY_RUN) {
