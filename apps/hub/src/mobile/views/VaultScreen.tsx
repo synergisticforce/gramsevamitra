@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { deliverFile } from '@shared/utils/fileDelivery';
 import {
   localVaultService,
   type FileMetadata,
@@ -14,18 +15,7 @@ export interface VaultScreenProps {
 }
 
 async function downloadBlob(blob: Blob, fileName: string): Promise<void> {
-  const url = URL.createObjectURL(blob);
-  try {
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = fileName;
-    anchor.rel = 'noopener';
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-  } finally {
-    URL.revokeObjectURL(url);
-  }
+  await deliverFile(blob, fileName);
 }
 
 function isImageFile(file: FileMetadata): boolean {

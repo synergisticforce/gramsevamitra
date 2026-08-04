@@ -1,4 +1,5 @@
 import { openProUpgrade } from '@shared/lib/proUpgrade';
+import { deliverFile } from '@shared/utils/fileDelivery';
 import { apiUrl } from '../../shared/lib/apiBase';
 import { parseCreditApiError } from '../auth/creditCheck';
 import { textToDocxBlob, triggerDocxDownload } from '../canvas/extractToWord';
@@ -96,16 +97,9 @@ function compileRawTextOutput(text: string, target: 'txt' | 'md', fileName: stri
 }
 
 function downloadTextFile(content: string, fileName: string, contentType: string): void {
-  const blob = new Blob([content], { type: contentType });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.rel = 'noopener';
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+  void deliverFile(new Blob([content], { type: contentType }), fileName).catch((err) => {
+    console.error('[toEditableFormat] Could not deliver file:', err);
+  });
 }
 
 function downloadBase64File(base64: string, fileName: string, contentType: string): void {
@@ -114,16 +108,10 @@ function downloadBase64File(base64: string, fileName: string, contentType: strin
   for (let i = 0; i < binary.length; i += 1) {
     bytes[i] = binary.charCodeAt(i);
   }
-  const blob = new Blob([bytes], { type: contentType });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.rel = 'noopener';
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+  const blob = new Blob([bytes as BlobPart], { type: contentType });
+  void deliverFile(blob, fileName).catch((err) => {
+    console.error('[toEditableFormat] Could not deliver file:', err);
+  });
 }
 
 /** Extract plain text locally — never escalates to Pro (used for .txt / .md). */

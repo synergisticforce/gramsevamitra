@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { openProUpgrade } from '@shared/lib/proUpgrade';
+import { deliverFile } from '@shared/utils/fileDelivery';
 import { parseCreditApiError } from '../../lib/auth/creditCheck';
 import { useProCreditConfirm } from '../../lib/auth/useProCreditConfirm';
 import { apiUrl } from '../../shared/lib/apiBase';
@@ -201,14 +202,9 @@ export default function DocumentVisionOcrModal({ initialFile = null, onClose, on
     if (!markdown) return;
     const base = splitFilenameBase(file?.name || 'document');
     const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `${base}_vision.md`;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+    void deliverFile(blob, `${base}_vision.md`).catch(() => {
+      setError('Could not save the file. Try copying the text instead.');
+    });
   }, [file?.name, markdown]);
 
   return (

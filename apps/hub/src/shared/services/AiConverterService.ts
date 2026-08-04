@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { deliverFile } from '@shared/utils/fileDelivery';
 import { htmlToDocxBlob } from '../../lib/canvas/htmlToDocx';
 import { apiUrl } from '../lib/apiBase';
 import { localVaultService } from './LocalVaultService';
@@ -197,18 +198,9 @@ function buildZipStore(files: Record<string, string>): Uint8Array {
 }
 
 function triggerBrowserDownload(blob: Blob, fileName: string): void {
-  const url = URL.createObjectURL(blob);
-  try {
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = fileName;
-    anchor.rel = 'noopener';
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-  } finally {
-    window.setTimeout(() => URL.revokeObjectURL(url), 5000);
-  }
+  void deliverFile(blob, fileName).catch((err) => {
+    console.error('[AiConverterService] Could not deliver converted file:', err);
+  });
 }
 
 /**

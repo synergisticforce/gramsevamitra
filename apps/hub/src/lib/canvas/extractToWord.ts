@@ -1,4 +1,5 @@
 import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { deliverFile } from '@shared/utils/fileDelivery';
 import { splitFilenameBase } from './documentPdfTools';
 
 /** Compile plain text into a minimal DOCX blob (client-side, no server). */
@@ -32,13 +33,7 @@ export async function textToDocxBlob(text: string, title?: string): Promise<Blob
 
 export function triggerDocxDownload(blob: Blob, baseName: string): void {
   const safe = splitFilenameBase(baseName).replace(/[^\w.-]+/g, '_') || 'extracted';
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = `${safe}.docx`;
-  anchor.rel = 'noopener';
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+  void deliverFile(blob, `${safe}.docx`).catch((err) => {
+    console.error('[extractToWord] Could not deliver Word file:', err);
+  });
 }

@@ -1,3 +1,5 @@
+import { deliverFile } from '@shared/utils/fileDelivery';
+
 export function escapeCsvCell(value: string | number): string {
   const s = String(value);
   if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
@@ -14,12 +16,10 @@ export function buildCsv(headers: string[], rows: (string | number)[][]): string
 
 export function downloadCsv(filename: string, content: string): void {
   const blob = new Blob(['\ufeff', content], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename.endsWith('.csv') ? filename : `${filename}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const name = filename.endsWith('.csv') ? filename : `${filename}.csv`;
+  void deliverFile(blob, name).catch((err) => {
+    console.error('[toolExport] Could not deliver CSV:', err);
+  });
 }
 
 export async function copyTextWithFeedback(

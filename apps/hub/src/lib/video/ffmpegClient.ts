@@ -1,5 +1,6 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
+import { deliverFile } from '@shared/utils/fileDelivery';
 
 const FFMPEG_CORE_VERSION = '0.12.6';
 const FFMPEG_CDN = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/esm`;
@@ -67,11 +68,8 @@ export async function cleanupFiles(ffmpeg: FFmpeg, names: string[]): Promise<voi
 
 export function downloadVideoOutput(data: Uint8Array, filename: string, mimeType: string): void {
   const copy = new Uint8Array(data);
-  const blob = new Blob([copy], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  const blob = new Blob([copy as BlobPart], { type: mimeType });
+  void deliverFile(blob, filename).catch((err) => {
+    console.error('[ffmpegClient] Could not deliver video output:', err);
+  });
 }

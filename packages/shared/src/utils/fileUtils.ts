@@ -1,3 +1,7 @@
+import { deliverFile, type DeliveryResult } from './fileDelivery';
+
+export { describeDelivery, isNativeRuntime, type DeliveryResult } from './fileDelivery';
+
 export interface FilenameParts {
   baseName: string;
   extension: string;
@@ -41,12 +45,22 @@ export function buildPageExportFilename(
   return `${baseName}-page-${pageNumber}.${format}`;
 }
 
+/**
+ * Hand a finished file to the user. Downloads in a browser; on Android the blob
+ * is written to Documents and offered via the share sheet, because a WebView
+ * ignores `<a download>` on a blob URL.
+ */
 export function downloadBlob(blob: Blob, filename: string, toolSuffix = ''): void {
-  const branded = getBrandedFilename(filename, toolSuffix);
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = branded;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  void deliverFile(blob, getBrandedFilename(filename, toolSuffix)).catch((err) => {
+    console.error('[fileUtils] Could not deliver file:', err);
+  });
+}
+
+/** Awaitable variant for callers that want to confirm where the file landed. */
+export function saveBlob(
+  blob: Blob,
+  filename: string,
+  toolSuffix = '',
+): Promise<DeliveryResult> {
+  return deliverFile(blob, getBrandedFilename(filename, toolSuffix));
 }

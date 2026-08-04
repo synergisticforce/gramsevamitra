@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { deliverFile } from '@shared/utils/fileDelivery';
 import {
   QUICK_TOOLS_STORAGE_KEYS,
   loadPersistedJson,
@@ -98,7 +99,6 @@ export default function QuickQrGenerator() {
     ctx.fillRect(0, 0, EXPORT_SIZE, EXPORT_SIZE);
     ctx.drawImage(source, 0, 0, EXPORT_SIZE, EXPORT_SIZE);
 
-    const link = document.createElement('a');
     const slug =
       text
         .trim()
@@ -106,9 +106,13 @@ export default function QuickQrGenerator() {
         .replace(/[^a-z0-9]+/gi, '-')
         .replace(/^-|-$/g, '')
         .toLowerCase() || 'qr-code';
-    link.href = exportCanvas.toDataURL('image/png');
-    link.download = `${slug}.png`;
-    link.click();
+
+    exportCanvas.toBlob((blob) => {
+      if (!blob) return;
+      void deliverFile(blob, `${slug}.png`).catch((err) => {
+        console.error('[QuickQrGenerator] Could not deliver QR image:', err);
+      });
+    }, 'image/png');
   }, [hasQr, text]);
 
   const inputClass =

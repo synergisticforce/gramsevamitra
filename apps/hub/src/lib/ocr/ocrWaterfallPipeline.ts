@@ -1,4 +1,5 @@
 import { openProUpgrade } from '@shared/lib/proUpgrade';
+import { deliverFile } from '@shared/utils/fileDelivery';
 import { OCR_WATERFALL_LOADER_STAGES } from '@shared/utils/ocrQuality';
 import { apiUrl } from '../../shared/lib/apiBase';
 import { parseCreditApiError } from '../auth/creditCheck';
@@ -36,22 +37,16 @@ const UPLOAD_ENDPOINT = apiUrl('/api/pro/smart-extract/upload');
 
 function downloadCsv(csv: string, filename: string): void {
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  void deliverFile(blob, filename).catch((err) => {
+    console.error('[ocrWaterfall] Could not deliver CSV:', err);
+  });
 }
 
 function downloadText(text: string, filename: string): void {
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  void deliverFile(blob, filename).catch((err) => {
+    console.error('[ocrWaterfall] Could not deliver text file:', err);
+  });
 }
 
 async function postOcrOrchestrator(
