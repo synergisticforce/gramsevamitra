@@ -1,41 +1,22 @@
 ---
-import { DEFAULT_APP_WORKSPACE } from '../config/appWorkspaces';
-
 /**
- * Relative client redirect only.
- * Astro's static `Astro.redirect()` bakes absolute `https://gramsevamitra.com/...`
- * URLs into index.html, which Capacitor treats as external and opens in Chrome.
+ * Capacitor-safe root entry.
+ * Do not use Astro.redirect() — static builds bake absolute https:// URLs that
+ * Android treats as external intents and opens in Chrome.
+ * No imports here so Vite does not inject extra assets into this shell page.
  */
-const target = `${DEFAULT_APP_WORKSPACE.href}/`.replace(/\/{2,}/g, '/');
-const signIn = Astro.url.searchParams.get('signIn');
-const returnTo = Astro.url.searchParams.get('returnTo');
-
-let href = target;
-if (signIn === '1') {
-  const params = new URLSearchParams();
-  params.set('signIn', '1');
-  if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
-    params.set('returnTo', returnTo);
-  }
-  href = `${target}?${params.toString()}`;
-}
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="robots" content="noindex" />
-    <meta http-equiv="refresh" content={`0;url=${href}`} />
-    <title>GramsevaMitra</title>
-    <script is:inline define:vars={{ href }}>
-      window.location.replace(href);
+    <title>Loading…</title>
+    <script is:inline>
+      window.location.replace('/workspace/documents/');
     </script>
   </head>
-  <body>
-    <p>
-      <a href={href}>Continue to GramsevaMitra</a>
-    </p>
-  </body>
+  <body></body>
 </html>
