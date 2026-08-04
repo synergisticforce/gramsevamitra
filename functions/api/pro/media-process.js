@@ -1,5 +1,6 @@
 import { jsonResponse } from '../../_lib/json.mjs';
 import { deductOperationCredits, requireProCredits } from '../../_lib/creditEconomy.mjs';
+import { requireEngine } from '../../_lib/engineAvailability.mjs';
 import {
   assertProMediaObjectKeyForUser,
   MEDIA_PRO_ACTIONS,
@@ -30,6 +31,13 @@ function mockOutputContentType(action, sourceContentType) {
 
 export async function onRequestPost(context) {
   const { request, env } = context;
+
+  // No real GPU model is wired up yet. Refuse before touching credits rather
+  // than echoing the upload back as if it had been processed.
+  const engineOutage = requireEngine(env, 'media-ai');
+  if (engineOutage) {
+    return jsonResponse(engineOutage.body, engineOutage.status);
+  }
 
   const gate = await requireProCredits(request, context, 'media-process');
   if (!gate.ok) {

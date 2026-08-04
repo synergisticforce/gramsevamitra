@@ -3,6 +3,7 @@ import { apiUrl } from '../../shared/lib/apiBase';
 import { parseCreditApiError } from '../auth/creditCheck';
 import { textToDocxBlob, triggerDocxDownload } from '../canvas/extractToWord';
 import { htmlToDocxBlob } from '../canvas/htmlToDocx';
+import { htmlToCsv, htmlToXml } from '../canvas/htmlToStructured';
 import {
   extractPdfTextInBrowser,
   isPdfEmbeddedTextThin,
@@ -40,6 +41,14 @@ const LAYOUT_HTML_ENDPOINT = apiUrl('/api/pro/document-layout-html');
 
 export function isProStructuralFormat(target: EditableFormatTarget): boolean {
   return target === 'xlsx' || target === 'csv' || target === 'xml';
+}
+
+/**
+ * Formats built from the real Gemini Vision layout HTML on-device.
+ * `xlsx` is deliberately excluded — that engine is not wired up yet.
+ */
+export function isVisionStructuredFormat(target: EditableFormatTarget): boolean {
+  return target === 'csv' || target === 'xml';
 }
 
 /** Vision layout-preserving Word export (Gemini HTML → client DOCX). */
@@ -84,6 +93,19 @@ async function compileDocxOutput(text: string, fileName: string): Promise<void> 
 function compileRawTextOutput(text: string, target: 'txt' | 'md', fileName: string): void {
   const base = splitFilenameBase(fileName);
   triggerTextDownload(text, `${base}.${target === 'md' ? 'md' : 'txt'}`);
+}
+
+function downloadTextFile(content: string, fileName: string, contentType: string): void {
+  const blob = new Blob([content], { type: contentType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.rel = 'noopener';
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
 function downloadBase64File(base64: string, fileName: string, contentType: string): void {
@@ -153,24 +175,32 @@ async function uploadForProReconstruction(file: File): Promise<{ objectKey: stri
   return { objectKey: payload.objectKey, fileName: payload.fileName ?? file.name };
 }
 
+interface VisionLayoutHtml {
+  html: string;
+  baseName: string;
+  remainingCredits?: number;
+}
+
 /**
- * Pro .docx path: Gemini Vision reconstructs HTML layout, then the browser
- * builds a styled Word file with the local `docx` library.
+ * Single Gemini Vision call that reconstructs the page as layout HTML.
+ * DOCX, CSV, and XML are all compiled from this one result on-device, so a
+ * user is charged for at most one AI operation per file.
  */
-export async function runVisionDocxExport(
+async function fetchVisionLayoutHtml(
   file: File,
   onProgress: (progress: ToEditableFormatProgress) => void,
-): Promise<{ fileName: string; remainingCredits?: number }> {
+  compileLabel: string,
+): Promise<VisionLayoutHtml> {
   onProgress({
     label: 'Vision AI reconstructing layout…',
     percent: 10,
-    subtitle: 'Preserving headings, colors, tables, and spacing for Word export.',
+    subtitle: 'Preserving headings, colors, tables, and spacing.',
   });
 
   const stages = [
     { label: 'Vision AI analyzing typography & structure…', percent: 28 },
     { label: 'Rebuilding HTML layout…', percent: 52 },
-    { label: 'Compiling formatted Word document…', percent: 78 },
+    { label: compileLabel, percent: 78 },
   ];
   let stageIndex = 0;
   onProgress(stages[stageIndex]);
@@ -189,7 +219,6 @@ export async function runVisionDocxExport(
       body: formData,
     });
   } catch (err) {
-    window.clearInterval(stageTimer);
     const detail = err instanceof Error ? err.message : String(err);
     throw new Error(`Network error contacting Vision layout API: ${detail}`);
   } finally {
@@ -223,7 +252,7 @@ export async function runVisionDocxExport(
       parseCreditApiError(
         response.status,
         payload,
-        'Pro subscription required for layout-perfect Word export.',
+        'Pro subscription required for layout-perfect export.',
       ),
     );
   }
@@ -238,10 +267,30 @@ export async function runVisionDocxExport(
     );
   }
 
+  return {
+    html: payload.html,
+    baseName: splitFilenameBase(payload.fileName || file.name),
+    remainingCredits: payload.remainingCredits,
+  };
+}
+
+/**
+ * Pro .docx path: Gemini Vision reconstructs HTML layout, then the browser
+ * builds a styled Word file with the local `docx` library.
+ */
+export async function runVisionDocxExport(
+  file: File,
+  onProgress: (progress: ToEditableFormatProgress) => void,
+): Promise<{ fileName: string; remainingCredits?: number }> {
+  const { html, baseName, remainingCredits } = await fetchVisionLayoutHtml(
+    file,
+    onProgress,
+    'Compiling formatted Word document…',
+  );
+
   onProgress({ label: 'Building styled Word document…', percent: 90 });
-  const baseName = splitFilenameBase(payload.fileName || file.name);
   try {
-    const blob = await htmlToDocxBlob(payload.html, baseName);
+    const blob = await htmlToDocxBlob(html, baseName);
     triggerDocxDownload(blob, `${baseName}.docx`);
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
@@ -249,10 +298,42 @@ export async function runVisionDocxExport(
   }
   onProgress({ label: 'Download started', percent: 100 });
 
-  return {
-    fileName: `${baseName}.docx`,
-    remainingCredits: payload.remainingCredits,
-  };
+  return { fileName: `${baseName}.docx`, remainingCredits };
+}
+
+/**
+ * Pro .csv / .xml path: the same Vision layout HTML, converted to structured
+ * rows in the browser. Tables keep their row/column shape.
+ */
+export async function runVisionStructuredExport(
+  file: File,
+  target: 'csv' | 'xml',
+  onProgress: (progress: ToEditableFormatProgress) => void,
+): Promise<{ fileName: string; remainingCredits?: number }> {
+  const { html, baseName, remainingCredits } = await fetchVisionLayoutHtml(
+    file,
+    onProgress,
+    target === 'csv' ? 'Extracting table rows…' : 'Building XML structure…',
+  );
+
+  onProgress({
+    label: target === 'csv' ? 'Building spreadsheet rows…' : 'Building XML document…',
+    percent: 90,
+  });
+
+  const fileName = `${baseName}.${target}`;
+  try {
+    const content = target === 'csv' ? htmlToCsv(html) : htmlToXml(html);
+    const contentType =
+      target === 'csv' ? 'text/csv;charset=utf-8' : 'application/xml;charset=utf-8';
+    downloadTextFile(content, fileName, contentType);
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new Error(`Structured export failed: ${detail}`);
+  }
+
+  onProgress({ label: 'Download started', percent: 100 });
+  return { fileName, remainingCredits };
 }
 
 export async function runProLayoutReconstruction(
@@ -262,6 +343,10 @@ export async function runProLayoutReconstruction(
 ): Promise<{ fileName: string; remainingCredits?: number }> {
   if (target === 'docx') {
     return runVisionDocxExport(file, onProgress);
+  }
+
+  if (target === 'csv' || target === 'xml') {
+    return runVisionStructuredExport(file, target, onProgress);
   }
 
   onProgress({ label: 'Uploading for secure layout reconstruction…', percent: 8 });
@@ -336,6 +421,12 @@ export async function runToEditableFormatPipeline(
 
   onProgress({ label: 'Analyzing document structure…', percent: 4 });
   const layout = await analyzeDocumentLayout(file);
+
+  if (target === 'xlsx') {
+    throw new Error(
+      'Excel (.xlsx) export is coming soon. Choose .csv for spreadsheet data — it opens directly in Excel and Google Sheets.',
+    );
+  }
 
   if (isProStructuralFormat(target)) {
     if (!isPro) {

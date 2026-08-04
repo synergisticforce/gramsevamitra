@@ -1,5 +1,6 @@
 import { jsonResponse } from '../../_lib/json.mjs';
 import { deductOperationCredits, requireProCredits } from '../../_lib/creditEconomy.mjs';
+import { requireEngine } from '../../_lib/engineAvailability.mjs';
 import { assertProObjectKeyForUser } from '../../_lib/proTransientStorage.mjs';
 import { runLayoutReconstruction } from '../../_lib/reconstructLayout.mjs';
 
@@ -7,6 +8,13 @@ const ALLOWED_FORMATS = new Set(['txt', 'docx', 'xlsx', 'csv', 'xml']);
 
 export async function onRequestPost(context) {
   const { request, env } = context;
+
+  // This pipeline still returns sample rows, so it must never bill credits.
+  // Real Word export runs through /api/pro/document-layout-html (Gemini).
+  const engineOutage = requireEngine(env, 'layout-reconstruction');
+  if (engineOutage) {
+    return jsonResponse(engineOutage.body, engineOutage.status);
+  }
 
   const gate = await requireProCredits(request, context, 'reconstruct-layout');
   if (!gate.ok) {

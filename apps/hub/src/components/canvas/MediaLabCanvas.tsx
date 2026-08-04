@@ -239,7 +239,17 @@ export default function MediaLabCanvas() {
     setHydrated(true);
   }, []);
 
-  const { handleActionClick } = useMediaActionHandler({ onFreeAction, onProAction });
+  const onUnavailableAction = useCallback((action: { label: string }) => {
+    setToastMessage(
+      `${action.label} is coming soon. No AI Credits were used. The free tools above work offline right now.`,
+    );
+  }, []);
+
+  const { handleActionClick } = useMediaActionHandler({
+    onFreeAction,
+    onProAction,
+    onUnavailable: onUnavailableAction,
+  });
   handleActionClickRef.current = handleActionClick;
 
   const applyOmniIntent = useCallback((intentId: string) => {

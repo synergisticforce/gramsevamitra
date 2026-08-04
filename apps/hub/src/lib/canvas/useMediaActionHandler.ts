@@ -9,11 +9,13 @@ import {
 interface UseMediaActionHandlerOptions {
   onFreeAction?: (action: MediaCanvasAction) => void;
   onProAction?: (action: MediaCanvasAction) => void;
+  onUnavailable?: (action: MediaCanvasAction) => void;
 }
 
 export function useMediaActionHandler({
   onFreeAction,
   onProAction,
+  onUnavailable,
 }: UseMediaActionHandlerOptions = {}) {
   const { data: session } = authClient.useSession();
   const userPlan = (session?.user as { plan?: string } | undefined)?.plan;
@@ -23,6 +25,12 @@ export function useMediaActionHandler({
     (actionId: string) => {
       const action = getMediaCanvasAction(actionId);
       if (!action) return;
+
+      // Never open an upgrade prompt or spend credits on an unfinished engine.
+      if (action.comingSoon) {
+        onUnavailable?.(action);
+        return;
+      }
 
       if (action.tier === 'pro') {
         if (!isPro) {
@@ -41,7 +49,7 @@ export function useMediaActionHandler({
 
       onFreeAction?.(action);
     },
-    [isPro, onFreeAction, onProAction],
+    [isPro, onFreeAction, onProAction, onUnavailable],
   );
 
   return { handleActionClick, isPro, userPlan };

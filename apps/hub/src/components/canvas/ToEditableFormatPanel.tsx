@@ -30,7 +30,6 @@ const FORMAT_OPTIONS: Array<{
   { id: 'txt', label: '.txt' },
   { id: 'md', label: '.md' },
   { id: 'docx', label: '.docx' },
-  { id: 'xlsx', label: '.xlsx', proOnly: true },
   { id: 'csv', label: '.csv', proOnly: true },
   { id: 'xml', label: '.xml', proOnly: true },
 ];
@@ -120,11 +119,7 @@ export default function ToEditableFormatPanel({
 
     if (isProStructuralFormat(target) && isPro) {
       const label =
-        target === 'xlsx'
-          ? 'Excel layout reconstruction'
-          : target === 'csv'
-            ? 'CSV matrix reconstruction'
-            : 'XML structure reconstruction';
+        target === 'csv' ? 'CSV table extraction' : 'XML structure extraction';
       requestProConfirm('reconstruct-layout', label, () => {
         void runConversion();
       });

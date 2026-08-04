@@ -11,6 +11,11 @@ export interface MediaCanvasAction {
   featureId?: string;
   featureName?: string;
   featureDescription?: string;
+  /**
+   * Set while the real inference engine is not wired up. The tool stays visible
+   * but cannot be run, so no one is charged AI Credits for placeholder output.
+   */
+  comingSoon?: boolean;
 }
 
 export const MEDIA_ACCEPT = 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp';
@@ -79,6 +84,7 @@ export const MEDIA_CANVAS_ACTIONS: MediaCanvasAction[] = [
     label: 'Remove Background',
     icon: '✂️',
     tier: 'pro',
+    comingSoon: true,
     mimePatterns: ['image/jpeg', 'image/png', 'image/webp'],
     featureId: 'remove-background',
     featureName: 'AI Background Removal',
@@ -90,6 +96,7 @@ export const MEDIA_CANVAS_ACTIONS: MediaCanvasAction[] = [
     label: 'Upscale 4x',
     icon: '🔍',
     tier: 'pro',
+    comingSoon: true,
     mimePatterns: ['image/jpeg', 'image/png', 'image/webp'],
     featureId: 'upscale-4x',
     featureName: '4× AI Upscale',
@@ -101,6 +108,7 @@ export const MEDIA_CANVAS_ACTIONS: MediaCanvasAction[] = [
     label: 'AI Restore',
     icon: '⚡',
     tier: 'pro',
+    comingSoon: true,
     mimePatterns: ['image/jpeg', 'image/png', 'image/webp'],
     featureId: 'photo-restore',
     featureName: 'AI Photo Restoration',

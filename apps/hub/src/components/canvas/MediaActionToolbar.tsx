@@ -27,27 +27,44 @@ export default function MediaActionToolbar({ actions, onActionClick }: Props) {
       <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
         {actions.map((action) => {
           const isPro = action.tier === 'pro';
+          const isComingSoon = Boolean(action.comingSoon);
           return (
             <li key={action.id}>
               <button
                 type="button"
                 onClick={() => onActionClick?.(action.id)}
-                className={`group relative flex w-full flex-col items-start gap-2 rounded-xl border px-3 py-3 text-left transition active:scale-[0.98] ${
-                  isPro
-                    ? 'border-amber-700/40 bg-gradient-to-br from-amber-950/50 to-canvas-elevated hover:border-amber-500/60 hover:shadow-none'
-                    : 'border-canvas-border bg-canvas-elevated hover:border-violet-500/50 hover:bg-canvas-surface hover:shadow-none'
+                aria-disabled={isComingSoon}
+                title={isComingSoon ? `${action.label} is coming soon` : undefined}
+                className={`group relative flex min-h-[5.5rem] w-full flex-col items-start gap-2 rounded-xl border px-3 py-3 text-left transition active:scale-[0.98] ${
+                  isComingSoon
+                    ? 'cursor-not-allowed border-canvas-border bg-canvas-elevated opacity-60'
+                    : isPro
+                      ? 'border-amber-700/40 bg-gradient-to-br from-amber-950/50 to-canvas-elevated hover:border-amber-500/60 hover:shadow-none'
+                      : 'border-canvas-border bg-canvas-elevated hover:border-violet-500/50 hover:bg-canvas-surface hover:shadow-none'
                 }`}
               >
-                {isPro && (
-                  <span className="absolute right-2 top-2 rounded-full bg-amber-900/70 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-100">
-                    ⚡ Pro
+                {isComingSoon ? (
+                  <span className="absolute right-2 top-2 rounded-full bg-canvas-surface px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-canvas-subtle">
+                    Soon
                   </span>
+                ) : (
+                  isPro && (
+                    <span className="absolute right-2 top-2 rounded-full bg-amber-900/70 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-100">
+                      ⚡ Pro
+                    </span>
+                  )
                 )}
                 <span className="text-2xl leading-none" aria-hidden="true">
                   {action.icon}
                 </span>
                 <span
-                  className={`text-sm font-semibold ${isPro ? 'pr-10 text-amber-100' : 'text-canvas-text'}`}
+                  className={`text-sm font-semibold ${
+                    isComingSoon
+                      ? 'pr-12 text-canvas-muted'
+                      : isPro
+                        ? 'pr-10 text-amber-100'
+                        : 'text-canvas-text'
+                  }`}
                 >
                   {action.label}
                 </span>

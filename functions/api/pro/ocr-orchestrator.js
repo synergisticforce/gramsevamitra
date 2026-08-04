@@ -1,5 +1,6 @@
 import { jsonResponse } from '../../_lib/json.mjs';
 import { deductOperationCredits, requireProCredits } from '../../_lib/creditEconomy.mjs';
+import { requireEngine } from '../../_lib/engineAvailability.mjs';
 import { assertProObjectKeyForUser } from '../../_lib/proTransientStorage.mjs';
 import { runOcrOrchestrator } from '../../_lib/ocrOrchestrator.mjs';
 
@@ -8,6 +9,12 @@ const ALLOWED_DOC_TYPES = new Set(['invoice', 'bank_statement', 'general']);
 
 export async function onRequestPost(context) {
   const { request, env } = context;
+
+  // The Paddle → GLM → Vision waterfall is still sample data; never bill for it.
+  const engineOutage = requireEngine(env, 'ocr-waterfall');
+  if (engineOutage) {
+    return jsonResponse(engineOutage.body, engineOutage.status);
+  }
 
   const gate = await requireProCredits(request, context, 'ocr-orchestrator');
   if (!gate.ok) {
