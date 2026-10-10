@@ -20,7 +20,7 @@ export default function AppGlobalHeader() {
           </svg>
         </button>
         <a
-          href="/workspace/documents"
+          href="/workspace/documents/"
           className="group flex min-w-0 items-center gap-2 truncate md:gap-2.5"
         >
           <span

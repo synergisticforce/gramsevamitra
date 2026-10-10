@@ -48,8 +48,13 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,txt,mjs,map,json}'],
         globIgnores: ['**/data/babyNames.json'],
-        navigateFallback: '/offline/index.html',
-        navigateFallbackDenylist: [/^\/api\//, /^\/404\//, /^\/offline/],
+        // The PWA plugin's default fallback answers every missed navigation with
+        // a cached page, even when the phone is online. That is what showed
+        // "You're offline" for ordinary links. Null turns the fallback off.
+        // Pages already saved on the phone still open without internet.
+        navigateFallback: null,
+        skipWaiting: true,
+        clientsClaim: true,
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
