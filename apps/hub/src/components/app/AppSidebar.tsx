@@ -42,8 +42,10 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
   const navLinks = (
     <ul className="space-y-1">
       {APP_WORKSPACES.map((workspace) => {
+        const current = currentPath.split('?')[0]?.replace(/\/$/, '') ?? '';
+        const href = workspace.href.replace(/\/$/, '');
         const isActive =
-          workspace.id === activeWorkspace || currentPath.startsWith(workspace.href);
+          workspace.id === activeWorkspace || current === href || current.startsWith(`${href}/`);
         return (
           <li key={workspace.id}>
             <a
