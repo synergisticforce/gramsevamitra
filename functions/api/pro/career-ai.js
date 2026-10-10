@@ -1,83 +1,40 @@
 import { jsonResponse } from '../../_lib/json.mjs';
-import { deductOperationCredits, requireProCredits } from '../../_lib/creditEconomy.mjs';
-import {
-  buildMockCareerAiResponse,
-  CAREER_AI_ACTIONS,
-  MOCK_CAREER_AI_DELAY_MS,
-  outputFilenameForAction,
-  sanitizeResumeText,
-  titleForAction,
-} from '../../_lib/careerAiMock.mjs';
 
-export async function onRequestPost(context) {
-  const { request, env } = context;
+/**
+ * Career AI used to return placeholder resume text and then charge AI Credits.
+ * The buttons stay visible, but this route now refuses the job before any
+ * credit check or deduction. A real model can replace this later.
+ */
+const UPGRADE_MESSAGE = 'Career AI is being upgraded. No credits were deducted.';
 
-  const gate = await requireProCredits(request, context, 'career-ai');
-  if (!gate.ok) {
-    return jsonResponse(gate.body, gate.status);
-  }
+function upgradingResponse() {
+  return jsonResponse(
+    {
+      success: false,
+      error: 'Service Unavailable',
+      code: 'CAREER_AI_UPGRADING',
+      creditsCharged: 0,
+      message: UPGRADE_MESSAGE,
+    },
+    503,
+  );
+}
 
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return jsonResponse({ error: 'Bad Request', message: 'Invalid JSON body.' }, 400);
-  }
-
-  const action = typeof body.action === 'string' ? body.action : '';
-  const resumeText = sanitizeResumeText(body.resumeText);
-  const sourceFileName =
-    typeof body.fileName === 'string' ? body.fileName.slice(0, 200) : 'resume.pdf';
-
-  if (!CAREER_AI_ACTIONS.has(action)) {
-    return jsonResponse(
-      { error: 'Bad Request', message: 'action must be rewrite_resume or generate_cover_letter.' },
-      400,
-    );
-  }
-
-  if (!resumeText) {
-    return jsonResponse(
-      { error: 'Bad Request', message: 'resumeText is required and must contain readable content.' },
-      400,
-    );
-  }
-
-  const started = Date.now();
-  await new Promise((resolve) => setTimeout(resolve, MOCK_CAREER_AI_DELAY_MS));
-
-  const text = buildMockCareerAiResponse(action, resumeText);
-  const processingMs = Date.now() - started;
-
-  const remainingCredits = await deductOperationCredits(env, gate.user.id, 'career-ai');
-  if (remainingCredits === null) {
-    return jsonResponse(
-      {
-        error: 'Payment Required',
-        message: 'Credit deduction failed after processing.',
-        requiredCredits: gate.cost,
-      },
-      402,
-    );
-  }
-
-  return jsonResponse({
-    success: true,
-    action,
-    title: titleForAction(action),
-    text,
-    fileName: outputFilenameForAction(action),
-    sourceFile: sourceFileName,
-    processingMs,
-    creditsUsed: gate.cost,
-    remainingCredits,
-    mock: true,
-  });
+export async function onRequestPost() {
+  return upgradingResponse();
 }
 
 export async function onRequest(context) {
   if (context.request.method === 'POST') {
-    return onRequestPost(context);
+    return onRequestPost();
   }
-  return jsonResponse({ error: 'Method Not Allowed' }, 405);
+  return jsonResponse(
+    {
+      error: 'Method Not Allowed',
+      code: 'CAREER_AI_UPGRADING',
+      creditsCharged: 0,
+      message: UPGRADE_MESSAGE,
+    },
+    405,
+  );
 }

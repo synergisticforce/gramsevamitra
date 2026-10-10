@@ -4,8 +4,7 @@ import {
   careerToolbarActions,
   isCareerDocumentMimeOrName,
 } from '../../config/careerCanvasActions';
-import { extractTextFromPdfFile, isDocxFile, isPdfFile } from '../../lib/canvas/careerPdfText';
-import type { CareerProAiResult } from '../../lib/canvas/careerProAi';
+import { isDocxFile, isPdfFile } from '../../lib/canvas/careerPdfText';
 import {
   clearCareerCanvasState,
   formatFileSize,
@@ -17,9 +16,7 @@ import { useCareerActionHandler } from '../../lib/canvas/useCareerActionHandler'
 import type { OmniHandoffPayload } from '../../lib/omni/handoff';
 import { resolveCareerOmniModal } from '../../lib/omni/omniDispatch';
 import { useOmniWorkspaceHandoff } from '../../lib/omni/useOmniWorkspaceHandoff';
-import { useProCreditConfirm } from '../../lib/auth/useProCreditConfirm';
 import OmniHandoffLoading from '../omni/OmniHandoffLoading';
-import CareerAiResultModal from './CareerAiResultModal';
 import AtsScannerModal from './AtsScannerModal';
 import BusinessCardModal from './BusinessCardModal';
 import CanvasProcessingOverlay from './CanvasProcessingOverlay';
@@ -52,8 +49,7 @@ interface ProcessingState {
   subtitle?: string;
 }
 
-const PRO_CAREER_SUBTITLE =
-  'Pro AI runs securely in the cloud — only extracted resume text is sent, never your file.';
+const CAREER_AI_COMING_SOON = 'Coming soon — being upgraded to a real AI model.';
 
 export default function CareerPrepCanvas() {
   const [phase, setPhase] = useState<CanvasPhase>('empty');
@@ -61,15 +57,12 @@ export default function CareerPrepCanvas() {
   const [hydrated, setHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [careerModal, setCareerModal] = useState<CareerToolModal>(null);
-  const [aiResult, setAiResult] = useState<CareerProAiResult | null>(null);
-  const [proAiBusy, setProAiBusy] = useState(false);
   const [processing, setProcessing] = useState<ProcessingState>({
     active: false,
     label: '',
     percent: 0,
   });
   const pendingOmniIntentRef = useRef<string | null>(null);
-  const { requestProConfirm, proCreditModal } = useProCreditConfirm();
 
   const dismissToast = useCallback(() => setToastMessage(null), []);
 
@@ -94,13 +87,6 @@ export default function CareerPrepCanvas() {
       setProcessing({ active: true, label, percent, subtitle });
     },
     []
-  );
-
-  const setProcessingProgress = useCallback(
-    (active: boolean, label: string, percent: number, subtitle?: string) => {
-      onProcessingChange(active, label, percent, subtitle);
-    },
-    [onProcessingChange]
   );
 
   const onFreeAction = useCallback(
@@ -228,84 +214,24 @@ export default function CareerPrepCanvas() {
     applyOmniIntent(intentId);
   }, [activeFile?.file, applyOmniIntent]);
 
-  const runCareerProJob = useCallback(
-    async (action: CareerCanvasAction) => {
-      if (proAiBusy) return;
+  const { handleActionClick } = useCareerActionHandler({ onFreeAction });
 
-      const file = requireCanvasFile();
-      if (!file) return;
-
-      if (isDocxFile(file.type, file.name) || (!isPdfFile(file.type, file.name) && !file.type)) {
-        setToastMessage(
-          'Pro AI tools currently support PDF resumes only. Upload a PDF to use AI Resume Rewriter or AI Cover Letter.',
-        );
+  const onToolbarAction = useCallback(
+    (actionId: string) => {
+      if (actionId === 'ai-resume-rewriter' || actionId === 'ai-cover-letter') {
+        setToastMessage(CAREER_AI_COMING_SOON);
         return;
       }
-
-      const { resolveCareerProAction, runCareerProAiPipeline } = await import(
-        '../../lib/canvas/careerProAi'
-      );
-      const apiAction = resolveCareerProAction(action.id);
-      if (!apiAction) {
-        setToastMessage(`${action.label} is coming soon.`);
-        return;
-      }
-
-      setProAiBusy(true);
-      setProcessingProgress(
-        true,
-        'Extracting text from your resume PDF…',
-        8,
-        PRO_CAREER_SUBTITLE,
-      );
-
-      try {
-        const resumeText = await extractTextFromPdfFile(file, (current, total) => {
-          const percent = 8 + Math.round((current / total) * 22);
-          setProcessingProgress(
-            true,
-            `Extracting text — page ${current} of ${total}…`,
-            percent,
-            PRO_CAREER_SUBTITLE,
-          );
-        });
-
-        const result = await runCareerProAiPipeline(resumeText, file.name, apiAction, ({ label, percent }) => {
-          setProcessingProgress(true, label, percent, PRO_CAREER_SUBTITLE);
-        });
-
-        setProcessingProgress(false, '', 0);
-        setAiResult(result);
-        const seconds =
-          result.processingMs != null ? Math.round(result.processingMs / 1000) : 3;
-        setToastMessage(`${result.title} complete — mock Pro AI (${seconds}s).`);
-      } catch (err) {
-        setProcessingProgress(false, '', 0);
-        setToastMessage(err instanceof Error ? err.message : 'Pro AI processing failed.');
-      } finally {
-        setProAiBusy(false);
-      }
+      handleActionClick(actionId);
     },
-    [proAiBusy, requireCanvasFile, setProcessingProgress],
+    [handleActionClick],
   );
-
-  const onProAction = useCallback(
-    async (action: CareerCanvasAction) => {
-      if (proAiBusy) return;
-      if (!requireCanvasFile()) return;
-      void requestProConfirm('career-ai', action.label, () => runCareerProJob(action));
-    },
-    [proAiBusy, requireCanvasFile, requestProConfirm, runCareerProJob],
-  );
-
-  const { handleActionClick } = useCareerActionHandler({ onFreeAction, onProAction });
 
   const clearCanvas = useCallback(() => {
     clearCareerCanvasState();
     setActiveFile(null);
     setPhase('empty');
     setCareerModal(null);
-    setAiResult(null);
   }, []);
 
   const replaceFile = useCallback(
@@ -411,7 +337,7 @@ export default function CareerPrepCanvas() {
               </div>
             </div>
 
-            <CareerActionToolbar actions={toolbarActions} onActionClick={handleActionClick} />
+            <CareerActionToolbar actions={toolbarActions} onActionClick={onToolbarAction} />
           </div>
         )}
       </div>
@@ -448,14 +374,6 @@ export default function CareerPrepCanvas() {
         />
       )}
 
-      {aiResult && (
-        <CareerAiResultModal
-          result={aiResult}
-          onClose={() => setAiResult(null)}
-          onSuccess={(message) => setToastMessage(message)}
-        />
-      )}
-
       {processing.active && (
         <CanvasProcessingOverlay
           label={processing.label}
@@ -465,7 +383,6 @@ export default function CareerPrepCanvas() {
       )}
 
       <CanvasToast message={toastMessage} onDismiss={dismissToast} />
-      {proCreditModal}
     </section>
   );
 }
