@@ -5,6 +5,17 @@ import { runSmartExtractJob } from '../../_lib/smartExtractHandler.mjs';
 export async function onRequestPost(context) {
   const { request, env } = context;
 
+  return jsonResponse(
+    {
+      success: false,
+      error: 'Service Unavailable',
+      code: 'FEATURE_NOT_AVAILABLE',
+      creditsCharged: 0,
+      message: 'This feature is not available.',
+    },
+    503,
+  );
+
   const gate = await requireProCredits(request, context, 'smart-extract');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);
