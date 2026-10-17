@@ -12,6 +12,17 @@ const SUPPORTED_FORMATS = new Set(['docx', 'pptx']);
 export async function onRequestPost(context) {
   const { request, env } = context;
 
+  return jsonResponse(
+    {
+      success: false,
+      error: 'Service Unavailable',
+      code: 'FEATURE_NOT_AVAILABLE',
+      creditsCharged: 0,
+      message: 'This feature is not available.',
+    },
+    503,
+  );
+
   const gate = await requireProCredits(request, context, 'file-converter');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);

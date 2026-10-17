@@ -8,6 +8,17 @@ const ALLOWED_DOC_TYPES = new Set(['invoice', 'bank_statement', 'general']);
 export async function onRequestPost(context) {
   const { request, env } = context;
 
+  return jsonResponse(
+    {
+      success: false,
+      error: 'Service Unavailable',
+      code: 'FEATURE_NOT_AVAILABLE',
+      creditsCharged: 0,
+      message: 'This feature is not available.',
+    },
+    503,
+  );
+
   const gate = await requireProCredits(request, context, 'smart-router');
   if (!gate.ok) {
     return jsonResponse(gate.body, gate.status);
