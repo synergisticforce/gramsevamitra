@@ -21,7 +21,7 @@ This file describes the code in the repository. A change reaches the live site o
 ## Phase 0A and 0B
 
 - Accounts and credits use Neon. The D1 binding is gone from `wrangler.toml`.
-- `/` is the Finance Hub gateway. It does not redirect to Document Studio.
+- `/` is the Finance Hub gateway. `apps/hub/public/_redirects` does not send `/` to Document Studio. Old `/tools` links still do.
 - `/workspace/finance` leads with the restaurant, seller, and munshi paths, then the 16 calculators, sample Swiggy, Zomato, and Flipkart figures, and a live file check.
 - Career Prep scores a resume in the browser. `/api/pro/career-ai` calls `gemini-3.5-flash-lite` first for English and `sarvam-105b` first for an Indian language. Guests get 3 free generations a month, tracked with the `gsm_device_id` cookie and a hashed IP. Credits are charged only after a non-empty Pro reply.
 - Image Studio removes the background, upscales 2× and 4×, and restores a photo on the device, with progress and cancel.
