@@ -1,3 +1,4 @@
+import SiteDoorBar from '../layout/SiteDoorBar';
 import { SIDEBAR_TOGGLE_EVENT } from '../../lib/app/shellEvents';
 import AppSessionHeader from './AppSessionHeader';
 
@@ -7,7 +8,8 @@ export default function AppGlobalHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 flex h-[3.625rem] w-full shrink-0 items-center justify-between gap-3 border-b border-canvas-border bg-canvas-surface/95 px-4 backdrop-blur-md md:px-5">
+    <header className="sticky top-0 z-50 w-full shrink-0 border-b border-canvas-border bg-canvas-surface/95 backdrop-blur-md">
+      <div className="flex h-[3.625rem] items-center justify-between gap-3 px-4 md:px-5">
       <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
         <button
           type="button"
@@ -20,7 +22,7 @@ export default function AppGlobalHeader() {
           </svg>
         </button>
         <a
-          href="/workspace/documents/"
+          href="/"
           className="group flex min-w-0 items-center gap-2 truncate md:gap-2.5"
         >
           <span
@@ -38,6 +40,8 @@ export default function AppGlobalHeader() {
       <div className="flex shrink-0 items-center">
         <AppSessionHeader compact variant="global" />
       </div>
+      </div>
+      <SiteDoorBar />
     </header>
   );
 }

@@ -7,6 +7,9 @@ export const SITE_ORIGIN = 'https://gramsevamitra.com';
 /** Marketing and trust pages */
 export const MARKETING_ROUTES = [
   '/',
+  '/owner',
+  '/seller',
+  '/munshi',
   '/contact',
   '/privacy',
   '/terms',

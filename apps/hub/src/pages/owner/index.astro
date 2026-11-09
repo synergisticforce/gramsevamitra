@@ -1,0 +1,12 @@
+---
+import DaylightLayout from '../../layouts/DaylightLayout.astro';
+import OwnerVisualPWA from '../../components/finance/OwnerVisualPWA';
+import { formatSeoTitle } from '@shared/config/seo';
+---
+
+<DaylightLayout
+  title={formatSeoTitle('Owner App', 'GramSeva Mitra')}
+  description="A large-type Swiggy and Zomato payout check. No password. The file stays on this device."
+>
+  <OwnerVisualPWA client:load />
+</DaylightLayout>

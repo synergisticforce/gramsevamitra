@@ -1,0 +1,13 @@
+---
+import AppShellLayout from '../../layouts/AppShellLayout.astro';
+import AdminCellQueue from '../../components/finance/AdminCellQueue';
+import { formatSeoTitle } from '@shared/config/seo';
+---
+
+<AppShellLayout
+  title={formatSeoTitle('Admin Queue', 'GramSeva Mitra')}
+  description="One-cell checks for owner uploads that are not linked to a munshi."
+  activeWorkspace="finance"
+>
+  <AdminCellQueue client:load />
+</AppShellLayout>

@@ -1,6 +1,6 @@
 # GramSevaMitra status
 
-Updated: 9 November 2026, after Phases 0A, 0B, 1, 2, 3, 4, and 5 in the working tree.
+Updated: 9 November 2026, after Phases 0A, 0B, 1, 2, 3, 4, 5, and 6. Phases 0A–5 are on `main` as `cda08dd`.
 
 Repository: `synergisticforce/gramsevamitra`.  
 Live site: `https://www.gramsevamitra.com`, Cloudflare Pages project `gramsevamitra-hub`.  
@@ -81,6 +81,18 @@ Evidence workbook, freemium unlock, and the audit API.
 - Finance Hub shows the teaser, an Unlock All Claims button, the ₹1 mandate request, and the evidence-pack and Tally downloads after unlock.
 - `scripts/test-phase5-api.mjs` passed on 9 November 2026.
 
+## Phase 6
+
+Owner, munshi, seller, and admin screens.
+
+- The header on every studio page has doors for `/owner/`, `/seller/`, `/munshi/`, Finance Hub, and the free studios, plus an English/Hindi switch and a `123` / `१२३` switch saved in `localStorage`.
+- `/owner/` is the large-type daylight check: file drop, Swiggy and Zomato samples, a wrong-file card, held-order alert, green and blue pockets, a ₹1 mandate screen, and WhatsApp, copy, and evidence-pack actions after unlock.
+- `/munshi/` is the partner desk: 30% wallet, many-file drop, client filters, WhatsApp magic link, and the one-cell check.
+- `/seller/` is the Meesho, Flipkart, Amazon, and Shopify view: order-item waterfall, weight override, NEFT bridge, and GST/TCS/TDS cards.
+- `/admin/` confirms an owner cell that has no munshi, including the ₹975.00 versus ₹9.75 misread.
+- `functions/_lib/ownerExperience.mjs` builds the WhatsApp text, the grouped rupee text, and the munshi bulk-file states.
+- `scripts/test-phase6-ui.mjs` checks those rules and the built pages.
+
 # Still outside this tree
 
 - The separate Flutter Docs Studio app is not this repository. It uses the same Android package id.
@@ -95,6 +107,7 @@ node scripts/test-phase2-auditors.mjs
 node scripts/test-phase3-adapters.mjs
 node scripts/test-phase4-ocr-pipeline.mjs
 node scripts/test-phase5-api.mjs
+node scripts/test-phase6-ui.mjs
 npm run typecheck
 npm run build
 ```

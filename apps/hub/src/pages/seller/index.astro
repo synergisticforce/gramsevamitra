@@ -1,0 +1,13 @@
+---
+import AppShellLayout from '../../layouts/AppShellLayout.astro';
+import EcommerceSellerWorkspace from '../../components/finance/EcommerceSellerWorkspace';
+import { formatSeoTitle } from '@shared/config/seo';
+---
+
+<AppShellLayout
+  title={formatSeoTitle('Seller Hub', 'GramSeva Mitra')}
+  description="Meesho, Flipkart, Amazon, and Shopify payout check with weight slabs and tax credits."
+  activeWorkspace="finance"
+>
+  <EcommerceSellerWorkspace client:load />
+</AppShellLayout>

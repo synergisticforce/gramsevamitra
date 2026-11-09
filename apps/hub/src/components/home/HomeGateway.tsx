@@ -2,19 +2,19 @@ import { APP_WORKSPACES } from '../../config/appWorkspaces';
 
 const DOORS = [
   {
-    href: '/workspace/finance/?mode=owner',
+    href: '/owner/',
     emoji: '🍽️',
     title: 'Restaurant Owner',
     body: 'Swiggy and Zomato visual check. Open the sample two-pocket view.',
   },
   {
-    href: '/workspace/finance/?mode=seller',
+    href: '/seller/',
     emoji: '📦',
     title: 'E-commerce seller',
     body: 'Meesho, Flipkart, and Amazon weight and COD sample.',
   },
   {
-    href: '/workspace/finance/?mode=munshi',
+    href: '/munshi/',
     emoji: '💼',
     title: 'Munshi and CA desk',
     body: 'Bulk client view and the sample 30% partner cut.',

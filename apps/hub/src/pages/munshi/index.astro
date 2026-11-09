@@ -1,0 +1,13 @@
+---
+import AppShellLayout from '../../layouts/AppShellLayout.astro';
+import MunshiDashboard from '../../components/finance/MunshiDashboard';
+import { formatSeoTitle } from '@shared/config/seo';
+---
+
+<AppShellLayout
+  title={formatSeoTitle('Munshi Desk', 'GramSeva Mitra')}
+  description="Partner desk for restaurant and seller payout files, the 30% commission wallet, and one-cell checks."
+  activeWorkspace="finance"
+>
+  <MunshiDashboard client:load />
+</AppShellLayout>

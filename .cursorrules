@@ -34,7 +34,7 @@ Do not hard-code `sarvam-30b`, `gemini-3-flash`, or `gemini-2.5-flash`.
 
 ## What is already built
 
-- `/` and `/workspace/finance`: payout checker for restaurant, seller, and munshi paths, sample Swiggy, Zomato, and Flipkart figures, live Excel/CSV upload, and the 16 calculators.
+- `/`, `/owner/`, `/seller/`, `/munshi/`, `/admin/`, and `/workspace/finance`: payout checker, large-type owner screen, seller waterfall, munshi desk, and admin cell queue.
 - `/workspace/career`: on-device ATS score, plus resume, cover letter, and interview text.
 - `/workspace/image`: on-device background removal, 2× and 4× upscale, and restore, with progress and cancel.
 - `/workspace/documents`: digital PDF conversion on device, Tesseract only at 95% confidence and clean columns, then cloud reading.
