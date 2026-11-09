@@ -1,5 +1,5 @@
 import { getSessionUser } from './session.mjs';
-import { getRuntimeEnv, hasD1Binding } from './runtimeEnv.mjs';
+import { getRuntimeEnv } from './runtimeEnv.mjs';
 import { getUserRow } from './userDb.mjs';
 import { hasNeonDatabase } from './neonDb.mjs';
 
@@ -20,11 +20,14 @@ export async function requireProUser(request, context) {
     };
   }
 
-  if (!hasNeonDatabase(env) && !hasD1Binding(env)) {
+  if (!hasNeonDatabase(env)) {
     return {
       ok: false,
       status: 503,
-      body: { error: 'Service Unavailable', message: 'Identity database is not configured.' },
+      body: {
+        error: 'Service Unavailable',
+        message: 'Identity database is not configured. Set DATABASE_URL (Neon PostgreSQL).',
+      },
     };
   }
 

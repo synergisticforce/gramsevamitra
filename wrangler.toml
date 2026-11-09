@@ -3,12 +3,9 @@ compatibility_date = "2024-06-11"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "apps/hub/dist"
 
-# Cloudflare D1 — Better Auth identity store (Phase 1)
-[[d1_databases]]
-binding = "DB"
-database_name = "gramsevamitra-auth"
-# Populated after: npx wrangler d1 create gramsevamitra-auth
-database_id = "df383016-db6c-4761-97ec-58a16c75efa5"
+# Accounts, credits, and Razorpay rows use Neon via the DATABASE_URL secret.
+# The old D1 database gramsevamitra-auth (df383016-db6c-4761-97ec-58a16c75efa5)
+# is not attached. Do not add it back as a silent fallback.
 
 # Ephemeral Pro document uploads (1-hour lifecycle rule on bucket — configure in dashboard)
 [[r2_buckets]]

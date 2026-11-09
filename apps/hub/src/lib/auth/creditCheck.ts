@@ -37,7 +37,7 @@ export interface CreditQuote {
 
 export { PRO_MONTHLY_CREDIT_FUP, getOperationCreditCost, getOperationLabel, formatCreditQuoteMessage };
 
-/** Fetch live AI Credit balance from D1 via edge API. */
+/** Fetch live AI Credit balance from the account API (Neon). */
 export async function fetchUserCredits(): Promise<number> {
   const response = await fetch(apiUrl('/api/user/credits'), { credentials: 'include' });
 

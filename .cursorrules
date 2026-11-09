@@ -1,38 +1,52 @@
-# GRAMSEVAMITRA CURSOR RULES
+# GramSevaMitra rules
 
-## Tech Stack Constraints
-- Framework: React / Astro / Tailwind CSS
-- Native Mobile Shell: Capacitor (Android focus)
-- Document Engine: @capacitor-mlkit/document-scanner
-- Image Engine: HTML5 Canvas API + @capacitor-community/image-manipulator + @capawesome/capacitor-photo-manipulator
-- Video Engine: @whiteguru/capacitor-plugin-video-editor
-- Local Storage: IndexedDB / OPFS (PWA) + Capacitor Filesystem (Mobile Native)
-- NO external UI component libraries unless explicitly specified.
-- NEVER suggest switching frameworks or adding heavy cloud dependencies.
+This repository deploys from GitHub `main` through `.github/workflows/deploy.yml` to Cloudflare Pages project `gramsevamitra-hub` at `www.gramsevamitra.com`.
 
-## Platform Isolation Rules
-- NEVER use the same UI component for desktop and mobile without a `usePlatform()` guard.
-- Desktop PWA components must live in `src/desktop/`.
-- Mobile Capacitor components must live in `src/mobile/`.
-- Shared business logic (API calls, storage, utilities) lives in `src/shared/`.
-- If a file imports a mobile-specific component into a desktop view, flag it as a violation.
+## Stack
 
-## Plugin & Android Safety Rules
-- ONLY use official `@capacitor/*` or highly maintained `@capawesome/*` plugins. Do NOT install unmaintained `@capacitor-community` plugins without explicit user approval.
-- If an image/video manipulation task can be done securely via HTML5 Canvas API instead of a native plugin, default to Canvas to prevent build errors.
-- Always check and update `android/app/src/main/AndroidManifest.xml` when adding plugins that require permissions (Camera, Read/Write External Storage, Internet).
+- Site: Astro 4, React 18, TypeScript, and Tailwind in `apps/hub/`. Phone scan and vault UI stay in `apps/hub/src/mobile/`.
+- API: Cloudflare Pages Functions in `functions/`. Shared logic lives in `functions/_lib/` and is re-exported with TypeScript types from `apps/hub/src/lib/audit/`.
+- Do not add a Python server, FastAPI, or a second host. Cloudflare Pages does not run that folder.
+- Database: Neon PostgreSQL only, via `DATABASE_URL`. Schema is `schema.postgres.sql`. Tables are created with `CREATE TABLE IF NOT EXISTS` from `functions/_lib/neonSchema.mjs` and `functions/_lib/auditDb.mjs`. Do not read or write Cloudflare D1.
+- Native shell: Capacitor. Guard native calls with `Capacitor.isNativePlatform()`. Prefer HTML Canvas when it can do the job.
+- Do not add a UI component library unless asked.
 
-## Anti-Hallucination & Execution Rules
-1. Atomic Changes Only: Modify or create at most 2–3 files per task. Never refactor untouched files.
-2. Type Safety First: Define or update TypeScript interfaces/types BEFORE writing logic.
-3. No Unused Code: Do not leave placeholder comments, mock functions, or dead code.
-4. Environment Awareness: Always use `Capacitor.isNativePlatform()` to isolate native mobile features from PWA desktop features.
-5. GitHub Workflow: Every complete atomic task MUST end with a git commit and push instruction.
+## Money
 
-## File Size & Bundle Rules
-- Never bundle a file >50KB in the initial payload. Use dynamic imports for heavy modules.
-- The initial app shell must load in <2 seconds on a 4G connection.
+- Use `functions/_lib/currency.mjs` and `apps/hub/src/lib/audit/currency.ts`.
+- Store money as signed integer paise. ₹1.00 is 100 paise.
+- Store rates as integer basis points. 18% is 1800 bps. 10% is 1000 bps.
+- Do not use binary floats for money, and do not let a language model do the arithmetic.
 
-## Commit Rules
-- Every commit must have a `feat:`, `fix:`, `docs:`, or `chore:` prefix.
-- Never commit without running `npm run build` first to check for errors.
+## Where work runs
+
+- Parse `.xlsx`, `.csv`, and born-digital PDFs in the browser with SheetJS and PDF.js. Strip customer name, phone, and address columns before anything is kept. Strip total rows.
+- Restaurant checks (9) and seller checks (6) live in `functions/_lib/restaurantAuditor.mjs` and `functions/_lib/ecommerceAuditor.mjs`. They also run in the browser, so a large workbook does not spend Cloudflare CPU on parsing.
+- Pages Functions are for Neon writes, Razorpay, and cloud OCR. Time spent waiting on `fetch` is not CPU time.
+
+## Model ids
+
+Do not hard-code `sarvam-30b`, `gemini-3-flash`, or `gemini-2.5-flash`.
+
+- Career Prep (`/api/pro/career-ai`): `gemini-3.5-flash-lite` first for English, `sarvam-105b` first for an Indian language or Indic script. Each is the other's fallback.
+- Document and payout scans under 95% confidence: Azure Document Intelligence, then Sarvam Vision, then `gemini-3.5-flash-lite`, then `gemini-2.5-flash-lite`.
+- Free on-device tools do not require sign-in. Career AI allows 3 free generations a month, tracked with the `gsm_device_id` cookie and a hashed IP. Do not deduct credits when the model call fails.
+
+## What is already built
+
+- `/` and `/workspace/finance`: payout checker for restaurant, seller, and munshi paths, sample Swiggy, Zomato, and Flipkart figures, live Excel/CSV upload, and the 16 calculators.
+- `/workspace/career`: on-device ATS score, plus resume, cover letter, and interview text.
+- `/workspace/image`: on-device background removal, 2× and 4× upscale, and restore, with progress and cancel.
+- `/workspace/documents`: digital PDF conversion on device, Tesseract only at 95% confidence and clean columns, then cloud reading.
+- Auditors, tax export, claim text, workbook adapters, PDF routing, the 4-tab evidence pack, and the freemium unlock live in `functions/_lib/`. Checks: `scripts/test-phase1-audit.mjs` through `scripts/test-phase5-api.mjs`.
+- A recoverable total under ₹200 is free. At ₹200 or above, one proof row stays visible and the rest stay masked until unlock. Do not charge a ₹0 UPI mandate. The authorisation is ₹1 (100 paise).
+
+## Checks
+
+- Run `npm run typecheck` and `npm run build` before calling a frontend change done.
+- After a completed phase, update `STATUS_REPORT.md` so it matches the repository.
+- Do not commit secrets, `.env` files, or `functions/_lib/claudeClient.mjs`.
+
+## Git and Cloudflare
+
+After every phase passes its Node test, `npm run typecheck`, and `npm run build` with no errors, and after `STATUS_REPORT.md` is updated, stage the changes, commit them, and push to GitHub `main`. That push runs `.github/workflows/deploy.yml` and Cloudflare Pages publishes `www.gramsevamitra.com`.

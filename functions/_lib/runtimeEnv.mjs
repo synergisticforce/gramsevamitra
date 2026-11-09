@@ -48,7 +48,7 @@ export function readEnvFromContext(context, key) {
 
 /**
  * Return the native Cloudflare runtime bindings object from a Pages/Worker handler context.
- * Prefer Neon (`DATABASE_URL`) over D1 so production auth never silently falls back to an empty D1 store.
+ * Accounts use Neon (`DATABASE_URL`) only. A D1 binding is ignored for users, credits, and billing.
  * Never clone or spread `env` — bindings (D1, R2, secrets) must stay on the native object.
  * Never rely on `process.env` on the edge — it is undefined in production.
  *
@@ -60,11 +60,6 @@ export function getRuntimeEnv(context) {
   const withNeon = layers.find((layer) => readEnvString(layer, 'DATABASE_URL'));
   if (withNeon) {
     return /** @type {CloudflareBindings} */ (withNeon);
-  }
-
-  const withDb = layers.find(hasD1Binding);
-  if (withDb) {
-    return /** @type {CloudflareBindings} */ (withDb);
   }
 
   return /** @type {CloudflareBindings} */ (layers[0] ?? {});

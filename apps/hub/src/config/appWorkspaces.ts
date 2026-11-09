@@ -19,10 +19,17 @@ export interface AppWorkspace {
 
 export const APP_WORKSPACES: AppWorkspace[] = [
   {
+    id: 'finance',
+    label: 'Finance Hub',
+    href: '/workspace/finance/',
+    description: 'Restaurant and seller payout check, plus free money calculators.',
+    emoji: '💰',
+  },
+  {
     id: 'documents',
     label: 'Document Studio',
     href: '/workspace/documents/',
-    description: 'Merge, split, compress, protect, and smart-extract documents.',
+    description: 'Digital PDFs and clear scans convert on this device. Cloud reading starts under 95% confidence.',
     emoji: '📄',
   },
   {
@@ -52,13 +59,6 @@ export const APP_WORKSPACES: AppWorkspace[] = [
     href: '/workspace/lifestyle/',
     description: 'BMI, macros, exam age checks, cycle tracking, and mood journaling.',
     emoji: '🧘',
-  },
-  {
-    id: 'finance',
-    label: 'Finance Hub',
-    href: '/workspace/finance/',
-    description: 'EMI, GST, invoicing, and money calculators.',
-    emoji: '💰',
   },
   {
     id: 'quick-tools',

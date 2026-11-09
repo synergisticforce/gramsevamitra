@@ -2,7 +2,6 @@ import { getOperationCreditCost, PRO_MONTHLY_CREDIT_FUP } from '../../packages/s
 import { getRuntimeEnv } from './runtimeEnv.mjs';
 import { requireProUser } from './proGate.mjs';
 import { getUserCreditBalance, getUserRow } from './userDb.mjs';
-import { hasD1Binding } from './runtimeEnv.mjs';
 import { getNeonSql } from './neonDb.mjs';
 
 export { PRO_MONTHLY_CREDIT_FUP, getOperationCreditCost };
@@ -15,33 +14,16 @@ export async function deductUserCredits(env, userId, amount) {
   if (amount <= 0) return null;
 
   const sql = getNeonSql(env);
-  const now = new Date().toISOString();
+  if (!sql) return null;
 
-  if (sql) {
-    const rows = await sql`
-      UPDATE users
-      SET credits = credits - ${amount}, "updatedAt" = NOW()
-      WHERE id = ${userId} AND credits >= ${amount}
-      RETURNING credits
-    `;
-    if (rows.length === 0) return null;
-    return Number(rows[0].credits);
-  }
-
-  if (hasD1Binding(env)) {
-    const result = await env.DB.prepare(
-      `UPDATE users SET credits = credits - ?, updatedAt = ? WHERE id = ? AND credits >= ?`,
-    )
-      .bind(amount, now, userId, amount)
-      .run();
-
-    if (!result.success || (result.meta?.changes ?? 0) === 0) {
-      return null;
-    }
-    return getUserCreditBalance(env, userId);
-  }
-
-  return null;
+  const rows = await sql`
+    UPDATE users
+    SET credits = credits - ${amount}, "updatedAt" = NOW()
+    WHERE id = ${userId} AND credits >= ${amount}
+    RETURNING credits
+  `;
+  if (rows.length === 0) return null;
+  return Number(rows[0].credits);
 }
 
 /**

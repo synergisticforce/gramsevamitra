@@ -43,15 +43,17 @@ export default function CareerAiResultModal({ result, onClose, onSuccess }: Prop
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-canvas-muted">⚡ Pro AI</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-canvas-muted">Career AI</p>
             <h2 id="career-ai-result-title" className="mt-1 text-lg font-bold text-canvas-text">
               {result.title}
             </h2>
-            {result.processingMs != null && result.processingMs > 0 && (
-              <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-300">
-                Processed in {Math.round(result.processingMs / 1000)}s · mock edge LLM
-              </p>
-            )}
+            <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-300">
+              {result.model ? `Model: ${result.model}` : 'Model reply'}
+              {result.processingMs != null && result.processingMs > 0
+                ? ` · ${Math.round(result.processingMs / 1000)}s`
+                : ''}
+              {result.creditsCharged ? ` · ${result.creditsCharged} credits` : ' · ₹0 if this was a free generation'}
+            </p>
           </div>
           <button
             type="button"

@@ -98,28 +98,28 @@ export const MEDIA_CANVAS_ACTIONS: MediaCanvasAction[] = [
     mimePatterns: ['image/jpeg', 'image/png', 'image/webp'],
   },
   {
+    id: 'upscale-2x',
+    label: 'Upscale 2x',
+    icon: '🔍',
+    tier: 'free',
+    badge: 'On-device',
+    mimePatterns: ['image/jpeg', 'image/png', 'image/webp'],
+  },
+  {
     id: 'upscale-4x',
     label: 'Upscale 4x',
     icon: '🔍',
-    tier: 'pro',
-    comingSoon: true,
+    tier: 'free',
+    badge: 'On-device',
     mimePatterns: ['image/jpeg', 'image/png', 'image/webp'],
-    featureId: 'upscale-4x',
-    featureName: '4× AI Upscale',
-    featureDescription:
-      'Enhance low-resolution scans up to 4× with advanced AI super-resolution — Pro only.',
   },
   {
     id: 'photo-restore',
     label: 'AI Restore',
     icon: '⚡',
-    tier: 'pro',
-    comingSoon: true,
+    tier: 'free',
+    badge: 'On-device',
     mimePatterns: ['image/jpeg', 'image/png', 'image/webp'],
-    featureId: 'photo-restore',
-    featureName: 'AI Photo Restoration',
-    featureDescription:
-      'Colorize and repair old or damaged photos with advanced AI — powered by GramSeva Mitra Pro.',
   },
 ];
 

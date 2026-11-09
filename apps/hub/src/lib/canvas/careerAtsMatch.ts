@@ -12,12 +12,20 @@ const STOP_WORDS = new Set([
   'qualifications', 'skills', 'skill', 'looking', 'join', 'us', 'we', 'well', 'using', 'use', 'used',
 ]);
 
+export interface ResumeQuality {
+  actionVerbDensityPercent: number;
+  sectionCompletenessPercent: number;
+  sectionsFound: string[];
+  sectionsMissing: string[];
+}
+
 export interface AtsScanResult {
   score: number;
   missingKeywords: string[];
   matchedCount: number;
   totalJobTerms: number;
   resumeWordCount: number;
+  quality: ResumeQuality;
 }
 
 function cleanTerm(raw: string): string {
@@ -81,6 +89,53 @@ function resumeContainsRoot(resumeRoots: Set<string>, jdRoot: string): boolean {
   return false;
 }
 
+const ACTION_VERBS = new Set([
+  'led', 'managed', 'built', 'designed', 'delivered', 'improved', 'reduced', 'increased', 'launched',
+  'developed', 'implemented', 'coordinated', 'analysed', 'analyzed', 'created', 'optimized', 'optimised',
+  'negotiated', 'trained', 'resolved', 'achieved', 'generated', 'spearheaded', 'streamlined', 'automated',
+  'mentored', 'directed', 'established', 'executed', 'facilitated', 'owned', 'drove', 'grew', 'saved',
+  'shipped', 'organised', 'organized', 'supervised', 'authored', 'migrated', 'audited', 'reconciled',
+]);
+
+const RESUME_SECTIONS: Array<{ id: string; label: string; pattern: RegExp }> = [
+  { id: 'contact', label: 'Contact', pattern: /(@|(\+?\d[\d\s-]{8,}\d))/ },
+  { id: 'summary', label: 'Summary', pattern: /\b(summary|objective|profile|about me)\b/ },
+  { id: 'experience', label: 'Experience', pattern: /\b(experience|employment|work history)\b/ },
+  { id: 'education', label: 'Education', pattern: /\b(education|academic|university|college)\b/ },
+  { id: 'skills', label: 'Skills', pattern: /\b(skills|competenc|technical skills)\b/ },
+];
+
+function firstWord(line: string): string {
+  return (line.trim().match(/[A-Za-z][A-Za-z'-]*/)?.[0] ?? '').toLowerCase();
+}
+
+/** Action-verb density and section completeness. Runs entirely in the browser. */
+export function scoreResumeQuality(resumeText: string): ResumeQuality {
+  const lines = resumeText.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  const bullets = lines.filter((line) => /^(?:[-•*]|\d+[.)])\s+/.test(line));
+  const candidates = bullets.length > 0 ? bullets : lines.filter((line) => /[.!?]$/.test(line) || line.length > 40);
+  const actionHits = candidates.filter((line) => ACTION_VERBS.has(firstWord(line.replace(/^(?:[-•*]|\d+[.)])\s+/, '')))).length;
+  const actionVerbDensityPercent = candidates.length
+    ? Math.round((actionHits / candidates.length) * 100)
+    : 0;
+
+  const lower = resumeText.toLowerCase();
+  const sectionsFound: string[] = [];
+  const sectionsMissing: string[] = [];
+  for (const section of RESUME_SECTIONS) {
+    if (section.pattern.test(lower)) sectionsFound.push(section.label);
+    else sectionsMissing.push(section.label);
+  }
+  const sectionCompletenessPercent = Math.round((sectionsFound.length / RESUME_SECTIONS.length) * 100);
+
+  return {
+    actionVerbDensityPercent,
+    sectionCompletenessPercent,
+    sectionsFound,
+    sectionsMissing,
+  };
+}
+
 /** Compare resume text against a job description — 100% client-side. */
 export async function analyzeAtsMatch(
   resumeText: string,
@@ -128,5 +183,6 @@ export async function analyzeAtsMatch(
     matchedCount: matched.length,
     totalJobTerms: jdRoots.length,
     resumeWordCount,
+    quality: scoreResumeQuality(resumeText),
   };
 }

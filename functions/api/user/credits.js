@@ -1,7 +1,7 @@
 import { jsonResponse } from '../../_lib/json.mjs';
 import { getUserCreditBalance, getUserRow } from '../../_lib/userDb.mjs';
 import { getSessionUser } from '../../_lib/session.mjs';
-import { getRuntimeEnv, hasD1Binding } from '../../_lib/runtimeEnv.mjs';
+import { getRuntimeEnv } from '../../_lib/runtimeEnv.mjs';
 import { hasNeonDatabase } from '../../_lib/neonDb.mjs';
 import { PRO_MONTHLY_CREDIT_FUP } from '../../../packages/shared/src/lib/aiCredits.mjs';
 
@@ -14,8 +14,11 @@ export async function onRequestGet(context) {
     return jsonResponse({ error: 'Unauthorized', message: 'Sign in required.' }, 401);
   }
 
-  if (!hasNeonDatabase(env) && !hasD1Binding(env)) {
-    return jsonResponse({ error: 'Service Unavailable', message: 'Identity database is not configured.' }, 503);
+  if (!hasNeonDatabase(env)) {
+    return jsonResponse(
+      { error: 'Service Unavailable', message: 'Identity database is not configured. Set DATABASE_URL.' },
+      503,
+    );
   }
 
   const row = await getUserRow(env, user.id);

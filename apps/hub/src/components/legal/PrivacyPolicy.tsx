@@ -25,7 +25,7 @@ export default function PrivacyPolicy() {
       <LegalSection title="2. Information We Collect">
         <p>
           <strong>Account information:</strong> If you sign in (e.g., via Google OAuth), we store your
-          name, email address, and authentication identifiers in our Cloudflare D1 database to manage
+          name, email address, and authentication identifiers in our Neon PostgreSQL database to manage
           your session and subscription status.
         </p>
         <p>

@@ -1,4 +1,4 @@
-export type CareerProAiAction = 'rewrite_resume' | 'generate_cover_letter';
+export type CareerProAiAction = 'rewrite_resume' | 'generate_cover_letter' | 'interview_coach';
 
 export interface CareerProAiProgress {
   label: string;
@@ -11,11 +11,16 @@ export interface CareerProAiResult {
   title: string;
   fileName: string;
   processingMs?: number;
+  model?: string;
+  provider?: string;
+  creditsCharged?: number;
+  quotaRemaining?: number | null;
 }
 
 const TOOLBAR_TO_API: Record<string, CareerProAiAction> = {
   'ai-resume-rewriter': 'rewrite_resume',
   'ai-cover-letter': 'generate_cover_letter',
+  'ai-interview-coach': 'interview_coach',
 };
 
 export function resolveCareerProAction(actionId: string): CareerProAiAction | null {
@@ -23,6 +28,7 @@ export function resolveCareerProAction(actionId: string): CareerProAiAction | nu
 }
 
 import { parseCreditApiError } from '../auth/creditCheck';
+import { getTurnstileToken } from '../auth/turnstileClient';
 import { apiUrl } from '../../shared/lib/apiBase';
 
 function startAiProgressTicker(
@@ -31,8 +37,10 @@ function startAiProgressTicker(
 ): () => void {
   const label =
     action === 'rewrite_resume'
-      ? 'Running advanced AI resume optimization…'
-      : 'Generating advanced AI cover letter…';
+      ? 'Rewriting resume bullets…'
+      : action === 'interview_coach'
+        ? 'Preparing interview questions…'
+        : 'Writing the cover letter…';
   let percent = 45;
   onProgress({ label, percent });
   const timer = window.setInterval(() => {
@@ -46,9 +54,13 @@ export async function runCareerProAiPipeline(
   resumeText: string,
   fileName: string,
   action: CareerProAiAction,
-  onProgress: (progress: CareerProAiProgress) => void
+  onProgress: (progress: CareerProAiProgress) => void,
+  jobText = '',
+  language = 'en',
 ): Promise<CareerProAiResult> {
-  onProgress({ label: 'Sending resume text to secure Pro AI endpoint…', percent: 15 });
+  onProgress({ label: 'Checking this browser…', percent: 12 });
+  const turnstileToken = await getTurnstileToken();
+  onProgress({ label: 'Sending resume text to the career model…', percent: 18 });
 
   const stopTicker = startAiProgressTicker(action, onProgress);
 
@@ -62,6 +74,9 @@ export async function runCareerProAiPipeline(
         action,
         resumeText,
         fileName,
+        jobText,
+        language,
+        turnstileToken,
       }),
     });
   } finally {
@@ -76,6 +91,10 @@ export async function runCareerProAiPipeline(
     processingMs?: number;
     message?: string;
     error?: string;
+    model?: string;
+    provider?: string;
+    creditsCharged?: number;
+    quotaRemaining?: number | null;
   };
 
   try {
@@ -98,7 +117,17 @@ export async function runCareerProAiPipeline(
     text: payload.text,
     action,
     title: payload.title ?? (action === 'rewrite_resume' ? 'AI Resume Rewriter' : 'AI Cover Letter'),
-    fileName: payload.fileName ?? (action === 'rewrite_resume' ? 'ai-optimized-resume.txt' : 'ai-cover-letter.txt'),
+    fileName:
+      payload.fileName ??
+      (action === 'rewrite_resume'
+        ? 'ai-optimized-resume.txt'
+        : action === 'interview_coach'
+          ? 'interview-coach.txt'
+          : 'ai-cover-letter.txt'),
     processingMs: payload.processingMs,
+    model: payload.model,
+    provider: payload.provider,
+    creditsCharged: payload.creditsCharged,
+    quotaRemaining: payload.quotaRemaining,
   };
 }

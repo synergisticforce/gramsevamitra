@@ -2,12 +2,10 @@ import { authClient } from '@gramsevamitra/auth/client';
 import { safeLocalStorageClear, safeSessionStorageClear } from '../storage/safeStorage';
 import { markPostSignOutRedirect, markSigningOut } from './signOutState';
 import { clearWorkspaceResume } from './workspaceResumeCache';
-import { DEFAULT_APP_WORKSPACE } from '../../config/appWorkspaces';
-
 const APP_INDEXED_DB_NAMES = ['gsm-workspace-resume', 'gsm-omni-handoff'] as const;
 
-/** App home — `/` server-redirects here; direct navigation avoids an extra hop. */
-const SIGN_OUT_LANDING_PATH = DEFAULT_APP_WORKSPACE.href;
+/** Public gateway. Free tools do not require an account. */
+const SIGN_OUT_LANDING_PATH = '/';
 
 function deleteIndexedDb(name: string): Promise<void> {
   return new Promise((resolve) => {

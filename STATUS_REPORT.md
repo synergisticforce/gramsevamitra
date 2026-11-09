@@ -1,0 +1,102 @@
+# GramSevaMitra status
+
+Updated: 9 November 2026, after Phases 0A, 0B, 1, 2, 3, 4, and 5 in the working tree.
+
+Repository: `synergisticforce/gramsevamitra`.  
+Live site: `https://www.gramsevamitra.com`, Cloudflare Pages project `gramsevamitra-hub`.  
+Deploy path: GitHub `main` → `.github/workflows/deploy.yml` → Cloudflare Pages. There is no Python server.
+
+This file describes the code in the repository. A change reaches the live site only after it is committed and pushed to `main`.
+
+# Stack
+
+- Site: Astro 4, React 18, TypeScript, Tailwind, in `apps/hub/`.
+- API: Cloudflare Pages Functions in `functions/`. Shared modules are `functions/_lib/*.mjs`, re-exported from `apps/hub/src/lib/audit/`.
+- Database: Neon PostgreSQL only, via `DATABASE_URL`. Schema: `schema.postgres.sql`. Tables are created with `CREATE TABLE IF NOT EXISTS` from `functions/_lib/neonSchema.mjs` and `functions/_lib/auditDb.mjs`. Cloudflare D1 is not used.
+- Money: integer paise and integer basis points in `functions/_lib/currency.mjs` and `apps/hub/src/lib/audit/currency.ts`. ₹1.00 is 100 paise. 18% is 1800 bps.
+- Phone shell: Capacitor. Native calls stay behind `Capacitor.isNativePlatform()`.
+
+# What is built
+
+## Phase 0A and 0B
+
+- Accounts and credits use Neon. The D1 binding is gone from `wrangler.toml`.
+- `/` is the Finance Hub gateway. It does not redirect to Document Studio.
+- `/workspace/finance` leads with the restaurant, seller, and munshi paths, then the 16 calculators, sample Swiggy, Zomato, and Flipkart figures, and a live file check.
+- Career Prep scores a resume in the browser. `/api/pro/career-ai` calls `gemini-3.5-flash-lite` first for English and `sarvam-105b` first for an Indian language. Guests get 3 free generations a month, tracked with the `gsm_device_id` cookie and a hashed IP. Credits are charged only after a non-empty Pro reply.
+- Image Studio removes the background, upscales 2× and 4×, and restores a photo on the device, with progress and cancel.
+- Document Studio converts a digital PDF to `.xlsx`, `.csv`, `.docx`, `.txt`, or `.md` in the browser. A scan is accepted from on-device Tesseract only at 95% confidence and aligned columns. Otherwise `/api/pro/document-smart-convert` tries Azure Document Intelligence, then Sarvam Vision, then `gemini-3.5-flash-lite`, then `gemini-2.5-flash-lite`.
+
+## Phase 1
+
+Integer money, audit types, and Neon audit tables.
+
+- `functions/_lib/currency.mjs`
+- `apps/hub/src/lib/audit/currency.ts`
+- `apps/hub/src/lib/audit/types.ts`
+- `functions/_lib/auditDb.mjs`
+- `scripts/test-phase1-audit.mjs`
+
+## Phase 2
+
+Restaurant checks, seller checks, claim text, and the tax export.
+
+- `functions/_lib/restaurantAuditor.mjs` and `apps/hub/src/lib/audit/restaurantAuditor.ts`
+- `functions/_lib/ecommerceAuditor.mjs` and `apps/hub/src/lib/audit/ecommerceAuditor.ts`
+- `functions/_lib/claimGenerator.mjs` and `apps/hub/src/lib/audit/claimGenerator.ts`
+- `functions/_lib/taxAutopilot.mjs` and `apps/hub/src/lib/audit/taxAutopilot.ts`
+- `scripts/test-phase2-auditors.mjs`
+
+## Phase 3
+
+Workbook adapters. Customer name, phone, and address columns are dropped. Total rows are dropped. Parsing runs in the browser.
+
+- `functions/_lib/adapters/baseAdapter.mjs`
+- `functions/_lib/adapters/swiggyAdapter.mjs`
+- `functions/_lib/adapters/zomatoAdapter.mjs`
+- `functions/_lib/adapters/ecommerceAdapters.mjs` (Meesho, Flipkart settlement, Amazon, Shopify)
+- `functions/_lib/adapters/registry.mjs`
+- Matching files under `apps/hub/src/lib/audit/adapters/`
+- `scripts/test-phase3-adapters.mjs`
+
+## Phase 4
+
+PDF page limits, header cache, one-cell correction, and cloud OCR routing.
+
+- `functions/_lib/pdfRouter.mjs` and `apps/hub/src/lib/audit/pdfRouter.ts` — `@cantoo/pdf-lib` splits a PDF into chunks of at most 10 pages and slices at most 2 pages. PDF.js reads a digital text layer. A missing text layer or a KrutiDev-style font returns `NEEDS_OCR`.
+- `functions/_lib/headerMapper.mjs` and `apps/hub/src/lib/audit/headerMapper.ts` — SHA-256 of the sorted headers. The mapping is reused from memory, then from the Neon `header_mapping_cache` table. A miss uses the alias list, or `gemini-3.5-flash-lite` when a key is set and a header is still unknown. Only the headers and up to 3 scrubbed sample rows are sent.
+- `functions/_lib/selfHealingCrop.mjs` and `apps/hub/src/lib/audit/selfHealingCrop.ts` — an OCR row that misses by more than ₹1 is queued. With no munshi id the cell is assigned to `ADMIN` and the restaurant owner gets a confirm button, not a ledger form. With a munshi id it is assigned to `MUNSHI`. Confirming `9.75` writes 975 paise and re-runs the auditor.
+- `functions/_lib/cloudOcrArbitrage.mjs` and `functions/api/audit/ocr-extract.js` — English scans with an Azure key are cut to 2 pages. Longer scans are cut into 10-page chunks. The reader order remains Azure, Sarvam Vision, `gemini-3.5-flash-lite`, then `gemini-2.5-flash-lite`.
+- Finance Hub upload accepts `.xlsx`, `.csv`, and `.pdf`. A row marked `NEEDS_VERIFICATION` shows a one-cell card. Confirming it calls `resolveCellVerification`.
+- `scripts/test-phase4-ocr-pipeline.mjs` passed on 9 November 2026: 25-page PDF became page counts 10, 10, and 5; the 2-page slice returned 2 pages; the KrutiDev sample was flagged and clean English and Hindi were not; the second header map was a cache hit; the ₹975.00 tax misread healed to 975 paise with no horizontal error.
+
+## Phase 5
+
+Evidence workbook, freemium unlock, and the audit API.
+
+- `functions/_lib/evidencePack.mjs` and `apps/hub/src/lib/audit/evidencePack.ts` build a 4-tab `.xlsx`: Executive Summary & UTR Bridge, Line-by-Line Dispute Proof, Held Orders Checklist, and Tax Autopilot & Tally.
+- `functions/_lib/unlockEngine.mjs` and `apps/hub/src/lib/audit/unlockEngine.ts` open a check for free when the recoverable amount is under ₹200. At ₹200 or more, the first finding stays readable and the other order ids are masked. The standard unlock fee is 10% (`applyBps(..., 1000)`). A linked munshi receives 30%. A rejected claim refunds its share of that fee. The UPI mandate authorises ₹1 and sets a day-10 reminder, a day-12 pre-debit notice, and a day-14 collection.
+- `functions/_lib/auditRepository.mjs` saves an upload in Neon when `DATABASE_URL` is set, and in memory when it is not.
+- Pages Functions: `functions/api/audit/upload.js`, `create-unlock-checkout.js`, `unlock.js`, `resolve-cell.js`, `mark-rejected.js`, and `munshi-dashboard.js`.
+- Finance Hub shows the teaser, an Unlock All Claims button, the ₹1 mandate request, and the evidence-pack and Tally downloads after unlock.
+- `scripts/test-phase5-api.mjs` passed on 9 November 2026.
+
+# Still outside this tree
+
+- The separate Flutter Docs Studio app is not this repository. It uses the same Android package id.
+- Do not add FastAPI, SQLAlchemy, or openpyxl. Spreadsheets use SheetJS.
+- Do not hard-code `sarvam-30b`, `gemini-3-flash`, or `gemini-2.5-flash`.
+
+# Check before calling a phase done
+
+```bash
+node scripts/test-phase1-audit.mjs
+node scripts/test-phase2-auditors.mjs
+node scripts/test-phase3-adapters.mjs
+node scripts/test-phase4-ocr-pipeline.mjs
+node scripts/test-phase5-api.mjs
+npm run typecheck
+npm run build
+```
+
+Update this file at the end of every phase.

@@ -22,6 +22,8 @@ import FinanceSipCalculator from './FinanceSipCalculator';
 import FinanceTaxDeductionCalculator from './FinanceTaxDeductionCalculator';
 import FinanceTipSplitCalculator from './FinanceTipSplitCalculator';
 import FinanceToolGrid from './FinanceToolGrid';
+import PayoutAuditPreview, { type AuditMode } from '../finance/PayoutAuditPreview';
+import WorkbookAuditDropzone from '../finance/WorkbookAuditDropzone';
 
 type FinanceView = 'grid' | FinanceToolId;
 
@@ -64,11 +66,20 @@ function renderTool(toolId: FinanceToolId) {
   }
 }
 
+function readAuditMode(): AuditMode {
+  if (typeof window === 'undefined') return 'owner';
+  const mode = new URLSearchParams(window.location.search).get('mode');
+  if (mode === 'seller' || mode === 'munshi' || mode === 'owner') return mode;
+  return 'owner';
+}
+
 export default function FinanceHubCanvas() {
   const [view, setView] = useState<FinanceView>('grid');
   const [hydrated, setHydrated] = useState(false);
+  const [mode, setMode] = useState<AuditMode>('owner');
 
   useEffect(() => {
+    setMode(readAuditMode());
     const saved = loadFinanceActiveTool();
     if (saved) setView(saved);
     setHydrated(true);
@@ -84,14 +95,6 @@ export default function FinanceHubCanvas() {
     saveFinanceActiveTool(null);
   }, []);
 
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-[280px] items-center justify-center px-4 py-12">
-        <p className="text-sm font-medium leading-relaxed text-slate-200">Loading Finance Hub…</p>
-      </div>
-    );
-  }
-
   const activeTool = view !== 'grid' ? getFinanceTool(view) : null;
 
   return (
@@ -106,13 +109,19 @@ export default function FinanceHubCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Finance Hub</h1>
               <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-                EMI, SIP, GST, salary tools, invoices, crypto gains, budgeting, and 16 client-side money tools.
+                Sample payout check for restaurants and sellers. The calculators below stay free and on this device.
               </p>
             </div>
           </div>
         </header>
 
-        {view === 'grid' ? (
+        <WorkbookAuditDropzone mode={mode} />
+        <PayoutAuditPreview mode={mode} />
+
+        <h2 className="mb-3 mt-8 text-lg font-bold text-canvas-text">Free calculators</h2>
+        {!hydrated ? (
+          <p className="text-sm text-slate-300">Loading calculators…</p>
+        ) : view === 'grid' ? (
           <FinanceToolGrid onSelectTool={openTool} />
         ) : (
           <div className="space-y-4">

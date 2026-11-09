@@ -30,6 +30,8 @@ import MediaMagicDropzone from './MediaMagicDropzone';
 import ResizeCompressModal from './ResizeCompressModal';
 import ImageAdjustModal from './ImageAdjustModal';
 import RemoveBackgroundModal from './RemoveBackgroundModal';
+import ImageEnhanceModal from './ImageEnhanceModal';
+import type { EnhanceMode } from '../../lib/canvas/imageEnhance';
 
 type CanvasPhase = 'empty' | 'active';
 type MediaToolModal =
@@ -42,6 +44,7 @@ type MediaToolModal =
   | 'image-filters'
   | 'image-adjust'
   | 'remove-background'
+  | EnhanceMode
   | null;
 
 interface ActiveFile {
@@ -214,6 +217,16 @@ export default function MediaLabCanvas() {
       if (action.id === 'remove-background') {
         if (!requireCanvasFile()) return;
         setMediaModal('remove-background');
+        return;
+      }
+      if (action.id === 'upscale-2x' || action.id === 'upscale-4x') {
+        if (!requireCanvasFile()) return;
+        setMediaModal(action.id);
+        return;
+      }
+      if (action.id === 'photo-restore') {
+        if (!requireCanvasFile()) return;
+        setMediaModal('restore');
         return;
       }
       setToastMessage(`${action.label} is coming soon.`);
@@ -497,6 +510,16 @@ export default function MediaLabCanvas() {
           onProcessingChange={onProcessingChange}
         />
       )}
+
+      {(mediaModal === 'upscale-2x' || mediaModal === 'upscale-4x' || mediaModal === 'restore') &&
+        canvasImageFile && (
+          <ImageEnhanceModal
+            file={canvasImageFile}
+            mode={mediaModal}
+            onClose={() => setMediaModal(null)}
+            onSuccess={setToastMessage}
+          />
+        )}
 
       {processing.active && (
         <CanvasProcessingOverlay

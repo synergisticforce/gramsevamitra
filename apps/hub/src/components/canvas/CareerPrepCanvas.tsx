@@ -17,11 +17,14 @@ import type { OmniHandoffPayload } from '../../lib/omni/handoff';
 import { resolveCareerOmniModal } from '../../lib/omni/omniDispatch';
 import { useOmniWorkspaceHandoff } from '../../lib/omni/useOmniWorkspaceHandoff';
 import OmniHandoffLoading from '../omni/OmniHandoffLoading';
+import type { CareerProAiResult } from '../../lib/canvas/careerProAi';
 import AtsScannerModal from './AtsScannerModal';
 import BusinessCardModal from './BusinessCardModal';
 import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
 import CareerActionToolbar from './CareerActionToolbar';
+import CareerAiModal from './CareerAiModal';
+import CareerAiResultModal from './CareerAiResultModal';
 import CareerMagicDropzone from './CareerMagicDropzone';
 import CoverLetterModal from './CoverLetterModal';
 import LegalTemplatesModal from './LegalTemplatesModal';
@@ -49,7 +52,7 @@ interface ProcessingState {
   subtitle?: string;
 }
 
-const CAREER_AI_COMING_SOON = 'Coming soon — being upgraded to a real AI model.';
+const CAREER_AI_ACTIONS = new Set(['ai-resume-rewriter', 'ai-cover-letter', 'ai-interview-coach']);
 
 export default function CareerPrepCanvas() {
   const [phase, setPhase] = useState<CanvasPhase>('empty');
@@ -57,6 +60,8 @@ export default function CareerPrepCanvas() {
   const [hydrated, setHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [careerModal, setCareerModal] = useState<CareerToolModal>(null);
+  const [careerAiActionId, setCareerAiActionId] = useState<string | null>(null);
+  const [careerAiResult, setCareerAiResult] = useState<CareerProAiResult | null>(null);
   const [processing, setProcessing] = useState<ProcessingState>({
     active: false,
     label: '',
@@ -106,15 +111,16 @@ export default function CareerPrepCanvas() {
       if (action.id === 'ats-scanner') {
         const file = requireCanvasFile();
         if (!file) return;
-
-        if (isDocxFile(file.type, file.name) || (!isPdfFile(file.type, file.name) && !file.type)) {
-          setToastMessage(
-            'ATS Scanner currently supports PDF resumes only. Upload a PDF or use Cover Letter Templates for Word files.'
-          );
+        if (!isPdfFile(file.type, file.name) && !isDocxFile(file.type, file.name)) {
+          setToastMessage('ATS Scanner reads PDF and DOCX resumes.');
           return;
         }
-
         setCareerModal('ats-scanner');
+        return;
+      }
+      if (CAREER_AI_ACTIONS.has(action.id)) {
+        if (!requireCanvasFile()) return;
+        setCareerAiActionId(action.id);
         return;
       }
 
@@ -175,10 +181,8 @@ export default function CareerPrepCanvas() {
           setToastMessage('Re-upload your document on the canvas to run ATS Scan.');
           return;
         }
-        if (isDocxFile(file.type, file.name) || (!isPdfFile(file.type, file.name) && !file.type)) {
-          setToastMessage(
-            'ATS Scanner currently supports PDF resumes only. Upload a PDF from the homepage or drop here.',
-          );
+        if (!isPdfFile(file.type, file.name) && !isDocxFile(file.type, file.name)) {
+          setToastMessage('ATS Scanner reads PDF and DOCX resumes.');
           return;
         }
       }
@@ -216,17 +220,6 @@ export default function CareerPrepCanvas() {
 
   const { handleActionClick } = useCareerActionHandler({ onFreeAction });
 
-  const onToolbarAction = useCallback(
-    (actionId: string) => {
-      if (actionId === 'ai-resume-rewriter' || actionId === 'ai-cover-letter') {
-        setToastMessage(CAREER_AI_COMING_SOON);
-        return;
-      }
-      handleActionClick(actionId);
-    },
-    [handleActionClick],
-  );
-
   const clearCanvas = useCallback(() => {
     clearCareerCanvasState();
     setActiveFile(null);
@@ -249,7 +242,9 @@ export default function CareerPrepCanvas() {
   }, [activeFile]);
 
   const atsFile =
-    activeFile?.file && isPdfFile(activeFile.file.type, activeFile.file.name)
+    activeFile?.file &&
+    (isPdfFile(activeFile.file.type, activeFile.file.name) ||
+      isDocxFile(activeFile.file.type, activeFile.file.name))
       ? activeFile.file
       : null;
 
@@ -337,7 +332,7 @@ export default function CareerPrepCanvas() {
               </div>
             </div>
 
-            <CareerActionToolbar actions={toolbarActions} onActionClick={onToolbarAction} />
+            <CareerActionToolbar actions={toolbarActions} onActionClick={handleActionClick} />
           </div>
         )}
       </div>
@@ -374,11 +369,30 @@ export default function CareerPrepCanvas() {
         />
       )}
 
+      {careerAiActionId && activeFile?.file && (
+        <CareerAiModal
+          file={activeFile.file}
+          actionId={careerAiActionId}
+          onClose={() => setCareerAiActionId(null)}
+          onSuccess={setToastMessage}
+          onResult={setCareerAiResult}
+          onProcessingChange={onProcessingChange}
+        />
+      )}
+
+      {careerAiResult && (
+        <CareerAiResultModal
+          result={careerAiResult}
+          onClose={() => setCareerAiResult(null)}
+          onSuccess={setToastMessage}
+        />
+      )}
+
       {processing.active && (
         <CanvasProcessingOverlay
           label={processing.label}
           percent={processing.percent}
-          subtitle={processing.subtitle ?? 'Your resume and job description never leave this device.'}
+          subtitle={processing.subtitle ?? 'ATS scoring stays on this device.'}
         />
       )}
 

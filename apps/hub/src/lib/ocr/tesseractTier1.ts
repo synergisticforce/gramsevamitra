@@ -17,6 +17,7 @@ export interface Tier1OcrResult {
   pagesSampled: number;
   needsProHandoff: boolean;
   words: Array<{ text: string; confidence: number }>;
+  pages?: import('./tesseractWorkerTypes').OcrPageWords[];
 }
 
 let worker: Worker | null = null;

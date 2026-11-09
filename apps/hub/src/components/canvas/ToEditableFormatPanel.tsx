@@ -4,8 +4,6 @@ import type { ProOperationId } from '../../lib/auth/creditCheck';
 import type { EditableFormatTarget } from '../../lib/services/toEditableFormatPipeline';
 import {
   EditableFormatProRequiredError,
-  isProStructuralFormat,
-  isVisionDocxFormat,
   promptProUpgradeForComplexLayout,
   runProLayoutReconstruction,
   runToEditableFormatPipeline,
@@ -30,7 +28,8 @@ const FORMAT_OPTIONS: Array<{
   { id: 'txt', label: '.txt' },
   { id: 'md', label: '.md' },
   { id: 'docx', label: '.docx' },
-  { id: 'csv', label: '.csv', proOnly: true },
+  { id: 'csv', label: '.csv' },
+  { id: 'xlsx', label: '.xlsx' },
   { id: 'xml', label: '.xml', proOnly: true },
 ];
 
@@ -62,7 +61,7 @@ export default function ToEditableFormatPanel({
   const runConversion = useCallback(async () => {
     if (busy || disabled) return;
 
-    if (isProStructuralFormat(target) && !isPro) {
+    if (target === 'xml' && !isPro) {
       promptProUpgradeForComplexLayout();
       return;
     }
@@ -114,17 +113,8 @@ export default function ToEditableFormatPanel({
   }, [busy, disabled, file, isPro, onError, onProcessingChange, onSuccess, target]);
 
   const handleConvertClick = useCallback(() => {
-    if (isVisionDocxFormat(target) && isPro) {
-      requestProConfirm('reconstruct-layout', 'Vision layout Word export', () => {
-        void runConversion();
-      });
-      return;
-    }
-
-    if (isProStructuralFormat(target) && isPro) {
-      const label =
-        target === 'csv' ? 'CSV table extraction' : 'XML structure extraction';
-      requestProConfirm('reconstruct-layout', label, () => {
+    if (target === 'xml' && isPro) {
+      requestProConfirm('reconstruct-layout', 'XML structure extraction', () => {
         void runConversion();
       });
       return;
@@ -146,7 +136,7 @@ export default function ToEditableFormatPanel({
           <div>
             <span className="text-sm font-semibold text-canvas-text">To Editable Format</span>
             <p className="mt-0.5 text-xs font-medium leading-relaxed text-slate-300">
-              Plain text &amp; Markdown free · Word preserves layout with Vision AI · spreadsheets Pro
+              Digital PDFs and clear scans convert on this device. Cloud reading is used only under 95% confidence.
             </p>
           </div>
         </div>

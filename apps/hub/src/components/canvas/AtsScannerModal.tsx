@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { analyzeAtsMatch, type AtsScanResult } from '../../lib/canvas/careerAtsMatch';
-import { extractTextFromPdfFile } from '../../lib/canvas/careerPdfText';
+import { extractResumeText } from '../../lib/canvas/careerPdfText';
 
 interface Props {
   file: File;
@@ -46,7 +46,7 @@ export default function AtsScannerModal({
     onProcessingChange(true, 'Reading resume PDF…', 5);
 
     try {
-      const resumeText = await extractTextFromPdfFile(file, (current, total) => {
+      const resumeText = await extractResumeText(file, (current, total) => {
         const percent = 5 + Math.round((current / total) * 45);
         onProcessingChange(true, `Extracting text — page ${current} of ${total}…`, percent);
       });
@@ -109,7 +109,7 @@ export default function AtsScannerModal({
         {step === 'input' && (
           <>
             <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">
-              Paste the job description below. Your resume PDF is parsed locally — nothing is uploaded.
+              Paste the job description below. Keyword match, action-verb density, and section checks run in this browser. Nothing is uploaded.
             </p>
             <label className="mt-3 block">
               <span className="text-xs font-semibold uppercase tracking-wide text-canvas-subtle">
@@ -166,6 +166,22 @@ export default function AtsScannerModal({
                 {result.resumeWordCount > 0 ? ` · ${result.resumeWordCount} resume words` : ''}
               </p>
             </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-xl border border-canvas-border px-3 py-2">
+                <p className="text-xs uppercase tracking-wide text-canvas-subtle">Action verbs</p>
+                <p className="text-lg font-bold text-canvas-text">{result.quality.actionVerbDensityPercent}%</p>
+              </div>
+              <div className="rounded-xl border border-canvas-border px-3 py-2">
+                <p className="text-xs uppercase tracking-wide text-canvas-subtle">Sections</p>
+                <p className="text-lg font-bold text-canvas-text">{result.quality.sectionCompletenessPercent}%</p>
+              </div>
+            </div>
+            {result.quality.sectionsMissing.length > 0 && (
+              <p className="text-xs leading-relaxed text-slate-300">
+                Missing sections: {result.quality.sectionsMissing.join(', ')}
+              </p>
+            )}
 
             <div>
               <h3 className="text-sm font-semibold text-canvas-text">Missing keywords</h3>

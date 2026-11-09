@@ -15,7 +15,7 @@ import type { AppWorkspaceId } from '../config/appWorkspaces';
 interface Props {
   title: string;
   description?: string;
-  activeWorkspace: AppWorkspaceId;
+  activeWorkspace?: AppWorkspaceId;
   /** When true, workspace tool UI is replaced with a sign-in prompt for logged-out users. */
   requireAuth?: boolean;
 }
@@ -23,7 +23,7 @@ interface Props {
 const {
   title,
   description = 'GramSeva Mitra — unified workspace for documents, media, career, finance, and quick tools.',
-  activeWorkspace,
+  activeWorkspace = undefined,
   requireAuth = false,
 } = Astro.props;
 

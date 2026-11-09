@@ -8,9 +8,10 @@ import { authSessionConfig } from './sessionConfig';
  * Production Cloudflare Functions use `functions/_lib/auth.mjs`.
  */
 export function createAuth(env: AuthEnv) {
-  const database = env.DATABASE_URL
-    ? new Pool({ connectionString: env.DATABASE_URL })
-    : env.DB;
+  if (!env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is required. Accounts are stored in Neon PostgreSQL.');
+  }
+  const database = new Pool({ connectionString: env.DATABASE_URL });
 
   return betterAuth({
     appName: 'GramSeva Mitra',
@@ -75,10 +76,8 @@ export function createAuth(env: AuthEnv) {
 
 /** Cloudflare Pages Function / Worker environment bindings for auth. */
 export interface AuthEnv {
-  /** Neon PostgreSQL connection string (preferred in production). */
-  DATABASE_URL?: string;
-  /** Local D1 fallback for dev preview. */
-  DB?: D1Database;
+  /** Neon PostgreSQL connection string. Required for accounts, credits, and billing. */
+  DATABASE_URL: string;
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
   GOOGLE_CLIENT_ID: string;

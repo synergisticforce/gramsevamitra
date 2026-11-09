@@ -24,6 +24,5 @@ export function hasNeonDatabase(env) {
  * @param {Record<string, unknown>} env
  */
 export function hasDatabase(env) {
-  const db = env?.DB;
-  return hasNeonDatabase(env) || Boolean(db && typeof db.prepare === 'function');
+  return hasNeonDatabase(env);
 }

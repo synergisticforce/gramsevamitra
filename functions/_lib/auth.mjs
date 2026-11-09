@@ -6,7 +6,7 @@ import { emailOTP } from 'better-auth/plugins';
 import { Pool } from '@neondatabase/serverless';
 import { logAuthBindingDiagnostics } from './authBindingDiagnostics.mjs';
 import { authSessionConfig } from './authSession.mjs';
-import { getRuntimeEnv, hasD1Binding, readEnvFromContext, readEnvString } from './runtimeEnv.mjs';
+import { getRuntimeEnv, readEnvFromContext, readEnvString } from './runtimeEnv.mjs';
 import { sendEmailOtp } from './sesMail.mjs';
 
 const REQUIRED_AUTH_BINDINGS = ['BETTER_AUTH_URL', 'BETTER_AUTH_SECRET', 'DATABASE_URL'];
@@ -38,18 +38,8 @@ export function validateAuthBindings(context) {
  */
 function resolveDbBinding(context) {
   const databaseUrl = resolveBinding(context, 'DATABASE_URL');
-  if (databaseUrl) {
-    return new Pool({ connectionString: databaseUrl });
-  }
-
-  const handlerEnv = context?.env ?? context?.cloudflare?.env;
-  if (hasD1Binding(handlerEnv)) {
-    return handlerEnv.DB;
-  }
-  if (hasD1Binding(workersEnv)) {
-    return workersEnv.DB;
-  }
-  return undefined;
+  if (!databaseUrl) return undefined;
+  return new Pool({ connectionString: databaseUrl });
 }
 
 /**
@@ -123,8 +113,6 @@ export function createAuth(context) {
       hasDatabaseUrl: Boolean(resolveBinding(context, 'DATABASE_URL')),
       hasAuthSecret: Boolean(authSecret),
       hasAuthUrl: Boolean(authUrl),
-      handlerHasDb: hasD1Binding(handlerEnv),
-      workersHasDb: hasD1Binding(workersEnv),
     });
   }
 

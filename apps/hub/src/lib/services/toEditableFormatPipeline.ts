@@ -420,6 +420,13 @@ export async function runToEditableFormatPipeline(
   } = options;
 
   onProgress({ label: 'Analyzing document structure…', percent: 4 });
+
+  if (target !== 'xml') {
+    const { tryDocumentCascade } = await import('../documents/documentCascade');
+    const cascaded = await tryDocumentCascade(file, target, onProgress);
+    if (cascaded) return cascaded;
+  }
+
   const layout = await analyzeDocumentLayout(file);
 
   if (target === 'xlsx') {

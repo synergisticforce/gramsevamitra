@@ -76,7 +76,7 @@ export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
     id: 'ai-resume-rewriter',
     label: 'AI Resume Rewriter',
     icon: '⚡',
-    tier: 'pro',
+    tier: 'free',
     requiresDocument: true,
     mimePatterns: [
       'application/pdf',
@@ -85,14 +85,13 @@ export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
     ],
     featureId: 'ai-resume-rewriter',
     featureName: 'AI Resume Rewriter',
-    featureDescription:
-      'Rewrite your resume for specific job descriptions with advanced AI — powered by GramSeva Mitra Pro.',
+    featureDescription: 'Rewrite resume bullets from the text already in your file. Three free generations per month.',
   },
   {
     id: 'ai-cover-letter',
     label: 'AI Cover Letter',
     icon: '⚡',
-    tier: 'pro',
+    tier: 'free',
     requiresDocument: true,
     mimePatterns: [
       'application/pdf',
@@ -101,8 +100,22 @@ export const CAREER_CANVAS_ACTIONS: CareerCanvasAction[] = [
     ],
     featureId: 'ai-cover-letter',
     featureName: 'AI Cover Letter Generator',
-    featureDescription:
-      'Generate tailored cover letters from your resume and a job posting — Pro only.',
+    featureDescription: 'Draft a cover letter from your resume and an optional job description.',
+  },
+  {
+    id: 'ai-interview-coach',
+    label: 'Interview Coach',
+    icon: '🗣️',
+    tier: 'free',
+    requiresDocument: true,
+    mimePatterns: [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+    ],
+    featureId: 'ai-interview-coach',
+    featureName: 'Interview Coach',
+    featureDescription: 'Practice questions and answers drawn only from your resume.',
   },
 ];
 

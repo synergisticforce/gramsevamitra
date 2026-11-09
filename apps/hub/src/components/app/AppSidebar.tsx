@@ -3,7 +3,7 @@ import { SIDEBAR_TOGGLE_EVENT } from '../../lib/app/shellEvents';
 import { APP_WORKSPACES, type AppWorkspaceId } from '../../config/appWorkspaces';
 
 interface Props {
-  activeWorkspace: AppWorkspaceId;
+  activeWorkspace?: AppWorkspaceId;
   currentPath: string;
 }
 

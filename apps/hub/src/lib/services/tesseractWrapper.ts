@@ -83,6 +83,7 @@ function spawnFreshWorker(): Worker {
 function recognizeWithFreshWorker(
   images: string[],
   onProgress?: (label: string, percent: number) => void,
+  withBoxes = false,
 ): Promise<Tier1OcrResult> {
   const id = crypto.randomUUID();
   const worker = spawnFreshWorker();
@@ -106,6 +107,7 @@ function recognizeWithFreshWorker(
           averageConfidence: data.averageConfidence,
           pagesSampled: data.pagesSampled,
           words: data.words,
+          pages: data.pages,
           needsProHandoff: tier1NeedsProHandoff(data.text, data.averageConfidence),
         });
       }
@@ -117,7 +119,7 @@ function recognizeWithFreshWorker(
     };
 
     worker.addEventListener('message', handler);
-    worker.postMessage({ type: 'recognize', id, images } satisfies TesseractWorkerOutbound);
+    worker.postMessage({ type: 'recognize', id, images, withBoxes } satisfies TesseractWorkerOutbound);
   });
 }
 
@@ -127,6 +129,7 @@ export interface TesseractRunOptions {
    * `output` reads the whole document because the text becomes a real file.
    */
   mode?: 'sample' | 'output';
+  withBoxes?: boolean;
   onTruncated?: (readPages: number, totalPages: number) => void;
 }
 
@@ -136,7 +139,7 @@ export async function runTesseractWithMemoryFlush(
   onProgress?: (label: string, percent: number) => void,
   options: TesseractRunOptions = {},
 ): Promise<Tier1OcrResult> {
-  const { mode = 'output', onTruncated } = options;
+  const { mode = 'output', onTruncated, withBoxes = false } = options;
   const maxPages = mode === 'sample' ? OCR_TIER1_MAX_SAMPLE_PAGES : OCR_MAX_OUTPUT_PAGES;
 
   onProgress?.(OCR_WATERFALL_LOADER_STAGES.tier1, 2);
@@ -150,7 +153,7 @@ export async function runTesseractWithMemoryFlush(
       onTruncated?.(images.length, totalPages);
     }
     onProgress?.(OCR_WATERFALL_LOADER_STAGES.tier1, 40);
-    return await recognizeWithFreshWorker(images, onProgress);
+    return await recognizeWithFreshWorker(images, onProgress, withBoxes);
   } finally {
     disposeTesseractWorker();
   }
