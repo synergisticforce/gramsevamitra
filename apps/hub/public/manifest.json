@@ -10,6 +10,31 @@
   "theme_color": "#4f46e5",
   "lang": "en-IN",
   "categories": ["productivity", "utilities"],
+  "share_target": {
+    "action": "/owner/",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "file",
+          "accept": [
+            "application/pdf",
+            ".pdf",
+            "text/csv",
+            ".csv",
+            "application/vnd.ms-excel",
+            ".xls",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ".xlsx"
+          ]
+        }
+      ]
+    }
+  },
   "icons": [
     {
       "src": "/pwa-192.png",

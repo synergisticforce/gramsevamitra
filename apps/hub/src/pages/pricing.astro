@@ -1,0 +1,25 @@
+---
+import AppShellLayout from '../layouts/AppShellLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+---
+
+<AppShellLayout
+  title={formatSeoTitle('Pricing', 'GramSeva Mitra')}
+  description="Free payout scan under ₹200, 10% claim unlock, ₹299 per month Tax Autopilot, and ₹99 per year Studio Pro."
+>
+  <article class="mx-auto max-w-3xl px-4 py-8 text-sm leading-relaxed text-slate-200">
+    <h1 class="text-3xl font-bold text-canvas-text">Pricing</h1>
+    <p class="mt-2 text-slate-300">Last updated: November 2026.</p>
+    <ul class="mt-4 space-y-3">
+      <li><strong class="text-canvas-text">Free scan.</strong> Reading a payout file on this device costs ₹0.</li>
+      <li><strong class="text-canvas-text">Under ₹200.</strong> If the recoverable amount is under ₹200, the full check opens at ₹0.</li>
+      <li><strong class="text-canvas-text">Claim unlock.</strong> At ₹200 or more, the success fee is 10% of the recoverable amount. Mitra Pro pays 5%.</li>
+      <li><strong class="text-canvas-text">Mitra Pro Tax and Tally.</strong> ₹299 per month. Includes the tax export and the 5% unlock fee.</li>
+      <li><strong class="text-canvas-text">Studio Pro.</strong> ₹99 per year for the paid studio features shown at checkout.</li>
+      <li><strong class="text-canvas-text">Munshi partner.</strong> 30% of the unlock fee or Pro subscription collected through that partner.</li>
+    </ul>
+    <p class="mt-4">
+      A rejected platform claim can refund its share of the unlock fee within 14 days. See the <a class="text-canvas-accent underline" href="/refund-policy/">refund policy</a>.
+    </p>
+  </article>
+</AppShellLayout>

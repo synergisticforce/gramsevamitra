@@ -1,5 +1,6 @@
 ---
 import AppShellLayout from '../../layouts/AppShellLayout.astro';
+import StudioFunnelBanner from '../../components/finance/StudioFunnelBanner.astro';
 import DocumentWorkspace from '../../components/DocumentWorkspace';
 import { APP_WORKSPACES } from '../../config/appWorkspaces';
 import { formatSeoTitle } from '@shared/config/seo';
@@ -12,5 +13,6 @@ const workspace = APP_WORKSPACES.find((ws) => ws.id === 'documents')!;
   description={workspace.description}
   activeWorkspace="documents"
 >
+  <StudioFunnelBanner />
   <DocumentWorkspace client:load />
 </AppShellLayout>

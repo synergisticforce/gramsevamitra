@@ -30,6 +30,8 @@ import QuickSeoMetaGenerator from './QuickSeoMetaGenerator';
 import QuickToolsToolGrid from './QuickToolsToolGrid';
 import QuickTypingSpeedTest from './QuickTypingSpeedTest';
 import QuickUnitConverter from './QuickUnitConverter';
+import QuickCourierSlabCalculator from './QuickCourierSlabCalculator';
+import QuickThermalLabelCropper from './QuickThermalLabelCropper';
 import QuickUrlEncoder from './QuickUrlEncoder';
 
 type QuickView = 'grid' | QuickToolId;
@@ -84,6 +86,10 @@ function renderTool(toolId: QuickToolId, onToast: (message: string) => void) {
       return <QuickJobTracker onToast={onToast} />;
     case 'cold-email-builder':
       return <QuickColdEmailBuilder onToast={onToast} />;
+    case 'thermal-label-cropper':
+      return <QuickThermalLabelCropper />;
+    case 'courier-slab-calculator':
+      return <QuickCourierSlabCalculator />;
     default:
       return null;
   }
@@ -134,7 +140,7 @@ export default function QuickToolsHubCanvas() {
             <div>
               <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Quick Tools</h1>
               <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-                24 client-side utilities — converters, productivity tools, encoders, and home DIY, all offline.
+                Seller label tools, converters, productivity tools, and home DIY. They run on this device.
               </p>
             </div>
           </div>

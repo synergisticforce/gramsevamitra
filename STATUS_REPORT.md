@@ -1,6 +1,6 @@
 # GramSevaMitra status
 
-Updated: 9 November 2026, after Phases 0A, 0B, 1, 2, 3, 4, 5, and 6. Phases 0A–5 are on `main` as `cda08dd`.
+Updated: 9 November 2026. Phases 0A through 8 are complete. Phases 0A–5 are commit `cda08dd`. Phase 6 is commit `4a6b59b`.
 
 Repository: `synergisticforce/gramsevamitra`.  
 Live site: `https://www.gramsevamitra.com`, Cloudflare Pages project `gramsevamitra-hub`.  
@@ -93,6 +93,18 @@ Owner, munshi, seller, and admin screens.
 - `functions/_lib/ownerExperience.mjs` builds the WhatsApp text, the grouped rupee text, and the munshi bulk-file states.
 - `scripts/test-phase6-ui.mjs` checks those rules and the built pages.
 
+## Phase 7 and 8
+
+Seller tools, legal pages, and the health check.
+
+- Quick Tools adds a 4×6 inch shipping-label cropper and a courier slab calculator. Both run on the device and link to `/seller/`.
+- Document, image, video, career, lifestyle, and quick-tools pages show a short banner to the restaurant, seller, and munshi checks.
+- `apps/hub/public/manifest.json` accepts shared `.xlsx`, `.csv`, and `.pdf` files. `apps/hub/public/share-target.js` stores a shared file and opens `/owner/`.
+- Privacy, terms, and refund pages say November 2026. Accounts are Neon PostgreSQL. Customer name, phone, and address columns are stripped in the browser. A rejected claim fee can be refunded within 14 days, then Razorpay returns it in 5–7 business days.
+- `/about/`, `/pricing/`, and `/contact/` are public. The footer links About, Pricing, Privacy, Terms, Refund, and Contact.
+- `GET /api/health` reports whether Neon and the AI keys are set, and whether Razorpay is live or test, without returning the secrets.
+- `scripts/test-phase7-8-final.mjs` covers the slab math, the label crop, the legal pages, and the health report.
+
 # Still outside this tree
 
 - The separate Flutter Docs Studio app is not this repository. It uses the same Android package id.
@@ -108,6 +120,7 @@ node scripts/test-phase3-adapters.mjs
 node scripts/test-phase4-ocr-pipeline.mjs
 node scripts/test-phase5-api.mjs
 node scripts/test-phase6-ui.mjs
+node scripts/test-phase7-8-final.mjs
 npm run typecheck
 npm run build
 ```

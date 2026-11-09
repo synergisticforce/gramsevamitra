@@ -1,20 +1,13 @@
 ---
-import '@shared/styles/global.css';
 import AppShellLayout from '../layouts/AppShellLayout.astro';
-import SaaSLegalPage from '../components/saas/SaaSLegalPage.astro';
-import SegmentedControl from '@shared/components/saas/SegmentedControl.astro';
-import PrivacyPolicyContent from '@shared/components/legal/PrivacyPolicyContent.astro';
-import { LEGAL_SEO } from '@shared/config/seo';
-import { LEGAL_SEGMENTS } from '../components/saas/saasNav.ts';
+import PrivacyPolicy from '../components/legal/PrivacyPolicy';
+import { formatSeoTitle } from '@shared/config/seo';
 ---
 
 <AppShellLayout
-  title={LEGAL_SEO.privacy.hub.title}
-  description={LEGAL_SEO.privacy.hub.description}
+  title={formatSeoTitle('Privacy Policy', 'GramSeva Mitra')}
+  description="How GramSeva Mitra stores accounts in Neon and strips customer details before a payout check."
   activeWorkspace="documents"
 >
-  <SaaSLegalPage title="Privacy Policy">
-    <SegmentedControl slot="nav" items={LEGAL_SEGMENTS} activeId="privacy" />
-    <PrivacyPolicyContent />
-  </SaaSLegalPage>
+  <PrivacyPolicy />
 </AppShellLayout>

@@ -10,6 +10,7 @@ interface Props {
 }
 
 const CATEGORY_ORDER: QuickToolCategory[] = [
+  'seller',
   'generators',
   'converters',
   'math',

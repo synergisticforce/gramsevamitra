@@ -5,7 +5,7 @@ interface Props {
   children: ReactNode;
 }
 
-const LAST_UPDATED = 'June 2026';
+const LAST_UPDATED = 'November 2026';
 
 export default function LegalDocumentShell({ title, children }: Props) {
   return (

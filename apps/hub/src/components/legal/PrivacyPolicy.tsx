@@ -1,6 +1,7 @@
 import LegalDocumentShell, { LegalSection } from './LegalDocumentShell';
 
 const SUPPORT_EMAIL = 'support@gramsevamitra.in';
+const GRIEVANCE_EMAIL = 'grievance@gramsevamitra.com';
 
 export default function PrivacyPolicy() {
   return (
@@ -25,8 +26,8 @@ export default function PrivacyPolicy() {
       <LegalSection title="2. Information We Collect">
         <p>
           <strong>Account information:</strong> If you sign in (e.g., via Google OAuth), we store your
-          name, email address, and authentication identifiers in our Neon PostgreSQL database to manage
-          your session and subscription status.
+          name, email address, and authentication identifiers in Neon PostgreSQL. That database is
+          encrypted in transit and at rest. We do not use Cloudflare D1.
         </p>
         <p>
           <strong>Payment information:</strong> Pro subscriptions are processed by Razorpay. We do not
@@ -35,8 +36,7 @@ export default function PrivacyPolicy() {
         </p>
         <p>
           <strong>Pro processing data:</strong> For certain Pro features, files or extracted text may be
-          temporarily stored in encrypted object storage (Cloudflare R2) for the duration of processing
-          and deleted thereafter in accordance with our retention policy.
+          held only in Cloudflare R2 as transient encrypted storage and deleted within 1 hour.
         </p>
         <p>
           <strong>Technical logs:</strong> Our hosting provider (Cloudflare) may record standard request
@@ -47,6 +47,14 @@ export default function PrivacyPolicy() {
           <strong>Local storage:</strong> Free-tier workspace tools may save preferences and form inputs
           in your browser&apos;s <code className="rounded bg-canvas-elevated px-1">localStorage</code> on your
           device only. You may clear this data at any time through browser settings.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="2A. DPDP Act 2023 — automated PII scrubbing">
+        <p>
+          Before a payout audit runs, the browser strips end-customer columns on this device. Those
+          columns are Customer Name, Buyer Name, Phone, Mobile, Address, Pin Code, and Delivery
+          Instructions. They are not uploaded with the audit.
         </p>
       </LegalSection>
 
@@ -95,13 +103,17 @@ export default function PrivacyPolicy() {
         </p>
       </LegalSection>
 
-      <LegalSection title="8. Contact">
+      <LegalSection title="8. Data Protection and Grievance Officer">
         <p>
-          For privacy-related questions, email{' '}
+          Grievance and data-protection requests go to{' '}
+          <a href={`mailto:${GRIEVANCE_EMAIL}`} className="font-medium text-canvas-accent underline">
+            {GRIEVANCE_EMAIL}
+          </a>{' '}
+          or{' '}
           <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-canvas-accent underline">
             {SUPPORT_EMAIL}
           </a>
-          .
+          . We answer within the time the DPDP Act and the Information Technology rules require.
         </p>
       </LegalSection>
     </LegalDocumentShell>

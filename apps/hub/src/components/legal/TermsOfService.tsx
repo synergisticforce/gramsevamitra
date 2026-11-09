@@ -13,10 +13,11 @@ export default function TermsOfService() {
 
       <LegalSection title="1. Service Description">
         <p>
-          GramSeva Mitra provides browser-based utilities for documents, media, career preparation,
-          finance calculations, and everyday tools. A free tier runs primarily on your device. An optional
-          Pro subscription (currently ₹99/year or as displayed at checkout) unlocks server-assisted
-          features subject to availability.
+          GramSeva Mitra has two products. The free on-device studios (documents, images, video, career,
+          and quick tools) run in the browser. The payout and tax check is separate: a ₹0 scan, a ₹0
+          unlock when the recoverable amount is under ₹200, a 10% success fee to unlock a larger claim,
+          ₹299 per month for Mitra Pro Tax and Tally Autopilot with a 5% unlock fee, ₹99 per year for
+          Studio Pro, and a 30% commission for a linked munshi partner.
         </p>
       </LegalSection>
 
@@ -58,6 +59,14 @@ export default function TermsOfService() {
           content solely to provide the Service — including temporary storage for Pro features. You are
           solely responsible for verifying outputs meet official requirements before submission to
           authorities, employers, or third parties.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="5A. Independent auditor">
+        <p>
+          GramSevaMitra is an independent software reconciliation platform. It is not affiliated with or
+          endorsed by Swiggy, Zomato (Eternal Ltd.), Meesho, Flipkart, Amazon, or Shopify. We never ask
+          for a partner-portal password.
         </p>
       </LegalSection>
 

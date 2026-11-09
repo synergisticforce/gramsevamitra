@@ -1,0 +1,22 @@
+---
+import AppShellLayout from '../layouts/AppShellLayout.astro';
+import { formatSeoTitle } from '@shared/config/seo';
+---
+
+<AppShellLayout
+  title={formatSeoTitle('About Us', 'GramSeva Mitra')}
+  description="GramSevaMitra is an independent payout and paperwork toolkit for restaurants, sellers, and munshis in India."
+>
+  <article class="mx-auto max-w-3xl px-4 py-8 text-sm leading-relaxed text-slate-200">
+    <h1 class="text-3xl font-bold text-canvas-text">About GramSevaMitra</h1>
+    <p class="mt-4">
+      GramSevaMitra is an independent software platform. Restaurant owners, online sellers, and munshi partners use it to read payout statements, free studios, and everyday calculators. The free studios run on the device. A payout file is checked in the browser after customer name, phone, and address columns are removed.
+    </p>
+    <p class="mt-3">
+      We are not Swiggy, Zomato, Meesho, Flipkart, Amazon, or Shopify, and we do not ask for those portal passwords. Accounts, when you choose to sign in, are stored in Neon PostgreSQL. Payments go through Razorpay.
+    </p>
+    <p class="mt-3">
+      Last updated: November 2026. Write to <a class="text-canvas-accent underline" href="mailto:support@gramsevamitra.in">support@gramsevamitra.in</a>.
+    </p>
+  </article>
+</AppShellLayout>

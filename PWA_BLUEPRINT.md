@@ -53,4 +53,4 @@ Each shared module has a typed re-export under `apps/hub/src/lib/audit/`.
 
 Checks: `scripts/test-phase1-audit.mjs`, `scripts/test-phase2-auditors.mjs`, `scripts/test-phase3-adapters.mjs`, `scripts/test-phase4-ocr-pipeline.mjs`, `scripts/test-phase5-api.mjs`.
 
-The current build state is `STATUS_REPORT.md`. Update that file at the end of every phase.
+Phases 0A through 8 are in this repository. The public pages are `/owner/`, `/seller/`, `/munshi/`, `/admin/`, `/about/`, `/pricing/`, `/contact/`, `/privacy/`, `/terms/`, and `/refund-policy/`. `GET /api/health` reports configuration without secrets. The current build state is `STATUS_REPORT.md`. Update that file at the end of every phase.

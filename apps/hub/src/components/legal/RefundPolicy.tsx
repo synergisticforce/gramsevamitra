@@ -19,6 +19,16 @@ export default function RefundPolicy() {
         </p>
       </LegalSection>
 
+      <LegalSection title="1A. 14-day rejected claim fee refund">
+        <p>
+          If a platform rejects an unlocked dispute and you send that platform&apos;s rejection ticket
+          reference within 14 days, we credit or refund the proportional unlock fee. Approved refunds go
+          back to the original payment source through Razorpay within 5–7 business days. This is a digital
+          service. Delivery is instant online. There is no physical shipping. You can cancel a
+          subscription with one click. Cancellation stops the next charge.
+        </p>
+      </LegalSection>
+
       <LegalSection title="2. No Refunds for Change of Mind">
         <p>
           We do not offer refunds for dissatisfaction with features, unused subscription time, accidental

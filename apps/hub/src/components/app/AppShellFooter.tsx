@@ -1,7 +1,10 @@
 const LEGAL_LINKS = [
-  { href: '/workspace/legal/privacy', label: 'Privacy Policy' },
-  { href: '/workspace/legal/terms', label: 'Terms of Service' },
-  { href: '/workspace/legal/refund', label: 'Refund Policy' },
+  { href: '/about/', label: 'About Us' },
+  { href: '/pricing/', label: 'Pricing' },
+  { href: '/workspace/legal/privacy/', label: 'Privacy Policy' },
+  { href: '/workspace/legal/terms/', label: 'Terms of Service' },
+  { href: '/refund-policy/', label: 'Refund Policy' },
+  { href: '/contact/', label: 'Contact Us' },
 ] as const;
 
 export const SUPPORT_EMAIL = 'support@gramsevamitra.in';
@@ -21,14 +24,6 @@ export default function AppShellFooter() {
                 </a>
               </li>
             ))}
-            <li>
-              <a
-                href={`mailto:${SUPPORT_EMAIL}`}
-                className="font-medium text-canvas-muted hover:text-canvas-accent"
-              >
-                Contact Us
-              </a>
-            </li>
           </ul>
         </nav>
         <p className="text-xs font-medium leading-relaxed text-slate-300">

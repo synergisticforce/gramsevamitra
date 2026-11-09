@@ -1,20 +1,13 @@
 ---
-import '@shared/styles/global.css';
 import AppShellLayout from '../layouts/AppShellLayout.astro';
-import SaaSLegalPage from '../components/saas/SaaSLegalPage.astro';
-import SegmentedControl from '@shared/components/saas/SegmentedControl.astro';
-import TermsOfServiceContent from '@shared/components/legal/TermsOfServiceContent.astro';
-import { LEGAL_SEO } from '@shared/config/seo';
-import { LEGAL_SEGMENTS } from '../components/saas/saasNav.ts';
+import TermsOfService from '../components/legal/TermsOfService';
+import { formatSeoTitle } from '@shared/config/seo';
 ---
 
 <AppShellLayout
-  title={LEGAL_SEO.terms.hub.title}
-  description={LEGAL_SEO.terms.hub.description}
+  title={formatSeoTitle('Terms of Service', 'GramSeva Mitra')}
+  description="Terms for the free studios and the payout check, including the independent-auditor notice."
   activeWorkspace="documents"
 >
-  <SaaSLegalPage title="Terms of Service">
-    <SegmentedControl slot="nav" items={LEGAL_SEGMENTS} activeId="terms" />
-    <TermsOfServiceContent />
-  </SaaSLegalPage>
+  <TermsOfService />
 </AppShellLayout>

@@ -55,6 +55,7 @@ export default defineConfig({
         navigateFallback: null,
         skipWaiting: true,
         clientsClaim: true,
+        importScripts: ['share-target.js'],
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [

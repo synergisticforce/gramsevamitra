@@ -9,7 +9,8 @@ export type QuickToolCategory =
   | 'web'
   | 'lifestyle'
   | 'productivity'
-  | 'home-diy';
+  | 'home-diy'
+  | 'seller';
 
 export type QuickToolId =
   | 'qr-generator'
@@ -35,7 +36,9 @@ export type QuickToolId =
   | 'event-countdown'
   | 'random-number-generator'
   | 'job-tracker'
-  | 'cold-email-builder';
+  | 'cold-email-builder'
+  | 'thermal-label-cropper'
+  | 'courier-slab-calculator';
 
 export interface QuickCanvasTool {
   id: QuickToolId;
@@ -85,9 +88,27 @@ export const QUICK_CATEGORY_META: Record<
     label: 'Home & DIY',
     description: 'Construction estimates and room-by-room renovation budgets.',
   },
+  seller: {
+    label: 'Seller tools',
+    description: 'Thermal shipping labels and courier slab checks. ₹0, on this device.',
+  },
 };
 
 export const QUICK_CANVAS_TOOLS: QuickCanvasTool[] = [
+  {
+    id: 'thermal-label-cropper',
+    label: '4x6 Thermal Shipping Label Cropper',
+    icon: '🏷️',
+    category: 'seller',
+    description: 'Crop Meesho, Flipkart, or Amazon label PDFs to 4×6 inch pages on this device.',
+  },
+  {
+    id: 'courier-slab-calculator',
+    label: 'Courier Volumetric Weight & Slab Calculator',
+    icon: '📦',
+    category: 'seller',
+    description: 'Compare dead weight with volumetric weight and the 500 g / 1,000 g slab.',
+  },
   {
     id: 'qr-generator',
     label: 'QR Code Generator',
@@ -273,6 +294,7 @@ export function quickToolsByCategory(): Record<QuickToolCategory, QuickCanvasToo
     lifestyle: [],
     productivity: [],
     'home-diy': [],
+    seller: [],
   };
   for (const tool of QUICK_CANVAS_TOOLS) {
     grouped[tool.category].push(tool);
