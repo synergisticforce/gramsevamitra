@@ -1,5 +1,5 @@
-export const THERMAL_WIDTH: number;
-export const THERMAL_HEIGHT: number;
+export declare const THERMAL_WIDTH: number;
+export declare const THERMAL_HEIGHT: number;
 export function courierSlab(
   lengthCm: number,
   breadthCm: number,
