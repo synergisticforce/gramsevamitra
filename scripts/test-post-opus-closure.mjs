@@ -2,6 +2,7 @@
  * Post-Opus operational closure: OCR PII, 2,000-row speed, munshi UPI, trust clock, Pro ₹299.
  */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as XLSX from 'xlsx';
@@ -20,6 +21,7 @@ const {
   processTrustClock,
   requestMunshiWithdrawal,
   resetAuditMemory,
+  settleMunshiWithdrawal,
 } = await load('functions/_lib/auditRepository.mjs');
 
 const scrubbed = scrubOcrOutputPii({
@@ -71,6 +73,10 @@ const withdrawal = await requestMunshiWithdrawal({}, {
 });
 assert.equal(withdrawal.status, 'REQUESTED', 'UPI withdrawal is requested');
 assert.equal(withdrawal.upi_id, 'shop@upi', 'UPI id is stored');
+const settled = await settleMunshiWithdrawal({}, withdrawal.id, { settlementUtr: 'UPI123456789' });
+assert.equal(settled.status, 'SETTLED', 'withdrawal is settled');
+assert.equal(settled.settlement_utr, 'UPI123456789', 'bank UTR is stored');
+assert.ok(settled.settled_at, 'settled timestamp is stored');
 
 const upload = await createAuditUpload({}, {
   tenantId: 'tenant_clock',
@@ -143,5 +149,17 @@ assert.equal(audited.statement.orders.length, 2000, 'all 2000 order rows are aud
 assert.equal(JSON.stringify(audited.statement.orders).includes('9876543210'), false, 'benchmark phone column is scrubbed');
 assert.equal(JSON.stringify(audited.statement.orders).includes('Asha Devi'), false, 'benchmark name column is scrubbed');
 assert.ok(elapsedMs < 500, `2000-row audit finished in ${elapsedMs} ms`);
+
+const cron = readFileSync(join(root, '.github/workflows/trust-clock-cron.yml'), 'utf8');
+assert.match(cron, /cron:\s*'30 20 \* \* \*'/, 'trust clock cron is 02:00 IST');
+assert.match(cron, /process-trust-clock/, 'cron pings the trust clock endpoint');
+assert.doesNotMatch(cron, /\[triggers\]/, 'cron workflow does not declare worker triggers');
+const wrangler = readFileSync(join(root, 'wrangler.toml'), 'utf8');
+assert.doesNotMatch(wrangler, /\[triggers\]/, 'wrangler.toml has no cron triggers');
+const dashboard = readFileSync(join(root, 'functions/api/audit/munshi-dashboard.js'), 'utf8');
+assert.match(dashboard, /processTrustClock/, 'munshi dashboard runs the trust clock');
+const admin = readFileSync(join(root, 'apps/hub/src/components/finance/AdminCellQueue.tsx'), 'utf8');
+assert.match(admin, /process-trust-clock/, 'admin loads the trust clock');
+assert.match(admin, /settlementUtr/, 'admin sends the bank UTR');
 
 console.log('post-opus closure checks passed');

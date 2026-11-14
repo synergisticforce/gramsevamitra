@@ -22,7 +22,8 @@ export async function onRequestPost(context) {
   try {
     if (body.action === 'settle') {
       const requestId = typeof body.requestId === 'string' ? body.requestId : '';
-      const settled = await settleMunshiWithdrawal(getRuntimeEnv(context), requestId);
+      const settlementUtr = typeof body.settlementUtr === 'string' ? body.settlementUtr : '';
+      const settled = await settleMunshiWithdrawal(getRuntimeEnv(context), requestId, { settlementUtr });
       return jsonResponse({ success: true, request: settled });
     }
     const request = await requestMunshiWithdrawal(getRuntimeEnv(context), body);

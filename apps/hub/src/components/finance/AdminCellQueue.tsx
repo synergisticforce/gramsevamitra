@@ -23,6 +23,7 @@ export default function AdminCellQueue() {
   const [gap, setGap] = useState<number | null>(null);
   const [clockNote, setClockNote] = useState('');
   const [payouts, setPayouts] = useState<Array<{ id: string; munshi_code: string; upi_id: string; amount_paise: number }>>([]);
+  const [utrs, setUtrs] = useState<Record<string, string>>({});
 
   const loadPayouts = async () => {
     try {
@@ -36,6 +37,11 @@ export default function AdminCellQueue() {
 
   useEffect(() => {
     void loadPayouts();
+    void fetch('/api/audit/process-trust-clock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    }).catch(() => undefined);
   }, []);
 
   const runTrustClock = async () => {
@@ -57,7 +63,7 @@ export default function AdminCellQueue() {
     await fetch('/api/audit/munshi-withdraw', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'settle', requestId: id }),
+      body: JSON.stringify({ action: 'settle', requestId: id, settlementUtr: utrs[id] || '' }),
     });
     await loadPayouts();
   };
@@ -142,6 +148,13 @@ export default function AdminCellQueue() {
             {payouts.map((payout) => (
               <li key={payout.id} className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-bold">{payout.munshi_code} · {payout.upi_id} · {money(Number(payout.amount_paise || 0))}</p>
+                <input
+                  className="min-h-12 min-w-40 rounded-xl bg-slate-950 px-3 text-sm"
+                  aria-label="Bank or UPI UTR"
+                  placeholder="UPI / NEFT UTR"
+                  value={utrs[payout.id] || ''}
+                  onChange={(event) => setUtrs((current) => ({ ...current, [payout.id]: event.target.value }))}
+                />
                 <button type="button" className="min-h-12 rounded-xl bg-emerald-600 px-4 font-black" onClick={() => void settle(payout.id)}>
                   Settle UPI
                 </button>

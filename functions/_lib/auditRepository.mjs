@@ -513,19 +513,29 @@ export async function listMunshiWithdrawals(env) {
 /**
  * @param {Record<string, unknown>} env
  * @param {string} requestId
+ * @param {{ settlementUtr?: string }} [options]
  */
-export async function settleMunshiWithdrawal(env, requestId) {
+export async function settleMunshiWithdrawal(env, requestId, options = {}) {
   const row = withdrawals.find((item) => item.id === requestId);
   if (!row) {
     const error = new Error('That withdrawal was not found.');
     error.code = 'NOT_FOUND';
     throw error;
   }
+  const settlementUtr = String(options.settlementUtr || '').trim().slice(0, 80);
+  const settledAt = new Date().toISOString();
   row.status = 'SETTLED';
+  row.settlement_utr = settlementUtr;
+  row.settled_at = settledAt;
   const sql = sqlFor(env);
   if (sql) {
     try {
-      await sql.query(`UPDATE munshi_payout_requests SET status = 'SETTLED' WHERE id = $1`, [requestId]);
+      await sql.query(
+        `UPDATE munshi_payout_requests
+         SET status = 'SETTLED', settlement_utr = $2, settled_at = $3
+         WHERE id = $1`,
+        [requestId, settlementUtr || null, settledAt],
+      );
     } catch (err) {
       console.error('[audit] withdrawal settle failed', err instanceof Error ? err.message : err);
     }

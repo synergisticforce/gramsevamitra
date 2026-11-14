@@ -174,8 +174,13 @@ CREATE TABLE IF NOT EXISTS munshi_payout_requests (
   upi_id TEXT NOT NULL,
   amount_paise BIGINT NOT NULL,
   status TEXT NOT NULL DEFAULT 'REQUESTED',
+  settlement_utr TEXT,
+  settled_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE munshi_payout_requests ADD COLUMN IF NOT EXISTS settlement_utr TEXT;
+ALTER TABLE munshi_payout_requests ADD COLUMN IF NOT EXISTS settled_at TIMESTAMPTZ;
 
 CREATE INDEX IF NOT EXISTS settlement_uploads_tenant_idx ON settlement_uploads (tenant_id);
 CREATE INDEX IF NOT EXISTS munshi_payout_requests_status_idx ON munshi_payout_requests (status);
