@@ -95,7 +95,7 @@ export const DOCUMENT_CANVAS_ACTIONS: DocumentCanvasAction[] = [
     tier: 'free',
     badge: 'Auto-Orchestrated',
     mimePatterns: ['application/pdf', 'image/'],
-    featureId: 'reconstruct-layout',
+    featureId: 'document-ocr',
     featureName: 'Advanced Layout Reconstruction',
     featureDescription:
       'Advanced Layout Detected: structured table columns, multi-column metrics, or complex scan quality require deep AI layout reconstruction.',
@@ -107,17 +107,6 @@ export const DOCUMENT_CANVAS_ACTIONS: DocumentCanvasAction[] = [
     tier: 'free',
     badge: 'New',
     mimePatterns: ['application/pdf', 'image/'],
-  },
-  {
-    id: 'vision-ocr',
-    label: 'Vision AI Extract',
-    icon: '👁️',
-    tier: 'pro',
-    mimePatterns: ['application/pdf', 'image/'],
-    featureId: 'document-ocr',
-    featureName: 'Vision AI Document Reader',
-    featureDescription:
-      'Extract layout-perfect Markdown from PDFs and scanned photos with Gemini Vision AI. Tables stay clean and readable.',
   },
   {
     id: 'pdf-to-image',

@@ -135,7 +135,7 @@ export function ownerCopy(language) {
     upload: 'Drop the payout file',
     safe: 'Safe',
     noPassword: 'No password',
-    freeCheck: '₹0 check',
+      freeCheck: '₹0.00 Free Check',
     wrongFile: 'Wrong file',
     tryAgain: 'Try again',
     unlock: 'Unlock',

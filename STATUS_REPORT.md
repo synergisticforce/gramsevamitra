@@ -1,6 +1,6 @@
 # GramSevaMitra status
 
-Updated: 14 November 2026. Phases 0A through 8 are complete. Opus 5.5 `xhigh` adversarial audit + remediation is recorded in `AUDIT_REPORT_OPUS.md`. The post-Opus closure (OCR PII scrub, 2,000-row benchmark, munshi UPI withdraw, Pro ₹299 sync, and the 14-day trust clock) is checked by `scripts/test-post-opus-closure.mjs`.
+Updated: 14 November 2026. Phases 0A through 8 are complete. The UI pass for the 72-PDF merge lockup, daylight owner screen, and simpler studios is in `UI_UX_AUDIT.md` and `scripts/test-ux-and-all-tools.mjs`.
 
 Repository: `synergisticforce/gramsevamitra`.  
 Live site: `https://www.gramsevamitra.com`, Cloudflare Pages project `gramsevamitra-hub`.  
@@ -140,6 +140,7 @@ node scripts/test-phase6-ui.mjs
 node scripts/test-phase7-8-final.mjs
 node scripts/test-opus-audit.mjs
 node scripts/test-post-opus-closure.mjs
+node scripts/test-ux-and-all-tools.mjs
 npm run typecheck
 npm run build
 ```

@@ -13,7 +13,7 @@ import ProTaskLoader from './ProTaskLoader';
 type OutputFormat = 'json' | 'csv' | 'docx';
 type DocumentType = 'invoice' | 'bank_statement';
 
-const OCR_ORCHESTRATOR_ENDPOINT = apiUrl('/api/pro/ocr-orchestrator');
+const OCR_ORCHESTRATOR_ENDPOINT = apiUrl('/api/pro/document-smart-convert');
 
 export default function SmartDocumentExtractorTool() {
   const { data: session, isPending } = authClient.useSession();
@@ -123,7 +123,7 @@ export default function SmartDocumentExtractorTool() {
         <p className="text-xs font-semibold uppercase tracking-wider text-amber-800">Workspace 1 · Pro</p>
         <h2 className="mt-1 text-lg font-bold text-canvas-text">Smart Document Extractor</h2>
         <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-          Test the Tier 2–3 OCR orchestrator (`/api/pro/ocr-orchestrator`) — Paddle → GLM → Google Vision
+          On-device reading stays first. Cloud reading is only for scans under the 95% confidence gate.
           fallback. Mock GPU engines simulate 4–9 s latency per stage.
         </p>
 

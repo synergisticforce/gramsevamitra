@@ -1,8 +1,25 @@
-<aside class="border-b border-canvas-border bg-canvas-surface px-4 py-3 text-sm text-slate-200">
-  <p>
-    Selling on Swiggy, Zomato, Meesho, Flipkart or Amazon? Check your weekly payout statement for hidden overcharges in 10 seconds
-    <a class="font-semibold text-canvas-accent underline" href="/owner/">Restaurant Check</a>
-    <a class="font-semibold text-canvas-accent underline" href="/seller/">Seller Check</a>
-    <a class="font-semibold text-canvas-accent underline" href="/munshi/">Munshi Desk</a>
+<aside id="gsm-seller-banner" class="print:hidden border-b border-canvas-border bg-canvas-surface px-4 py-2 text-sm text-slate-200">
+  <p class="flex items-start justify-between gap-3">
+    <span>
+      Selling on Swiggy, Zomato, Meesho, Flipkart or Amazon? Check the weekly payout.
+      <a class="font-semibold text-canvas-accent underline" href="/owner/">Restaurant</a>
+      <a class="font-semibold text-canvas-accent underline" href="/seller/">Seller</a>
+      <a class="font-semibold text-canvas-accent underline" href="/munshi/">Munshi</a>
+    </span>
+    <button id="gsm-seller-dismiss" type="button" class="min-h-11 min-w-11 font-black" aria-label="Dismiss seller banner">✕</button>
   </p>
 </aside>
+<script>
+  const key = 'gsm_hide_seller_banner';
+  const box = document.getElementById('gsm-seller-banner');
+  try {
+    const prefs = JSON.parse(localStorage.getItem('gsm_display_prefs') || '{}');
+    if (localStorage.getItem(key) === '1' || prefs.simpleMode === true) box?.remove();
+  } catch {
+    /* keep the banner if storage is blocked */
+  }
+  document.getElementById('gsm-seller-dismiss')?.addEventListener('click', () => {
+    localStorage.setItem(key, '1');
+    box?.remove();
+  });
+</script>

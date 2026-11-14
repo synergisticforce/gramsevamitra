@@ -324,7 +324,7 @@ export default function OwnerVisualPWA() {
           <div className="grid grid-cols-3 gap-2 text-center text-sm font-black">
             <p className="rounded-2xl bg-white p-3">🔒 {copy.safe}</p>
             <p className="rounded-2xl bg-white p-3">🚫🔑 {copy.noPassword}</p>
-            <p className="rounded-2xl bg-white p-3">✅ {copy.freeCheck}</p>
+            <p className="rounded-2xl border border-slate-200 bg-white p-3" data-free-check="ascii">✅ {formatOwnerAmount(0, false)} Free Check</p>
           </div>
           <a className="rounded-2xl bg-[#16A34A] px-4 py-4 text-center text-lg font-black text-white" href={shareHref}>
             WhatsApp

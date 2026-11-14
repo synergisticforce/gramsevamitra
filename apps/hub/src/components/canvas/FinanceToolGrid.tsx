@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { FinanceToolCategory, FinanceToolId } from '../../config/financeCanvasTools';
 import {
   FINANCE_CANVAS_TOOLS,
@@ -19,11 +20,29 @@ const CATEGORY_ORDER: FinanceToolCategory[] = [
   'international',
 ];
 
+const ESSENTIAL = new Set<FinanceToolId>(['emi-calculator', 'gst-calculator', 'invoice-builder', 'currency-converter']);
+
 export default function FinanceToolGrid({ onSelectTool }: Props) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const essential = FINANCE_CANVAS_TOOLS.filter((tool) => ESSENTIAL.has(tool.id));
+  const advanced = FINANCE_CANVAS_TOOLS.filter((tool) => !ESSENTIAL.has(tool.id));
   const grouped = toolsByCategory();
 
   return (
     <div className="space-y-8">
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {essential.map((tool) => (
+          <li key={tool.id}>
+            <button type="button" onClick={() => onSelectTool(tool.id)} className="flex h-full w-full flex-col items-start gap-2 rounded-2xl border border-canvas-border bg-canvas-surface p-4 text-left">
+              <span className="text-3xl" aria-hidden="true">{tool.icon}</span>
+              <p className="text-base font-semibold">{tool.label}</p>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <details open={showAdvanced} onToggle={(event) => setShowAdvanced((event.target as HTMLDetailsElement).open)}>
+        <summary className="cursor-pointer rounded-xl border border-canvas-border px-4 py-3 text-sm font-black">➕ Show 12 Advanced & Corporate Calculators</summary>
+        <div className="mt-4 space-y-8">
       {CATEGORY_ORDER.map((category) => {
         const tools = grouped[category];
         if (tools.length === 0) return null;
@@ -39,7 +58,7 @@ export default function FinanceToolGrid({ onSelectTool }: Props) {
             </div>
 
             <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {tools.map((tool) => (
+              {tools.filter((tool) => advanced.some((item) => item.id === tool.id)).map((tool) => (
                 <li key={tool.id}>
                   <button
                     type="button"
@@ -63,6 +82,8 @@ export default function FinanceToolGrid({ onSelectTool }: Props) {
           </section>
         );
       })}
+        </div>
+      </details>
 
       <p className="rounded-xl border border-slate-100 bg-canvas-elevated px-4 py-3 text-center text-xs font-medium leading-relaxed text-slate-300">
         {FINANCE_CANVAS_TOOLS.length} calculators · 100% client-side · your numbers stay on this device

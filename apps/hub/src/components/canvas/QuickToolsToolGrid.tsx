@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { QuickToolCategory, QuickToolId } from '../../config/quickToolsCanvasTools';
 import {
   QUICK_CANVAS_TOOLS,
@@ -22,11 +23,28 @@ const CATEGORY_ORDER: QuickToolCategory[] = [
   'home-diy',
 ];
 
+const ESSENTIAL = new Set<QuickToolId>(['thermal-label-cropper', 'courier-slab-calculator', 'qr-generator', 'unit-converter']);
+
 export default function QuickToolsToolGrid({ onSelectTool }: Props) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const essential = QUICK_CANVAS_TOOLS.filter((tool) => ESSENTIAL.has(tool.id));
   const grouped = quickToolsByCategory();
 
   return (
     <div className="space-y-8">
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {essential.map((tool) => (
+          <li key={tool.id}>
+            <button type="button" onClick={() => onSelectTool(tool.id)} className="flex w-full flex-col items-start gap-2 rounded-2xl border border-canvas-border bg-canvas-surface p-4 text-left">
+              <span className="text-3xl" aria-hidden="true">{tool.icon}</span>
+              <p className="font-semibold">{tool.label}</p>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <details open={showAdvanced} onToggle={(event) => setShowAdvanced((event.target as HTMLDetailsElement).open)}>
+        <summary className="cursor-pointer rounded-xl border border-canvas-border px-4 py-3 text-sm font-black">➕ Show 22 Advanced, Developer & Hobby Tools</summary>
+        <div className="mt-4 space-y-8">
       {CATEGORY_ORDER.map((category) => {
         const tools = grouped[category];
         if (tools.length === 0) return null;
@@ -42,7 +60,7 @@ export default function QuickToolsToolGrid({ onSelectTool }: Props) {
             </div>
 
             <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {tools.map((tool) => (
+              {tools.filter((tool) => !ESSENTIAL.has(tool.id)).map((tool) => (
                 <li key={tool.id}>
                   <button
                     type="button"
@@ -66,6 +84,8 @@ export default function QuickToolsToolGrid({ onSelectTool }: Props) {
           </section>
         );
       })}
+        </div>
+      </details>
 
       <p className="rounded-xl border border-slate-100 bg-canvas-elevated px-4 py-3 text-center text-xs font-medium leading-relaxed text-slate-300">
         {QUICK_CANVAS_TOOLS.length} utilities · 100% client-side · instant, offline responses

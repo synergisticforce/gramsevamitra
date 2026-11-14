@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { formatFileSize } from '../../lib/canvas/documentCanvasStorage';
 import {
   EXAM_PRESETS,
+  buildPassportContactSheet,
   processExamPhotoInBrowser,
   type ExamOutputMode,
   type ExamPhotoResult,
@@ -150,7 +151,30 @@ export default function ExamPhotoOptimizerModal({
           Pick your exam. The photo is resized to the exact size required and compressed to fit the
           KB limit — all on your phone.
         </p>
-
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" className="min-h-11 rounded-xl bg-slate-900 px-3 text-xs font-black text-white" onClick={() => setMaxKb(100)}>🆔 Govt Form &lt; 100 KB</button>
+          <button type="button" className="min-h-11 rounded-xl border border-canvas-border px-3 text-xs font-black" onClick={() => setMaxKb(200)}>📄 Scholarship/Portal &lt; 200 KB</button>
+          <button type="button" className="min-h-11 rounded-xl border border-canvas-border px-3 text-xs font-black" onClick={() => setMaxKb(500)}>📋 Standard &lt; 500 KB</button>
+          <button
+            type="button"
+            className="min-h-11 rounded-xl bg-emerald-700 px-3 text-xs font-black text-white"
+            onClick={() => {
+              void (async () => {
+                const result = await processExamPhotoInBrowser(file, options);
+                const sheet = await buildPassportContactSheet(result.blob);
+                const url = URL.createObjectURL(sheet);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'passport-4x6-sheet.jpg';
+                link.click();
+                URL.revokeObjectURL(url);
+                onSuccess('4×6 sheet with 8 photos downloaded.');
+              })();
+            }}
+          >
+            🪪 Download 4×6 Sheet (8 Photos)
+          </button>
+        </div>
         <div className="mt-4 overflow-hidden rounded-xl border border-canvas-border bg-canvas-elevated">
           {previewLoading ? (
             <p className="px-4 py-12 text-center text-sm font-medium text-slate-200">

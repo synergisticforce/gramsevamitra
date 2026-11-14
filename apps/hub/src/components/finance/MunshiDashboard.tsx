@@ -155,7 +155,7 @@ export default function MunshiDashboard() {
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl bg-emerald-800 p-4">
             <p className="text-xs font-bold uppercase">30% partner commission wallet</p>
-            <p className="text-3xl font-black">{money(wallet)}</p>
+            <p className="font-mono text-3xl font-black" data-numerals={prefs.numerals}>{money(wallet)}</p>
           </div>
           <div className="rounded-2xl bg-slate-800 p-4">
             <p className="text-xs font-bold uppercase">Active restaurant and seller clients</p>

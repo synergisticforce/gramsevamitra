@@ -23,6 +23,7 @@ import FinanceTaxDeductionCalculator from './FinanceTaxDeductionCalculator';
 import FinanceTipSplitCalculator from './FinanceTipSplitCalculator';
 import FinanceToolGrid from './FinanceToolGrid';
 import PayoutAuditPreview, { type AuditMode } from '../finance/PayoutAuditPreview';
+import InformalInterestCard from '../finance/InformalInterestCard';
 import WorkbookAuditDropzone from '../finance/WorkbookAuditDropzone';
 
 type FinanceView = 'grid' | FinanceToolId;
@@ -118,7 +119,9 @@ export default function FinanceHubCanvas() {
         <WorkbookAuditDropzone mode={mode} />
         <PayoutAuditPreview mode={mode} />
 
-        <h2 className="mb-3 mt-8 text-lg font-bold text-canvas-text">Free calculators</h2>
+        <p className="mt-4 text-sm font-black text-canvas-text">1 Choose file → 2 Tap action → 3 Download</p>
+        <InformalInterestCard />
+        <h2 className="mb-3 mt-8 text-lg font-bold text-canvas-text">Everyday calculators</h2>
         {!hydrated ? (
           <p className="text-sm text-slate-300">Loading calculators…</p>
         ) : view === 'grid' ? (

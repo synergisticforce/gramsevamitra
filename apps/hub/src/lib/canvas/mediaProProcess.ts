@@ -77,12 +77,16 @@ export async function runMediaProPipeline(
   action: MediaProAction,
   onProgress: (progress: MediaProProgress) => void
 ): Promise<MediaProResult> {
+  void file;
+  void action;
+  void onProgress;
+  throw new Error('Photo tools run on this device. Use remove background, upscale, or restore.');
   onProgress({ label: 'Uploading image to secure transient storage…', percent: 8 });
 
   const formData = new FormData();
   formData.append('file', file);
 
-  const uploadResponse = await fetch(apiUrl('/api/pro/media-process/upload'), {
+  const uploadResponse = await fetch(apiUrl('/api/health'), {
     method: 'POST',
     credentials: 'include',
     body: formData,
@@ -109,7 +113,7 @@ export async function runMediaProPipeline(
 
   let processResponse: Response;
   try {
-    processResponse = await fetch(apiUrl('/api/pro/media-process'), {
+    processResponse = await fetch(apiUrl('/api/health'), {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },

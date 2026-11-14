@@ -32,8 +32,8 @@ export class OcrProUpgradeRequiredError extends Error {
   }
 }
 
-const OCR_ORCHESTRATOR_ENDPOINT = apiUrl('/api/pro/ocr-orchestrator');
-const UPLOAD_ENDPOINT = apiUrl('/api/pro/smart-extract/upload');
+const OCR_ORCHESTRATOR_ENDPOINT = apiUrl('/api/pro/document-smart-convert');
+const UPLOAD_ENDPOINT = apiUrl('/api/pro/document-smart-convert');
 
 function downloadCsv(csv: string, filename: string): void {
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });

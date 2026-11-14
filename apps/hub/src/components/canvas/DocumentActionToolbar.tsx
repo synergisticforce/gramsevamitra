@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { DocumentCanvasAction } from '../../config/documentCanvasActions';
 import type { ProOperationId } from '../../lib/auth/creditCheck';
 import ToEditableFormatPanel from './ToEditableFormatPanel';
@@ -25,8 +26,12 @@ export default function DocumentActionToolbar({
   onEditableError,
   requestProConfirm,
 }: Props) {
+  const [showMore, setShowMore] = useState(false);
+  const primaryIds = new Set(['merge', 'split', 'compress', 'to-editable-format']);
   const editableAction = actions.find((action) => action.id === 'to-editable-format');
-  const gridActions = actions.filter((action) => action.id !== 'to-editable-format');
+  const gridActions = actions.filter((action) => action.id !== 'to-editable-format' && action.id !== 'vision-ocr');
+  const primaryActions = gridActions.filter((action) => primaryIds.has(action.id));
+  const moreActions = gridActions.filter((action) => !primaryIds.has(action.id));
 
   if (actions.length === 0) {
     return (
@@ -72,7 +77,7 @@ export default function DocumentActionToolbar({
           </li>
         )}
 
-        {gridActions.map((action) => {
+        {primaryActions.map((action) => {
           const isPro = action.tier === 'pro';
           return (
             <li key={action.id}>
@@ -108,6 +113,22 @@ export default function DocumentActionToolbar({
           );
         })}
       </ul>
+      {moreActions.length > 0 && (
+        <details className="mt-3" open={showMore} onToggle={(event) => setShowMore((event.target as HTMLDetailsElement).open)}>
+          <summary className="cursor-pointer rounded-xl border border-canvas-border px-3 py-3 text-sm font-black">
+            ➕ Show All 15+ PDF Tools
+          </summary>
+          <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {moreActions.map((action) => (
+              <li key={action.id}>
+                <button type="button" className="w-full rounded-xl border border-canvas-border px-3 py-3 text-left text-sm font-semibold" onClick={() => onActionClick?.(action.id)}>
+                  {action.icon} {action.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </div>
   );
 }

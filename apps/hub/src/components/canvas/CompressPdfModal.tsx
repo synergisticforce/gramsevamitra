@@ -98,6 +98,11 @@ export default function CompressPdfModal({ file, onClose, onSuccess, onProcessin
           </button>
         </div>
 
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" className="min-h-11 rounded-xl bg-slate-900 px-3 text-xs font-black text-white" onClick={() => setPreset('extreme')}>🆔 Govt Form &lt; 100 KB</button>
+          <button type="button" className="min-h-11 rounded-xl border border-canvas-border px-3 text-xs font-black" onClick={() => setPreset('balanced')}>📄 Scholarship/Portal &lt; 200 KB</button>
+          <button type="button" className="min-h-11 rounded-xl border border-canvas-border px-3 text-xs font-black" onClick={() => setPreset('high-quality')}>📋 Standard &lt; 500 KB</button>
+        </div>
         <p className="mt-4 text-sm font-medium leading-relaxed text-slate-200">
           Choose a preset. All processing runs locally in your browser — nothing is uploaded.
         </p>

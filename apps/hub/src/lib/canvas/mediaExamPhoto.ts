@@ -40,6 +40,37 @@ export const EXAM_PRESETS: ExamPreset[] = [
   { id: 'passport', label: 'Passport photo', kind: 'photo', width: 600, height: 600, minKb: 20, maxKb: 200 },
 ];
 
+export const PASSPORT_SHEET = { width: 1200, height: 1800, copies: 8, dpi: 300 };
+
+/** Eight passport copies with cut lines on a 4×6 inch sheet at 300 DPI. */
+export async function buildPassportContactSheet(source: Blob): Promise<Blob> {
+  const bitmap = await createImageBitmap(source);
+  const canvas = document.createElement('canvas');
+  canvas.width = PASSPORT_SHEET.width;
+  canvas.height = PASSPORT_SHEET.height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('This phone could not draw the photo sheet.');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const cols = 2;
+  const rows = 4;
+  const cellW = canvas.width / cols;
+  const cellH = canvas.height / rows;
+  ctx.strokeStyle = '#111827';
+  ctx.lineWidth = 2;
+  for (let index = 0; index < PASSPORT_SHEET.copies; index += 1) {
+    const x = (index % cols) * cellW;
+    const y = Math.floor(index / cols) * cellH;
+    ctx.drawImage(bitmap, x + 16, y + 16, cellW - 32, cellH - 32);
+    ctx.strokeRect(x + 8, y + 8, cellW - 16, cellH - 16);
+  }
+  bitmap.close?.();
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((next) => (next ? resolve(next) : reject(new Error('The photo sheet could not be saved.'))), 'image/jpeg', 0.92);
+  });
+  return blob;
+}
+
 export function getExamPreset(id: string): ExamPreset | undefined {
   return EXAM_PRESETS.find((preset) => preset.id === id);
 }

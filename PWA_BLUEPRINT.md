@@ -51,7 +51,9 @@ Do not add a Python or FastAPI server. Cloudflare Pages will not run it.
 
 Each shared module has a typed re-export under `apps/hub/src/lib/audit/`.
 
-Checks: `scripts/test-phase1-audit.mjs` through `scripts/test-phase7-8-final.mjs`, plus `scripts/test-opus-audit.mjs` and `scripts/test-post-opus-closure.mjs`. A 2,000-row Swiggy workbook audits in 28 ms. Cloud OCR output is scrubbed before it is returned. Munshi UPI withdrawals and the 14-day trust clock are admin actions on `/munshi/` and `/admin/`.
+The phone and desktop bars no longer list the same studios twice. Document Studio, Finance Hub, and Quick Tools keep the everyday actions open and tuck the rest behind one drawer. Merge keeps its buttons on screen while the file list scrolls. See `UI_UX_AUDIT.md`.
+
+Checks: `scripts/test-phase1-audit.mjs` through `scripts/test-phase7-8-final.mjs`, plus `scripts/test-opus-audit.mjs`, `scripts/test-post-opus-closure.mjs`, and `scripts/test-ux-and-all-tools.mjs`. A 2,000-row Swiggy workbook audits in 28 ms. Cloud OCR output is scrubbed before it is returned. Munshi UPI withdrawals and the 14-day trust clock are admin actions on `/munshi/` and `/admin/`.
 
 ## Share target (Android PWA)
 

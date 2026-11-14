@@ -35,7 +35,7 @@ async function shrinkPdfToPageCap(file: File, maxPages: number): Promise<File> {
 }
 
 /**
- * RAM Shield — for PDFs over 5MB prefer local text extraction (pdf.js) for /api/pro/extract.
+ * RAM Shield — for PDFs over 5MB prefer local text extraction (pdf.js).
  * Falls back to a pdf-lib page subset upload when text is unavailable (scanned PDFs).
  */
 export async function prepareSmartExtractUpload(

@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { formatFileSize } from '../../lib/canvas/documentCanvasStorage';
 import {
   isPdfMimeOrName,
-  mergePdfsInBrowser,
   triggerPdfDownload,
 } from '../../lib/canvas/documentPdfTools';
+import { mergePdfBytesSequentially, naturalPdfNameSort } from '../../lib/canvas/pdfMergeBatch';
 import { requiresChunkedPipeline, validateUploadFile } from '../../lib/pdf/fileUploadLimits';
 import { runChunkedMergePipeline } from '../../lib/upload/chunkedPipeline';
 import ToolProcessingWait from './ToolProcessingWait';
@@ -57,6 +57,7 @@ export default function MergePdfModal({
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [hydrating, setHydrating] = useState(queueMode);
+  const [mergeLabel, setMergeLabel] = useState('');
 
   useEffect(() => {
     if (!queueMode && canvasFile) {
@@ -150,6 +151,21 @@ export default function MergePdfModal({
     [onProcessingChange],
   );
 
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !busy) onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [busy, onClose]);
+
+  const sortQueue = useCallback((direction: 'asc' | 'desc') => {
+    setQueue((prev) => {
+      const sorted = naturalPdfNameSort(prev.map((item) => item.file)).map((file) => prev.find((item) => item.file === file)!);
+      return direction === 'asc' ? sorted : [...sorted].reverse();
+    });
+  }, []);
+
   const handleMerge = useCallback(async () => {
     if (queue.length < 2) {
       setError('Add at least two PDFs to merge.');
@@ -175,9 +191,17 @@ export default function MergePdfModal({
         return;
       }
 
-      const { bytes, downloadName } = await mergePdfsInBrowser(filesInOrder, ({ current, total, label }) =>
-        reportProgress(current, total, label),
-      );
+      const buffers: ArrayBuffer[] = [];
+      for (const file of filesInOrder) buffers.push(await file.arrayBuffer());
+      const bytes = await mergePdfBytesSequentially(buffers, {
+        yieldEvery: 5,
+        onProgress: (current, total) => {
+          const label = `Merging file ${current} of ${total} (${Math.round((current / total) * 100)}%)...`;
+          setMergeLabel(label);
+          reportProgress(current, total, label);
+        },
+      });
+      const downloadName = `${filesInOrder[0].name.replace(/\.pdf$/i, '')}-merged.pdf`;
 
       triggerPdfDownload(bytes, downloadName, '_merged');
       onProcessingChange(false, '', 0);
@@ -201,30 +225,30 @@ export default function MergePdfModal({
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div className="w-full max-w-lg rounded-2xl border border-canvas-border bg-canvas-surface p-5 shadow-none">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 id="merge-pdf-title" className="text-lg font-bold text-canvas-text">
-              Merge PDF
-            </h2>
-            <p className="mt-1 text-xs font-medium leading-relaxed text-slate-300">
-              {queueMode
-                ? 'Reorder files below, then merge into one PDF.'
-                : 'Canvas file is first — add PDFs or reorder before merging.'}
-            </p>
+      <div className="flex max-h-[84vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-canvas-border bg-canvas-surface shadow-none">
+        <div className="shrink-0 border-b border-canvas-border p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 id="merge-pdf-title" className="text-lg font-bold text-canvas-text">Merge PDF</h2>
+              <p className="mt-1 text-sm font-black text-canvas-text">
+                {queue.length} PDFs · {queue.reduce((sum, item) => sum + item.pageCount, 0)} pages
+              </p>
+            </div>
+            <button type="button" onClick={onClose} disabled={busy} className="min-h-11 rounded-lg px-3 text-lg font-black" aria-label="Close">
+              ✕ Close
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={busy}
-            className="rounded-lg px-2 py-1 text-canvas-subtle transition hover:bg-canvas-elevated hover:text-canvas-muted disabled:opacity-50"
-            aria-label="Close"
-          >
-            ✕
-          </button>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" className="min-h-11 rounded-xl bg-emerald-600 px-3 text-sm font-black text-white disabled:opacity-50" disabled={busy || hydrating || queue.length < 2} onClick={() => void handleMerge()}>
+              🟢 Merge All PDFs Now
+            </button>
+            <button type="button" className="min-h-11 rounded-xl border border-canvas-border px-3 text-sm font-bold" disabled={busy || queue.length < 2} onClick={() => sortQueue('asc')}>1→9 Auto-Sort</button>
+            <button type="button" className="min-h-11 rounded-xl border border-canvas-border px-3 text-sm font-bold" disabled={busy || queue.length < 2} onClick={() => sortQueue('desc')}>9→1 Reverse</button>
+            <button type="button" className="min-h-11 rounded-xl border border-canvas-border px-3 text-sm font-bold" disabled={busy} onClick={() => setQueue([])}>Clear All</button>
+          </div>
         </div>
 
-        <div className="mt-4 space-y-2">
+        <div className="min-h-0 max-h-[48vh] flex-1 space-y-2 overflow-y-auto overscroll-contain p-4 pr-2">
           {queue.map((item, index) => (
             <div
               key={item.id}
@@ -272,11 +296,13 @@ export default function MergePdfModal({
           ))}
         </div>
 
+        <div className="shrink-0 border-t border-canvas-border p-4">
         {(adding || hydrating) && (
-          <ToolProcessingWait label="Reading PDFs…" className="mt-3" />
+          <ToolProcessingWait label="Reading PDFs…" className="mb-3" />
         )}
+        {mergeLabel && <p className="mb-2 text-sm font-bold">{mergeLabel}</p>}
 
-        <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-canvas-border px-4 py-5 text-center transition hover:border-emerald-300 hover:bg-canvas-accent-soft/50">
+        <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-canvas-border px-4 py-3 text-center transition hover:border-emerald-300 hover:bg-canvas-accent-soft/50">
           <span className="text-sm font-semibold text-canvas-muted">
             {adding ? 'Please wait…' : 'Tap to add more PDFs'}
           </span>
@@ -317,8 +343,9 @@ export default function MergePdfModal({
             disabled={busy || hydrating || queue.length < 2}
             className="rounded-xl bg-canvas-accent-muted px-4 py-2.5 text-sm font-semibold text-canvas-text transition hover:bg-canvas-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {busy ? 'Merging…' : `Merge & download (${queue.length} PDFs)`}
+            {busy ? 'Merging…' : '🟢 Merge All PDFs'}
           </button>
+        </div>
         </div>
       </div>
     </div>

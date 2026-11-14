@@ -4,6 +4,7 @@ import {
   readDisplayPrefs,
   writeDisplayPrefs,
   type AppLanguage,
+  type CurrencyCode,
   type NumeralScript,
 } from './displayPrefs';
 
@@ -27,5 +28,7 @@ export function useDisplayPrefs() {
     hindi: prefs.language === 'hi',
     setLanguage: (language: AppLanguage) => writeDisplayPrefs({ ...readDisplayPrefs(), language }),
     setNumerals: (numerals: NumeralScript) => writeDisplayPrefs({ ...readDisplayPrefs(), numerals }),
+    setCurrency: (currency: CurrencyCode) => writeDisplayPrefs({ ...readDisplayPrefs(), currency }),
+    setSimpleMode: (simpleMode: boolean) => writeDisplayPrefs({ ...readDisplayPrefs(), simpleMode }),
   };
 }

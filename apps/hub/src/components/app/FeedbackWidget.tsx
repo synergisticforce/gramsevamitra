@@ -66,7 +66,7 @@ export default function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-20 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-canvas-border bg-canvas-surface text-canvas-accent shadow-none shadow-violet-900/10 transition hover:border-violet-300 hover:bg-canvas-accent-soft hover:text-violet-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 sm:bottom-6"
+        className="print:hidden fixed bottom-20 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-canvas-border bg-canvas-surface text-canvas-accent shadow-none shadow-violet-900/10 transition hover:border-violet-300 hover:bg-canvas-accent-soft hover:text-violet-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 sm:bottom-6"
         aria-label="Send feedback"
         title="Send feedback"
       >

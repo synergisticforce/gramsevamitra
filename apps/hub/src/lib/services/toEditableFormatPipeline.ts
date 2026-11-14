@@ -154,7 +154,7 @@ async function uploadForProReconstruction(file: File): Promise<{ objectKey: stri
   const formData = new FormData();
   formData.append('file', file, file.name);
 
-  const response = await fetch(apiUrl('/api/pro/reconstruct-layout/upload'), {
+  const response = await fetch(apiUrl('/api/health'), {
     method: 'POST',
     credentials: 'include',
     body: formData,
@@ -367,7 +367,7 @@ export async function runProLayoutReconstruction(
 
   let response: Response;
   try {
-    response = await fetch(apiUrl('/api/pro/reconstruct-layout'), {
+    response = await fetch(apiUrl('/api/health'), {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
