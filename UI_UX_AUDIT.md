@@ -1,5 +1,7 @@
 # UI and tool audit
 
+A headless Chromium audit (`scripts/test-browser-live-audit.mjs`) opened the built pages, measured computed text color against the background, and clicked All Tools, the language picker, Speak, the owner samples, the munshi downloads, PDF merge, the passport photo card, and the EMI calculator. Light text classes from the old dark theme are forced to dark ink unless they sit on a solid colored button.
+
 The default surface is daylight paper (`#F8FAFC`) with white cards. The permanent left sidebar is closed. The top bar is three controls: All Tools, Voice Guide plus Speak, and one language/digits/currency button. The home page is four large doors: Check My Money, Join & Fix PDF, Passport & ID Photo, and Loan & Shop Tools. Document Studio and Image Studio ask what to do before they ask for a file.
 
 Updated: 14 November 2026, after the 158-page site capture and the 72-PDF merge lockup.

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { openProUpgrade } from '@shared/lib/proUpgrade';
 import type { DocumentCanvasAction } from '../../config/documentCanvasActions';
-import { documentToolbarActions } from '../../config/documentCanvasActions';
+import { DOCUMENT_CANVAS_ACTIONS, documentToolbarActions } from '../../config/documentCanvasActions';
 import {
   clearDocumentCanvasState,
   formatFileSize,
@@ -104,7 +104,8 @@ export default function DocumentStudioCanvas() {
   const [pdfModal, setPdfModal] = useState<ToolModal>(null);
   const [cameraScannerOpen, setCameraScannerOpen] = useState(false);
   const [mergeInitialQueue, setMergeInitialQueue] = useState<File[] | null>(null);
-  const [chosenTask, setChosenTask] = useState<null | 'merge' | 'compress' | 'convert' | 'split'>(null);
+  const [chosenTask, setChosenTask] = useState<string | null>(null);
+  const [showAllPdf, setShowAllPdf] = useState(false);
   const prefs = useDisplayPrefs();
   const [processing, setProcessing] = useState<ProcessingState>({
     active: false,
@@ -512,7 +513,14 @@ export default function DocumentStudioCanvas() {
                 </span>
               </button>
             ))}
-            <p className="sm:col-span-2 text-center text-sm font-black">➕ Show All 15+ PDF Tools</p>
+            <button type="button" className="min-h-[52px] rounded-2xl border border-slate-300 bg-slate-100 px-4 font-black text-slate-900 sm:col-span-2" onClick={() => setShowAllPdf((open) => !open)}>
+              ➕ Show All 15+ PDF Tools
+            </button>
+            {showAllPdf && DOCUMENT_CANVAS_ACTIONS.map((action) => (
+              <button key={action.id} type="button" className="min-h-[52px] rounded-2xl border border-slate-200 bg-white px-4 text-left font-black text-slate-900" onClick={() => setChosenTask(action.id)}>
+                {action.icon} {action.label}
+              </button>
+            ))}
           </div>
         )}
 
@@ -533,8 +541,8 @@ export default function DocumentStudioCanvas() {
                     if (chosenTask === 'merge') handleMultipleFilesFromDropzone(files);
                     else if (files[0]) {
                       activateFile(files[0]);
-                      if (chosenTask === 'compress') setPdfModal('compress');
-                      if (chosenTask === 'split') setPdfModal('split');
+                      const modalIds = new Set(['split', 'compress', 'protect', 'unlock', 'deskew', 'remove-pages', 'page-numbers', 'crop', 'pdf-to-image', 'rotate', 'reorder', 'watermark', 'organise-pages', 'repair-pdf', 'strip-metadata', 'sign-pdf', 'redact-pdf', 'searchable-pdf']);
+                      if (chosenTask && modalIds.has(chosenTask)) setPdfModal(chosenTask as ToolModal);
                     }
                     event.target.value = '';
                   }}

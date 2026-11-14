@@ -31,6 +31,8 @@ export default function SiteDoorBar({ tone = 'dark' }: { tone?: 'dark' | 'daylig
   const light = tone === 'daylight' || true;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [finderOpen, setFinderOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const chip = light
     ? 'inline-flex min-h-[52px] items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-900 shadow-sm'
     : 'inline-flex min-h-[52px] items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-900';
@@ -42,26 +44,45 @@ export default function SiteDoorBar({ tone = 'dark' }: { tone?: 'dark' | 'daylig
     return () => window.removeEventListener(SIDEBAR_TOGGLE_EVENT, onToggle);
   }, []);
 
+  const finderLinks = [
+    { href: '/owner/', label: 'Check My Money' },
+    { href: '/workspace/documents/', label: 'Join & Fix PDF' },
+    { href: '/workspace/image/', label: 'Passport & ID Photo' },
+    { href: '/workspace/finance/', label: 'Loan & Shop Tools' },
+    { href: '/seller/', label: 'Seller Hub' },
+    { href: '/munshi/', label: 'Munshi Desk' },
+    { href: '/workspace/quick-tools/', label: 'Quick Tools' },
+  ].filter((item) => item.label.toLowerCase().includes(query.trim().toLowerCase()));
+
+  useEffect(() => {
+    if (!toolsOpen && !settingsOpen && !finderOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setToolsOpen(false);
+        setSettingsOpen(false);
+        setFinderOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [finderOpen, settingsOpen, toolsOpen]);
+
   const speakFinder = () => {
+    setFinderOpen(true);
     try {
       const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognitionCtor) {
-        const typed = window.prompt('Say a tool: Swiggy, PDF, Merge, Photo, Loan') || '';
-        const route = routeForSpokenTool(typed);
-        if (route) window.location.href = route.href;
-        return;
-      }
+      if (!SpeechRecognitionCtor) return;
       const recognition = new SpeechRecognitionCtor();
       recognition.lang = prefs.language === 'hi' ? 'hi-IN' : 'en-IN';
       recognition.onresult = (event: { results: Array<Array<{ transcript: string }>> }) => {
         const text = event.results[0]?.[0]?.transcript || '';
+        setQuery(text);
         const route = routeForSpokenTool(text);
         if (route) window.location.href = route.href;
-        else speakText(text || 'No matching tool', prefs.language);
       };
       recognition.start();
     } catch {
-      speakText('Voice input is not available on this phone.', prefs.language);
+      speakText('Use the buttons in this list.', prefs.language);
     }
   };
 
@@ -123,7 +144,7 @@ export default function SiteDoorBar({ tone = 'dark' }: { tone?: 'dark' | 'daylig
             <p className="mt-4 text-sm font-black">Language</p>
             <div className="mt-2 grid grid-cols-2 gap-2">
               {LANGUAGES.map((language) => (
-                <button key={language.id} type="button" className="min-h-[52px] rounded-2xl border border-slate-200 bg-slate-50 font-black" onClick={() => prefs.setLanguage(language.id)}>
+                <button key={language.id} type="button" className="min-h-[52px] rounded-2xl border border-slate-200 bg-slate-50 font-black text-slate-900" onClick={() => { prefs.setLanguage(language.id); speakText(language.label, language.id); }}>
                   {language.label}
                 </button>
               ))}
@@ -139,6 +160,23 @@ export default function SiteDoorBar({ tone = 'dark' }: { tone?: 'dark' | 'daylig
                 <button key={currency.id} type="button" className="min-h-[52px] rounded-2xl border border-slate-200 font-black" onClick={() => prefs.setCurrency(currency.id)}>
                   {currency.label}
                 </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {finderOpen && (
+        <div className="print:hidden fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-4 sm:items-center" role="dialog" aria-label="Voice and tool search">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-5 text-slate-900 shadow-xl">
+            <div className="flex items-center justify-between">
+              <p className="text-xl font-black">🎤 Speak or tap a tool</p>
+              <button type="button" className="min-h-[52px] px-3 font-black" onClick={() => setFinderOpen(false)}>✕</button>
+            </div>
+            <input className="mt-3 min-h-[52px] w-full rounded-2xl border border-slate-300 px-3 text-slate-900" placeholder="Search tools" value={query} onChange={(event) => setQuery(event.target.value)} />
+            <div className="mt-3 grid gap-2">
+              {finderLinks.map((item) => (
+                <a key={item.href} className="min-h-[52px] rounded-2xl bg-slate-100 px-4 py-3 font-black text-slate-900" href={item.href}>{item.label}</a>
               ))}
             </div>
           </div>

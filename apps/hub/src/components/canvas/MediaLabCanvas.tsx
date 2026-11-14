@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MediaCanvasAction } from '../../config/mediaCanvasActions';
-import { actionsForImageMime, isImageMimeOrName } from '../../config/mediaCanvasActions';
+import { MEDIA_CANVAS_ACTIONS, actionsForImageMime, isImageMimeOrName } from '../../config/mediaCanvasActions';
 import {
   clearMediaCanvasState,
   formatFileSize,
@@ -70,7 +70,8 @@ export default function MediaLabCanvas() {
   const [hydrated, setHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [mediaModal, setMediaModal] = useState<MediaToolModal>(null);
-  const [photoTask, setPhotoTask] = useState<null | 'passport' | 'shrink' | 'background' | 'clear'>(null);
+  const [photoTask, setPhotoTask] = useState<string | null>(null);
+  const [showAllPhoto, setShowAllPhoto] = useState(false);
   const prefs = useDisplayPrefs();
   const [proMediaBusy, setProMediaBusy] = useState(false);
   const [processing, setProcessing] = useState<ProcessingState>({
@@ -359,10 +360,10 @@ export default function MediaLabCanvas() {
         {phase === 'empty' && !photoTask && (
           <div className="grid gap-3 sm:grid-cols-2">
             {[
-              { id: 'passport' as const, visual: '🧑 ➔ 🪪 8 Photos', title: 'Passport Photo & 4×6 Sheet', speech: 'Make a passport photo and an eight photo sheet.' },
-              { id: 'shrink' as const, visual: '🐘 ➔ 🐜 100 KB', title: 'Shrink Photo (<100 KB)', speech: 'Shrink a photo under 100 KB.' },
-              { id: 'background' as const, visual: '✂️ 🧑', title: 'Remove Background', speech: 'Remove the photo background.' },
-              { id: 'clear' as const, visual: '🔍 2× / 4×', title: 'Make Photo Clear', speech: 'Make the photo clearer, two times or four times.' },
+              { id: 'exam-photo-optimizer', visual: '🧑 ➔ 🪪 8 Photos', title: 'Passport Photo & 4×6 Sheet', speech: 'Make a passport photo and an eight photo sheet.' },
+              { id: 'resize-compress', visual: '🐘 ➔ 🐜 100 KB', title: 'Shrink Photo (<100 KB)', speech: 'Shrink a photo under 100 KB.' },
+              { id: 'remove-background', visual: '✂️ 🧑', title: 'Remove Background', speech: 'Remove the photo background.' },
+              { id: 'upscale-2x', visual: '🔍 2× / 4×', title: 'Make Photo Clear', speech: 'Make the photo clearer, two times or four times.' },
             ].map((task) => (
               <button key={task.id} type="button" className="min-h-36 rounded-3xl border border-slate-200 bg-white p-5 text-left shadow-sm" onClick={() => setPhotoTask(task.id)}>
                 <span className="text-2xl font-black">{task.visual}</span>
@@ -372,7 +373,14 @@ export default function MediaLabCanvas() {
                 </span>
               </button>
             ))}
-            <p className="sm:col-span-2 text-center text-sm font-black">➕ Show All Photo Tools</p>
+            <button type="button" className="min-h-[52px] rounded-2xl border border-slate-300 bg-slate-100 px-4 font-black text-slate-900 sm:col-span-2" onClick={() => setShowAllPhoto((open) => !open)}>
+              ➕ Show All Photo Tools
+            </button>
+            {showAllPhoto && MEDIA_CANVAS_ACTIONS.map((action) => (
+              <button key={action.id} type="button" className="min-h-[52px] rounded-2xl border border-slate-200 bg-white px-4 text-left font-black text-slate-900" onClick={() => setPhotoTask(action.id)}>
+                {action.icon} {action.label}
+              </button>
+            ))}
           </div>
         )}
 
@@ -387,10 +395,7 @@ export default function MediaLabCanvas() {
                   const file = event.target.files?.[0];
                   if (!file) return;
                   activateFile(file);
-                  if (photoTask === 'passport') setMediaModal('exam-photo-optimizer');
-                  if (photoTask === 'shrink') setMediaModal('resize-compress');
-                  if (photoTask === 'background') setMediaModal('remove-background');
-                  if (photoTask === 'clear') setMediaModal('upscale-2x');
+                  if (photoTask) setMediaModal(photoTask as MediaToolModal);
                   event.target.value = '';
                 }} />
               </label>
