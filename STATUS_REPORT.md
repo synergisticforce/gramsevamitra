@@ -1,6 +1,6 @@
 # GramSevaMitra status
 
-Updated: 9 November 2026. Phases 0A through 8 are complete. Phases 0A–5 are commit `cda08dd`. Phase 6 is commit `4a6b59b`.
+Updated: 14 November 2026. Phases 0A through 8 are complete. Opus 5.5 `xhigh` adversarial audit + remediation is recorded in `AUDIT_REPORT_OPUS.md` and checked by `scripts/test-opus-audit.mjs`.
 
 Repository: `synergisticforce/gramsevamitra`.  
 Live site: `https://www.gramsevamitra.com`, Cloudflare Pages project `gramsevamitra-hub`.  
@@ -99,11 +99,19 @@ Seller tools, legal pages, and the health check.
 
 - Quick Tools adds a 4×6 inch shipping-label cropper and a courier slab calculator. Both run on the device and link to `/seller/`.
 - Document, image, video, career, lifestyle, and quick-tools pages show a short banner to the restaurant, seller, and munshi checks.
-- `apps/hub/public/manifest.json` accepts shared `.xlsx`, `.csv`, and `.pdf` files. `apps/hub/public/share-target.js` stores a shared file and opens `/owner/`.
+- `apps/hub/public/manifest.json` accepts shared `.xlsx`, `.csv`, and `.pdf` files. `apps/hub/public/share-target.js` stores a shared file and opens `/owner/?shared=1`. `OwnerVisualPWA` reads `gsm-share` / `/shared-payout-file` and runs the live audit pipeline.
 - Privacy, terms, and refund pages say November 2026. Accounts are Neon PostgreSQL. Customer name, phone, and address columns are stripped in the browser. A rejected claim fee can be refunded within 14 days, then Razorpay returns it in 5–7 business days.
 - `/about/`, `/pricing/`, and `/contact/` are public. The footer links About, Pricing, Privacy, Terms, Refund, and Contact.
 - `GET /api/health` reports whether Neon and the AI keys are set, and whether Razorpay is live or test, without returning the secrets.
 - `scripts/test-phase7-8-final.mjs` covers the slab math, the label crop, the legal pages, and the health report.
+
+## Opus 5.5 xhigh audit (14 November 2026)
+
+- Legacy mock Pro routes (`media-process`, `ocr-orchestrator`, `reconstruct-layout`, and their `/upload` companions) hard-block with `HTTP 503`, `FEATURE_NOT_AVAILABLE`, `creditsCharged: 0` before any credit gate — matching `extract` / `smart-extract` / `file-converter` / `smart-router`.
+- `/api/audit/ocr-extract` enforces `guest_ai_quotas` (`payout-ocr`, 2 free/month) and releases the quota when cloud OCR fails.
+- `toMinorUnits` rejects Excel formula errors (`#REF!`, `#VALUE!`, …). CSV UTF-8 BOM is stripped. Bare `Address` is scrubbed as PII.
+- Document Studio OCR gate remains `DOCUMENT_CONFIDENCE_MIN = 95` (never 85).
+- Full detail: `AUDIT_REPORT_OPUS.md`. Check: `node scripts/test-opus-audit.mjs`.
 
 # Still outside this tree
 
@@ -121,6 +129,7 @@ node scripts/test-phase4-ocr-pipeline.mjs
 node scripts/test-phase5-api.mjs
 node scripts/test-phase6-ui.mjs
 node scripts/test-phase7-8-final.mjs
+node scripts/test-opus-audit.mjs
 npm run typecheck
 npm run build
 ```

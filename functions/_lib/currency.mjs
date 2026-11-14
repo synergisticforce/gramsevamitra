@@ -3,6 +3,8 @@
  * decimal text, never by multiplying a binary float.
  */
 
+const EXCEL_ERROR_RE = /^(#REF!|#VALUE!|#N\/A|#DIV\/0!|#NAME\?|#NULL!|#NUM!|#GETTING_DATA|NAN|INFINITY|-INFINITY)$/i;
+
 /**
  * @param {unknown} value
  * @param {number} [scale]
@@ -15,12 +17,16 @@ export function toMinorUnits(value, scale = 100) {
   if (value == null) return 0;
   if (typeof value === 'number') {
     if (!Number.isFinite(value)) return 0;
+    // Excel sometimes surfaces formula errors as NaN/Infinity already handled
+    // above; finite floats are re-parsed via decimal text so we never keep
+    // binary float residue in paise.
     return toMinorUnits(String(value), scale);
   }
   if (typeof value !== 'string') return 0;
 
-  let raw = value.trim();
+  let raw = value.trim().replace(/^\uFEFF/, '');
   if (!raw) return 0;
+  if (EXCEL_ERROR_RE.test(raw)) return 0;
 
   let negative = false;
   raw = raw.replace(/₹|\$|€|£|₦/g, '').replace(/rs\.?/gi, '').replace(/,/g, '').replace(/\s+/g, '');
@@ -33,7 +39,7 @@ export function toMinorUnits(value, scale = 100) {
     negative = true;
     raw = raw.slice(1);
   }
-  if (!/^\d+(\.\d+)?$/.test(raw)) return 0;
+  if (EXCEL_ERROR_RE.test(raw) || !/^\d+(\.\d+)?$/.test(raw)) return 0;
 
   const [wholeText, fractionText = ''] = raw.split('.');
   const digits = decimalDigits(scale);

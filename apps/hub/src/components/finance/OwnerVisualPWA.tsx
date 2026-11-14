@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { formatOwnerAmount, ownerCopy, whatsAppShareUrl, buildOwnerWhatsAppMessage } from '../../lib/audit/ownerExperience';
 import { useDisplayPrefs } from '../../lib/audit/useDisplayPrefs';
 import { buildCompliantUnlockCheckout } from '../../lib/audit/unlockEngine';
@@ -210,9 +210,49 @@ export default function OwnerVisualPWA() {
         setView('reject');
         return;
       }
-      setNote(err instanceof Error ? err.message : 'This file could not be read.');
+      // Never surface stack traces or raw engine errors to rural owners.
+      const message = err instanceof Error ? err.message : '';
+      const safe =
+        message && message.length < 160 && !/at\s+\S+|Error:|TypeError|stack/i.test(message)
+          ? message
+          : 'This file could not be read. Try the Excel or CSV from the Partner App.';
+      setNote(safe);
     }
   };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('shared') !== '1') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const cache = await caches.open('gsm-share');
+        const cached = await cache.match('/shared-payout-file');
+        if (!cached || cancelled) return;
+        const blob = await cached.blob();
+        const encodedName = cached.headers.get('X-File-Name') || '';
+        let name = 'payout.xlsx';
+        try {
+          name = decodeURIComponent(encodedName) || name;
+        } catch {
+          name = encodedName || name;
+        }
+        const file = new File([blob], name, { type: blob.type || 'application/octet-stream' });
+        await cache.delete('/shared-payout-file');
+        if (!cancelled) await onFile(file);
+        const clean = new URL(window.location.href);
+        clean.searchParams.delete('shared');
+        window.history.replaceState({}, '', clean.pathname + clean.search);
+      } catch {
+        if (!cancelled) setNote('The shared file could not be opened. Tap the green box and pick it again.');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on share_target landing
+  }, []);
 
   const checkout = current
     ? buildCompliantUnlockCheckout('owner-preview', current.feePaise, 'TRUST_CLOCK_MANDATE')
@@ -255,7 +295,10 @@ export default function OwnerVisualPWA() {
     <div className="min-h-screen bg-slate-50 px-4 py-6 text-[#111827]">
       {view === 'intake' && (
         <div className="mx-auto flex max-w-3xl flex-col gap-4">
-          <label className="flex min-h-[240px] animate-pulse cursor-pointer flex-col items-center justify-center rounded-3xl bg-[#16A34A] px-6 text-center text-white shadow-lg">
+          <label
+            className="flex min-h-[240px] animate-pulse cursor-pointer flex-col items-center justify-center rounded-3xl bg-[#16A34A] px-6 text-center text-white shadow-lg"
+            aria-label={copy.upload}
+          >
             <span className="text-5xl" aria-hidden="true">📤</span>
             <span className="mt-3 text-3xl font-black">{copy.upload}</span>
             <span className="mt-2 text-lg font-bold">.xlsx · .csv · .pdf</span>
@@ -263,6 +306,7 @@ export default function OwnerVisualPWA() {
               type="file"
               accept=".xlsx,.xls,.csv,.pdf,application/pdf"
               className="sr-only"
+              aria-label={copy.upload}
               onChange={(event) => {
                 void onFile(event.target.files?.[0]);
                 event.target.value = '';
@@ -330,7 +374,12 @@ export default function OwnerVisualPWA() {
           <div className="rounded-3xl bg-white p-4 text-xl font-black shadow">
             Order {current.proofOrderId} · Row {current.proofRow} · {money(current.proofVariancePaise)}
           </div>
-          <button type="button" className="min-h-20 rounded-3xl bg-[#111827] text-3xl font-black text-white" onClick={() => setModal(true)}>
+          <button
+            type="button"
+            className="min-h-20 rounded-3xl bg-[#111827] text-3xl font-black text-white"
+            aria-label={copy.unlock}
+            onClick={() => setModal(true)}
+          >
             🔓 {copy.unlock}
           </button>
         </div>
@@ -358,13 +407,27 @@ export default function OwnerVisualPWA() {
       {view === 'unlocked' && current && (
         <div className="mx-auto flex max-w-3xl flex-col gap-4">
           <p className="text-center text-3xl font-black">{money(current.totalPaise)} open</p>
-          <a className="min-h-20 rounded-3xl bg-[#16A34A] px-4 py-5 text-center text-2xl font-black text-white" href={shareHref}>
+          <a
+            className="min-h-20 rounded-3xl bg-[#16A34A] px-4 py-5 text-center text-2xl font-black text-white"
+            href={shareHref}
+            aria-label={copy.sendMunshi}
+          >
             💬 🟢 {copy.sendMunshi}
           </a>
-          <button type="button" className="min-h-20 rounded-3xl bg-[#D97706] px-4 text-2xl font-black text-white" onClick={() => void copyTicket()}>
+          <button
+            type="button"
+            className="min-h-20 rounded-3xl bg-[#D97706] px-4 text-2xl font-black text-white"
+            aria-label={copy.copyTicket}
+            onClick={() => void copyTicket()}
+          >
             {copied ? '✅' : '📋 🟠'} {copy.copyTicket}
           </button>
-          <button type="button" className="min-h-20 rounded-3xl bg-white px-4 text-2xl font-black shadow" onClick={() => void downloadPack()}>
+          <button
+            type="button"
+            className="min-h-20 rounded-3xl bg-white px-4 text-2xl font-black shadow"
+            aria-label={copy.download}
+            onClick={() => void downloadPack()}
+          >
             📥 {copy.download}
           </button>
         </div>

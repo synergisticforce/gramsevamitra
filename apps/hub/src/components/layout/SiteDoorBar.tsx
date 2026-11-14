@@ -33,12 +33,18 @@ export default function SiteDoorBar({ tone = 'dark' }: { tone?: 'dark' | 'daylig
         ))}
       </nav>
       <div className="flex shrink-0 gap-2">
-        <button type="button" className={toggleClass} onClick={() => prefs.setLanguage(prefs.language === 'hi' ? 'en' : 'hi')}>
+        <button
+          type="button"
+          className={toggleClass}
+          aria-label={prefs.language === 'hi' ? 'Switch language to English' : 'भाषा हिंदी में बदलें'}
+          onClick={() => prefs.setLanguage(prefs.language === 'hi' ? 'en' : 'hi')}
+        >
           {prefs.language === 'hi' ? 'हिंदी' : 'EN'}
         </button>
         <button
           type="button"
           className={toggleClass}
+          aria-label={prefs.numerals === 'devanagari' ? 'Switch numerals to 123' : 'अंक १२३ में बदलें'}
           onClick={() => prefs.setNumerals(prefs.numerals === 'devanagari' ? 'latin' : 'devanagari')}
         >
           {prefs.numerals === 'devanagari' ? '१२३' : '123'}

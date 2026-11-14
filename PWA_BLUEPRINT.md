@@ -1,6 +1,6 @@
 # GramSevaMitra web app
 
-Updated: 9 November 2026. This replaces the 17 October 2026 blueprint. Older plans live in `archive_docs/`, including `CURRENT_STATE_BLUEPRINT.md` and `MASTER_BIBLE.md`.
+Updated: 14 November 2026. This replaces the 17 October 2026 blueprint. Older plans live in `archive_docs/`, including `CURRENT_STATE_BLUEPRINT.md` and `MASTER_BIBLE.md`. Opus 5.5 `xhigh` hardening is in `AUDIT_REPORT_OPUS.md`.
 
 The live site is [https://www.gramsevamitra.com](https://www.gramsevamitra.com). GitHub `main` deploys through `.github/workflows/deploy.yml` to Cloudflare Pages project `gramsevamitra-hub`.
 
@@ -51,6 +51,16 @@ Do not add a Python or FastAPI server. Cloudflare Pages will not run it.
 
 Each shared module has a typed re-export under `apps/hub/src/lib/audit/`.
 
-Checks: `scripts/test-phase1-audit.mjs`, `scripts/test-phase2-auditors.mjs`, `scripts/test-phase3-adapters.mjs`, `scripts/test-phase4-ocr-pipeline.mjs`, `scripts/test-phase5-api.mjs`.
+Checks: `scripts/test-phase1-audit.mjs` through `scripts/test-phase7-8-final.mjs`, plus `scripts/test-opus-audit.mjs`.
+
+## Share target (Android PWA)
+
+1. `apps/hub/public/manifest.json` — `share_target` POSTs `multipart/form-data` to `/owner/` for `.pdf` / `.csv` / `.xlsx`.
+2. Service worker imports `apps/hub/public/share-target.js`, caches the file at `/shared-payout-file` under `gsm-share`, and redirects to `/owner/?shared=1` (avoids HTTP 405 on static `/owner/`).
+3. `OwnerVisualPWA` reads that cache entry, runs the client audit pipeline, then clears the cache.
+
+## Hard-blocked legacy Pro routes
+
+`/api/pro/media-process`, `/ocr-orchestrator`, `/reconstruct-layout`, `/extract`, `/smart-extract`, `/file-converter`, `/smart-router`, and their `/upload` companions return `503` + `FEATURE_NOT_AVAILABLE` + `creditsCharged: 0` before any credit gate.
 
 Phases 0A through 8 are in this repository. The public pages are `/owner/`, `/seller/`, `/munshi/`, `/admin/`, `/about/`, `/pricing/`, `/contact/`, `/privacy/`, `/terms/`, and `/refund-policy/`. `GET /api/health` reports configuration without secrets. The current build state is `STATUS_REPORT.md`. Update that file at the end of every phase.

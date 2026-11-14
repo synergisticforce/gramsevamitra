@@ -25,6 +25,7 @@ const PII_HEADERS = [
   'customer phone',
   'phone',
   'mobile',
+  'address',
   'buyer address',
   'customer address',
   'shipping address',
@@ -216,7 +217,7 @@ export function toWorkbook(input, filename = '') {
   }
   const bytes = input instanceof ArrayBuffer ? new Uint8Array(input) : input;
   if (filename.toLowerCase().endsWith('.csv')) {
-    const text = new TextDecoder().decode(bytes);
+    const text = new TextDecoder().decode(bytes).replace(/^\uFEFF/, '');
     return XLSX.read(text, { type: 'string' });
   }
   return XLSX.read(bytes, { type: 'array' });
