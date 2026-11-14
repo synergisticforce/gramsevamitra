@@ -139,6 +139,21 @@ export default function MunshiDashboard() {
     }
   };
 
+  const downloadMaster = async (kind: 'csv' | 'xlsx') => {
+    if (!clients.length) {
+      setNote('Add client files first.');
+      return;
+    }
+    const { buildMasterCaWorkbook, buildMasterTallyCsv } = await import('../../../../../functions/_lib/munshiMasterExport.mjs');
+    const rows = clients as unknown as Array<Record<string, unknown>>;
+    if (kind === 'csv') {
+      downloadBlob('master-tally.csv', new Blob([buildMasterTallyCsv(rows)], { type: 'text/csv' }));
+      return;
+    }
+    const bytes = buildMasterCaWorkbook(rows);
+    downloadBlob('master-ca-summary.xlsx', new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  };
+
   const downloadTax = (client: ClientRow, kind: 'csv' | 'xml') => {
     const text = String(kind === 'csv' ? client.tax?.tallyJournalCsv || '' : client.tax?.tallyVoucherXml || '');
     if (!text) {
@@ -221,6 +236,14 @@ export default function MunshiDashboard() {
         </div>
         {rejected > 0 && <p className="mt-3 text-sm text-rose-300">{rejected} file{rejected === 1 ? '' : 's'} rejected. They are not payout statements.</p>}
         {note && <p className="mt-3 text-sm text-amber-200">{note}</p>}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" className="min-h-12 rounded-xl bg-white px-4 text-sm font-black text-slate-900" onClick={() => void downloadMaster('csv')}>
+            📥 Download Master Tally CSV (All Clients)
+          </button>
+          <button type="button" className="min-h-12 rounded-xl bg-emerald-700 px-4 text-sm font-black" onClick={() => void downloadMaster('xlsx')}>
+            📊 Download Master CA Summary (.xlsx)
+          </button>
+        </div>
         <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-700">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-slate-900 text-xs uppercase text-slate-300">

@@ -6,7 +6,9 @@ import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { existsSync } from 'node:fs';
 import { PDFDocument } from '@cantoo/pdf-lib';
+import * as XLSX from 'xlsx';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const load = (rel) => import(pathToFileURL(join(root, rel)).href);
@@ -18,12 +20,16 @@ function walk(dir, out = []) {
     if (statSync(full).isDirectory()) {
       if (name === 'node_modules' || name === 'dist') continue;
       walk(full, out);
-    } else if (/\.(tsx|ts|astro|jsx|js)$/.test(name)) out.push(full);
+    } else if (/\.(tsx|ts|astro|jsx|js|html)$/.test(name)) out.push(full);
   }
   return out;
 }
 
-const { naturalPdfNameSort, mergePdfBytesSequentially } = await load('functions/_lib/pdfMergeBatch.mjs');
+const { naturalPdfNameSort, mergePdfBytesSequentially, needsLargeMergeWarning } = await load('functions/_lib/pdfMergeBatch.mjs');
+const { resolveSpeakLanguage } = await load('functions/_lib/voiceFallback.mjs');
+const { auditUploadedWorkbook } = await load('functions/_lib/adapters/registry.mjs');
+const { buildEvidencePackWorkbook } = await load('functions/_lib/evidencePack.mjs');
+const { buildMasterTallyCsv, buildMasterCaWorkbook } = await load('functions/_lib/munshiMasterExport.mjs');
 const { informalSimpleAprPercent, informalCompoundAprPercent, standardEmiPaise } = await load('functions/_lib/livelihoodMath.mjs');
 const { courierSlab } = await load('functions/_lib/sellerTools.mjs');
 
@@ -52,6 +58,38 @@ assert.equal(informalSimpleAprPercent(2), 24, '2% a month is 24% a year');
 assert.equal(informalSimpleAprPercent(5), 60, '5% a month is 60% a year');
 assert.ok(informalCompoundAprPercent(2) > 24, 'compound rate is higher than the simple rate');
 assert.equal(standardEmiPaise(10000000, 0, 10), 1000000, 'zero-interest EMI splits the principal');
+assert.equal(standardEmiPaise(0, 12, 12), 0, 'a zero principal has no EMI');
+assert.equal(informalSimpleAprPercent(0), 0, 'a zero monthly rate stays zero');
+assert.equal(resolveSpeakLanguage('sw', [{ lang: 'sw-KE' }]).lang, 'sw-KE', 'installed Kiswahili voice is used');
+assert.equal(resolveSpeakLanguage('ta', [{ lang: 'en-IN' }]).fallback, true, 'missing Tamil voice falls back');
+assert.equal(needsLargeMergeWarning(Array.from({ length: 21 }, () => ({ size: 1 }))), true, '21 files warn before merge');
+assert.equal(needsLargeMergeWarning([{ size: 10 }, { size: 10 }]), false, 'two small files do not warn');
+
+const globalCsv = 'Order ID,Gross Amount,Fee,Shipping,Tax,Net Settled\nUE-1,100.00,10.00,5.00,2.00,80.00\nUE-2,50.00,10.00,0,0,30.00\n';
+const globalAudit = await auditUploadedWorkbook(globalCsv, 'doordash.csv', {}, { currencySymbol: '$' });
+assert.equal(globalAudit.statement.platform, 'UNIVERSAL', 'a non-Indian payout uses the universal auditor');
+assert.equal(globalAudit.statement.currencySymbol, '$', 'the selected currency is kept');
+assert.equal(globalAudit.auditResult.totalRecoverablePaise, 1300, 'short rows are 300 and 1000 minor units');
+const globalPack = buildEvidencePackWorkbook(globalAudit.statement, globalAudit.auditResult, globalAudit.taxPackage);
+const globalBook = XLSX.read(globalPack.bytes, { type: 'array' });
+const summaryText = XLSX.utils.sheet_to_csv(globalBook.Sheets[globalBook.SheetNames[0]]);
+assert.match(summaryText, /\$/, 'the evidence pack uses the dollar sign');
+
+const clients = [1, 2, 3, 4, 5].map((index) => ({
+  fileName: `client-${index}.xlsx`,
+  platform: 'SWIGGY',
+  recoverablePaise: 10000 * index,
+  munshiCutPaise: 3000 * index,
+  statement: { bankUtr: `UTR${index}`, declaredSummaryNetPayoutPaise: 50000 },
+  tax: { totalPlatformFeesPaise: 2000, gstr2bInputTaxCredit18PctPaise: 1800, form26asTds194OPaise: 100, gstr8TcsSec52Paise: 50 },
+}));
+const masterCsv = buildMasterTallyCsv(clients);
+assert.match(masterCsv, /client-1.xlsx/, 'master tally includes the first client');
+assert.match(masterCsv, /client-5.xlsx/, 'master tally includes the fifth client');
+assert.match(masterCsv, /18% GST ITC/, 'master tally has the GST column');
+const masterBook = XLSX.read(buildMasterCaWorkbook(clients), { type: 'array' });
+const masterRows = XLSX.utils.sheet_to_json(masterBook.Sheets['All clients']);
+assert.equal(masterRows.length, 5, 'the CA workbook has five client rows');
 const slab = courierSlab(25, 20, 12, 450);
 assert.equal(slab.volumetricGrams, 1200, '25×20×12 cm is 1,200 g');
 
@@ -99,5 +137,30 @@ const tools = [
   ...read('apps/hub/src/config/quickToolsCanvasTools.ts').match(/id: '[^']+'/g),
 ];
 assert.ok(tools.length >= 40, `registered finance and quick tools: ${tools.length}`);
+
+const dist = join(root, 'apps/hub/dist');
+const pages = walk(dist).filter((file) => file.endsWith('index.html') || file.endsWith('404.html'));
+assert.ok(pages.length >= 29, `built pages: ${pages.length}`);
+for (const page of pages) {
+  const html = readFileSync(page, 'utf8');
+  assert.match(html, /<html/i, `${page} is html`);
+  assert.doesNotMatch(html, /\{\{/, `${page} has no template braces`);
+  if (!/location\.replace/.test(html)) {
+    assert.match(html, /<(main|header|nav)\b/i, `${page} has a landmark`);
+  }
+  const links = [...html.matchAll(/(?:href|src)="([^"]+)"/g)].map((match) => match[1]);
+  for (const link of links) {
+    const clean = link.split('?')[0].split('#')[0];
+    if (!clean.startsWith('/') || clean.startsWith('//')) continue;
+    if (!/\/_astro\/|\.(css|js|mjs|png|svg|webp|ico|txt|xml|json)$/.test(clean)) continue;
+    assert.equal(existsSync(join(dist, clean.slice(1))), true, `${page} links to ${clean}`);
+  }
+}
+const financeHtml = readFileSync(join(dist, 'workspace/finance/index.html'), 'utf8');
+const financeScripts = [...financeHtml.matchAll(/(?:src|component-url)="(\/_astro\/[^"]+\.js)"/g)].map((match) => {
+  const file = join(dist, match[1].slice(1));
+  return existsSync(file) ? readFileSync(file, 'utf8') : '';
+}).join('\n');
+assert.match(`${financeHtml}\n${financeScripts}`, /EMI|emi-calculator/, 'finance page ships the EMI calculator');
 
 console.log('ux and tool checks passed');

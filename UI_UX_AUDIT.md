@@ -28,6 +28,15 @@ The site stays on Cloudflare Pages, Neon PostgreSQL, and integer paise. There is
 
 `node scripts/test-ux-and-all-tools.mjs` merged 75 one-page PDFs in 14 ms and checked the layout rules above. Phase 1 through the post-Opus closure tests, typecheck, and the production build passed.
 
+## Later hardening
+
+- A merge of more than 20 files, or more than 50 MB, asks the person to keep the screen open before it starts. Each PDF is read only when its pages are copied.
+- If a phone has no voice pack for the chosen language, the words still appear in a toast and speech falls back to English.
+- A spreadsheet that is not Swiggy, Zomato, Meesho, Flipkart, Amazon, or Shopify is checked as gross minus fees, shipping, and tax against the declared net. The evidence pack uses the selected currency mark. Indian payout audits stay in rupees.
+- `/munshi/` can download one Tally CSV and one Excel summary for every client in the table.
+- `/admin/` reads `/api/health` and shows whether Razorpay is live or test.
+- `scripts/test-ux-and-all-tools.mjs` reads the built HTML for all 29 pages, checks local asset links, audits a sample dollar payout, and builds a five-client munshi workbook.
+
 ## Still true
 
-A person still has to try a real Swiggy file and a real 72-page merge on a phone. The automated check proves the merge helper, the sort order, and that the retired routes are not named in the site source. It does not click every calculator in a browser.
+A person should still try a real Swiggy file and a real multi-PDF merge on a phone. The built-page check reads the published HTML and the calculator bundles. It does not tap every button with a finger.

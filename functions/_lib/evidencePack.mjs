@@ -13,11 +13,13 @@ function n(value) {
   return typeof value === 'number' && Number.isFinite(value) ? Math.trunc(value) : 0;
 }
 
+let packSymbol = '₹';
+
 /**
  * @param {unknown} paise
  */
 function rupees(paise) {
-  return formatMinorUnits(n(paise));
+  return formatMinorUnits(n(paise), packSymbol);
 }
 
 /**
@@ -63,6 +65,7 @@ function utrBridge(statement) {
  * @param {Record<string, unknown>} [taxPackage]
  */
 export function buildEvidencePackWorkbook(statement, auditResult, taxPackage = {}) {
+  packSymbol = String(statement?.currencySymbol || '₹');
   const findings = Array.isArray(auditResult?.findings) ? auditResult.findings : [];
   const buckets = { commission: 0, logistics: 0, ads: 0, complaint: 0, held: 0, statutory: 0 };
   for (const finding of findings) buckets[leakageBucket(finding)] += n(finding.recoverableVariancePaise);

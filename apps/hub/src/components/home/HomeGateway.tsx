@@ -27,7 +27,7 @@ export default function HomeGateway() {
   return (
     <section className="px-4 py-6 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-5xl">
-        <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent">GramSevaMitra</p>
+        <p className="text-sm font-black text-canvas-text">🌍 Global 100% On-Device Tools (PDF, Photo, Video, Calculators) · 🇮🇳 India Statutory Payout Auditor (Swiggy, Zomato, Meesho, Flipkart, Amazon)</p>
         <h1 className="mt-2 max-w-3xl text-3xl font-bold text-canvas-text sm:text-4xl">
           Finance Hub — payout and tax check for restaurants and sellers
         </h1>

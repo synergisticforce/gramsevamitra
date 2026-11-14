@@ -52,6 +52,7 @@ export default function SiteDoorBar({ tone = 'dark' }: { tone?: 'dark' | 'daylig
   const onRolePage = /\/(owner|seller|munshi)\//.test(path);
 
   const speakFinder = () => {
+    try {
     const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionCtor) {
       const typed = window.prompt('Say a tool: Swiggy, PDF, Merge, Photo, Loan') || '';
@@ -69,6 +70,9 @@ export default function SiteDoorBar({ tone = 'dark' }: { tone?: 'dark' | 'daylig
       if (route) window.location.href = route.href;
     };
     recognition.start();
+    } catch {
+      setHeard('Voice input is not available on this phone. Type the tool name instead.');
+    }
   };
 
   return (

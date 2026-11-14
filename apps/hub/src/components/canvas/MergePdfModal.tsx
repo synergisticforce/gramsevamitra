@@ -4,7 +4,9 @@ import {
   isPdfMimeOrName,
   triggerPdfDownload,
 } from '../../lib/canvas/documentPdfTools';
-import { mergePdfBytesSequentially, naturalPdfNameSort } from '../../lib/canvas/pdfMergeBatch';
+import { mergePdfSourcesSequentially, naturalPdfNameSort, needsLargeMergeWarning } from '../../lib/canvas/pdfMergeBatch';
+import { useDisplayPrefs } from '../../lib/audit/useDisplayPrefs';
+import { speakText } from '../../lib/voiceAssist';
 import { requiresChunkedPipeline, validateUploadFile } from '../../lib/pdf/fileUploadLimits';
 import { runChunkedMergePipeline } from '../../lib/upload/chunkedPipeline';
 import ToolProcessingWait from './ToolProcessingWait';
@@ -58,6 +60,7 @@ export default function MergePdfModal({
   const [adding, setAdding] = useState(false);
   const [hydrating, setHydrating] = useState(queueMode);
   const [mergeLabel, setMergeLabel] = useState('');
+  const prefs = useDisplayPrefs();
 
   useEffect(() => {
     if (!queueMode && canvasFile) {
@@ -166,17 +169,23 @@ export default function MergePdfModal({
     });
   }, []);
 
-  const handleMerge = useCallback(async () => {
+  const handleMerge = useCallback(async (force = false) => {
     if (queue.length < 2) {
       setError('Add at least two PDFs to merge.');
+      return;
+    }
+
+    const filesInOrder = queue.map((item) => item.file);
+    if (!force && needsLargeMergeWarning(filesInOrder)) {
+      const warning = `Large Merge (${filesInOrder.length} files): Merging on your phone may take a moment. Keep this screen open.`;
+      setError(warning);
+      if (prefs.simpleMode) speakText(warning, prefs.language);
       return;
     }
 
     setBusy(true);
     setError(null);
     onProcessingChange(true, 'Preparing merge…', 0);
-
-    const filesInOrder = queue.map((item) => item.file);
 
     try {
       if (filesInOrder.some((item) => requiresChunkedPipeline(item))) {
@@ -191,10 +200,8 @@ export default function MergePdfModal({
         return;
       }
 
-      const buffers: ArrayBuffer[] = [];
-      for (const file of filesInOrder) buffers.push(await file.arrayBuffer());
-      const bytes = await mergePdfBytesSequentially(buffers, {
-        yieldEvery: 5,
+      const bytes = await mergePdfSourcesSequentially(filesInOrder, {
+        yieldEvery: 3,
         onProgress: (current, total) => {
           const label = `Merging file ${current} of ${total} (${Math.round((current / total) * 100)}%)...`;
           setMergeLabel(label);
@@ -213,7 +220,7 @@ export default function MergePdfModal({
     } finally {
       setBusy(false);
     }
-  }, [onClose, onProcessingChange, onSuccess, queue, reportProgress]);
+  }, [onClose, onProcessingChange, onSuccess, prefs.language, prefs.simpleMode, queue, reportProgress]);
 
   return (
     <div
@@ -239,9 +246,14 @@ export default function MergePdfModal({
             </button>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" className="min-h-11 rounded-xl bg-emerald-600 px-3 text-sm font-black text-white disabled:opacity-50" disabled={busy || hydrating || queue.length < 2} onClick={() => void handleMerge()}>
+            <button type="button" className="min-h-11 rounded-xl bg-emerald-600 px-3 text-sm font-black text-white disabled:opacity-50" disabled={busy || hydrating || queue.length < 2} onClick={() => void handleMerge(false)}>
               🟢 Merge All PDFs Now
             </button>
+            {error?.startsWith('Large Merge') && (
+              <button type="button" className="min-h-11 rounded-xl bg-amber-500 px-3 text-sm font-black text-slate-950" onClick={() => void handleMerge(true)}>
+                🟢 Continue Merge
+              </button>
+            )}
             <button type="button" className="min-h-11 rounded-xl border border-canvas-border px-3 text-sm font-bold" disabled={busy || queue.length < 2} onClick={() => sortQueue('asc')}>1→9 Auto-Sort</button>
             <button type="button" className="min-h-11 rounded-xl border border-canvas-border px-3 text-sm font-bold" disabled={busy || queue.length < 2} onClick={() => sortQueue('desc')}>9→1 Reverse</button>
             <button type="button" className="min-h-11 rounded-xl border border-canvas-border px-3 text-sm font-bold" disabled={busy} onClick={() => setQueue([])}>Clear All</button>

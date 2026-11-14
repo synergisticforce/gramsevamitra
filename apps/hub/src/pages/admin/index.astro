@@ -1,6 +1,7 @@
 ---
 import AppShellLayout from '../../layouts/AppShellLayout.astro';
 import AdminCellQueue from '../../components/finance/AdminCellQueue';
+import AdminHealthBanner from '../../components/finance/AdminHealthBanner';
 import { formatSeoTitle } from '@shared/config/seo';
 ---
 
@@ -9,5 +10,6 @@ import { formatSeoTitle } from '@shared/config/seo';
   description="One-cell checks for owner uploads that are not linked to a munshi."
   activeWorkspace="finance"
 >
+  <AdminHealthBanner client:load />
   <AdminCellQueue client:load />
 </AppShellLayout>

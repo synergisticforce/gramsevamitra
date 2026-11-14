@@ -11,6 +11,7 @@ import {
 import { runRestaurantAudit } from '../restaurantAuditor.mjs';
 import { runEcommerceAudit } from '../ecommerceAuditor.mjs';
 import { buildTaxAutopilotPackage } from '../taxAutopilot.mjs';
+import { auditUniversalStatement, parseUniversalWorkbook } from '../universalAdapter.mjs';
 
 /**
  * @param {unknown} input
@@ -20,18 +21,30 @@ export async function detectAndParseWorkbook(input, filename = '') {
   const workbook = toWorkbook(input, filename);
   const firstSheet = workbook.SheetNames[0] || '';
   const sample = sampleText(sheetToAoa(workbook, firstSheet));
+  const names = workbook.SheetNames.join(' ').toLowerCase();
+  const knownIndian = isZomatoWorkbook(workbook)
+    || isSwiggyWorkbook(workbook)
+    || names.includes('meesho')
+    || names.includes('amazon')
+    || names.includes('mtr')
+    || names.includes('shopify')
+    || names.includes('shiprocket')
+    || isFlipkartWorkbook(workbook);
+  if (knownIndian) {
+    if (isZomatoWorkbook(workbook)) return parseZomatoWorkbook(workbook);
+    if (isSwiggyWorkbook(workbook)) return parseSwiggyWorkbook(workbook);
+    if (names.includes('meesho')) return parseMeeshoWorkbook(workbook);
+    if (names.includes('amazon') || names.includes('mtr')) return parseAmazonMtrWorkbook(workbook);
+    if (names.includes('shopify') || names.includes('shiprocket')) return parseShopifyCodWorkbook(workbook);
+    if (isFlipkartWorkbook(workbook)) return parseFlipkartStlWorkbook(workbook);
+  }
+  const universal = parseUniversalWorkbook(workbook);
+  if (universal) return universal;
   if (!bouncerKeywordGate(workbook.SheetNames, `${filename} ${sample}`)) {
     const error = new Error('This file is not a settlement workbook.');
     error.code = 'BOUNCER';
     throw error;
   }
-  const names = workbook.SheetNames.join(' ').toLowerCase();
-  if (isZomatoWorkbook(workbook)) return parseZomatoWorkbook(workbook);
-  if (isSwiggyWorkbook(workbook)) return parseSwiggyWorkbook(workbook);
-  if (names.includes('meesho')) return parseMeeshoWorkbook(workbook);
-  if (names.includes('amazon') || names.includes('mtr')) return parseAmazonMtrWorkbook(workbook);
-  if (names.includes('shopify') || names.includes('shiprocket')) return parseShopifyCodWorkbook(workbook);
-  if (isFlipkartWorkbook(workbook)) return parseFlipkartStlWorkbook(workbook);
   const error = new Error('This file is not a settlement workbook.');
   error.code = 'BOUNCER';
   throw error;
@@ -45,6 +58,9 @@ export async function detectAndParseWorkbook(input, filename = '') {
  */
 export async function auditUploadedWorkbook(input, filename, contractOverrides = {}, options = {}) {
   const statement = await detectAndParseWorkbook(input, filename);
+  if (statement.vertical === 'UNIVERSAL' && options.currencySymbol) {
+    statement.currencySymbol = String(options.currencySymbol);
+  }
   const contract = {
     commissionBps: null,
     approvedDiscountShareBps: 10000,
@@ -55,7 +71,9 @@ export async function auditUploadedWorkbook(input, filename, contractOverrides =
     skuWeightMapGrams: {},
     ...contractOverrides,
   };
-  const auditResult = statement.vertical === 'RESTAURANT'
+  const auditResult = statement.vertical === 'UNIVERSAL'
+    ? auditUniversalStatement(statement)
+    : statement.vertical === 'RESTAURANT'
     ? runRestaurantAudit(statement, contract, options)
     : runEcommerceAudit(statement, contract, options);
   const taxPackage = buildTaxAutopilotPackage(statement, auditResult);
