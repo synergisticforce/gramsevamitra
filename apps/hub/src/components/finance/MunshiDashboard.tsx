@@ -50,6 +50,8 @@ export default function MunshiDashboard() {
   const [filter, setFilter] = useState<'all' | 'RESTAURANT' | 'ECOMMERCE'>('all');
   const [cellClient, setCellClient] = useState<ClientRow | null>(null);
   const [note, setNote] = useState('');
+  const [munshiCode, setMunshiCode] = useState('munshi_local');
+  const [upiId, setUpiId] = useState('');
 
   const visible = clients.filter((client) => filter === 'all' || client.vertical === filter);
   const wallet = useMemo(() => clients.reduce((sum, client) => sum + Number(client.munshiCutPaise || 0), 0), [clients]);
@@ -121,6 +123,22 @@ export default function MunshiDashboard() {
     );
   };
 
+  const withdraw = async () => {
+    const amountPaise = Math.round(wallet);
+    setNote('');
+    try {
+      const response = await fetch('/api/audit/munshi-withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ munshiCode, upiId, amountPaise }),
+      });
+      const data = await response.json();
+      setNote(data.success ? 'Withdrawal requested. Admin will settle it to your UPI.' : String(data.message || 'Withdrawal could not be requested.'));
+    } catch {
+      setNote('Withdrawal could not be requested.');
+    }
+  };
+
   const downloadTax = (client: ClientRow, kind: 'csv' | 'xml') => {
     const text = String(kind === 'csv' ? client.tax?.tallyJournalCsv || '' : client.tax?.tallyVoucherXml || '');
     if (!text) {
@@ -162,6 +180,30 @@ export default function MunshiDashboard() {
             }}
           />
         </label>
+        <div className="mt-4 grid gap-2 rounded-2xl border border-slate-700 bg-slate-900 p-4 sm:grid-cols-[1fr_1fr_auto]">
+          <label className="text-sm font-bold">
+            Munshi code
+            <input
+              className="mt-1 min-h-12 w-full rounded-xl bg-slate-950 px-3 text-base"
+              value={munshiCode}
+              aria-label="Munshi code"
+              onChange={(event) => setMunshiCode(event.target.value)}
+            />
+          </label>
+          <label className="text-sm font-bold">
+            UPI ID
+            <input
+              className="mt-1 min-h-12 w-full rounded-xl bg-slate-950 px-3 text-base"
+              value={upiId}
+              placeholder="name@upi"
+              aria-label="UPI ID"
+              onChange={(event) => setUpiId(event.target.value)}
+            />
+          </label>
+          <button type="button" className="min-h-12 self-end rounded-xl bg-emerald-600 px-4 font-black" onClick={() => void withdraw()}>
+            Withdraw to UPI
+          </button>
+        </div>
         <div className="mt-3 flex flex-wrap gap-2">
           {(['all', 'RESTAURANT', 'ECOMMERCE'] as const).map((value) => (
             <button

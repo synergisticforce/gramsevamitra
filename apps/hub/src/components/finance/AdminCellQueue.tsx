@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CellCheckModal from './CellCheckModal';
 import { formatOwnerAmount } from '../../lib/audit/ownerExperience';
 import { useDisplayPrefs } from '../../lib/audit/useDisplayPrefs';
@@ -21,6 +21,46 @@ export default function AdminCellQueue() {
   const [rows, setRows] = useState<QueueRow[]>([misreadRow()]);
   const [open, setOpen] = useState<QueueRow | null>(null);
   const [gap, setGap] = useState<number | null>(null);
+  const [clockNote, setClockNote] = useState('');
+  const [payouts, setPayouts] = useState<Array<{ id: string; munshi_code: string; upi_id: string; amount_paise: number }>>([]);
+
+  const loadPayouts = async () => {
+    try {
+      const response = await fetch('/api/audit/munshi-withdraw');
+      const data = await response.json();
+      setPayouts(Array.isArray(data.requests) ? data.requests : []);
+    } catch {
+      setPayouts([]);
+    }
+  };
+
+  useEffect(() => {
+    void loadPayouts();
+  }, []);
+
+  const runTrustClock = async () => {
+    setClockNote('');
+    try {
+      const response = await fetch('/api/audit/process-trust-clock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+      const data = await response.json();
+      setClockNote(data.success ? `Checked. ${Number(data.processed || 0)} mandate(s) are due.` : 'The trust clock check did not finish.');
+    } catch {
+      setClockNote('The trust clock check did not finish.');
+    }
+  };
+
+  const settle = async (id: string) => {
+    await fetch('/api/audit/munshi-withdraw', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'settle', requestId: id }),
+    });
+    await loadPayouts();
+  };
 
   const confirm = async (row: QueueRow) => {
     const { resolveCellVerification } = await import('../../lib/audit/selfHealingCrop');
@@ -89,6 +129,27 @@ export default function AdminCellQueue() {
           ))}
         </ul>
         {gap === 0 && <p className="mt-4 font-bold text-emerald-300">The row is balanced. Horizontal difference is ₹0.</p>}
+        <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-900 p-4">
+          <h2 className="text-xl font-black">14-day trust clock</h2>
+          <button type="button" className="mt-3 min-h-12 rounded-xl bg-white px-4 font-black text-slate-950" onClick={() => void runTrustClock()}>
+            Run 14-Day Trust Clock Check
+          </button>
+          {clockNote && <p className="mt-3 font-bold">{clockNote}</p>}
+        </div>
+        <div className="mt-4 rounded-2xl border border-slate-700 bg-slate-900 p-4">
+          <h2 className="text-xl font-black">Munshi UPI withdrawals</h2>
+          <ul className="mt-3 space-y-3">
+            {payouts.map((payout) => (
+              <li key={payout.id} className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-bold">{payout.munshi_code} · {payout.upi_id} · {money(Number(payout.amount_paise || 0))}</p>
+                <button type="button" className="min-h-12 rounded-xl bg-emerald-600 px-4 font-black" onClick={() => void settle(payout.id)}>
+                  Settle UPI
+                </button>
+              </li>
+            ))}
+            {payouts.length === 0 && <li className="text-sm text-slate-400">No pending withdrawals.</li>}
+          </ul>
+        </div>
       </div>
       {open && (
         <CellCheckModal

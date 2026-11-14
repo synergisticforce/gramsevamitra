@@ -41,6 +41,8 @@ export async function onRequestPost(context) {
       razorpay = await razorpayOrder(context, amountPaise, `audit${Date.now()}`.slice(0, 40), {
         uploadId,
         mode,
+        tenantId: String(prepared.tenantId || ''),
+        munshiId: String(prepared.munshiId || ''),
         maxAmountPaise: String(prepared.checkout.maxAmountPaise || amountPaise),
       });
     } catch (err) {

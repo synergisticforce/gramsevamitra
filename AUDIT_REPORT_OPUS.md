@@ -134,6 +134,18 @@ Cloudflare-native payout engine, freemium unlock, and multi-tier Razorpay paths 
 
 ---
 
+## Post-Opus closure (14 November 2026)
+
+DeepSeek's FastAPI and Razorpay-mode gaps were false alarms. Four operational items were added on the Cloudflare Pages stack:
+
+| Item | Where | Result |
+|---|---|---|
+| Server-side OCR PII scrub | `functions/_lib/cloudOcrArbitrage.mjs` `scrubOcrOutputPii`; called again in `functions/api/audit/ocr-extract.js` | Customer Name / Address columns dropped; `9876543210` becomes `[REDACTED_PHONE]`; order ids, UTRs, GSTINs, and rupee amounts stay. Logs do not include PDF bytes. |
+| Munshi UPI withdrawal | `functions/api/audit/munshi-withdraw.js`, `munshi_payout_requests`, `/munshi/`, `/admin/` | Request up to the available wallet; admin settles with one click. |
+| Pro ₹299 sync | `completePro299Checkout` from `verify-payment.js` and `unlock.js` | `subscription_tier = PRO_299`, 5% unlock fee (`500` bps), munshi credit `8970` paise. |
+| 14-day trust clock | `functions/api/audit/process-trust-clock.js`, `/admin/` | Expired mandates with no File 2 become `DUE_FOR_COLLECTION`. |
+| 2,000-row benchmark | `scripts/test-post-opus-closure.mjs` | Swiggy workbook with merged cells, blank rows, `Adjusment Type`, and `GRAND TOTAL` audited in **28 ms** (limit 500 ms). |
+
 ## Deliverables
 
 | Artifact | Status |

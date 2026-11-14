@@ -6,6 +6,7 @@ import {
   withRazorpayEnv,
 } from '../../_lib/billingEnv.mjs';
 import { PRO_ORDER_AMOUNT_PAISE } from '../../_lib/proBilling.mjs';
+import { completePro299Checkout } from '../../_lib/auditRepository.mjs';
 import { getSessionUser } from '../../_lib/session.mjs';
 import { activateProFromPayment, getUserRow } from '../../_lib/userDb.mjs';
 import {
@@ -75,6 +76,24 @@ export async function onRequestPost(context) {
     }
 
     const orderAmount = Number(order.amount);
+    const notes = order?.notes && typeof order.notes === 'object' ? order.notes : {};
+    if (orderAmount === 29900 || notes.mode === 'PRO_299') {
+      if (orderAmount !== 29900) {
+        return jsonResponse({ error: 'Invalid order amount.', code: 'AMOUNT_MISMATCH' }, 400);
+      }
+      const synced = await completePro299Checkout(env, {
+        tenantId: typeof notes.tenantId === 'string' && notes.tenantId ? notes.tenantId : `tenant_${user.id}`,
+        munshiId: typeof notes.munshiId === 'string' ? notes.munshiId : '',
+        amountPaise: 29900,
+        orderId,
+      });
+      return jsonResponse({
+        subscriptionTier: 'PRO_299',
+        commissionPaise: synced.commissionPaise,
+        duplicate: synced.duplicate,
+        plan: 'PRO_299',
+      });
+    }
     if (orderAmount !== PRO_ORDER_AMOUNT_PAISE) {
       console.error('[billing/verify-payment] Amount mismatch:', { orderId, orderAmount });
       return jsonResponse({ error: 'Invalid order amount.', code: 'AMOUNT_MISMATCH' }, 400);

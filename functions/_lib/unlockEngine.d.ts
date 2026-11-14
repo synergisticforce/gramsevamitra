@@ -2,7 +2,7 @@ export function totalRecoverablePaise(auditResult: Record<string, unknown>): num
 export function maskOrderIdentifier(value: unknown): string;
 export function applyFreemiumTeaserMask(
   auditResult: Record<string, unknown>,
-  options?: { isPro?: boolean; forceUnlocked?: boolean },
+  options?: { isPro?: boolean; forceUnlocked?: boolean; subscriptionTier?: string },
 ): Record<string, unknown> & {
   findings: Array<Record<string, unknown>>;
   totalRecoverablePaise: number;

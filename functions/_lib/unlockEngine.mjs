@@ -36,7 +36,8 @@ export function maskOrderIdentifier(value) {
 export function applyFreemiumTeaserMask(auditResult, options = {}) {
   const total = totalRecoverablePaise(auditResult);
   const findings = (Array.isArray(auditResult?.findings) ? auditResult.findings : []).map((finding) => ({ ...finding }));
-  const open = total < FREE_UNLOCK_LIMIT_PAISE || options.isPro === true || options.forceUnlocked === true;
+  const proRate = options.isPro === true || options.subscriptionTier === 'PRO_299';
+  const open = total < FREE_UNLOCK_LIMIT_PAISE || options.forceUnlocked === true;
   if (open) {
     return {
       ...auditResult,
@@ -49,7 +50,7 @@ export function applyFreemiumTeaserMask(auditResult, options = {}) {
     };
   }
 
-  const unlockFeePaise = applyBps(total, options.isPro === true ? 500 : 1000);
+  const unlockFeePaise = applyBps(total, proRate ? 500 : 1000);
   return {
     ...auditResult,
     findings: findings.map((finding, index) => {

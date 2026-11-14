@@ -168,6 +168,16 @@ CREATE TABLE IF NOT EXISTS header_mapping_cache (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS munshi_payout_requests (
+  id TEXT PRIMARY KEY,
+  munshi_code TEXT NOT NULL,
+  upi_id TEXT NOT NULL,
+  amount_paise BIGINT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'REQUESTED',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS settlement_uploads_tenant_idx ON settlement_uploads (tenant_id);
+CREATE INDEX IF NOT EXISTS munshi_payout_requests_status_idx ON munshi_payout_requests (status);
 CREATE INDEX IF NOT EXISTS audit_finding_records_upload_idx ON audit_finding_records (upload_id);
 CREATE INDEX IF NOT EXISTS cell_verification_queue_upload_idx ON cell_verification_queue (upload_id);

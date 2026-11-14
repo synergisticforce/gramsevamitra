@@ -16,6 +16,12 @@ import {
 const uploads = new Map();
 /** @type {Map<string, { totalPaise: number, entries: Array<Record<string, unknown>> }>} */
 const wallets = new Map();
+/** @type {Array<Record<string, unknown>>} */
+const withdrawals = [];
+/** @type {Map<string, string>} */
+const tenantTiers = new Map();
+/** @type {Set<string>} */
+const processedProOrders = new Set();
 
 /**
  * @param {string} prefix
@@ -150,13 +156,17 @@ export async function createAuditUpload(env, body) {
   const options = body.options && typeof body.options === 'object' ? body.options : {};
   const auditResult = runAudit(statement, contract, options);
   const taxPackage = buildTaxAutopilotPackage(statement, auditResult);
+  const tenantId = String(body.tenantId || 'tenant_local');
+  const subscriptionTier = String(body.subscriptionTier || tenantTiers.get(tenantId) || 'FREE');
   const masked = applyFreemiumTeaserMask(auditResult, {
-    isPro: body.isPro === true,
+    isPro: subscriptionTier === 'PRO_299' || body.isPro === true,
+    subscriptionTier,
     forceUnlocked: body.forceUnlocked === true,
   });
   const record = remember({
     id: newId('upl'),
-    tenantId: String(body.tenantId || 'tenant_local'),
+    tenantId,
+    subscriptionTier,
     tenantName: String(body.tenantName || statement.outletName || 'Outlet'),
     munshiId: body.munshiId ? String(body.munshiId) : null,
     platform: String(statement.platform || 'UNKNOWN'),
@@ -182,7 +192,7 @@ export async function createAuditUpload(env, body) {
  * @param {string} uploadId
  * @param {'TRUST_CLOCK_MANDATE' | 'ONE_TAP_UPI' | 'PRO_299'} mode
  */
-export async function createUnlockCheckout(env, uploadId, mode) {
+export async function createUnlockCheckout(env, uploadId, mode, options = {}) {
   const upload = await getAuditUpload(env, uploadId);
   if (!upload) {
     const error = new Error('That audit was not found.');
@@ -190,8 +200,19 @@ export async function createUnlockCheckout(env, uploadId, mode) {
     throw error;
   }
   const fee = mode === 'PRO_299' ? 29900 : Number(upload.quotedUnlockFeePaise || 0);
-  const checkout = buildCompliantUnlockCheckout(uploadId, fee, mode);
-  return { checkout, razorpayConfigured: false };
+  const checkout = buildCompliantUnlockCheckout(uploadId, fee, mode, options);
+  upload.mandate = {
+    mode: checkout.mode,
+    day10ReminderAt: checkout.day10ReminderAt,
+    day12PreDebitNoticeAt: checkout.day12PreDebitNoticeAt,
+    day14SettlementAt: checkout.day14SettlementAt,
+    file2Uploaded: upload.mandate?.file2Uploaded === true,
+    mandateStatus: mode === 'TRUST_CLOCK_MANDATE' ? 'AUTHORISED' : 'OPEN',
+    authAmountPaise: checkout.authAmountPaise || checkout.amountPaise,
+    maxAmountPaise: checkout.maxAmountPaise || checkout.amountPaise,
+  };
+  await persist(env, upload);
+  return { checkout, razorpayConfigured: false, tenantId: upload.tenantId, munshiId: upload.munshiId || '' };
 }
 
 /**
@@ -327,7 +348,221 @@ export async function munshiDashboard(env, munshiId) {
 /**
  * Test helper. Production requests do not call this.
  */
+/**
+ * @param {Record<string, unknown>} env
+ * @param {{ tenantId?: string, munshiId?: string, amountPaise?: number, orderId?: string }} input
+ */
+export async function completePro299Checkout(env, input) {
+  const amountPaise = Math.trunc(Number(input?.amountPaise || 0));
+  if (amountPaise !== 29900) {
+    const error = new Error('Mitra Pro checkout must be ₹299 (29900 paise).');
+    error.code = 'AMOUNT_MISMATCH';
+    throw error;
+  }
+  const tenantId = String(input?.tenantId || '').trim();
+  if (!tenantId) {
+    const error = new Error('A tenant id is required.');
+    error.code = 'TENANT_REQUIRED';
+    throw error;
+  }
+  const munshiId = input?.munshiId ? String(input.munshiId) : '';
+  const orderId = input?.orderId ? String(input.orderId) : '';
+  if (orderId && processedProOrders.has(orderId)) {
+    return {
+      duplicate: true,
+      subscriptionTier: 'PRO_299',
+      tenantId,
+      munshiId,
+      commissionPaise: 0,
+    };
+  }
+  tenantTiers.set(tenantId, 'PRO_299');
+  const commissionPaise = creditWallet(munshiId, amountPaise, 'pro_299');
+  if (orderId) processedProOrders.add(orderId);
+  const sql = sqlFor(env);
+  if (sql) {
+    try {
+      await ensureNeonSchema(sql);
+      if (munshiId) {
+        await sql.query(
+          `INSERT INTO munshi_partners (id, munshi_code, name, total_earned_paise)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (id) DO UPDATE SET total_earned_paise = munshi_partners.total_earned_paise + EXCLUDED.total_earned_paise`,
+          [munshiId, munshiId, 'Munshi partner', commissionPaise],
+        );
+      }
+      await sql.query(
+        `INSERT INTO tenant_accounts (id, name, vertical, munshi_id, subscription_tier)
+         VALUES ($1, $2, 'RESTAURANT', $3, 'PRO_299')
+         ON CONFLICT (id) DO UPDATE SET subscription_tier = 'PRO_299', munshi_id = COALESCE(EXCLUDED.munshi_id, tenant_accounts.munshi_id)`,
+        [tenantId, tenantId, munshiId || null],
+      );
+    } catch (err) {
+      console.error('[audit] PRO_299 sync failed', err instanceof Error ? err.message : err);
+    }
+  }
+  return { duplicate: false, subscriptionTier: 'PRO_299', tenantId, munshiId, commissionPaise };
+}
+
+/**
+ * @param {Record<string, unknown>} env
+ * @param {string} munshiCode
+ */
+async function availableWalletPaise(env, munshiCode) {
+  const memoryEarned = wallets.get(munshiCode)?.totalPaise || 0;
+  const memoryReserved = withdrawals
+    .filter((row) => row.munshi_code === munshiCode && row.status !== 'REJECTED')
+    .reduce((sum, row) => sum + Number(row.amount_paise || 0), 0);
+  const sql = sqlFor(env);
+  if (!sql) return memoryEarned - memoryReserved;
+  try {
+    const earnedRows = await sql.query(
+      'SELECT total_earned_paise FROM munshi_partners WHERE munshi_code = $1 OR id = $1 LIMIT 1',
+      [munshiCode],
+    );
+    const reservedRows = await sql.query(
+      `SELECT COALESCE(SUM(amount_paise), 0) AS reserved
+       FROM munshi_payout_requests
+       WHERE munshi_code = $1 AND status <> 'REJECTED'`,
+      [munshiCode],
+    );
+    const earned = Number(earnedRows?.[0]?.total_earned_paise ?? memoryEarned);
+    const reserved = Number(reservedRows?.[0]?.reserved ?? memoryReserved);
+    return earned - reserved;
+  } catch (err) {
+    console.error('[audit] wallet read failed', err instanceof Error ? err.message : err);
+    return memoryEarned - memoryReserved;
+  }
+}
+
+/**
+ * @param {Record<string, unknown>} env
+ * @param {Record<string, unknown>} body
+ */
+export async function requestMunshiWithdrawal(env, body) {
+  const munshiCode = String(body?.munshiCode || body?.munshiId || '').trim();
+  const upiId = String(body?.upiId || '').trim();
+  const amountPaise = Math.trunc(Number(body?.amountPaise || 0));
+  if (!munshiCode) {
+    const error = new Error('A munshi code is required.');
+    error.code = 'MUNSHI_REQUIRED';
+    throw error;
+  }
+  if (!upiId.includes('@')) {
+    const error = new Error('Enter a UPI id that contains @.');
+    error.code = 'UPI_REQUIRED';
+    throw error;
+  }
+  if (amountPaise <= 0) {
+    const error = new Error('Enter an amount greater than ₹0.');
+    error.code = 'AMOUNT_REQUIRED';
+    throw error;
+  }
+  const available = await availableWalletPaise(env, munshiCode);
+  if (amountPaise > available) {
+    const error = new Error('That amount is above the available commission wallet.');
+    error.code = 'INSUFFICIENT_BALANCE';
+    throw error;
+  }
+  const row = {
+    id: newId('wd'),
+    munshi_code: munshiCode,
+    upi_id: upiId,
+    amount_paise: amountPaise,
+    status: 'REQUESTED',
+    created_at: new Date().toISOString(),
+  };
+  withdrawals.push(row);
+  const sql = sqlFor(env);
+  if (sql) {
+    try {
+      await ensureNeonSchema(sql);
+      await sql.query(
+        `INSERT INTO munshi_payout_requests (id, munshi_code, upi_id, amount_paise, status)
+         VALUES ($1, $2, $3, $4, 'REQUESTED')`,
+        [row.id, munshiCode, upiId, amountPaise],
+      );
+    } catch (err) {
+      console.error('[audit] withdrawal save failed', err instanceof Error ? err.message : err);
+    }
+  }
+  return { ...row, availablePaise: available - amountPaise };
+}
+
+/**
+ * @param {Record<string, unknown>} env
+ */
+export async function listMunshiWithdrawals(env) {
+  const sql = sqlFor(env);
+  if (sql) {
+    try {
+      const rows = await sql.query(
+        `SELECT id, munshi_code, upi_id, amount_paise, status, created_at
+         FROM munshi_payout_requests
+         WHERE status = 'REQUESTED'
+         ORDER BY created_at ASC`,
+      );
+      if (Array.isArray(rows) && rows.length) return rows;
+    } catch (err) {
+      console.error('[audit] withdrawal list failed', err instanceof Error ? err.message : err);
+    }
+  }
+  return withdrawals.filter((row) => row.status === 'REQUESTED');
+}
+
+/**
+ * @param {Record<string, unknown>} env
+ * @param {string} requestId
+ */
+export async function settleMunshiWithdrawal(env, requestId) {
+  const row = withdrawals.find((item) => item.id === requestId);
+  if (!row) {
+    const error = new Error('That withdrawal was not found.');
+    error.code = 'NOT_FOUND';
+    throw error;
+  }
+  row.status = 'SETTLED';
+  const sql = sqlFor(env);
+  if (sql) {
+    try {
+      await sql.query(`UPDATE munshi_payout_requests SET status = 'SETTLED' WHERE id = $1`, [requestId]);
+    } catch (err) {
+      console.error('[audit] withdrawal settle failed', err instanceof Error ? err.message : err);
+    }
+  }
+  return row;
+}
+
+/**
+ * @param {Record<string, unknown>} env
+ * @param {{ now?: string | number | Date, testMode?: boolean }} [options]
+ */
+export async function processTrustClock(env, options = {}) {
+  const now = options.now ? new Date(options.now) : new Date();
+  const nextStatus = options.testMode === true ? 'COLLECTED' : 'DUE_FOR_COLLECTION';
+  /** @type {Array<{ uploadId: string, mandateStatus: string }>} */
+  const due = [];
+  for (const upload of uploads.values()) {
+    const mandate = upload.mandate;
+    if (!mandate || mandate.mode !== 'TRUST_CLOCK_MANDATE') continue;
+    if (mandate.file2Uploaded === true) continue;
+    if (mandate.mandateStatus === 'DUE_FOR_COLLECTION' || mandate.mandateStatus === 'COLLECTED') continue;
+    const day14 = Date.parse(String(mandate.day14SettlementAt || ''));
+    if (!Number.isFinite(day14) || day14 > now.getTime()) continue;
+    mandate.mandateStatus = nextStatus;
+    due.push({ uploadId: String(upload.id), mandateStatus: nextStatus });
+    await persist(env, upload);
+  }
+  return { processed: due.length, uploads: due, now: now.toISOString() };
+}
+
+/**
+ * Test helper. Production requests do not call this.
+ */
 export function resetAuditMemory() {
   uploads.clear();
   wallets.clear();
+  withdrawals.length = 0;
+  tenantTiers.clear();
+  processedProOrders.clear();
 }

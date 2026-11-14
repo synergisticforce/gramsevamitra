@@ -1,6 +1,6 @@
 # GramSevaMitra status
 
-Updated: 14 November 2026. Phases 0A through 8 are complete. Opus 5.5 `xhigh` adversarial audit + remediation is recorded in `AUDIT_REPORT_OPUS.md` and checked by `scripts/test-opus-audit.mjs`.
+Updated: 14 November 2026. Phases 0A through 8 are complete. Opus 5.5 `xhigh` adversarial audit + remediation is recorded in `AUDIT_REPORT_OPUS.md`. The post-Opus closure (OCR PII scrub, 2,000-row benchmark, munshi UPI withdraw, Pro ₹299 sync, and the 14-day trust clock) is checked by `scripts/test-post-opus-closure.mjs`.
 
 Repository: `synergisticforce/gramsevamitra`.  
 Live site: `https://www.gramsevamitra.com`, Cloudflare Pages project `gramsevamitra-hub`.  
@@ -113,6 +113,14 @@ Seller tools, legal pages, and the health check.
 - Document Studio OCR gate remains `DOCUMENT_CONFIDENCE_MIN = 95` (never 85).
 - Full detail: `AUDIT_REPORT_OPUS.md`. Check: `node scripts/test-opus-audit.mjs`.
 
+## Post-Opus operational closure (14 November 2026)
+
+- Cloud OCR responses from `/api/audit/ocr-extract` pass through `scrubOcrOutputPii` in `functions/_lib/cloudOcrArbitrage.mjs` before they are returned. Customer-name and address columns are dropped. Indian mobiles and emails in free text become `[REDACTED_PHONE]` and `[REDACTED_EMAIL]`. Raw PDF bytes are not written to logs.
+- `POST /api/audit/munshi-withdraw` records a UPI payout request in `munshi_payout_requests` (Neon, or memory when `DATABASE_URL` is unset) up to the available 30% wallet. `/munshi/` has a Withdraw to UPI button. `/admin/` lists pending requests and settles one with a click.
+- A completed `PRO_299` checkout (`29900` paise) sets `tenant_accounts.subscription_tier = 'PRO_299'` and credits the linked munshi `8970` paise. A Pro tenant's unlock fee is 5% (`500` bps).
+- `POST /api/audit/process-trust-clock` marks an authorised ₹1 mandate `DUE_FOR_COLLECTION` when day 14 has passed and File 2 was not uploaded. `/admin/` has a Run 14-Day Trust Clock Check button.
+- A 2,000-row Swiggy workbook (merged title cell, blank spacer rows, `Adjusment Type`, `GRAND TOTAL`) audited in **28 ms** on 14 November 2026. Check: `node scripts/test-post-opus-closure.mjs`.
+
 # Still outside this tree
 
 - The separate Flutter Docs Studio app is not this repository. It uses the same Android package id.
@@ -130,6 +138,7 @@ node scripts/test-phase5-api.mjs
 node scripts/test-phase6-ui.mjs
 node scripts/test-phase7-8-final.mjs
 node scripts/test-opus-audit.mjs
+node scripts/test-post-opus-closure.mjs
 npm run typecheck
 npm run build
 ```

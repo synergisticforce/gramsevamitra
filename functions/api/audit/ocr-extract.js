@@ -1,5 +1,5 @@
 import { jsonResponse } from '../../_lib/json.mjs';
-import { extractScannedPayout } from '../../_lib/cloudOcrArbitrage.mjs';
+import { extractScannedPayout, scrubOcrOutputPii } from '../../_lib/cloudOcrArbitrage.mjs';
 import { getNeonSql, hasNeonDatabase } from '../../_lib/neonDb.mjs';
 import { ensureNeonSchema } from '../../_lib/neonSchema.mjs';
 import { getRuntimeEnv, readEnvFromContext } from '../../_lib/runtimeEnv.mjs';
@@ -75,7 +75,7 @@ export async function onRequestPost(context) {
   }
 
   try {
-    const result = await extractScannedPayout({
+    const result = scrubOcrOutputPii(await extractScannedPayout({
       bytes: new Uint8Array(await file.arrayBuffer()),
       mimeType: file.type || 'application/pdf',
       fileName: file.name || 'payout.pdf',
@@ -84,7 +84,7 @@ export async function onRequestPost(context) {
       azureKey,
       sarvamKey,
       geminiKey,
-    });
+    }));
     return reply({
       success: true,
       rows: result.rows || [],
@@ -93,7 +93,8 @@ export async function onRequestPost(context) {
       creditsCharged: 0,
     });
   } catch (err) {
-    console.error('[ocr-extract]', err instanceof Error ? err.message : err);
+    const message = err instanceof Error ? err.message : 'cloud read failed';
+    console.error('[ocr-extract]', message.slice(0, 300));
     if (reserved.length && hasNeonDatabase(env)) {
       const sql = getNeonSql(env);
       if (sql) {
