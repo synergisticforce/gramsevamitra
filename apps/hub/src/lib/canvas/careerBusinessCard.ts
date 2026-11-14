@@ -88,7 +88,7 @@ export function renderBusinessCardCanvas(input: BusinessCardInput): HTMLCanvasEl
   ctx.font = '500 28px system-ui, sans-serif';
   ctx.fillText(company, 72, 220);
 
-  ctx.strokeStyle = '#e2e8f0';
+  ctx.strokeStyle = '#cbd5e1';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(72, 260);
@@ -110,7 +110,7 @@ export function renderBusinessCardCanvas(input: BusinessCardInput): HTMLCanvasEl
     ctx.fillText(`🌐  ${website.replace(/^https?:\/\//i, '')}`, 72, y);
   }
 
-  ctx.fillStyle = '#94a3b8';
+  ctx.fillStyle = '#334155';
   ctx.font = '400 18px system-ui, sans-serif';
   ctx.fillText('gramsevamitra.in', CARD_WIDTH_PX - 220, CARD_HEIGHT_PX - 36);
 

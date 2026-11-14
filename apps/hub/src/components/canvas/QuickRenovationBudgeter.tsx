@@ -34,7 +34,7 @@ const DEFAULT_ITEMS: RenovationLineItem[] = [
 ];
 
 const LIGHT_LEGEND = {
-  labels: { color: '#64748b', boxWidth: 12, padding: 12, font: { size: 11 } },
+  labels: { color: '#334155', boxWidth: 12, padding: 12, font: { size: 11 } },
 };
 
 export default function QuickRenovationBudgeter() {

@@ -26,21 +26,21 @@ const DEFAULTS: SipFormState = {
 };
 
 const LIGHT_LEGEND = {
-  labels: { color: '#64748b', boxWidth: 12, padding: 12, font: { size: 11 } },
+  labels: { color: '#334155', boxWidth: 12, padding: 12, font: { size: 11 } },
 };
 
 const LIGHT_SCALES = {
   x: {
-    ticks: { color: '#94a3b8', font: { size: 10 }, maxRotation: 0 },
-    grid: { color: '#e2e8f0' },
+    ticks: { color: '#334155', font: { size: 10 }, maxRotation: 0 },
+    grid: { color: '#cbd5e1' },
   },
   y: {
     ticks: {
-      color: '#94a3b8',
+      color: '#334155',
       font: { size: 10 },
       callback: (value: string | number) => formatInrShort(Number(value)),
     },
-    grid: { color: '#e2e8f0' },
+    grid: { color: '#cbd5e1' },
   },
 };
 

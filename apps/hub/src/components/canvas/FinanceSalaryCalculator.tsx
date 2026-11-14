@@ -116,8 +116,8 @@ export default function FinanceSalaryCalculator() {
               onClick={() => setTaxRegime(regime)}
               className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
                 taxRegime === regime
-                  ? 'border-emerald-400 bg-canvas-elevated text-emerald-200'
-                  : 'border-canvas-border text-slate-200 hover:bg-canvas-elevated'
+                  ? 'border-emerald-700 bg-emerald-50 text-emerald-900'
+                  : 'border-canvas-border text-slate-900 hover:bg-canvas-elevated'
               }`}
             >
               {regime === 'new' ? 'New regime' : 'Old regime'}
@@ -127,7 +127,7 @@ export default function FinanceSalaryCalculator() {
       )}
 
       <div className="rounded-xl border border-canvas-border bg-canvas-elevated p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">Monthly in-hand</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">Monthly in-hand</p>
         <p className="mt-1 text-3xl font-bold text-canvas-text">{formatInr(breakdown.inHandMonthly)}</p>
         <p className="mt-1 text-sm text-slate-200">Annual in-hand: {formatInr(breakdown.inHandAnnual)}</p>
       </div>

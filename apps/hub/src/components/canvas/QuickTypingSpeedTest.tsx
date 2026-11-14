@@ -93,7 +93,7 @@ export default function QuickTypingSpeedTest() {
     return passage.split('').map((char, i) => {
       let className = 'text-slate-300';
       if (i < typed.length) {
-        className = typed[i] === char ? 'text-emerald-300' : 'text-rose-400 bg-rose-950/40';
+        className = typed[i] === char ? 'text-emerald-800' : 'text-rose-700 bg-rose-50';
       } else if (i === typed.length && phase === 'running') {
         className = 'text-white underline decoration-violet-400';
       }

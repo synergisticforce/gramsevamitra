@@ -1,6 +1,6 @@
 # GramSevaMitra status
 
-Updated: 14 November 2026. Daylight text is dark ink on white cards. `scripts/test-browser-live-audit.mjs` clicks the main doors and tools in headless Chromium. Details are in `UI_UX_AUDIT.md`.
+Updated: 14 November 2026. Daylight text is dark ink on white cards. Chart axis labels are `#334155`, values are `#0f172a`, and gridlines are `#cbd5e1`. `scripts/test-browser-live-audit.mjs` opened 111 tool views in headless Chromium (16 finance, 26 quick tools, 7 lifestyle, 10 video, 8 career, 27 document, 15 image, plus a 3-PDF merge and a passport upload) across all 29 built routes, then checked `/`, `/owner/`, documents, image, and finance at 360×800. The service worker cache prefix is `gsm-daylight-2026-11-14b`. Details are in `UI_UX_AUDIT.md`.
 
 Repository: `synergisticforce/gramsevamitra`.  
 Live site: `https://www.gramsevamitra.com`, Cloudflare Pages project `gramsevamitra-hub`.  

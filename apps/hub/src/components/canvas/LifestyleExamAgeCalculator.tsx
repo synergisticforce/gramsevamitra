@@ -131,7 +131,7 @@ export default function LifestyleExamAgeCalculator() {
             {form.examName || 'Eligibility result'}
           </p>
           <p
-            className={`mt-2 text-2xl font-bold ${result.eligible ? 'text-emerald-300' : 'text-rose-300'}`}
+            className={`mt-2 text-2xl font-bold ${result.eligible ? 'text-emerald-800' : 'text-rose-700'}`}
           >
             {result.eligible ? 'Eligible ✓' : 'Not eligible ✗'}
           </p>

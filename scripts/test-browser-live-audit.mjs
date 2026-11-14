@@ -43,7 +43,18 @@ function startServer() {
   });
 }
 
-const pages = ['/', '/owner/', '/seller/', '/munshi/', '/admin/', '/workspace/documents/', '/workspace/image/', '/workspace/finance/', '/workspace/quick-tools/', '/workspace/lifestyle/', '/workspace/career/', '/workspace/video/', '/pricing/', '/about/', '/contact/'];
+const pages = ['/', '/owner/', '/seller/', '/munshi/', '/admin/', '/workspace/documents/', '/workspace/image/', '/workspace/finance/', '/workspace/quick-tools/', '/workspace/lifestyle/', '/workspace/career/', '/workspace/video/', '/workspace/media/', '/pricing/', '/about/', '/contact/', '/privacy/', '/terms/', '/refund-policy/', '/disclaimer/', '/offline/', '/billing/success/', '/billing/cancel/', '/billing/mobile-checkout/', '/workspace/legal/', '/workspace/legal/privacy/', '/workspace/legal/terms/', '/workspace/legal/refund/', '/404.html'];
+
+function toolLabels(rel) {
+  const text = readFileSync(join(root, rel), 'utf8');
+  const labels = [];
+  for (const block of text.split(/\n  \{/)) {
+    if (!/id: '/.test(block)) continue;
+    const label = block.match(/label: '([^']+)'/);
+    if (label) labels.push(label[1]);
+  }
+  return [...new Set(labels)];
+}
 
 function contrastProbe() {
   const parse = (value) => {
@@ -81,7 +92,8 @@ function contrastProbe() {
     }
     const text = (element.childNodes.length ? Array.from(element.childNodes).filter((node) => node.nodeType === 3).map((node) => node.textContent).join('') : '').trim();
     if (!text) continue;
-    const ink = parse(style.color);
+    const svg = element.namespaceURI === 'http://www.w3.org/2000/svg';
+    const ink = parse(svg ? style.fill : style.color) || parse(style.color);
     if (!ink || ink[3] < 0.2) continue;
     const paper = backgroundOf(element);
     if (lum(ink) > 0.72 && lum(paper) > 0.72) {
@@ -95,7 +107,17 @@ function contrastProbe() {
 const { server, origin } = await startServer();
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage();
+await page.addInitScript(() => {
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch {
+    /* private mode */
+  }
+});
 const failures = [];
+const counts = {};
+let clicked = 0;
 
 try {
   for (const path of pages) {
@@ -109,6 +131,10 @@ try {
     const serious = errors.filter((message) => !/Turnstile|Minified React error #41[83]|Minified React error #423/.test(message));
     if (serious.length) failures.push(`${path} pageerror: ${serious.join(' | ')}`);
   }
+
+  const laterErrors = [];
+  page.removeAllListeners('pageerror');
+  page.on('pageerror', (error) => laterErrors.push(error.message));
 
   await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: 'All Tools' }).first().click();
@@ -164,10 +190,151 @@ try {
   const pngPath = join(folder, 'tiny.png');
   writeFileSync(pngPath, png);
   await page.locator('input[type="file"]').first().setInputFiles(pngPath);
+  counts.sampleFlows = 2;
+  clicked += 2;
 
-  await page.goto(`${origin}/workspace/finance/`, { waitUntil: 'domcontentloaded' });
-  await page.getByRole('button', { name: /EMI Calculator/ }).click();
-  await page.locator('input').first().waitFor();
+  async function clickLabel(label) {
+    return page.evaluate((wanted) => {
+      const nodes = [...document.querySelectorAll('button, summary')];
+      const match = nodes.find((node) => {
+        const lines = node.innerText.split('\n').map((line) => line.trim()).filter(Boolean);
+        return lines.some((line) => line === wanted || line.endsWith(` ${wanted}`));
+      });
+      if (!match) return false;
+      match.click();
+      return true;
+    }, label);
+  }
+
+  async function openEach(key, route, labels, options) {
+    await page.goto(`${origin}${route}`, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    if (options.heading) await page.getByRole('heading', { name: options.heading }).first().waitFor({ timeout: 20000 });
+    else if (options.ready) await page.getByRole('button', { name: options.ready }).first().waitFor({ timeout: 20000 });
+    else await page.waitForTimeout(400);
+    if (options.file) await page.locator('input[type="file"]').first().setInputFiles(options.file);
+    if (options.afterFile) await page.getByRole('button', { name: options.afterFile }).first().waitFor({ timeout: 15000 });
+    let opened = 0;
+    for (const label of labels) {
+      const back = page.getByRole('button', { name: /Back to Tools|Back to 4 PDF Tasks|Back to photo tasks/ });
+      if (await back.isVisible().catch(() => false)) await back.click();
+      let found = await clickLabel(label);
+      if (!found && options.drawer) {
+        await clickLabel(options.drawer);
+        found = await clickLabel(label);
+      }
+      if (!found) {
+        failures.push(`${key} missing button: ${label}`);
+        continue;
+      }
+      if (options.expect) await page.getByText(options.expect).first().waitFor({ timeout: 8000 });
+      const problems = await page.evaluate(contrastProbe);
+      if (problems.length) failures.push(`${key} ${label}: ${problems[0]}`);
+      if (options.closeDialog) {
+        await page.keyboard.press('Escape');
+        const close = page.getByRole('button', { name: /^(Close|Cancel)/ }).first();
+        if (await close.isVisible().catch(() => false)) await close.click();
+      }
+      opened += 1;
+      clicked += 1;
+    }
+    counts[key] = opened;
+  }
+
+  const financeLabels = toolLabels('apps/hub/src/config/financeCanvasTools.ts');
+  const quickLabels = toolLabels('apps/hub/src/config/quickToolsCanvasTools.ts');
+  const lifeLabels = toolLabels('apps/hub/src/config/lifestyleCanvasTools.ts');
+  const videoLabels = toolLabels('apps/hub/src/config/videoCanvasTools.ts');
+  const careerLabels = toolLabels('apps/hub/src/config/careerCanvasActions.ts');
+  const pdfLabels = [...new Set([
+    'Join / Merge PDFs',
+    'Shrink PDF (Govt Form)',
+    'PDF to Excel / Word',
+    'Split / Remove Pages',
+    ...toolLabels('apps/hub/src/config/documentCanvasActions.ts'),
+  ])];
+  const photoLabels = [...new Set([
+    'Passport Photo & 4×6 Sheet',
+    'Shrink Photo (<100 KB)',
+    'Remove Background',
+    'Make Photo Clear',
+    ...toolLabels('apps/hub/src/config/mediaCanvasActions.ts'),
+  ])];
+
+  await openEach('finance', '/workspace/finance/', financeLabels, {
+    heading: 'Finance Hub',
+    drawer: 'Show 12 Advanced & Corporate Calculators',
+    expect: 'Back to Tools',
+  });
+  await openEach('quick', '/workspace/quick-tools/', quickLabels, {
+    heading: 'Quick Tools',
+    drawer: 'Show 22 Advanced, Developer & Hobby Tools',
+    expect: 'Back to Tools',
+  });
+  await openEach('lifestyle', '/workspace/lifestyle/', lifeLabels, {
+    heading: 'Health & Lifestyle',
+    expect: 'Back to Tools',
+  });
+
+  const clipPath = join(folder, 'clip.mp4');
+  writeFileSync(clipPath, Buffer.from('gsm-video-placeholder'));
+  await openEach('video', '/workspace/video/', videoLabels, {
+    heading: 'Video Studio',
+    file: clipPath,
+    afterFile: videoLabels[0],
+    expect: 'Back to Tools',
+  });
+
+  await openEach('career', '/workspace/career/', careerLabels, {
+    heading: 'Career Prep',
+    file: files[0],
+    afterFile: 'ATS Scanner',
+    closeDialog: true,
+  });
+
+  await openEach('documents', '/workspace/documents/', pdfLabels, {
+    ready: /Join \/ Merge PDFs/,
+    drawer: 'Show All 15+ PDF Tools',
+    expect: 'Step 2: Choose Files',
+  });
+  await openEach('image', '/workspace/image/', photoLabels, {
+    ready: /Passport Photo/,
+    drawer: 'Show All Photo Tools',
+    expect: 'Step 2: Choose a photo',
+  });
+
+  await page.setViewportSize({ width: 360, height: 800 });
+  const mobilePaths = ['/', '/owner/', '/workspace/documents/', '/workspace/image/', '/workspace/finance/'];
+  for (const path of mobilePaths) {
+    await page.goto(`${origin}${path}`, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await page.waitForTimeout(500);
+    const nav = page.getByRole('navigation', { name: 'Phone tools' });
+    await nav.waitFor();
+    const box = await nav.boundingBox();
+    if (!box || box.y + box.height > 810 || box.width < 200) failures.push(`${path} bottom nav not on screen`);
+    const layout = await page.evaluate(() => {
+      const view = document.documentElement.clientWidth;
+      const clipped = [];
+      for (const el of document.querySelectorAll('a, button')) {
+        const rect = el.getBoundingClientRect();
+        if (rect.width < 20 || rect.height < 20) continue;
+        const style = getComputedStyle(el);
+        if (style.visibility === 'hidden' || style.display === 'none') continue;
+        if (rect.right > view + 4) clipped.push((el.innerText || el.getAttribute('aria-label') || el.tagName).trim().slice(0, 40));
+      }
+      return { scroll: document.documentElement.scrollWidth, clipped: clipped.slice(0, 5) };
+    });
+    if (layout.scroll > 365) failures.push(`${path} mobile scrollWidth ${layout.scroll}`);
+    if (layout.clipped.length) failures.push(`${path} clipped: ${layout.clipped.join(', ')}`);
+  }
+  await page.getByRole('navigation', { name: 'Phone tools' }).getByRole('link', { name: 'PDF' }).click();
+  await page.waitForURL(/\/workspace\/documents\//);
+  counts.mobileViewports = mobilePaths.length;
+
+  const seriousLater = laterErrors.filter((message) => !/Turnstile|Minified React error #41[83]|Minified React error #423/.test(message));
+  if (seriousLater.length) failures.push(`pageerror: ${[...new Set(seriousLater)].slice(0, 6).join(' | ')}`);
+
+  console.log(`clicked tools ${clicked}`);
+  console.log(JSON.stringify(counts));
 } finally {
   await browser.close();
   server.close();
@@ -177,4 +344,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('headless chromium contrast and click checks passed');
+console.log(`headless chromium contrast and click checks passed (${clicked} tool opens)`);

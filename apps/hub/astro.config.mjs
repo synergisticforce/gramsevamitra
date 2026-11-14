@@ -53,6 +53,7 @@ export default defineConfig({
         // "You're offline" for ordinary links. Null turns the fallback off.
         // Pages already saved on the phone still open without internet.
         navigateFallback: null,
+        cacheId: 'gsm-daylight-2026-11-14b',
         skipWaiting: true,
         clientsClaim: true,
         importScripts: ['share-target.js'],

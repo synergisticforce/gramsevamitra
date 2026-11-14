@@ -126,7 +126,7 @@ export default function QuickPomodoroTimer() {
 
       <div className="relative mx-auto flex h-48 w-48 items-center justify-center">
         <svg className="absolute inset-0 -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
-          <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" className="text-canvas-elevated" strokeWidth="8" />
+          <circle cx="50" cy="50" r="44" fill="none" stroke="#cbd5e1" strokeWidth="8" />
           <circle
             cx="50"
             cy="50"

@@ -1,6 +1,6 @@
 # UI and tool audit
 
-A headless Chromium audit (`scripts/test-browser-live-audit.mjs`) opened the built pages, measured computed text color against the background, and clicked All Tools, the language picker, Speak, the owner samples, the munshi downloads, PDF merge, the passport photo card, and the EMI calculator. Light text classes from the old dark theme are forced to dark ink unless they sit on a solid colored button.
+A headless Chromium audit (`scripts/test-browser-live-audit.mjs`) opened all 29 built routes, including `/privacy/`, `/terms/`, `/refund-policy/`, `/workspace/legal/privacy/`, and `/workspace/legal/terms/`. It measured computed text color, including SVG fill, and clicked 111 tool views: 16 finance calculators, 26 quick tools, 7 lifestyle tools, 10 video tools, 8 career tools, 27 document tasks (4 wizard choices plus 23 PDF actions), 15 image tasks (4 wizard choices plus 12 photo actions, with Remove Background counted once), and 2 file actions (a 3-PDF merge and a passport photo upload). At 360×800 it checked `/`, `/owner/`, `/workspace/documents/`, `/workspace/image/`, and `/workspace/finance/`: `scrollWidth` stayed at or under 365, the phone bar was on screen, and the PDF link opened Document Studio. Light text classes from the old dark theme are forced to dark ink unless they sit on a solid colored button. Chart axis labels are `#334155`, values are `#0f172a`, and gridlines are `#cbd5e1`. Invoice and pay-stub previews and their PDFs use the same dark ink. The service worker cache prefix is `gsm-daylight-2026-11-14b`, with `skipWaiting()` and `clients.claim()`.
 
 The default surface is daylight paper (`#F8FAFC`) with white cards. The permanent left sidebar is closed. The top bar is three controls: All Tools, Voice Guide plus Speak, and one language/digits/currency button. The home page is four large doors: Check My Money, Join & Fix PDF, Passport & ID Photo, and Loan & Shop Tools. Document Studio and Image Studio ask what to do before they ask for a file.
 
@@ -30,7 +30,7 @@ The site stays on Cloudflare Pages, Neon PostgreSQL, and integer paise. There is
 
 ## Checks
 
-`node scripts/test-ux-and-all-tools.mjs` merged 75 one-page PDFs in 14 ms and checked the layout rules above. Phase 1 through the post-Opus closure tests, typecheck, and the production build passed.
+`node scripts/test-ux-and-all-tools.mjs` merged 75 one-page PDFs in 15 ms and checked the layout rules above. `node scripts/test-browser-live-audit.mjs` then passed with 111 tool opens and 5 mobile viewports. Typecheck and the production build passed.
 
 ## Later hardening
 
@@ -43,4 +43,4 @@ The site stays on Cloudflare Pages, Neon PostgreSQL, and integer paise. There is
 
 ## Still true
 
-A person should still try a real Swiggy file and a real multi-PDF merge on a phone. The built-page check reads the published HTML and the calculator bundles. It does not tap every button with a finger.
+A person should still try a real Swiggy file and a real multi-PDF merge on a phone. Chromium now opens every studio card in the registries above. It does not replace that phone check.

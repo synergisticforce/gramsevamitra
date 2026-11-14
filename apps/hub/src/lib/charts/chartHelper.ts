@@ -28,12 +28,12 @@ export async function loadGsmCharts(): Promise<typeof import('chart.js')> {
 }
 
 export const GSM_CHART_COLORS = {
-  primary: '#34d399',
-  secondary: '#fbbf24',
-  muted: '#64748b',
-  grid: '#334155',
-  text: '#94a3b8',
-  surface: '#0f172a',
+  primary: '#047857',
+  secondary: '#b45309',
+  muted: '#334155',
+  grid: '#cbd5e1',
+  text: '#0f172a',
+  surface: '#ffffff',
 } as const;
 
 export function gsmLegendOptions() {
@@ -50,8 +50,8 @@ export function gsmLegendOptions() {
 export function gsmTooltipOptions(formatValue?: (value: number) => string) {
   return {
     backgroundColor: 'rgba(15, 23, 42, 0.95)',
-    titleColor: '#e2e8f0',
-    bodyColor: GSM_CHART_COLORS.text,
+    titleColor: '#f8fafc',
+    bodyColor: '#e2e8f0',
     borderColor: GSM_CHART_COLORS.grid,
     borderWidth: 1,
     padding: 10,

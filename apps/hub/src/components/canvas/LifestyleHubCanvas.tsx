@@ -105,7 +105,7 @@ export default function LifestyleHubCanvas() {
                     {activeTool.icon}
                   </span>
                   <div>
-                    <h2 className="text-lg font-bold text-white">{activeTool.label}</h2>
+                    <h2 className="text-lg font-bold text-slate-900">{activeTool.label}</h2>
                     <p className="text-sm font-medium leading-relaxed text-slate-200">{activeTool.description}</p>
                   </div>
                 </div>

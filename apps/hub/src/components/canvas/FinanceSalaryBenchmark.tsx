@@ -118,8 +118,8 @@ export default function FinanceSalaryBenchmark() {
               <p className="mt-1 text-base font-bold text-slate-200">{formatLpa(result.min)}</p>
             </div>
             <div className="rounded-lg border border-emerald-500/40 bg-canvas-surface px-2 py-3">
-              <p className="text-[10px] uppercase text-emerald-300">Mid</p>
-              <p className="mt-1 text-base font-bold text-emerald-200">{formatLpa(result.mid)}</p>
+              <p className="text-[10px] uppercase text-emerald-800">Mid</p>
+              <p className="mt-1 text-base font-bold text-emerald-900">{formatLpa(result.mid)}</p>
             </div>
             <div className="rounded-lg border border-canvas-border bg-canvas-surface px-2 py-3">
               <p className="text-[10px] uppercase text-slate-300">Max</p>

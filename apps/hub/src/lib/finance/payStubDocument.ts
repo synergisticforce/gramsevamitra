@@ -96,7 +96,7 @@ export async function exportPayStubPdf(data: PayStubFormData): Promise<Blob> {
 
   for (const line of text.split('\n').slice(1)) {
     if (y < margin) break;
-    page.drawText(line.slice(0, 90), { x: margin, y, size: fontSize, font, color: rgb(0.15, 0.15, 0.2) });
+    page.drawText(line.slice(0, 90), { x: margin, y, size: fontSize, font, color: rgb(0.059, 0.09, 0.165) });
     y -= lineHeight;
   }
 
