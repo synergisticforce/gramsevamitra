@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   html {
@@ -12,7 +12,7 @@
   }
 
   body {
-    @apply min-h-screen bg-canvas-bg text-slate-200 leading-relaxed font-normal antialiased;
+    @apply min-h-screen bg-slate-50 text-slate-900 leading-relaxed font-normal antialiased;
   }
 
   p,

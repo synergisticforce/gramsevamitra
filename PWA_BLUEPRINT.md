@@ -53,6 +53,8 @@ Each shared module has a typed re-export under `apps/hub/src/lib/audit/`.
 
 A non-Indian spreadsheet with gross, fee, and net columns is checked row by row. `/munshi/` can export one Tally CSV and one Excel summary for every loaded client. `/admin/` shows whether Razorpay is live or test.
 
+The home screen is four daylight doors. Extra studios live in the All Tools drawer.
+
 The phone and desktop bars no longer list the same studios twice. Document Studio, Finance Hub, and Quick Tools keep the everyday actions open and tuck the rest behind one drawer. Merge keeps its buttons on screen while the file list scrolls. See `UI_UX_AUDIT.md`.
 
 Checks: `scripts/test-phase1-audit.mjs` through `scripts/test-phase7-8-final.mjs`, plus `scripts/test-opus-audit.mjs`, `scripts/test-post-opus-closure.mjs`, and `scripts/test-ux-and-all-tools.mjs`. A 2,000-row Swiggy workbook audits in 28 ms. Cloud OCR output is scrubbed before it is returned. Munshi UPI withdrawals and the 14-day trust clock are admin actions on `/munshi/` and `/admin/`.

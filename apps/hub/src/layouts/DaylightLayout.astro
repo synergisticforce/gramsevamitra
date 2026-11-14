@@ -16,10 +16,6 @@ const { title, description = 'GramSevaMitra owner check. No sign-in. The file st
 <BaseLayout title={title} description={description} site="hub">
   <div class="min-h-screen bg-slate-50 pb-20 text-slate-900 lg:pb-0">
     <header class="print:hidden sticky top-0 z-40 border-b border-slate-200 bg-white">
-      <div class="flex items-center justify-between px-4 py-3">
-        <a href="/" class="text-lg font-black text-slate-900">GramSevaMitra</a>
-        <a href="/workspace/finance/" class="text-sm font-bold text-slate-700">Finance Hub</a>
-      </div>
       <SiteDoorBar client:load tone="daylight" />
     </header>
     <slot />

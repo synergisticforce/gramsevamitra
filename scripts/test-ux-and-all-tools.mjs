@@ -105,9 +105,20 @@ for (const file of uiFiles) {
 
 const door = read('apps/hub/src/components/layout/SiteDoorBar.tsx');
 assert.match(door, /print:hidden/, 'door bar hides in print');
-assert.match(door, /lg:hidden/, 'studio pills hide on desktop');
+assert.match(door, /☰ All Tools/, 'the header opens one all-tools drawer');
+assert.match(door, /Voice Guide/, 'voice guide is one header control');
 assert.match(door, /🎤/, 'voice finder is present');
 assert.match(door, /Kiswahili/, 'language list includes Kiswahili');
+const home = read('apps/hub/src/components/home/HomeGateway.tsx');
+assert.match(home, /Check My Money/, 'home has the money door');
+assert.match(home, /Join & Fix PDF/, 'home has the PDF door');
+assert.match(home, /Passport & ID Photo/, 'home has the photo door');
+assert.match(home, /Loan & Shop Tools/, 'home has the loan door');
+const documents = read('apps/hub/src/components/canvas/DocumentStudioCanvas.tsx');
+assert.match(documents, /📄1 \+ 📄2 ➔ 📘/, 'document studio leads with merge');
+assert.match(documents, /🐘 ➔ 🐜 100 KB/, 'document studio leads with shrink');
+const images = read('apps/hub/src/components/canvas/MediaLabCanvas.tsx');
+assert.match(images, /🧑 ➔ 🪪 8 Photos/, 'image studio leads with the passport sheet');
 
 const owner = read('apps/hub/src/components/finance/OwnerVisualPWA.tsx');
 assert.match(owner, /bg-slate-50/, 'owner uses the daylight background');

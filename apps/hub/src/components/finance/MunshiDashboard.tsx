@@ -164,19 +164,19 @@ export default function MunshiDashboard() {
   };
 
   return (
-    <section className="px-4 py-6 text-slate-100 sm:px-6">
+    <section className="bg-slate-50 px-4 py-6 text-slate-900 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <h1 className="text-3xl font-black">Munshi desk</h1>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl bg-emerald-800 p-4">
+          <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-bold uppercase">30% partner commission wallet</p>
             <p className="font-mono text-3xl font-black" data-numerals={prefs.numerals}>{money(wallet)}</p>
           </div>
-          <div className="rounded-2xl bg-slate-800 p-4">
+          <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-bold uppercase">Active restaurant and seller clients</p>
             <p className="text-3xl font-black">{clients.length}</p>
           </div>
-          <div className="rounded-2xl bg-amber-700 p-4">
+          <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-bold uppercase">Pending 2-second cell checks</p>
             <p className="text-3xl font-black">🟡 {pendingCells}</p>
           </div>

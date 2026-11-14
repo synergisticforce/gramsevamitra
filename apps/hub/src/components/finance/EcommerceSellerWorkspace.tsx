@@ -105,7 +105,7 @@ export default function EcommerceSellerWorkspace() {
   };
 
   return (
-    <section className="px-4 py-6 text-slate-100 sm:px-6">
+    <section className="bg-slate-50 px-4 py-6 text-slate-900 sm:px-6">
       <div className="mx-auto max-w-5xl">
         <h1 className="text-3xl font-black">Seller hub</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-300">

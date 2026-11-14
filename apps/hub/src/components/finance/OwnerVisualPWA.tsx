@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { formatOwnerAmount, ownerCopy, whatsAppShareUrl, buildOwnerWhatsAppMessage } from '../../lib/audit/ownerExperience';
+import { speakText } from '../../lib/voiceAssist';
 import { useDisplayPrefs } from '../../lib/audit/useDisplayPrefs';
 import { buildCompliantUnlockCheckout } from '../../lib/audit/unlockEngine';
 
@@ -295,8 +296,17 @@ export default function OwnerVisualPWA() {
     <div className="min-h-screen bg-slate-50 px-4 py-6 text-[#111827]">
       {view === 'intake' && (
         <div className="mx-auto flex max-w-3xl flex-col gap-4">
+          <div className="flex flex-wrap justify-center gap-2 text-sm font-black">
+            <span className="rounded-full bg-orange-100 px-3 py-2">🟠 Swiggy</span>
+            <span className="rounded-full bg-rose-100 px-3 py-2">🔴 Zomato</span>
+            <span className="rounded-full bg-violet-100 px-3 py-2">🟣 Meesho</span>
+            <span className="rounded-full bg-blue-100 px-3 py-2">🔵 Flipkart</span>
+            <span className="rounded-full bg-amber-100 px-3 py-2">📦 Amazon</span>
+            <span className="rounded-full bg-slate-100 px-3 py-2">🌍 Global CSV/Excel</span>
+          </div>
+          <button type="button" className="min-h-[52px] rounded-full bg-white text-lg font-black" onClick={() => speakText(copy.upload, prefs.hindi ? 'hi' : 'en')}>🔊 Listen</button>
           <label
-            className="flex min-h-[240px] animate-pulse cursor-pointer flex-col items-center justify-center rounded-3xl bg-[#16A34A] px-6 text-center text-white shadow-lg"
+            className="flex min-h-[240px] cursor-pointer flex-col items-center justify-center rounded-3xl bg-[#16A34A] px-6 text-center text-white shadow-lg"
             aria-label={copy.upload}
           >
             <span className="text-5xl" aria-hidden="true">📤</span>
@@ -312,7 +322,11 @@ export default function OwnerVisualPWA() {
                 event.target.value = '';
               }}
             />
-          </label>
+            </label>
+            <label className="flex min-h-[52px] cursor-pointer items-center justify-center rounded-3xl bg-slate-900 text-lg font-black text-white">
+              📷 Take Photo of Paper Bill
+              <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={(event) => { void onFile(event.target.files?.[0]); event.target.value = ''; }} />
+            </label>
           <div className="grid grid-cols-2 gap-3">
             <button type="button" className="rounded-2xl bg-white p-4 text-xl font-black shadow" onClick={() => openCase(swiggyCase())}>
               Swiggy

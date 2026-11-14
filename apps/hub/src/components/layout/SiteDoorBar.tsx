@@ -1,25 +1,11 @@
 import { useEffect, useState } from 'react';
+import { SIDEBAR_TOGGLE_EVENT } from '../../lib/app/shellEvents';
 import { useDisplayPrefs } from '../../lib/audit/useDisplayPrefs';
 import type { AppLanguage, CurrencyCode } from '../../lib/audit/displayPrefs';
 import { routeForSpokenTool, speakText } from '../../lib/voiceAssist';
 
-const ROLES = [
-  { href: '/owner/', label: 'Owner App', emoji: '🍽️' },
-  { href: '/seller/', label: 'Seller Hub', emoji: '📦' },
-  { href: '/munshi/', label: 'Munshi Desk', emoji: '💼' },
-] as const;
-
-const STUDIOS = [
-  { href: '/workspace/finance/', label: 'Finance', emoji: '💰' },
-  { href: '/workspace/documents/', label: 'Documents', emoji: '📄' },
-  { href: '/workspace/image/', label: 'Images', emoji: '🖼️' },
-  { href: '/workspace/video/', label: 'Video', emoji: '🎬' },
-  { href: '/workspace/career/', label: 'Career', emoji: '🎯' },
-  { href: '/workspace/quick-tools/', label: 'Tools', emoji: '⚡' },
-] as const;
-
 const LANGUAGES: Array<{ id: AppLanguage; label: string }> = [
-  { id: 'en', label: 'EN' },
+  { id: 'en', label: 'English' },
   { id: 'hi', label: 'हिंदी' },
   { id: 'bn', label: 'বাংলা' },
   { id: 'ta', label: 'தமிழ்' },
@@ -30,127 +16,140 @@ const LANGUAGES: Array<{ id: AppLanguage; label: string }> = [
   { id: 'ar', label: 'العربية' },
 ];
 
-const CURRENCIES: CurrencyCode[] = ['INR', 'USD', 'EUR', 'GBP', 'NGN'];
-const CURRENCY_MARK: Record<CurrencyCode, string> = { INR: '₹', USD: '$', EUR: '€', GBP: '£', NGN: '₦' };
+const CURRENCIES: Array<{ id: CurrencyCode; label: string }> = [
+  { id: 'INR', label: '₹ INR' },
+  { id: 'USD', label: '$ USD' },
+  { id: 'EUR', label: '€ EUR' },
+  { id: 'GBP', label: '£ GBP' },
+  { id: 'NGN', label: '₦ NGN' },
+];
+
+const MARK: Record<CurrencyCode, string> = { INR: '₹', USD: '$', EUR: '€', GBP: '£', NGN: '₦' };
 
 export default function SiteDoorBar({ tone = 'dark' }: { tone?: 'dark' | 'daylight' }) {
   const prefs = useDisplayPrefs();
-  const light = tone === 'daylight';
-  const [path, setPath] = useState('');
-  const [heard, setHeard] = useState('');
-  const linkClass = light
-    ? 'shrink-0 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-900'
-    : 'shrink-0 rounded-full border border-canvas-border px-3 py-2 text-sm font-semibold text-slate-100';
-  const controlClass = light
-    ? 'min-h-10 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-900'
-    : 'min-h-10 rounded-full border border-canvas-border px-3 py-2 text-sm font-semibold text-slate-100';
+  const light = tone === 'daylight' || true;
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const chip = light
+    ? 'inline-flex min-h-[52px] items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-900 shadow-sm'
+    : 'inline-flex min-h-[52px] items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-900';
 
+  const openTools = () => setToolsOpen(true);
   useEffect(() => {
-    setPath(window.location.pathname);
+    const onToggle = () => setToolsOpen(true);
+    window.addEventListener(SIDEBAR_TOGGLE_EVENT, onToggle);
+    return () => window.removeEventListener(SIDEBAR_TOGGLE_EVENT, onToggle);
   }, []);
-
-  const onRolePage = /\/(owner|seller|munshi)\//.test(path);
 
   const speakFinder = () => {
     try {
-    const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognitionCtor) {
-      const typed = window.prompt('Say a tool: Swiggy, PDF, Merge, Photo, Loan') || '';
-      const route = routeForSpokenTool(typed);
-      if (route) window.location.href = route.href;
-      else setHeard(typed ? 'No matching tool.' : '');
-      return;
-    }
-    const recognition = new SpeechRecognitionCtor();
-    recognition.lang = prefs.language === 'hi' ? 'hi-IN' : 'en-IN';
-    recognition.onresult = (event: { results: Array<Array<{ transcript: string }>> }) => {
-      const text = event.results[0]?.[0]?.transcript || '';
-      setHeard(text);
-      const route = routeForSpokenTool(text);
-      if (route) window.location.href = route.href;
-    };
-    recognition.start();
+      const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognitionCtor) {
+        const typed = window.prompt('Say a tool: Swiggy, PDF, Merge, Photo, Loan') || '';
+        const route = routeForSpokenTool(typed);
+        if (route) window.location.href = route.href;
+        return;
+      }
+      const recognition = new SpeechRecognitionCtor();
+      recognition.lang = prefs.language === 'hi' ? 'hi-IN' : 'en-IN';
+      recognition.onresult = (event: { results: Array<Array<{ transcript: string }>> }) => {
+        const text = event.results[0]?.[0]?.transcript || '';
+        const route = routeForSpokenTool(text);
+        if (route) window.location.href = route.href;
+        else speakText(text || 'No matching tool', prefs.language);
+      };
+      recognition.start();
     } catch {
-      setHeard('Voice input is not available on this phone. Type the tool name instead.');
+      speakText('Voice input is not available on this phone.', prefs.language);
     }
   };
 
   return (
     <>
-      <div className="print:hidden flex flex-wrap items-center justify-between gap-2 px-3 py-2 sm:px-4">
-        <nav className="flex min-w-0 flex-wrap gap-2" aria-label="Quick jump">
-          {ROLES.map((door) => (
-            <a key={door.href} href={door.href} className={linkClass}>
-              <span aria-hidden="true">{door.emoji} </span>
-              {door.label}
-            </a>
-          ))}
-          {onRolePage && (
-            <a href="/" className={linkClass}>🏠 Free Studios</a>
-          )}
-          {STUDIOS.map((door) => (
-            <a key={door.href} href={door.href} className={`${linkClass} lg:hidden`}>
-              <span aria-hidden="true">{door.emoji} </span>
-              {door.label}
-            </a>
-          ))}
-        </nav>
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="print:hidden flex flex-wrap items-center justify-between gap-2 bg-white px-3 py-2 sm:px-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <button type="button" className={chip} aria-label="All Tools" onClick={openTools}>☰ All Tools</button>
+          <a href="/" className="truncate text-base font-black text-slate-900">GramSeva Mitra</a>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2">
           <button
             type="button"
-            className={controlClass}
+            className={chip}
             aria-pressed={prefs.simpleMode}
             onClick={() => {
               const next = !prefs.simpleMode;
               prefs.setSimpleMode(next);
-              if (next) speakText('Simple mode on. Step 1 choose a file. Step 2 tap an action. Step 3 download.', prefs.language);
+              speakText(next ? 'Voice guide on. Tap a big card to hear it.' : 'Voice guide off.', prefs.language);
             }}
           >
-            🔊 {prefs.simpleMode ? 'Simple' : 'सरल / Simple'}
+            🔊 Voice Guide {prefs.simpleMode ? 'ON' : 'OFF'}
           </button>
-          <button type="button" className={controlClass} onClick={speakFinder} aria-label="Speak a tool name">
-            🎤 बोलें / Speak
-          </button>
-          <label className="sr-only" htmlFor="gsm-currency">Currency</label>
-          <select
-            id="gsm-currency"
-            className={controlClass}
-            aria-label="Currency"
-            value={prefs.currency}
-            onChange={(event) => prefs.setCurrency(event.target.value as CurrencyCode)}
-          >
-            {CURRENCIES.map((code) => (
-              <option key={code} value={code}>{CURRENCY_MARK[code]}</option>
-            ))}
-          </select>
-          <label className="sr-only" htmlFor="gsm-language">Language</label>
-          <select
-            id="gsm-language"
-            className={controlClass}
-            aria-label="Language"
-            value={prefs.language}
-            onChange={(event) => prefs.setLanguage(event.target.value as AppLanguage)}
-          >
-            {LANGUAGES.map((language) => (
-              <option key={language.id} value={language.id}>{language.label}</option>
-            ))}
-          </select>
-          <button
-            type="button"
-            className={controlClass}
-            aria-label={prefs.numerals === 'devanagari' ? 'Switch numerals to 123' : 'अंक १२३ में बदलें'}
-            onClick={() => prefs.setNumerals(prefs.numerals === 'devanagari' ? 'latin' : 'devanagari')}
-          >
-            {prefs.numerals === 'devanagari' ? '१२३' : '123'}
-          </button>
+          <button type="button" className={chip} onClick={speakFinder} aria-label="Speak a tool name">🎤 Speak</button>
         </div>
-        {heard && <p className="w-full text-xs font-bold">{heard}</p>}
+        <button type="button" className={chip} onClick={() => setSettingsOpen(true)} aria-label="Language digits and currency">
+          🌐 {prefs.language.toUpperCase()} · {prefs.numerals === 'devanagari' ? '१२३' : '123'} · {MARK[prefs.currency]}
+        </button>
       </div>
-      <nav className="print:hidden fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-slate-300 bg-white lg:hidden" aria-label="Phone tools">
-        <a className="min-h-14 px-1 py-2 text-center text-xs font-black text-slate-900" href="/workspace/finance/">💰 Money</a>
-        <a className="min-h-14 px-1 py-2 text-center text-xs font-black text-slate-900" href="/workspace/documents/">📄 PDF/Scan</a>
-        <a className="min-h-14 px-1 py-2 text-center text-xs font-black text-slate-900" href="/workspace/image/">🖼️ Photo/ID</a>
-        <a className="min-h-14 px-1 py-2 text-center text-xs font-black text-slate-900" href="/workspace/quick-tools/">⚡ Tools</a>
+
+      {toolsOpen && (
+        <div className="print:hidden fixed inset-0 z-50 bg-slate-900/40" role="dialog" aria-label="All Tools">
+          <button type="button" className="absolute inset-0" aria-label="Close all tools" onClick={() => setToolsOpen(false)} />
+          <aside className="relative h-full w-80 max-w-[88vw] overflow-y-auto bg-white p-4 text-slate-900 shadow-xl">
+            <button type="button" className="min-h-[52px] font-black" onClick={() => setToolsOpen(false)}>✕ Close</button>
+            <p className="mt-3 text-sm font-black">Roles</p>
+            <a className="mt-2 flex min-h-[52px] items-center font-black" href="/owner/">🍽️ Owner App</a>
+            <a className="flex min-h-[52px] items-center font-black" href="/seller/">📦 Seller Hub</a>
+            <a className="flex min-h-[52px] items-center font-black" href="/munshi/">💼 Munshi Desk</a>
+            <p className="mt-4 text-sm font-black">Studios</p>
+            <a className="mt-2 flex min-h-[52px] items-center font-black" href="/workspace/finance/">💰 Finance Hub</a>
+            <a className="flex min-h-[52px] items-center font-black" href="/workspace/documents/">📘 Document Studio</a>
+            <a className="flex min-h-[52px] items-center font-black" href="/workspace/image/">🪪 Image Studio</a>
+            <a className="flex min-h-[52px] items-center font-black" href="/workspace/video/">🎬 Video Studio</a>
+            <a className="flex min-h-[52px] items-center font-black" href="/workspace/career/">🎯 Career Prep</a>
+            <a className="flex min-h-[52px] items-center font-black" href="/workspace/lifestyle/">🧘 Health & Lifestyle</a>
+            <a className="flex min-h-[52px] items-center font-black" href="/workspace/quick-tools/">⚡ Quick Tools</a>
+          </aside>
+        </div>
+      )}
+
+      {settingsOpen && (
+        <div className="print:hidden fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-4 sm:items-center" role="dialog" aria-label="Language digits and currency">
+          <div className="max-h-[84vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-5 text-slate-900 shadow-xl">
+            <div className="flex items-center justify-between">
+              <p className="text-xl font-black">Language, digits, currency</p>
+              <button type="button" className="min-h-[52px] px-3 text-lg font-black" onClick={() => setSettingsOpen(false)}>✕</button>
+            </div>
+            <p className="mt-4 text-sm font-black">Language</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {LANGUAGES.map((language) => (
+                <button key={language.id} type="button" className="min-h-[52px] rounded-2xl border border-slate-200 bg-slate-50 font-black" onClick={() => prefs.setLanguage(language.id)}>
+                  {language.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-4 text-sm font-black">Numbers</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button type="button" className="min-h-[52px] rounded-2xl border border-slate-200 font-black" onClick={() => prefs.setNumerals('latin')}>123</button>
+              <button type="button" className="min-h-[52px] rounded-2xl border border-slate-200 font-black" onClick={() => prefs.setNumerals('devanagari')}>१२३</button>
+            </div>
+            <p className="mt-4 text-sm font-black">Currency</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {CURRENCIES.map((currency) => (
+                <button key={currency.id} type="button" className="min-h-[52px] rounded-2xl border border-slate-200 font-black" onClick={() => prefs.setCurrency(currency.id)}>
+                  {currency.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <nav className="print:hidden fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-slate-200 bg-white lg:hidden" aria-label="Phone tools">
+        <a className="min-h-[52px] px-1 py-2 text-center text-xs font-black text-slate-900" href="/workspace/finance/">💰 Money</a>
+        <a className="min-h-[52px] px-1 py-2 text-center text-xs font-black text-slate-900" href="/workspace/documents/">📘 PDF</a>
+        <a className="min-h-[52px] px-1 py-2 text-center text-xs font-black text-slate-900" href="/workspace/image/">🪪 Photo</a>
+        <button type="button" className="min-h-[52px] px-1 py-2 text-center text-xs font-black text-slate-900" onClick={openTools}>☰ All Tools</button>
       </nav>
     </>
   );

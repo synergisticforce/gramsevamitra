@@ -1,6 +1,6 @@
 # GramSevaMitra status
 
-Updated: 14 November 2026. Phases 0A through 8 are complete. The UI pass and the later hardening (lazy PDF merge, universal payout rows, munshi master Tally export, and the admin Razorpay banner) are in `UI_UX_AUDIT.md`.
+Updated: 14 November 2026. The public site now opens on a daylight four-door home screen. Studios ask for the task before the file. Details are in `UI_UX_AUDIT.md`.
 
 Repository: `synergisticforce/gramsevamitra`.  
 Live site: `https://www.gramsevamitra.com`, Cloudflare Pages project `gramsevamitra-hub`.  

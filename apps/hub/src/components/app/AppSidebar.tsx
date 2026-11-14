@@ -68,14 +68,14 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
   return (
     <>
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden" role="presentation">
+        <div className="fixed inset-0 z-40" role="presentation">
           <button
             type="button"
             className="absolute inset-0 bg-canvas-bg/80 backdrop-blur-sm"
             aria-label="Close menu"
             onClick={closeMobile}
           />
-          <aside className="absolute left-0 top-[3.625rem] flex h-[calc(100%-3.625rem)] w-72 max-w-[85vw] flex-col border-r border-canvas-border bg-canvas-surface shadow-none">
+          <aside className="absolute left-0 top-0 flex h-full w-80 max-w-[88vw] flex-col border-r border-slate-200 bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-canvas-border px-5 py-5">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-canvas-subtle">Workspaces</p>
@@ -92,8 +92,15 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
                 ✕
               </button>
             </div>
-            <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Workspace navigation">
-              {navLinks}
+            <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="All tools">
+              <p className="px-3 text-sm font-black text-slate-900">Roles</p>
+              <ul className="mt-2 space-y-1">
+                <li><a className="flex min-h-[52px] items-center rounded-2xl px-3 font-bold text-slate-900" href="/owner/" onClick={closeMobile}>🍽️ Owner App</a></li>
+                <li><a className="flex min-h-[52px] items-center rounded-2xl px-3 font-bold text-slate-900" href="/seller/" onClick={closeMobile}>📦 Seller Hub</a></li>
+                <li><a className="flex min-h-[52px] items-center rounded-2xl px-3 font-bold text-slate-900" href="/munshi/" onClick={closeMobile}>💼 Munshi Desk</a></li>
+              </ul>
+              <p className="mt-4 px-3 text-sm font-black text-slate-900">Studios</p>
+              <div className="mt-2">{navLinks}</div>
             </nav>
             <div className="border-t border-canvas-border px-4 py-2">
               <a
@@ -107,7 +114,7 @@ export default function AppSidebar({ activeWorkspace, currentPath }: Props) {
         </div>
       )}
 
-      <aside className="sticky top-[3.625rem] z-40 hidden h-[calc(100vh-3.625rem)] w-64 shrink-0 flex-col border-r border-canvas-border bg-canvas-surface lg:flex">
+      <aside className="hidden" aria-hidden="true">
         <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Workspace navigation">
           <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-canvas-subtle">Workspaces</p>
           <div className="mt-2">{navLinks}</div>

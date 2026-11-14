@@ -26,12 +26,13 @@ import ImageFilterModal from './ImageFilterModal';
 import ImageToPdfModal from './ImageToPdfModal';
 import ImageWatermarkModal from './ImageWatermarkModal';
 import MediaActionToolbar from './MediaActionToolbar';
-import MediaMagicDropzone from './MediaMagicDropzone';
 import ResizeCompressModal from './ResizeCompressModal';
 import ImageAdjustModal from './ImageAdjustModal';
 import RemoveBackgroundModal from './RemoveBackgroundModal';
 import ImageEnhanceModal from './ImageEnhanceModal';
 import type { EnhanceMode } from '../../lib/canvas/imageEnhance';
+import { speakText } from '../../lib/voiceAssist';
+import { useDisplayPrefs } from '../../lib/audit/useDisplayPrefs';
 
 type CanvasPhase = 'empty' | 'active';
 type MediaToolModal =
@@ -69,6 +70,8 @@ export default function MediaLabCanvas() {
   const [hydrated, setHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [mediaModal, setMediaModal] = useState<MediaToolModal>(null);
+  const [photoTask, setPhotoTask] = useState<null | 'passport' | 'shrink' | 'background' | 'clear'>(null);
+  const prefs = useDisplayPrefs();
   const [proMediaBusy, setProMediaBusy] = useState(false);
   const [processing, setProcessing] = useState<ProcessingState>({
     active: false,
@@ -349,26 +352,58 @@ export default function MediaLabCanvas() {
   return (
     <section className="px-4 py-6 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-4xl">
-        <header className="mb-6">
-          <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent">Workspace</p>
-          <div className="mt-2 flex items-start gap-3">
-            <span className="text-3xl" aria-hidden="true">
-              🖼️
-            </span>
-            <div>
-              <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Image Studio</h1>
-              <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-                Resize, crop, watermark, convert, filter, or AI-enhance — drop an image to begin.
-              </p>
-            </div>
-          </div>
+        <header className="mb-4">
+          <h1 className="text-3xl font-black text-slate-900">What do you want to do? / क्या करना है?</h1>
         </header>
 
-        {phase === 'empty' && (
-          <MediaMagicDropzone
-            onFileSelect={activateFile}
-            onInvalidFile={() => setToastMessage('Please upload a JPG, PNG, or WebP image.')}
-          />
+        {phase === 'empty' && !photoTask && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              { id: 'passport' as const, visual: '🧑 ➔ 🪪 8 Photos', title: 'Passport Photo & 4×6 Sheet', speech: 'Make a passport photo and an eight photo sheet.' },
+              { id: 'shrink' as const, visual: '🐘 ➔ 🐜 100 KB', title: 'Shrink Photo (<100 KB)', speech: 'Shrink a photo under 100 KB.' },
+              { id: 'background' as const, visual: '✂️ 🧑', title: 'Remove Background', speech: 'Remove the photo background.' },
+              { id: 'clear' as const, visual: '🔍 2× / 4×', title: 'Make Photo Clear', speech: 'Make the photo clearer, two times or four times.' },
+            ].map((task) => (
+              <button key={task.id} type="button" className="min-h-36 rounded-3xl border border-slate-200 bg-white p-5 text-left shadow-sm" onClick={() => setPhotoTask(task.id)}>
+                <span className="text-2xl font-black">{task.visual}</span>
+                <span className="mt-3 flex items-center justify-between">
+                  <span className="text-xl font-black">{task.title}</span>
+                  <span className="min-h-[52px] rounded-full bg-slate-100 px-4 py-3" onClick={(event) => { event.stopPropagation(); speakText(task.speech, prefs.language); }}>🔊</span>
+                </span>
+              </button>
+            ))}
+            <p className="sm:col-span-2 text-center text-sm font-black">➕ Show All Photo Tools</p>
+          </div>
+        )}
+
+        {phase === 'empty' && photoTask && (
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <button type="button" className="min-h-[52px] font-black" onClick={() => setPhotoTask(null)}>← Back to photo tasks</button>
+            <p className="mt-2 text-xl font-black">Step 2: Choose a photo</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <label className="flex min-h-28 cursor-pointer items-center justify-center rounded-3xl bg-orange-500 text-xl font-black text-white">
+                📁 Pick Photo
+                <input type="file" accept="image/*" className="sr-only" onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  activateFile(file);
+                  if (photoTask === 'passport') setMediaModal('exam-photo-optimizer');
+                  if (photoTask === 'shrink') setMediaModal('resize-compress');
+                  if (photoTask === 'background') setMediaModal('remove-background');
+                  if (photoTask === 'clear') setMediaModal('upscale-2x');
+                  event.target.value = '';
+                }} />
+              </label>
+              <label className="flex min-h-28 cursor-pointer items-center justify-center rounded-3xl bg-slate-900 text-xl font-black text-white">
+                📷 Take Photo with Camera
+                <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) activateFile(file);
+                  event.target.value = '';
+                }} />
+              </label>
+            </div>
+          </div>
         )}
 
         {phase === 'active' && activeFile && (

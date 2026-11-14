@@ -29,7 +29,6 @@ import OmniHandoffLoading from '../omni/OmniHandoffLoading';
 import CanvasProcessingOverlay from './CanvasProcessingOverlay';
 import CanvasToast from './CanvasToast';
 import DocumentActionToolbar from './DocumentActionToolbar';
-import MagicDropzone from './MagicDropzone';
 import CompressPdfModal from './CompressPdfModal';
 import CropPdfModal from './CropPdfModal';
 import DeskewPdfModal from './DeskewPdfModal';
@@ -54,6 +53,8 @@ import RedactPdfModal from './RedactPdfModal';
 import DocumentVisionOcrModal from './DocumentVisionOcrModal';
 import SearchablePdfModal from './SearchablePdfModal';
 import DocumentCameraScanner from './DocumentCameraScanner';
+import { speakText } from '../../lib/voiceAssist';
+import { useDisplayPrefs } from '../../lib/audit/useDisplayPrefs';
 
 type CanvasPhase = 'empty' | 'active';
 type ToolModal =
@@ -103,6 +104,8 @@ export default function DocumentStudioCanvas() {
   const [pdfModal, setPdfModal] = useState<ToolModal>(null);
   const [cameraScannerOpen, setCameraScannerOpen] = useState(false);
   const [mergeInitialQueue, setMergeInitialQueue] = useState<File[] | null>(null);
+  const [chosenTask, setChosenTask] = useState<null | 'merge' | 'compress' | 'convert' | 'split'>(null);
+  const prefs = useDisplayPrefs();
   const [processing, setProcessing] = useState<ProcessingState>({
     active: false,
     label: '',
@@ -489,27 +492,59 @@ export default function DocumentStudioCanvas() {
   return (
     <section className="px-4 py-6 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-4xl">
-        <header className="mb-6">
-          <p className="text-xs font-semibold uppercase tracking-wider text-canvas-accent">Workspace</p>
-          <div className="mt-2 flex items-start gap-3">
-            <span className="text-3xl" aria-hidden="true">
-              📄
-            </span>
-            <div>
-              <h1 className="text-2xl font-bold text-canvas-text sm:text-3xl">Document Studio</h1>
-              <p className="mt-1 text-sm font-medium leading-relaxed text-slate-200">
-                Merge, split, compress, protect, or convert to editable formats — drop a file to begin.
-              </p>
-            </div>
-          </div>
+        <header className="mb-4">
+          <h1 className="text-3xl font-black text-slate-900">What do you want to do? / क्या करना है?</h1>
         </header>
 
-        {phase === 'empty' && (
-          <MagicDropzone
-            onFileSelect={activateFile}
-            onMultipleFilesSelect={handleMultipleFilesFromDropzone}
-            onScanDocument={() => setCameraScannerOpen(true)}
-          />
+        {phase === 'empty' && !chosenTask && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              { id: 'merge' as const, visual: '📄1 + 📄2 ➔ 📘', title: 'Join / Merge PDFs', speech: 'Join or merge PDF files.' },
+              { id: 'compress' as const, visual: '🐘 ➔ 🐜 100 KB', title: 'Shrink PDF (Govt Form)', speech: 'Shrink a PDF for a government form under 100 KB.' },
+              { id: 'convert' as const, visual: '📄 ➔ 📊', title: 'PDF to Excel / Word', speech: 'Turn a PDF into Excel or Word.' },
+              { id: 'split' as const, visual: '✂️ 📄', title: 'Split / Remove Pages', speech: 'Split a PDF or remove pages.' },
+            ].map((task) => (
+              <button key={task.id} type="button" className="min-h-36 rounded-3xl border border-slate-200 bg-white p-5 text-left shadow-sm" onClick={() => setChosenTask(task.id)}>
+                <span className="text-2xl font-black">{task.visual}</span>
+                <span className="mt-3 flex items-center justify-between gap-2">
+                  <span className="text-xl font-black">{task.title}</span>
+                  <span className="min-h-[52px] rounded-full bg-slate-100 px-4 py-3" onClick={(event) => { event.stopPropagation(); speakText(task.speech, prefs.language); }}>🔊</span>
+                </span>
+              </button>
+            ))}
+            <p className="sm:col-span-2 text-center text-sm font-black">➕ Show All 15+ PDF Tools</p>
+          </div>
+        )}
+
+        {phase === 'empty' && chosenTask && (
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <button type="button" className="min-h-[52px] font-black" onClick={() => setChosenTask(null)}>← Back to 4 PDF Tasks</button>
+            <p className="mt-2 text-xl font-black">Step 2: Choose Files</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <label className="flex min-h-28 cursor-pointer items-center justify-center rounded-3xl bg-blue-600 text-xl font-black text-white">
+                📁 Pick PDF / Files
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  multiple={chosenTask === 'merge'}
+                  className="sr-only"
+                  onChange={(event) => {
+                    const files = Array.from(event.target.files || []);
+                    if (chosenTask === 'merge') handleMultipleFilesFromDropzone(files);
+                    else if (files[0]) {
+                      activateFile(files[0]);
+                      if (chosenTask === 'compress') setPdfModal('compress');
+                      if (chosenTask === 'split') setPdfModal('split');
+                    }
+                    event.target.value = '';
+                  }}
+                />
+              </label>
+              <button type="button" className="min-h-28 rounded-3xl bg-slate-900 text-xl font-black text-white" onClick={() => setCameraScannerOpen(true)}>
+                📷 Scan with Camera
+              </button>
+            </div>
+          </div>
         )}
 
         {phase === 'active' && activeFile && (
